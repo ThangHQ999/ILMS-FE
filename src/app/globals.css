@@ -1,0 +1,265 @@
+@import 'katex/dist/katex.min.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Design System Color Tokens (RGB values for alpha-value syntax) */
+    --color-primary: 10 25 47;       /* #0A192F Midnight Navy */
+    --color-secondary: 0 123 255;    /* #007BFF Tech Blue */
+    --color-tertiary: 108 92 231;    /* #6C5CE7 Electric Indigo */
+    --color-neutral: 240 244 248;    /* #F0F4F8 Soft Surface */
+
+    /* Typography Variable */
+    --font-sans: var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif;
+
+    /* Theme Surface & Status Tokens */
+    --background: #F0F4F8;
+    --foreground: #0A192F;
+
+    --card: #FFFFFF;
+    --card-foreground: #0A192F;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #0A192F;
+
+    --primary: rgb(var(--color-primary));
+    --primary-foreground: #FFFFFF;
+
+    --secondary: rgb(var(--color-secondary));
+    --secondary-foreground: #FFFFFF;
+
+    --tertiary: rgb(var(--color-tertiary));
+    --tertiary-foreground: #FFFFFF;
+
+    --neutral: rgb(var(--color-neutral));
+    --neutral-foreground: #FFFFFF;
+
+    --muted: #E2E8F0;
+    --muted-foreground: #64748B;
+
+    --accent: #EBF3FC;
+    --accent-foreground: #007BFF;
+
+    --destructive: #DC3545;
+    --destructive-foreground: #FFFFFF;
+
+    --success: #28A745;
+    --success-foreground: #FFFFFF;
+
+    --warning: #FD7E14;
+    --warning-foreground: #FFFFFF;
+
+    --info: #007BFF;
+    --info-foreground: #FFFFFF;
+
+    --border: #DFE3E7;
+    --input: #DFE3E7;
+    --ring: rgb(var(--color-primary));
+  }
+
+  .dark {
+    /* Dark Mode Defaults */
+    --color-primary: 56 189 248;
+    --color-secondary: 37 99 235;
+    --color-tertiary: 52 211 153;
+    --color-neutral: 148 163 184;
+
+    --font-sans: var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif;
+
+    --background: #0B0F19;
+    --foreground: #F1F5F9;
+
+    --card: #161B26;
+    --card-foreground: #F1F5F9;
+
+    --popover: #161B26;
+    --popover-foreground: #F1F5F9;
+
+    --primary: rgb(var(--color-primary));
+    --primary-foreground: #0B0F19;
+
+    --secondary: rgb(var(--color-secondary));
+    --secondary-foreground: #FFFFFF;
+
+    --tertiary: rgb(var(--color-tertiary));
+    --tertiary-foreground: #0B0F19;
+
+    --neutral: rgb(var(--color-neutral));
+    --neutral-foreground: #F1F5F9;
+
+    --muted: #1E293B;
+    --muted-foreground: #94A3B8;
+
+    --accent: #1E293B;
+    --accent-foreground: #38BDF8;
+
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+
+    --success: #34D399;
+    --success-foreground: #0B0F19;
+
+    --warning: #FB923C;
+    --warning-foreground: #0B0F19;
+
+    --info: #38BDF8;
+    --info-foreground: #0B0F19;
+
+    --border: rgba(148, 163, 184, 0.15);
+    --input: #1E293B;
+    --ring: rgb(var(--color-primary));
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+  }
+}
+
+/* Staggered Scroll Reveal Animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(2rem);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-0 { transition-delay: 0ms; }
+.reveal-delay-1 { transition-delay: 100ms; }
+.reveal-delay-2 { transition-delay: 250ms; }
+.reveal-delay-3 { transition-delay: 400ms; }
+.reveal-delay-4 { transition-delay: 550ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Modern SaaS Custom Scrollbars (Webkit & Standard)
+   Eliminates classic system scrollbars and buttons, seamlessly matches theme
+   ========================================================================== */
+
+/* Standard Firefox / Modern Browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(148, 163, 184, 0.22) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari, Brave, Opera) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.28);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Dark Mode Scrollbars */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.45);
+}
+
+/* Completely remove Windows classic arrow buttons */
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Utility scrollbar classes */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pre / Code Blocks horizontal scrollbar */
+pre::-webkit-scrollbar {
+  height: 5px;
+}
+pre::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+.dark pre::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+}
+.dark pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.4);
+}
+
+/* KaTeX math formula container styling & horizontal overflow handling */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+  margin: 0.75rem 0 !important;
+  max-width: 100%;
+}
+
+.katex-display::-webkit-scrollbar {
+  height: 4px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+.katex {
+  font-size: 1.05em;
+  text-rendering: auto;
+}
+
+
