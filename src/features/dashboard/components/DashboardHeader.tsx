@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
-import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 
@@ -64,7 +63,6 @@ export function DashboardHeader({
             </button>
             <RoleSwitcher compact />
             <ThemeToggle />
-            <LanguageSwitcher variant="minimal" />
             <div className="h-4 w-px bg-[#E1E5EA] dark:bg-[#282A2C]" />
             <UserMenuDropdown userFullName={userFullName} isFocus={true} />
           </div>
@@ -76,9 +74,8 @@ export function DashboardHeader({
   // 64px Header for Analytics Mode (left-72 or left-20 when collapsed)
   return (
     <header
-      className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-20' : 'left-72'
-      } right-0 h-16 bg-white/85 dark:bg-[#131314] backdrop-blur-xl px-8 flex items-center justify-between border-none shadow-none z-40 transition-all duration-300`}
+      className={`fixed top-0 ${isSidebarCollapsed ? 'left-20' : 'left-72'
+        } right-0 h-16 bg-white/85 dark:bg-[#131314] backdrop-blur-xl px-8 flex items-center justify-between border-none shadow-none z-40 transition-all duration-300`}
     >
       {/* Breadcrumb */}
       <div className="flex items-center gap-3 min-w-0">
