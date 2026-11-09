@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useRouter, usePathname } from 'next/navigation';
 import { usePreferences, useUpdatePreferences } from '../../hooks/useSettings';
+import { setUserLocale } from '@/lib/locale';
 
 interface AppearanceTabProps {
   onSuccessToast: () => void;
@@ -44,9 +45,7 @@ export function AppearanceTab({ onSuccessToast }: AppearanceTabProps) {
   const handleLanguageChange = (newLang: 'vi' | 'en') => {
     setSelectedLanguage(newLang);
     updatePreferencesMutation.mutate({ language: newLang });
-    // Switch cookie locale or redirect if next-intl prefix exists
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000`;
-    router.refresh();
+    setUserLocale(newLang);
   };
 
   const handleFontSizeChange = (size: '100%' | '115%' | '125%') => {

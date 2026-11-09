@@ -14,6 +14,8 @@
 2. Xây dựng trang Đặt lại mật khẩu (Reset Password) với token (`/reset-password`).
 
 ## Done
+- [x] 2026-11-09 — Tối ưu hóa toàn diện hiệu năng tải trang và chuyển đổi liên kết (Link Navigation & Rendering Performance): tắt double-render React Strict Mode trong dev, cấu hình `optimizePackageImports`, thêm `prefetch={true}` cho 100% liên kết (Sidebar, Header, User Menu, Class Cards/List, Landing), triệt tiêu Layout Thrashing / Full-screen Spinner unmount trên Dashboard/Classes/Competency, tối ưu hóa bộ nhớ đệm TanStack Query (`refetchOnMount: false`, `staleTime`, `initialData`), tích hợp thanh tiến trình chuyển trang tức thì `RouteProgressBar` (0ms tactile feedback) và bộ chuyển ngôn ngữ đồng bộ cookie tức thì.
+- [x] 2026-11-09 — Xây dựng màn hình Quản lý danh sách lớp học (`/classes`) chuẩn UI SaaS: Bento Grid / List view, bộ lọc đa chiều (kỳ học, chuyên ngành, trạng thái, vai trò), thanh KPI stats, modal tạo lớp học mới, modal lưu trữ/khôi phục, sao chép mã mời và hỗ trợ Dark/Light mode đa ngôn ngữ đối xứng.
 - [x] 2026-11-03 — Khắc phục lỗi crash MouseEvent.trim() khi gửi tin nhắn AI Tutor và khôi phục hiển thị đầy đủ công thức toán học LaTeX (preprocessLatex, KaTeX display scroll, throwOnError: false) — chi tiết xem `reports/2026-11-03-fix-ai-tutor-latex-and-send-error.md`
 - [x] 2026-11-02 — Backend-confirmed exercise step display; no inferred concept-chat steps (runtime not verified): `reports/2026-11-02-confirmed-step-display.md`
 - [x] 2026-11-02 — Socratic protocol 2 live SSE/status integration (runtime not verified): `reports/2026-11-02-socratic-live-sse-integration.md`

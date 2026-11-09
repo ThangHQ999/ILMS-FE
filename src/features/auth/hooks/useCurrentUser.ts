@@ -10,6 +10,10 @@ export function useCurrentUser() {
     queryKey: authKeys.me(),
     queryFn: getMe,
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

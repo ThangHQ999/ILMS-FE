@@ -20,6 +20,7 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   const isOverviewActive = pathname === '/dashboard';
+  const isClassesActive = pathname.startsWith('/classes');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
@@ -49,6 +50,7 @@ export function DashboardSidebar({
           <nav className="flex flex-col items-center gap-2 w-full px-2">
             <Link
               href="/dashboard"
+              prefetch={true}
               className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
                 isOverviewActive
                   ? 'bg-secondary text-white shadow-sm'
@@ -58,15 +60,21 @@ export function DashboardSidebar({
             >
               <span className="material-symbols-outlined text-[22px]">space_dashboard</span>
             </Link>
-            <a
-              href="#"
-              className="flex items-center justify-center w-12 h-12 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-all"
+            <Link
+              href="/classes"
+              prefetch={true}
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
+                isClassesActive
+                  ? 'bg-secondary text-white shadow-sm'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
               title={t('navCourses')}
             >
-              <span className="material-symbols-outlined text-[22px]">menu_book</span>
-            </a>
+              <span className="material-symbols-outlined text-[22px]">groups</span>
+            </Link>
             <Link
               href="/knowledge-graph"
+              prefetch={true}
               className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
                 isGraphActive
                   ? 'bg-secondary text-white shadow-sm'
@@ -78,6 +86,7 @@ export function DashboardSidebar({
             </Link>
             <Link
               href="/competency"
+              prefetch={true}
               className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
                 isRadarActive
                   ? 'bg-secondary text-white shadow-sm'
@@ -96,6 +105,7 @@ export function DashboardSidebar({
             </a>
             <Link
               href="/ai-tutor"
+              prefetch={true}
               className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
                 isAiTutorActive
                   ? 'bg-secondary text-white shadow-sm'
@@ -118,6 +128,7 @@ export function DashboardSidebar({
         <div className="flex flex-col items-center gap-2 w-full px-2">
           <Link
             href="/settings"
+            prefetch={true}
             className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
               isSettingsActive
                 ? 'bg-secondary text-white shadow-sm'
@@ -159,6 +170,7 @@ export function DashboardSidebar({
         <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-6'}`}>
           <Link
             href="/dashboard"
+            prefetch={true}
             className="flex items-center justify-center focus:outline-none hover:opacity-90 transition-opacity"
             title="ILMS"
           >
@@ -207,6 +219,7 @@ export function DashboardSidebar({
           {/* Overview */}
           <Link
             href="/dashboard"
+            prefetch={true}
             className={
               isOverviewActive
                 ? isCollapsed
@@ -222,23 +235,31 @@ export function DashboardSidebar({
             {!isCollapsed && <span className="text-sm">{t('navOverview')}</span>}
           </Link>
 
-          {/* Courses */}
-          <a
-            href="#"
+          {/* Courses / Classes */}
+          <Link
+            href="/classes"
+            prefetch={true}
             className={
-              isCollapsed
+              isClassesActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
+                  : 'flex items-center justify-between px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
+                : isCollapsed
                 ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
                 : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
             }
             title={t('navCourses')}
           >
-            <span className="material-symbols-outlined text-[20px]">school</span>
-            {!isCollapsed && <span>{t('navCourses')}</span>}
-          </a>
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[20px]">groups</span>
+              {!isCollapsed && <span>{t('navCourses')}</span>}
+            </div>
+          </Link>
 
           {/* Knowledge Graph */}
           <Link
             href="/knowledge-graph"
+            prefetch={true}
             className={
               isGraphActive
                 ? isCollapsed
@@ -257,6 +278,7 @@ export function DashboardSidebar({
           {/* Competency Radar */}
           <Link
             href="/competency"
+            prefetch={true}
             className={
               isRadarActive
                 ? isCollapsed
@@ -289,6 +311,7 @@ export function DashboardSidebar({
           {/* AI Tutor */}
           <Link
             href="/ai-tutor"
+            prefetch={true}
             className={
               isCollapsed
                 ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
@@ -334,6 +357,7 @@ export function DashboardSidebar({
           {/* Settings */}
           <Link
             href="/settings"
+            prefetch={true}
             className={
               isCollapsed
                 ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'

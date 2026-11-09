@@ -6,6 +6,10 @@ import {
   getSkillTreeStages,
   getClassHeatmap,
   getFocusGoals,
+  mockCompetencyRadar,
+  mockSkillTreeStages,
+  mockClassHeatmap,
+  mockFocusGoals,
 } from '../services/competency.service';
 
 export const competencyKeys = {
@@ -21,24 +25,28 @@ export function useCompetencyData() {
     queryKey: competencyKeys.radar(),
     queryFn: getCompetencyRadar,
     staleTime: 5 * 60 * 1000,
+    initialData: mockCompetencyRadar,
   });
 
   const skillTreeQuery = useQuery({
     queryKey: competencyKeys.skillTree(),
     queryFn: getSkillTreeStages,
     staleTime: 5 * 60 * 1000,
+    initialData: mockSkillTreeStages,
   });
 
   const heatmapQuery = useQuery({
     queryKey: competencyKeys.heatmap(),
     queryFn: getClassHeatmap,
     staleTime: 5 * 60 * 1000,
+    initialData: mockClassHeatmap,
   });
 
   const focusGoalsQuery = useQuery({
     queryKey: competencyKeys.focusGoals(),
     queryFn: getFocusGoals,
     staleTime: 5 * 60 * 1000,
+    initialData: mockFocusGoals,
   });
 
   const isLoading =

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 interface DashboardHeaderProps {
   isFocus: boolean;
@@ -24,6 +25,7 @@ export function DashboardHeader({
   const pathname = usePathname();
   const isCompetency = pathname.startsWith('/competency');
   const isGraph = pathname.startsWith('/knowledge-graph');
+  const isClasses = pathname.startsWith('/classes');
 
   if (isFocus) {
     // 56px Header for Focus Mode (left-20)
@@ -35,12 +37,12 @@ export function DashboardHeader({
               aria-label="Breadcrumb"
               className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium"
             >
-              <Link href="/dashboard" className="hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer">
+              <Link href="/dashboard" prefetch={true} className="hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer">
                 {t('home')}
               </Link>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               <span className="text-slate-900 dark:text-slate-200 font-semibold">
-                {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : t('algorithms')}
+                {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : isClasses ? 'Quản lý Lớp học' : t('algorithms')}
               </span>
               <span className="ml-2 px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-semibold text-[11px] flex items-center gap-1">
                 <span className="material-symbols-outlined text-[14px]">visibility</span>
@@ -58,6 +60,7 @@ export function DashboardHeader({
               <span className="material-symbols-outlined text-[18px]">fullscreen_exit</span>
               <span>{t('exitFocusModeBtn')}</span>
             </button>
+            <LanguageSwitcher variant="minimal" />
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <UserMenuDropdown userFullName={userFullName} isFocus={true} />
           </div>
@@ -76,12 +79,12 @@ export function DashboardHeader({
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="hidden sm:flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
-            <Link href="/dashboard" className="flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-100">
+            <Link href="/dashboard" prefetch={true} className="flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-100">
               <span className="material-symbols-outlined text-[18px]">home</span>
             </Link>
             <span>/</span>
             <span className="text-slate-900 dark:text-slate-100 font-semibold">
-              {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : t('learningSpace')}
+              {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : isClasses ? 'Quản lý Lớp học' : t('learningSpace')}
             </span>
           </div>
         </div>
@@ -117,6 +120,9 @@ export function DashboardHeader({
             </span>
             <span>{t('focusModeBtn')}</span>
           </button>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Notification Dropdown */}
           <NotificationDropdown />

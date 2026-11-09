@@ -222,6 +222,7 @@ export function UserMenuDropdown({
             {/* Manage ILMS Account button */}
             <Link
               href="/settings"
+              prefetch={true}
               onClick={() => setIsOpen(false)}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold shadow-sm transition-colors mb-2 cursor-pointer"
             >

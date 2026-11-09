@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import {
   ChevronDown,
   LayoutGrid,
@@ -56,7 +57,7 @@ export function LandingHeader() {
       <div className="h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Brand Logo & Nav */}
         <div className="flex items-center gap-6 lg:gap-10">
-          <Link href="/" className="flex items-center gap-2 group focus:outline-none">
+          <Link href="/" prefetch={true} className="flex items-center gap-2 group focus:outline-none">
             <div className="relative py-1 px-2 rounded-lg bg-slate-50 dark:bg-[#161B26]/60 border border-slate-200 dark:border-slate-800/80 group-hover:border-blue-400 dark:group-hover:border-[#38BDF8]/40 transition-colors flex items-center">
               <img
                 src="/logo-dark.png"
@@ -327,6 +328,9 @@ export function LandingHeader() {
 
         {/* Action Buttons & Theme Switcher */}
         <div className="flex items-center gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher />
+
           {/* Theme Toggle */}
           <button
             id="landing-theme-toggle-btn"
@@ -344,6 +348,7 @@ export function LandingHeader() {
 
           <Link
             href="/login"
+            prefetch={true}
             className="hidden sm:inline-flex text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 px-3.5 py-2 rounded-lg transition-all"
           >
             {t('login')}
@@ -351,6 +356,7 @@ export function LandingHeader() {
 
           <Link
             href="/register"
+            prefetch={true}
             className="inline-flex items-center text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/25 dark:text-slate-950 dark:bg-[#38BDF8] dark:hover:bg-[#60A5FA] dark:hover:shadow-cyan-500/25 px-4 py-2 rounded-lg shadow-md shadow-blue-500/20 dark:shadow-cyan-500/20 transition-all font-semibold"
           >
             {t('getStarted')}

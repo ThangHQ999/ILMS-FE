@@ -599,22 +599,17 @@ export const mockDiagnosticQuiz: DiagnosticQuizData = {
 
 // Services
 export async function getCompetencyRadar(): Promise<CompetencyRadarData> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 80));
   return mockCompetencyRadar;
 }
 
 export async function getSkillTreeStages(): Promise<SkillTreeStage[]> {
-  await new Promise((resolve) => setTimeout(resolve, 80));
   return mockSkillTreeStages;
 }
 
 export async function getClassHeatmap(): Promise<ClassHeatmapData> {
-  await new Promise((resolve) => setTimeout(resolve, 80));
   return mockClassHeatmap;
 }
 
 export async function getFocusGoals(): Promise<FocusGoal[]> {
-  await new Promise((resolve) => setTimeout(resolve, 80));
   return mockFocusGoals;
 }

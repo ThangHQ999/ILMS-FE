@@ -46,18 +46,8 @@ export function DashboardPageView() {
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
       : 'Nhật Minh';
 
-  if (isLoading || !analytics || !competency || !aiInsight || !courses || !aiTasks) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6fafe] dark:bg-[#0B0F19] font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-secondary border-t-transparent" />
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {t('loading')}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isDataReady =
+    !isLoading && analytics && competency && aiInsight && courses && aiTasks;
 
   return (
     <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
@@ -88,17 +78,31 @@ export function DashboardPageView() {
             isFocus ? 'pt-14' : 'pt-16'
           }`}
         >
-          {isFocus ? (
-            <FocusView userFullName={userFullName} aiTasks={aiTasks} />
+          {!isDataReady ? (
+            <div className="p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
+              <div className="h-44 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
+                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
+                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
+                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="h-96 lg:col-span-2 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
+                <div className="h-96 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
+              </div>
+            </div>
+          ) : isFocus ? (
+            <FocusView userFullName={userFullName} aiTasks={aiTasks!} />
           ) : (
             <AnalyticsView
               userFullName={userFullName}
               onSwitchToFocus={() => switchMode('focus')}
-              stats={analytics}
-              heatmap={competency.heatmap}
-              pillars={competency.pillars}
-              insight={aiInsight}
-              courses={courses}
+              stats={analytics!}
+              heatmap={competency!.heatmap}
+              pillars={competency!.pillars}
+              insight={aiInsight!}
+              courses={courses!}
             />
           )}
         </main>
