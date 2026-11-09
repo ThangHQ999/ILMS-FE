@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
-import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 interface DashboardHeaderProps {
   isFocus: boolean;
@@ -60,7 +59,6 @@ export function DashboardHeader({
               <span className="material-symbols-outlined text-[18px]">fullscreen_exit</span>
               <span>{t('exitFocusModeBtn')}</span>
             </button>
-            <LanguageSwitcher variant="minimal" />
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <UserMenuDropdown userFullName={userFullName} isFocus={true} />
           </div>
@@ -120,9 +118,6 @@ export function DashboardHeader({
             </span>
             <span>{t('focusModeBtn')}</span>
           </button>
-
-          {/* Language Switcher */}
-          <LanguageSwitcher />
 
           {/* Notification Dropdown */}
           <NotificationDropdown />
