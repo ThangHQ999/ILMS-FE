@@ -51,11 +51,10 @@ export function DashboardSidebar({
             <Link
               href="/dashboard"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-                isOverviewActive
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isOverviewActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
               title={t('navOverview')}
             >
               <span className="material-symbols-outlined text-[22px]">space_dashboard</span>
@@ -63,23 +62,21 @@ export function DashboardSidebar({
             <Link
               href="/classes"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-                isClassesActive
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isClassesActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
               title={t('navCourses')}
             >
-              <span className="material-symbols-outlined text-[22px]">groups</span>
-            </Link>
+              <span className="material-symbols-outlined text-[22px]">menu_book</span>
+            </a>
             <Link
               href="/knowledge-graph"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-                isGraphActive
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isGraphActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
               title={t('navGraph')}
             >
               <span className="material-symbols-outlined text-[22px]">hub</span>
@@ -87,11 +84,10 @@ export function DashboardSidebar({
             <Link
               href="/competency"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-                isRadarActive
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isRadarActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
               title={t('navRadar')}
             >
               <span className="material-symbols-outlined text-[22px]">radar</span>
@@ -106,11 +102,10 @@ export function DashboardSidebar({
             <Link
               href="/ai-tutor"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-                isAiTutorActive
+              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isAiTutorActive
                   ? 'bg-secondary text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
               title={t('navAiTutor')}
             >
               <span className="material-symbols-outlined text-[22px]">auto_awesome</span>
@@ -129,11 +124,10 @@ export function DashboardSidebar({
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${
-              isSettingsActive
+            className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isSettingsActive
                 ? 'bg-secondary text-white shadow-sm'
                 : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
+              }`}
             title={t('navSettings')}
           >
             <span className="material-symbols-outlined text-[22px]">settings</span>
@@ -146,9 +140,8 @@ export function DashboardSidebar({
   // Sidebar for Analytics Mode (Expandable / Collapsible between 260px and 80px)
   return (
     <aside
-      className={`fixed left-0 top-0 h-full ${
-        isCollapsed ? 'w-20' : 'w-[260px]'
-      } bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all duration-300`}
+      className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-[260px]'
+        } bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all duration-300`}
     >
       {/* Collapse/Expand Floating Button on the border */}
       {onToggleCollapse && (
@@ -212,9 +205,8 @@ export function DashboardSidebar({
 
         {/* Nav Links */}
         <nav
-          className={`flex-1 space-y-1 overflow-y-auto scrollbar-none ${
-            isCollapsed ? 'px-2 flex flex-col items-center' : 'px-4'
-          }`}
+          className={`flex-1 space-y-1 overflow-y-auto scrollbar-none ${isCollapsed ? 'px-2 flex flex-col items-center' : 'px-4'
+            }`}
         >
           {/* Overview */}
           <Link
@@ -226,8 +218,8 @@ export function DashboardSidebar({
                   ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
                   : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
                 : isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
+                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
             }
             title={t('navOverview')}
           >
@@ -245,16 +237,14 @@ export function DashboardSidebar({
                   ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
                   : 'flex items-center justify-between px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
                 : isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
+                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
             }
             title={t('navCourses')}
           >
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[20px]">groups</span>
-              {!isCollapsed && <span>{t('navCourses')}</span>}
-            </div>
-          </Link>
+            <span className="material-symbols-outlined text-[20px]">school</span>
+            {!isCollapsed && <span>{t('navCourses')}</span>}
+          </a>
 
           {/* Knowledge Graph */}
           <Link
@@ -266,8 +256,8 @@ export function DashboardSidebar({
                   ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
                   : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
                 : isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
+                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
             }
             title={t('navGraph')}
           >
@@ -285,8 +275,8 @@ export function DashboardSidebar({
                   ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
                   : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
                 : isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
+                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
             }
             title={t('navRadar')}
           >
@@ -348,9 +338,8 @@ export function DashboardSidebar({
 
           <div className="pt-2 pb-1">
             <div
-              className={`h-px bg-slate-200 dark:bg-slate-800 my-1 ${
-                isCollapsed ? 'w-8 mx-auto' : 'mx-2'
-              }`}
+              className={`h-px bg-slate-200 dark:bg-slate-800 my-1 ${isCollapsed ? 'w-8 mx-auto' : 'mx-2'
+                }`}
             />
           </div>
 
