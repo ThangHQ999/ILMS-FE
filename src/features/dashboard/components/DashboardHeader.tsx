@@ -6,141 +6,141 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
-import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
-import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 
 interface DashboardHeaderProps {
   isFocus: boolean;
   isSidebarCollapsed?: boolean;
   onToggleMode: () => void;
   userFullName?: string;
+  workspaceMode?: 'faculty' | 'student';
+  onToggleWorkspaceMode?: () => void;
 }
 
 export function DashboardHeader({
   isFocus,
   isSidebarCollapsed = false,
   onToggleMode,
-  userFullName = 'Nhật Minh',
+  userFullName,
+  workspaceMode = 'faculty',
+  onToggleWorkspaceMode,
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
-  const isCompetency = pathname.startsWith('/competency');
-  const isGraph = pathname.startsWith('/knowledge-graph');
+
   const isClasses = pathname.startsWith('/classes');
+  const isGraph = pathname.startsWith('/knowledge-graph');
+  const isCompetency = pathname.startsWith('/competency');
+
+  const currentUserName =
+    userFullName || (workspaceMode === 'student' ? 'Trần Nhật Minh' : 'TS. Lê Hoàng Nam');
 
   if (isFocus) {
-    // 56px Header for Focus Mode (left-20)
     return (
-      <header className="fixed top-0 left-20 right-0 h-14 bg-white/90 dark:bg-[#131314] backdrop-blur-xl z-40 border-none shadow-none transition-all duration-300">
-        <div className="h-14 w-full px-8 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-1.5 text-xs text-[#444746] dark:text-[#8E918F] font-medium"
-            >
-              <Link href="/dashboard" prefetch={true} className="hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] cursor-pointer">
-                {t('home')}
-              </Link>
-              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-              <span className="text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold">
-                {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : isClasses ? 'Quản lý Lớp học' : t('algorithms')}
-              </span>
-              <span className="ml-2 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] font-medium text-xs flex items-center gap-1 border-none">
-                <span className="material-symbols-outlined text-[14px]">visibility</span>
-                {t('focusModeBtn')}
-              </span>
-            </nav>
+      <header className="fixed top-0 left-20 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl z-40 border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300">
+        <div className="h-16 w-full px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+              Focus Mode
+            </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={onToggleMode}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] text-xs font-medium transition-colors whitespace-nowrap border-none cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
               type="button"
             >
               <span className="material-symbols-outlined text-[18px]">fullscreen_exit</span>
               <span>{t('exitFocusModeBtn')}</span>
             </button>
-            <RoleSwitcher compact />
             <ThemeToggle />
-            <LanguageSwitcher variant="minimal" />
-            <div className="h-4 w-px bg-[#E1E5EA] dark:bg-[#282A2C]" />
-            <UserMenuDropdown userFullName={userFullName} isFocus={true} />
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
+            <UserMenuDropdown userFullName={currentUserName} isFocus={true} />
           </div>
         </div>
       </header>
     );
   }
 
-  // 64px Header for Analytics Mode (left-72 or left-20 when collapsed)
+  // Header matching user template
   return (
     <header
       className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-20' : 'left-72'
-      } right-0 h-16 bg-white/85 dark:bg-[#131314] backdrop-blur-xl px-8 flex items-center justify-between border-none shadow-none z-40 transition-all duration-300`}
+        isSidebarCollapsed ? 'left-20' : 'left-64'
+      } right-0 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md z-40 border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300 px-8 flex items-center justify-between`}
     >
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-[#444746] dark:text-[#8E918F]">
-          <Link href="/dashboard" prefetch={true} className="flex items-center gap-1 hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]">
-            <span className="material-symbols-outlined text-[18px]">home</span>
-          </Link>
-          <span className="text-[#747775] dark:text-[#8E918F]">/</span>
-          <span className="text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold">
-            {isCompetency ? 'Bản đồ năng lực' : isGraph ? 'Đồ thị tri thức' : isClasses ? 'Quản lý Lớp học' : t('learningSpace')}
+      {/* Left: Breadcrumb Navigation */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm min-w-0">
+        <Link
+          href="/dashboard"
+          className="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-medium flex items-center gap-1 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px] text-slate-400">
+            {workspaceMode === 'student' ? 'school' : 'school'}
           </span>
-        </div>
-      </div>
+          <span>{workspaceMode === 'student' ? 'Không gian học tập' : 'Không gian giảng dạy'}</span>
+        </Link>
+        <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-slate-600">
+          chevron_right
+        </span>
+        <span className="text-slate-900 dark:text-white font-semibold tracking-tight truncate">
+          {isClasses
+            ? workspaceMode === 'student'
+              ? 'Lớp học đang tham gia'
+              : 'Các lớp học'
+            : isCompetency
+            ? 'Bản đồ năng lực'
+            : isGraph
+            ? 'Đồ thị tri thức'
+            : 'Tổng quan'}
+        </span>
+      </nav>
 
-      {/* Search Bar ("Tìm kiếm bài học...") */}
-      <div className="flex-1 max-w-md mx-6">
-        <div className="relative flex items-center">
-          <span className="material-symbols-outlined absolute left-4 text-[20px] text-[#747775] dark:text-[#8E918F]">
+      {/* Right: Search bar & Utilities */}
+      <div className="flex items-center gap-3">
+        {/* Global Search Input */}
+        <div className="relative w-72 hidden md:block">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">
             search
           </span>
           <input
-            className="w-full sm:w-96 h-10 pl-11 pr-20 bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 focus:bg-white dark:focus:bg-[#282A2C] transition-all border-none"
-            placeholder={t('searchPlaceholder')}
+            className="w-full pl-9 pr-14 py-2 bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 focus:bg-white dark:focus:bg-slate-900 text-xs text-slate-800 dark:text-white placeholder:text-slate-400 rounded-xl border border-transparent focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all outline-none"
+            placeholder={workspaceMode === 'student' ? 'Tìm lớp học, môn học, tài liệu...' : 'Tìm lớp học, sinh viên...'}
             type="text"
           />
-          <div className="absolute right-3 flex items-center pointer-events-none">
-            <kbd className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5]">
-              Ctrl K
-            </kbd>
-          </div>
+          <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded shadow-2xs pointer-events-none">
+            Ctrl K
+          </kbd>
         </div>
-      </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-3 shrink-0">
-        {/* Focus Mode Button */}
-        <button
-          onClick={onToggleMode}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] transition-colors text-xs font-medium whitespace-nowrap border-none cursor-pointer"
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
-            center_focus_strong
-          </span>
-          <span>{t('focusModeBtn')}</span>
-        </button>
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
-        {/* Role Switcher */}
-        <RoleSwitcher compact />
+        {/* Mode Switch Button */}
+        {onToggleWorkspaceMode && (
+          <button
+            onClick={onToggleWorkspaceMode}
+            className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-2xs cursor-pointer active:scale-95"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px] text-blue-600">
+              sync_alt
+            </span>
+            <span>
+              {workspaceMode === 'student' ? 'Đổi sang Giảng dạy' : 'Đổi chế độ'}
+            </span>
+          </button>
+        )}
 
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Language Switcher */}
-        <LanguageSwitcher />
-
-        {/* Notification Dropdown */}
+        {/* Notification Bell with alert badge */}
         <NotificationDropdown />
 
-        {/* User Menu Dropdown */}
-        <div className="flex items-center pl-1">
-          <UserMenuDropdown userFullName={userFullName} isFocus={false} />
+        {/* Header Profile Pill */}
+        <div className="flex items-center gap-2 pl-2">
+          <UserMenuDropdown userFullName={currentUserName} isFocus={false} />
         </div>
       </div>
     </header>

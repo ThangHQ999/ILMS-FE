@@ -4,311 +4,394 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface DashboardSidebarProps {
   isFocus: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  workspaceMode?: 'faculty' | 'student';
 }
 
 export function DashboardSidebar({
   isFocus,
   isCollapsed = false,
   onToggleCollapse,
+  workspaceMode = 'faculty',
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
-  const { isTeacher } = useUserRole();
 
   const isOverviewActive = pathname === '/dashboard';
   const isClassesActive = pathname.startsWith('/classes');
-  const isSessionsActive = pathname.startsWith('/lesson-sessions') || pathname.includes('/sessions');
+  const isMaterialsActive = pathname.startsWith('/materials');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
-  const isMaterialsActive = pathname.startsWith('/materials');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isSettingsActive = pathname.startsWith('/settings');
-
-  const navItems = [
-    {
-      href: '/dashboard',
-      icon: 'grid_view',
-      label: t('navOverview'),
-      active: isOverviewActive,
-      show: true,
-    },
-    {
-      href: '/classes',
-      icon: 'school',
-      label: isTeacher ? 'Quản lý Lớp học' : 'Khóa học của tôi',
-      active: isClassesActive,
-      show: true,
-    },
-    {
-      href: '/lesson-sessions',
-      icon: 'calendar_view_week',
-      label: isTeacher ? 'Ca học & Điểm danh' : 'Lịch học của tôi',
-      active: isSessionsActive,
-      show: true,
-    },
-    {
-      href: '/materials',
-      icon: 'upload_file',
-      label: 'Xử lý học liệu',
-      active: isMaterialsActive,
-      show: isTeacher,
-    },
-    {
-      href: '/knowledge-graph',
-      icon: 'hub',
-      label: t('navGraph'),
-      active: isGraphActive,
-      show: true,
-    },
-    {
-      href: '/competency',
-      icon: 'radar',
-      label: isTeacher ? 'Năng lực lớp học' : 'Năng lực cá nhân',
-      active: isRadarActive,
-      show: true,
-    },
-    {
-      href: '/ai-tutor',
-      icon: 'auto_awesome',
-      label: t('navAiTutor'),
-      active: isAiTutorActive,
-      badge: '24/7',
-      show: true,
-    },
-  ].filter((item) => item.show);
 
   if (isFocus) {
     // 80px Compact Sidebar for Focus Mode
     return (
-      <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+      <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between py-4 transition-all duration-300">
         <div className="flex flex-col items-center gap-6">
           <Link
             href="/dashboard"
             className="flex items-center justify-center h-12 w-12 rounded-full focus:outline-none hover:opacity-90 transition-opacity"
             title="ILMS"
           >
-            <img
-              src="/logo-dark.png"
-              alt="ILMS Logo"
-              className="h-8 w-auto object-contain hidden dark:block"
-            />
-            <img
-              src="/logo-light.png"
-              alt="ILMS Logo"
-              className="h-8 w-auto object-contain block dark:hidden"
-            />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+              IL
+            </div>
           </Link>
-          <nav className="flex flex-col items-center gap-1.5 w-full px-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href + item.label}
-                href={item.href}
-                prefetch={item.href.startsWith('/')}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                  item.active
-                    ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                    : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
-                }`}
-                title={item.label}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-              </Link>
-            ))}
+          <nav className="flex flex-col items-center gap-2 w-full px-2">
+            <Link
+              href="/dashboard"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isOverviewActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title="Tổng quan"
+            >
+              <span className="material-symbols-outlined text-[20px]">dashboard</span>
+            </Link>
+            <Link
+              href="/classes"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isClassesActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title={workspaceMode === 'student' ? 'Lớp học của tôi' : 'Các lớp học'}
+            >
+              <span className="material-symbols-outlined text-[20px]">groups</span>
+            </Link>
+            <Link
+              href="/materials"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isMaterialsActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title="Học liệu"
+            >
+              <span className="material-symbols-outlined text-[20px]">menu_book</span>
+            </Link>
+            <Link
+              href="/knowledge-graph"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isGraphActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title="Đồ thị tri thức"
+            >
+              <span className="material-symbols-outlined text-[20px]">hub</span>
+            </Link>
+            <Link
+              href="/ai-tutor"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isAiTutorActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title="AI Tutor"
+            >
+              <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+            </Link>
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                isSettingsActive
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900'
+              }`}
+              title="Cài đặt"
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
           </nav>
-        </div>
-
-        <div className="flex flex-col items-center gap-1.5 w-full px-2">
-          <Link
-            href="/settings"
-            prefetch={true}
-            className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-              isSettingsActive
-                ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
-            }`}
-            title={t('navSettings')}
-          >
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-          </Link>
         </div>
       </aside>
     );
   }
 
-  // Sidebar for Analytics Mode (Expandable / Collapsible between 288px (w-72) and 80px (w-20))
+  // Standard Sidebar
   return (
     <aside
       className={`fixed left-0 top-0 h-full ${
-        isCollapsed ? 'w-20' : 'w-72'
-      } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
+        isCollapsed ? 'w-20' : 'w-64'
+      } bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between transition-all duration-300 shadow-xs select-none`}
     >
-      {/* Collapse/Expand Floating Button on the border */}
-      {onToggleCollapse && (
-        <button
-          onClick={onToggleCollapse}
-          className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border-none shadow-none flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
-          title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-          type="button"
-          aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-        >
-          <span className="material-symbols-outlined text-[15px] text-[#444746] group-hover:text-black dark:text-[#C4C7C5] dark:group-hover:text-white transition-colors">
-            {isCollapsed ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
-      )}
-
       <div className="flex flex-col flex-1 min-h-0">
-        {/* Brand Header */}
-        <div className={`h-14 flex items-center mb-3 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+        {/* App Header / Logo */}
+        <div className={`h-16 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 ${isCollapsed ? 'px-3 justify-center' : 'px-5'}`}>
           <Link
             href="/dashboard"
             prefetch={true}
-            className="flex items-center focus:outline-none hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2.5 focus:outline-none hover:opacity-90 transition-opacity group"
             title="ILMS"
           >
-            {isCollapsed ? (
-              <img
-                src="/logo-short.png"
-                alt="ILMS Logo"
-                className="h-8 w-auto object-contain transition-transform hover:scale-105"
-              />
-            ) : (
-              <>
-                <img
-                  src="/logo-dark.png"
-                  alt="ILMS Logo"
-                  className="h-8 w-auto object-contain hidden dark:block"
-                />
-                <img
-                  src="/logo-light.png"
-                  alt="ILMS Logo"
-                  className="h-8 w-auto object-contain block dark:hidden"
-                />
-              </>
+            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-sm shadow-xs group-hover:scale-105 transition-transform">
+              <span className="material-symbols-outlined text-[18px]">school</span>
+            </div>
+            {!isCollapsed && (
+              <span className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight font-display">
+                ILMS
+              </span>
             )}
           </Link>
+
+          {/* Sidebar Collapse Toggle Button */}
+          {onToggleCollapse && !isCollapsed && (
+            <button
+              onClick={onToggleCollapse}
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center justify-center cursor-pointer"
+              title="Thu gọn menu"
+              type="button"
+              aria-label="Thu gọn menu"
+            >
+              <span className="material-symbols-outlined text-[20px]">menu_open</span>
+            </button>
+          )}
         </div>
 
-        {/* Section title */}
+        {/* Mode Pill Indicator */}
         {!isCollapsed && (
-          <div className="px-3 py-1 mb-1">
-            <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
-              {t('learningArea')}
-            </span>
+          <div className="px-4 pt-4 pb-2">
+            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-blue-50/80 dark:bg-blue-950/60 border border-blue-100/80 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-xs font-semibold tracking-wide">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
+                  {workspaceMode === 'student' ? 'local_library' : 'school'}
+                </span>
+                <span>{workspaceMode === 'student' ? 'Chế độ Học tập' : 'Chế độ Giảng dạy'}</span>
+              </div>
+              <span className="inline-flex w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
           </div>
         )}
 
-        {/* Nav Links */}
-        <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
-          {navItems.map((item) => {
-            const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
-            const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
-
-            if (isCollapsed) {
-              return (
-                <Link
-                  key={item.href + item.label}
-                  href={item.href}
-                  prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                    item.active ? activeClass : inactiveClass
-                  }`}
-                  title={item.label}
-                >
-                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                </Link>
-              );
+        {/* Navigation Links */}
+        <nav className={`flex-1 space-y-1 overflow-y-auto scrollbar-none py-1 ${isCollapsed ? 'px-2 flex flex-col items-center' : 'px-3'}`}>
+          {/* Tổng quan */}
+          <Link
+            href="/dashboard"
+            prefetch={true}
+            className={
+              isOverviewActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
             }
+            title="Tổng quan"
+          >
+            <span className="material-symbols-outlined text-[20px]">dashboard</span>
+            {!isCollapsed && <span>Tổng quan</span>}
+          </Link>
 
-            return (
+          {/* Các lớp học / Lớp học của tôi */}
+          <Link
+            href="/classes"
+            prefetch={true}
+            className={
+              isClassesActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 transition-all'
+                  : 'flex items-center justify-between px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-semibold text-sm shadow-sm shadow-blue-500/25 rounded-xl'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
+            }
+            title={workspaceMode === 'student' ? 'Lớp học của tôi' : 'Các lớp học'}
+          >
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[20px]">groups</span>
+              {!isCollapsed && <span>{workspaceMode === 'student' ? 'Lớp học của tôi' : 'Các lớp học'}</span>}
+            </div>
+            {!isCollapsed && (
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${isClassesActive ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'}`}>
+                {workspaceMode === 'student' ? '4' : '12'}
+              </span>
+            )}
+          </Link>
+
+          {/* Học liệu */}
+          <Link
+            href="/materials"
+            prefetch={true}
+            className={
+              isMaterialsActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
+            }
+            title="Học liệu"
+          >
+            <span className="material-symbols-outlined text-[20px]">menu_book</span>
+            {!isCollapsed && <span>{workspaceMode === 'student' ? 'Học liệu & Bài tập' : 'Học liệu'}</span>}
+          </Link>
+
+          {/* Đồ thị tri thức */}
+          <Link
+            href="/knowledge-graph"
+            prefetch={true}
+            className={
+              isGraphActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
+            }
+            title="Đồ thị tri thức"
+          >
+            <span className="material-symbols-outlined text-[20px]">hub</span>
+            {!isCollapsed && <span>Đồ thị tri thức</span>}
+          </Link>
+
+          {/* AI Tutor */}
+          <Link
+            href="/ai-tutor"
+            prefetch={true}
+            className={
+              isAiTutorActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                  : 'flex items-center justify-between px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium group'
+            }
+            title="AI Tutor"
+          >
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+              {!isCollapsed && <span>{workspaceMode === 'student' ? 'Gia sư AI (24/7)' : 'AI Tutor'}</span>}
+            </div>
+            {!isCollapsed && workspaceMode === 'student' && (
+              <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
+                Socratic
+              </span>
+            )}
+          </Link>
+
+          {/* Student Mode extra items: Thảo luận, Thời khóa biểu */}
+          {workspaceMode === 'student' ? (
+            <>
               <Link
-                key={item.href + item.label}
-                href={item.href}
-                prefetch={item.href.startsWith('/')}
-                className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
-                  item.active ? activeClass : inactiveClass
-                }`}
+                href="/discussion"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-all"
+                title="Thảo luận"
               >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                <span className="flex-1 truncate">{item.label}</span>
-                {item.badge && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA]">
-                    {item.badge}
-                  </span>
-                )}
+                <span className="material-symbols-outlined text-[20px]">forum</span>
+                {!isCollapsed && <span>Thảo luận</span>}
               </Link>
-            );
-          })}
-
-          <div className="my-1 border-none" />
-
-          {/* Settings */}
-          {isCollapsed ? (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                isSettingsActive
-                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
-              }`}
-              title={t('navSettings')}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-            </Link>
+              <Link
+                href="/schedule"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-all"
+                title="Thời khóa biểu"
+              >
+                <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+                {!isCollapsed && <span>Thời khóa biểu</span>}
+              </Link>
+            </>
           ) : (
+            /* Faculty Mode item: Thống kê & Đánh giá */
             <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
-                isSettingsActive
-                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
-              }`}
+              href="/competency"
+              className={
+                isRadarActive
+                  ? isCollapsed
+                    ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                    : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                  : isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
+              }
+              title="Thống kê & Đánh giá"
             >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-              <span>{t('navSettings')}</span>
+              <span className="material-symbols-outlined text-[20px]">analytics</span>
+              {!isCollapsed && <span>Thống kê & Đánh giá</span>}
+            </Link>
+          )}
+
+          {/* Cài đặt */}
+          <Link
+            href="/settings"
+            prefetch={true}
+            className={
+              isSettingsActive
+                ? isCollapsed
+                  ? 'flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white shadow-xs transition-all'
+                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-blue-600 text-white font-bold rounded-xl shadow-xs text-sm'
+                : isCollapsed
+                ? 'flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium'
+            }
+            title="Cài đặt"
+          >
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+            {!isCollapsed && <span>Cài đặt</span>}
+          </Link>
+
+          {/* Student Mode item: Trợ giúp */}
+          {workspaceMode === 'student' && (
+            <Link
+              href="/help"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-all"
+              title="Trợ giúp"
+            >
+              <span className="material-symbols-outlined text-[20px]">help</span>
+              {!isCollapsed && <span>Trợ giúp</span>}
             </Link>
           )}
         </nav>
       </div>
 
-      {/* Bottom Storage Widget ("Bộ nhớ Cloud Lab") */}
+      {/* Instructor / Student Profile Card at Sidebar Footer */}
       {!isCollapsed ? (
-        <div className="bg-[#F0F4F9] dark:bg-[#131314] rounded-2xl p-4 border-none mt-4 shadow-none">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
-              {t('cloudStorage')}
-            </span>
-            <span className="font-mono text-xs text-[#0B57D0] dark:text-[#A8C7FA] font-medium">78%</span>
-          </div>
-          <div className="w-full h-1.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] overflow-hidden mb-2.5">
-            <div className="bg-[#0B57D0] dark:bg-[#A8C7FA] h-full rounded-full transition-all duration-300" style={{ width: '78%' }} />
-          </div>
-          <div className="flex items-center justify-between text-xs text-[#747775] dark:text-[#8E918F]">
-            <span>15.6 GB / 20 GB</span>
-            <a href="#" className="font-medium text-[#0B57D0] dark:text-[#A8C7FA] hover:underline">
-              {t('upgrade')}
-            </a>
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850">
+          <div className="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 shadow-sm">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-display font-bold text-sm shadow-sm">
+                {workspaceMode === 'student' ? 'NM' : 'LN'}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800" />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                {workspaceMode === 'student' ? 'Trần Nhật Minh' : 'TS. Lê Hoàng Nam'}
+              </span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                {workspaceMode === 'student' ? 'Học viên & Trợ giảng' : 'Chủ nhiệm bộ môn'}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">unfold_more</span>
+            </button>
           </div>
         </div>
       ) : (
-        <div
-          className="p-2.5 mx-auto mt-4 rounded-full bg-[#F0F4F9] dark:bg-[#131314] border-none shadow-none flex flex-col items-center gap-1 cursor-pointer hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors"
-          title={`${t('cloudStorage')}: 15.6 GB / 20 GB (78%)`}
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#0B57D0] dark:text-[#A8C7FA]">
-            cloud
-          </span>
-          <span className="font-mono text-[10px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
-            78%
-          </span>
+        <div className="p-3 flex justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-display font-bold text-sm shadow-sm">
+            {workspaceMode === 'student' ? 'NM' : 'LN'}
+          </div>
         </div>
       )}
     </aside>

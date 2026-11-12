@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: Debug Server (Node.js)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "D:\\npm.cmd run dev"
+    },
+    {
+      "name": "Next.js: Debug Full Stack",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "D:\\npm.cmd run dev",
+      "serverReadyAction": {
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
+      "name": "Attach to Chrome (localhost:3000)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
