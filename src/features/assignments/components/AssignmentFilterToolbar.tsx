@@ -16,9 +16,9 @@ export function AssignmentFilterToolbar({
   const t = useTranslations('assignments');
 
   return (
-    <div className="w-full bg-card text-card-foreground rounded-2xl p-4 shadow-sm border border-border mb-6 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+    <div className="w-full bg-card text-card-foreground rounded-2xl p-4 shadow-sm border border-border mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
       {/* Search Input Box */}
-      <div className="relative flex-1 min-w-[260px]">
+      <div className="relative flex-1 min-w-0">
         <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[19px] text-muted-foreground pointer-events-none">
           search
         </span>

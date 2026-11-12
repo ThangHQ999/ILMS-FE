@@ -6,16 +6,9 @@ import type { ClassHubInfo } from '../types';
 
 interface ClassHubHeaderProps {
   info: ClassHubInfo;
-  onCreateQuizAI?: () => void;
-  onCreateAssignment?: () => void;
 }
 
-export function ClassHubHeader({
-  info,
-  onCreateQuizAI,
-  onCreateAssignment,
-}: ClassHubHeaderProps) {
-  const t = useTranslations('assignments');
+export function ClassHubHeader({ info }: ClassHubHeaderProps) {
   const tHub = useTranslations('classHub');
 
   return (
@@ -96,28 +89,6 @@ export function ClassHubHeader({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Primary Action Buttons */}
-      <div className="flex items-center justify-end gap-2.5 mt-5 pt-4 border-t border-border">
-        <button
-          type="button"
-          onClick={onCreateQuizAI}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs sm:text-sm font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all shadow-xs cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px] text-indigo-600 dark:text-indigo-400 animate-pulse">
-            auto_awesome
-          </span>
-          <span>{t('actions.createQuizAi')}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onCreateAssignment}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs sm:text-sm font-semibold hover:bg-secondary/90 transition-all shadow-sm cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          <span>{t('actions.createAssignment')}</span>
-        </button>
       </div>
     </div>
   );
