@@ -15,9 +15,16 @@ export type ClassFilters = z.infer<typeof classFiltersSchema>;
 
 export type ClassViewMode = 'grid' | 'list';
 
+export type WorkspaceRoleMode = 'faculty' | 'student';
+
 export interface ClassKpiStats {
   activeClassesCount: number;
   totalStudentsCount: number;
   needsAttentionCount: number;
 }
 
+export interface StudentClassKpiStats {
+  enrolledClassesCount: number;
+  upcomingAssignmentsCount: number;
+  avgProgressPercent: number;
+}

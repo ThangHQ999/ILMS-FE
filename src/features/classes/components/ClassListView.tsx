@@ -3,10 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import type { ClassItem } from '../types';
+import type { ClassItem, WorkspaceRoleMode } from '../types';
 
 interface ClassListViewProps {
   items: ClassItem[];
+  workspaceMode?: WorkspaceRoleMode;
   onArchiveClick: (item: ClassItem) => void;
   onRestoreClick?: (item: ClassItem) => void;
   copiedCode: string | null;
@@ -15,6 +16,7 @@ interface ClassListViewProps {
 
 export function ClassListView({
   items,
+  workspaceMode = 'faculty',
   onArchiveClick,
   onRestoreClick,
   copiedCode,
@@ -23,32 +25,35 @@ export function ClassListView({
   const t = useTranslations('classes');
 
   return (
-    <div className="w-full overflow-hidden rounded-3xl bg-white dark:bg-[#1E1F20] pt-1 border-none shadow-none">
+    <div className="w-full overflow-hidden rounded-2xl bg-surface border border-border/70 shadow-xs pt-1">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-[#444746] dark:text-[#C4C7C5]">
-          <thead className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[11px] font-semibold text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
+        <table className="w-full text-left text-xs text-foreground">
+          <thead className="bg-muted/50 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/70">
             <tr>
-              <th className="px-5 py-3.5 rounded-l-2xl">{t('classCode')}</th>
+              <th className="px-5 py-3.5">{t('classCode')}</th>
               <th className="px-5 py-3.5">{t('classTitle')}</th>
               <th className="px-5 py-3.5">{t('schedule')}</th>
-              <th className="px-5 py-3.5">{t('students')}</th>
+              <th className="px-5 py-3.5">
+                {workspaceMode === 'student' ? t('learningProgress') : t('students')}
+              </th>
               <th className="px-5 py-3.5">{t('enrollmentCode')}</th>
-              <th className="px-5 py-3.5 text-right rounded-r-2xl">Thao tác</th>
+              <th className="px-5 py-3.5 text-right">Thao tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50">
+          <tbody className="divide-y divide-border/50">
             {items.map((item) => {
               const isCopied = copiedCode === item.enrollmentKey;
-              const isArchived = item.status === 'ARCHIVED';
+              const isArchived = item.status === 'ARCHIVED' || Boolean(item.deletedAt);
+              const studentProgress = (item.name.charCodeAt(0) % 35) + 50;
 
               return (
                 <tr
                   key={item.id}
-                  className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors"
+                  className="hover:bg-muted/30 transition-colors"
                 >
                   {/* Code */}
-                  <td className="px-5 py-4 font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                    <span className="px-2.5 py-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-xs">
+                  <td className="px-5 py-4 font-mono font-bold text-foreground">
+                    <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
                       {item.name}
                     </span>
                   </td>
@@ -58,35 +63,51 @@ export function ClassListView({
                     <Link
                       href={`/classes/${item.id}`}
                       prefetch={true}
-                      className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors block line-clamp-1"
+                      className="font-semibold text-foreground hover:text-primary transition-colors block line-clamp-1"
                     >
-                      {item.title}
+                      {item.title || item.name}
                     </Link>
-                    <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
-                      {item.major} • {item.academicYear}
+                    <span className="text-[11px] text-muted-foreground">
+                      {item.major} • GV: {item.instructor?.fullName || 'TS. Lê Hoàng Nam'}
                     </span>
                   </td>
 
                   {/* Schedule */}
                   <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 text-[#444746] dark:text-[#C4C7C5]">
-                      <span className="material-symbols-outlined text-[15px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <span className="material-symbols-outlined text-[15px]">
                         schedule
                       </span>
-                      <span>{item.schedule?.dayOfWeek || 'Linh hoạt'}</span>
-                      <span className="text-[#747775] dark:text-[#8E918F]">•</span>
-                      <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
-                        {item.schedule?.room || 'Phòng học trực tuyến'}
+                      <span>{item.schedule?.dayOfWeek || t('scheduleFlexible')}</span>
+                      <span>•</span>
+                      <span className="font-medium text-foreground">
+                        {item.schedule?.room || 'Trực tuyến'}
                       </span>
                     </div>
                   </td>
 
-                  {/* Students */}
+                  {/* Students / Progress */}
                   <td className="px-5 py-4 whitespace-nowrap">
-                    <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                      {item.enrolledCount || 0}
-                    </span>
-                    <span className="text-[#747775] dark:text-[#8E918F]"> / {item.maxStudents || 60}</span>
+                    {workspaceMode === 'student' ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-muted h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-primary h-full rounded-full"
+                            style={{ width: `${studentProgress}%` }}
+                          />
+                        </div>
+                        <span className="font-semibold text-primary font-mono">
+                          {studentProgress}%
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-foreground">
+                          {item.enrolledCount || 0}
+                        </span>
+                        <span className="text-muted-foreground"> / {item.maxStudents || 60}</span>
+                      </>
+                    )}
                   </td>
 
                   {/* Enrollment Key */}
@@ -95,7 +116,7 @@ export function ClassListView({
                       <button
                         type="button"
                         onClick={() => onCopyCode(item.enrollmentKey!)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] font-mono text-[11px] text-[#1F1F1F] dark:text-[#C4C7C5] whitespace-nowrap transition-colors border-none cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted hover:bg-muted/80 font-mono text-[11px] text-foreground transition-colors cursor-pointer"
                         title={t('copyCode')}
                       >
                         <span className="material-symbols-outlined text-[14px]">
@@ -104,7 +125,7 @@ export function ClassListView({
                         <span>{item.enrollmentKey}</span>
                       </button>
                     ) : (
-                      <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">-</span>
+                      <span className="text-[11px] text-muted-foreground">-</span>
                     )}
                   </td>
 
@@ -113,30 +134,32 @@ export function ClassListView({
                     <div className="inline-flex items-center gap-2">
                       <Link
                         href={`/classes/${item.id}`}
-                        className="px-4 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-xs whitespace-nowrap transition-colors border-none shadow-none"
+                        className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-semibold text-xs transition-colors"
                       >
-                        {t('enterClassSpace')}
+                        {workspaceMode === 'student' ? t('continueLearning') : t('enterClassSpace')}
                       </Link>
 
-                      {!isArchived ? (
-                        <button
-                          type="button"
-                          onClick={() => onArchiveClick(item)}
-                          className="p-1.5 rounded-full text-[#747775] dark:text-[#8E918F] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF] dark:hover:bg-[#3C1919] transition-colors border-none cursor-pointer"
-                          title={t('menuArchive')}
-                        >
-                          <span className="material-symbols-outlined text-[18px]">archive</span>
-                        </button>
-                      ) : (
-                        onRestoreClick && (
+                      {workspaceMode === 'faculty' && (
+                        !isArchived ? (
                           <button
                             type="button"
-                            onClick={() => onRestoreClick(item)}
-                            className="p-1.5 rounded-full text-[#747775] dark:text-[#8E918F] hover:text-[#0D652D] dark:hover:text-[#81C995] hover:bg-[#C4EED0] dark:hover:bg-[#142E20] transition-colors border-none cursor-pointer"
-                            title={t('menuRestore')}
+                            onClick={() => onArchiveClick(item)}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            title={t('menuArchive')}
                           >
-                            <span className="material-symbols-outlined text-[18px]">unarchive</span>
+                            <span className="material-symbols-outlined text-[18px]">archive</span>
                           </button>
+                        ) : (
+                          onRestoreClick && (
+                            <button
+                              type="button"
+                              onClick={() => onRestoreClick(item)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors"
+                              title={t('menuRestore')}
+                            >
+                              <span className="material-symbols-outlined text-[18px]">unarchive</span>
+                            </button>
+                          )
                         )
                       )}
                     </div>

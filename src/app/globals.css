@@ -5,96 +5,75 @@
 
 @layer base {
   :root {
-    --radius: 0.75rem;
+    --radius: 9999px;
+    --radius-card: 1.5rem;
 
-    /* Design System Color Tokens (RGB values for alpha-value syntax) */
-    --color-primary: 11 87 208;       /* #0B57D0 Google Blue MD3 */
-    --color-secondary: 11 87 208;    /* #0B57D0 */
-    --color-tertiary: 19 115 51;      /* #137333 Google Green */
-    --color-neutral: 116 119 117;     /* #747775 Google Neutral Muted */
+    /* Typography Variable */
+    --font-sans: var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif;
 
-    /* Typography Variables (Next.js font optimization) */
-    --font-sans: var(--font-outfit), var(--font-plus-jakarta-sans), system-ui, -apple-system, sans-serif;
-    --font-mono: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    /* Theme Surface & Status Tokens (Gemini Light MD3) */
+    --background: #F0F4F9;
+    --foreground: #1F1F1F;
 
-    /* ===== GOOGLE GEMINI LIGHT THEME TOKENS ===== */
-    --background: #E1E5EA;           /* Cool MD3 Gray Canvas (Deep enough for pure white cards to pop) */
-    --foreground: #1F1F1F;           /* Google High-Contrast Text */
+    --surface: #FFFFFF;
+    --surface-hover: #E1E5EA;
 
-    --card: #FFFFFF;                 /* Pure White Elevated Level 1 Surface */
+    --card: #FFFFFF;
     --card-foreground: #1F1F1F;
 
     --popover: #FFFFFF;
     --popover-foreground: #1F1F1F;
 
-    --primary: rgb(var(--color-primary));
-    --primary-foreground: #FFFFFF;
-
-    --secondary: rgb(var(--color-secondary));
-    --secondary-foreground: #FFFFFF;
-
-    --tertiary: rgb(var(--color-tertiary));
-    --tertiary-foreground: #FFFFFF;
-
-    --neutral: rgb(var(--color-neutral));
-    --neutral-foreground: #1F1F1F;
-
-    --muted: #F0F4F9;                /* Surface Level 2 / Chips / Inactive */
-    --muted-foreground: #444746;     /* Secondary / Muted Text */
-
-    --accent: #D3E3FD;               /* Primary Tonal Container */
-    --accent-foreground: #041E49;
-
-    --destructive: #C5221F;          /* Google Red Status */
-    --destructive-foreground: #FFFFFF;
-
-    --success: #137333;              /* Google Green Status */
-    --success-foreground: #FFFFFF;
-
-    --warning: #B06000;              /* Google Amber Status */
-    --warning-foreground: #FFFFFF;
-
-    --info: #0B57D0;
-    --info-foreground: #FFFFFF;
-
-    --surface: #FFFFFF;
-    --on-surface: #1F1F1F;
-    --surface-hover: #F0F4F9;
-    --surface-variant: #F0F4F9;
-    --on-surface-variant: #444746;
+    --primary: #D3E3FD;
+    --primary-foreground: #041E49;
     --primary-container: #D3E3FD;
     --on-primary-container: #041E49;
+
+    --secondary: #F0F4F9;
+    --secondary-foreground: #1F1F1F;
+
+    --tertiary: #C4EED0;
+    --tertiary-foreground: #0D652D;
+
+    --neutral: #E1E5EA;
+    --neutral-foreground: #444746;
+
+    --muted: #E1E5EA;
+    --muted-foreground: #444746;
+
+    --accent: #E1E5EA;
+    --accent-foreground: #041E49;
+
+    --destructive: #F9DEDC;
+    --destructive-foreground: #410E0B;
+
+    --success: #C4EED0;
+    --success-foreground: #0D652D;
     --success-container: #C4EED0;
     --on-success-container: #0D652D;
+
+    --warning: #FCEBA4;
+    --warning-foreground: #725200;
     --warning-container: #FCEBA4;
     --on-warning-container: #725200;
-    --error-container: #FAD2CF;
-    --on-error-container: #B3261E;
-    --info-container: #D3E3FD;
-    --on-info-container: #041E49;
+
+    --info: #D3E3FD;
+    --info-foreground: #041E49;
 
     --border: transparent;
-    --input: #F0F4F9;
-    --ring: rgba(11, 87, 208, 0.35);
-
-    /* MD3 Level-1 Subtle Elevation for Light Mode */
-    --shadow-md3-1: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --input: #E1E5EA;
+    --ring: #A8C7FA;
   }
 
   .dark {
-    /* ===== GOOGLE GEMINI DARK THEME TOKENS ===== */
-    --color-primary: 168 199 250;     /* #A8C7FA MD3 Pastel Blue */
-    --color-secondary: 168 199 250;   /* Same pastel blue */
-    --color-tertiary: 129 201 149;    /* #81C995 Soft Green */
-    --color-neutral: 142 145 143;     /* #8E918F Muted */
+    /* Theme Surface & Status Tokens (Gemini Dark MD3) */
+    --font-sans: var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif;
 
-    /* Typography Variables (Next.js font optimization) */
-    --font-sans: var(--font-outfit), var(--font-plus-jakarta-sans), system-ui, -apple-system, sans-serif;
-    --font-mono: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-    /* Canvas & Surfaces — TRUE Gemini neutrals, zero blue tint */
     --background: #131314;
     --foreground: #E3E3E3;
+
+    --surface: #1E1F20;
+    --surface-hover: #282A2C;
 
     --card: #1E1F20;
     --card-foreground: #E3E3E3;
@@ -102,57 +81,45 @@
     --popover: #1E1F20;
     --popover-foreground: #E3E3E3;
 
-    --primary: rgb(var(--color-primary));
+    --primary: #A8C7FA;
     --primary-foreground: #062E6F;
+    --primary-container: #A8C7FA;
+    --on-primary-container: #062E6F;
 
-    --secondary: rgb(var(--color-secondary));
-    --secondary-foreground: #062E6F;
+    --secondary: #282A2C;
+    --secondary-foreground: #E3E3E3;
 
-    --tertiary: rgb(var(--color-tertiary));
-    --tertiary-foreground: #131314;
+    --tertiary: #142E20;
+    --tertiary-foreground: #81C995;
 
-    --neutral: rgb(var(--color-neutral));
-    --neutral-foreground: #E3E3E3;
+    --neutral: #282A2C;
+    --neutral-foreground: #8E918F;
 
     --muted: #282A2C;
     --muted-foreground: #8E918F;
 
-    --accent: #162B4D;
+    --accent: #282A2C;
     --accent-foreground: #A8C7FA;
 
-    --surface: #1E1F20;
-    --on-surface: #E3E3E3;
-    --surface-hover: #282A2C;
-    --surface-variant: #282A2C;
-    --on-surface-variant: #C4C7C5;
-    --primary-container: #1B3052;
-    --on-primary-container: #D3E3FD;
+    --destructive: #3C1919;
+    --destructive-foreground: #F28B82;
+
+    --success: #142E20;
+    --success-foreground: #81C995;
     --success-container: #142E20;
     --on-success-container: #81C995;
+
+    --warning: #3C2A1E;
+    --warning-foreground: #FFB784;
     --warning-container: #3C2A1E;
     --on-warning-container: #FFB784;
-    --error-container: #3C1919;
-    --on-error-container: #F28B82;
-    --info-container: #162B4D;
-    --on-info-container: #A8C7FA;
 
-    --destructive: #F28B82;
-    --destructive-foreground: #3C1919;
-
-    --success: #81C995;
-    --success-foreground: #142E20;
-
-    --warning: #FFB784;
-    --warning-foreground: #3C2A1E;
-
-    --info: #A8C7FA;
-    --info-foreground: #062E6F;
+    --info: #162B4D;
+    --info-foreground: #A8C7FA;
 
     --border: transparent;
-    --input: #1E1F20;
-    --ring: rgba(168, 199, 250, 0.4);
-
-    --shadow-md3-1: none;
+    --input: #282A2C;
+    --ring: #A8C7FA;
   }
 
   * {
@@ -164,90 +131,6 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     min-height: 100vh;
-  }
-}
-
-/* =====================================================================
-   GEMINI DESIGN SYSTEM — Utility Classes
-   ===================================================================== */
-
-@layer utilities {
-  /* Surface hierarchy utilities (adaptive) */
-  .bg-gemini-base { background-color: var(--background); }
-  .bg-gemini-surface { background-color: var(--surface); }
-  .bg-gemini-surface-hover { background-color: var(--muted); }
-  .bg-gemini-surface-active { background-color: var(--accent); }
-
-  /* MD3 Level 1 Soft Elevation for Pure White Cards in Light Mode */
-  .shadow-md3-1 {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  .dark .shadow-md3-1 {
-    box-shadow: none;
-  }
-
-  /* Text color utilities */
-  .text-gemini-primary { color: var(--foreground); }
-  .text-gemini-secondary { color: var(--on-surface-variant); }
-  .text-gemini-muted { color: var(--muted-foreground); }
-
-  /* Accent utilities */
-  .text-gemini-accent { color: var(--primary); }
-  .bg-gemini-accent { background-color: var(--primary); }
-
-  /* Semantic status tonal backgrounds (MD3 Tonal) */
-  .bg-status-success { background-color: #C4EED0; color: #0D652D; }
-  .dark .bg-status-success { background-color: #142E20; color: #81C995; }
-  .bg-status-warning { background-color: #FCEBA4; color: #725200; }
-  .dark .bg-status-warning { background-color: #3C2A1E; color: #FFB784; }
-  .bg-status-error { background-color: #FAD2CF; color: #B3261E; }
-  .dark .bg-status-error { background-color: #3C1919; color: #F28B82; }
-  .bg-status-info { background-color: #D3E3FD; color: #041E49; }
-  .dark .bg-status-info { background-color: #162B4D; color: #A8C7FA; }
-
-  /* Primary tonal container */
-  .bg-tonal-primary { background-color: #D3E3FD; color: #041E49; }
-  .dark .bg-tonal-primary { background-color: #162B4D; color: #D3E3FD; }
-
-  /* MD3 Flat Tonal Button Utilities */
-  .btn-primary-md3 {
-    background-color: #D3E3FD;
-    color: #041E49;
-    border: none;
-    border-radius: 9999px;
-    font-weight: 500;
-    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-    white-space: nowrap;
-  }
-  .btn-primary-md3:hover {
-    background-color: #B9D0F9;
-  }
-  .dark .btn-primary-md3 {
-    background-color: #A8C7FA;
-    color: #062E6F;
-  }
-  .dark .btn-primary-md3:hover {
-    background-color: #8AB4F8;
-  }
-
-  .btn-surface-md3 {
-    background-color: #F0F4F9;
-    color: #1F1F1F;
-    border: none;
-    border-radius: 9999px;
-    font-weight: 500;
-    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-    white-space: nowrap;
-  }
-  .btn-surface-md3:hover {
-    background-color: #E1E5EA;
-  }
-  .dark .btn-surface-md3 {
-    background-color: #282A2C;
-    color: #E3E3E3;
-  }
-  .dark .btn-surface-md3:hover {
-    background-color: #333537;
   }
 }
 
@@ -277,18 +160,21 @@
 }
 
 /* ==========================================================================
-   Modern Custom Scrollbars
+   Modern SaaS Custom Scrollbars (Webkit & Standard)
+   Eliminates classic system scrollbars and buttons, seamlessly matches theme
    ========================================================================== */
 
+/* Standard Firefox / Modern Browsers */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(116, 119, 117, 0.3) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 
 .dark * {
-  scrollbar-color: rgba(142, 145, 143, 0.22) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.22) transparent;
 }
 
+/* WebKit (Chrome, Edge, Safari, Brave, Opera) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -299,7 +185,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(116, 119, 117, 0.28);
+  background: rgba(148, 163, 184, 0.28);
   border-radius: 9999px;
   border: 1px solid transparent;
   background-clip: padding-box;
@@ -307,19 +193,21 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(116, 119, 117, 0.5);
+  background: rgba(100, 116, 139, 0.5);
   border: 1px solid transparent;
   background-clip: padding-box;
 }
 
+/* Dark Mode Scrollbars */
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(142, 145, 143, 0.22);
+  background: rgba(148, 163, 184, 0.22);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 199, 250, 0.45);
+  background: rgba(56, 189, 248, 0.45);
 }
 
+/* Completely remove Windows classic arrow buttons */
 ::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
@@ -330,6 +218,7 @@
   background: transparent;
 }
 
+/* Utility scrollbar classes */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -343,20 +232,22 @@
   display: none;
 }
 
+/* Pre / Code Blocks horizontal scrollbar */
 pre::-webkit-scrollbar {
   height: 5px;
 }
 pre::-webkit-scrollbar-thumb {
-  background: rgba(116, 119, 117, 0.25);
+  background: rgba(148, 163, 184, 0.25);
   border-radius: 9999px;
 }
 .dark pre::-webkit-scrollbar-thumb {
-  background: rgba(142, 145, 143, 0.2);
+  background: rgba(148, 163, 184, 0.2);
 }
 .dark pre::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 199, 250, 0.4);
+  background: rgba(56, 189, 248, 0.4);
 }
 
+/* KaTeX math formula container styling & horizontal overflow handling */
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
@@ -370,7 +261,7 @@ pre::-webkit-scrollbar-thumb {
 }
 
 .katex-display::-webkit-scrollbar-thumb {
-  background: rgba(116, 119, 117, 0.3);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
@@ -378,3 +269,5 @@ pre::-webkit-scrollbar-thumb {
   font-size: 1.05em;
   text-rendering: auto;
 }
+
+

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import type { WorkspaceRoleMode } from '../types';
 
 export function ClassLoadingSkeleton() {
   return (
@@ -9,18 +10,32 @@ export function ClassLoadingSkeleton() {
       {[1, 2, 3, 4, 5, 6].map((idx) => (
         <div
           key={idx}
-          className="rounded-3xl bg-white dark:bg-[#1E1F20] p-6 space-y-4 animate-pulse border-none shadow-none"
+          className="rounded-2xl bg-surface border border-border/70 p-0 overflow-hidden space-y-4 animate-pulse shadow-xs"
         >
-          <div className="h-24 w-full bg-[#E1E5EA] dark:bg-[#282A2C] rounded-2xl" />
-          <div className="space-y-2">
-            <div className="h-5 w-3/4 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full" />
-            <div className="h-4 w-1/2 bg-[#F0F4F9] dark:bg-[#333537] rounded-full" />
+          {/* Header Banner Skeleton */}
+          <div className="h-36 w-full bg-muted/80 relative p-4 flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-20 bg-muted-foreground/20 rounded-md" />
+              <div className="h-7 w-7 bg-muted-foreground/20 rounded-lg" />
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="h-4 w-36 bg-muted-foreground/20 rounded" />
+              <div className="h-6 w-6 bg-muted-foreground/20 rounded-full" />
+            </div>
           </div>
-          <div className="h-10 w-full bg-[#F0F4F9] dark:bg-[#333537] rounded-2xl" />
-          <div className="h-2 w-full bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full" />
-          <div className="flex justify-between items-center pt-2">
-            <div className="h-7 w-20 bg-[#F0F4F9] dark:bg-[#282A2C] rounded-full" />
-            <div className="h-8 w-28 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full" />
+
+          {/* Body Skeleton */}
+          <div className="p-5 pt-0 space-y-3.5">
+            <div className="h-5 w-3/4 bg-muted-foreground/20 rounded-md" />
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-20 bg-muted-foreground/20 rounded" />
+              <div className="h-4 w-16 bg-muted-foreground/20 rounded" />
+            </div>
+            <div className="h-4 w-1/2 bg-muted-foreground/20 rounded" />
+            <div className="pt-3 border-t border-border/40 flex justify-between items-center">
+              <div className="h-4 w-28 bg-muted-foreground/20 rounded" />
+              <div className="h-8 w-24 bg-muted-foreground/20 rounded-xl" />
+            </div>
           </div>
         </div>
       ))}
@@ -29,33 +44,53 @@ export function ClassLoadingSkeleton() {
 }
 
 interface ClassEmptyStateProps {
-  onCreateClick: () => void;
+  workspaceMode?: WorkspaceRoleMode;
+  onCreateClick?: () => void;
+  onJoinClick?: () => void;
 }
 
-export function ClassEmptyState({ onCreateClick }: ClassEmptyStateProps) {
+export function ClassEmptyState({
+  workspaceMode = 'faculty',
+  onCreateClick,
+  onJoinClick,
+}: ClassEmptyStateProps) {
   const t = useTranslations('classes');
 
   return (
-    <div className="my-8 p-12 rounded-3xl bg-white dark:bg-[#1E1F20] text-center flex flex-col items-center justify-center space-y-4 border-none shadow-none">
-      <div className="w-16 h-16 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
-        <span className="material-symbols-outlined text-[32px]">school</span>
+    <div className="my-8 p-12 rounded-2xl bg-surface border border-dashed border-border text-center flex flex-col items-center justify-center space-y-4 shadow-xs">
+      <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-inner">
+        <span className="material-symbols-outlined text-[32px]">
+          {workspaceMode === 'student' ? 'auto_stories' : 'school'}
+        </span>
       </div>
       <div className="space-y-1.5 max-w-md">
-        <h3 className="text-lg font-display font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-          {t('emptyActiveTitle')}
+        <h3 className="text-lg font-bold text-foreground font-display">
+          {workspaceMode === 'student' ? t('emptyStudentTitle') : t('emptyActiveTitle')}
         </h3>
-        <p className="text-xs text-[#747775] dark:text-[#8E918F] leading-relaxed">
-          {t('emptyActiveDesc')}
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          {workspaceMode === 'student' ? t('emptyStudentDesc') : t('emptyActiveDesc')}
         </p>
       </div>
-      <button
-        type="button"
-        onClick={onCreateClick}
-        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none cursor-pointer"
-      >
-        <span className="material-symbols-outlined text-[18px]">add</span>
-        <span>{t('createClassBtn')}</span>
-      </button>
+
+      {workspaceMode === 'student' ? (
+        <button
+          type="button"
+          onClick={onJoinClick}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 active:scale-95 text-primary-foreground text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">vpn_key</span>
+          <span>{t('joinClassBtn')}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onCreateClick}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 active:scale-95 text-primary-foreground text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          <span>{t('createClassBtn')}</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -68,26 +103,84 @@ export function ClassSearchNotFoundState({ onClearFilters }: ClassSearchNotFound
   const t = useTranslations('classes');
 
   return (
-    <div className="my-8 p-10 rounded-3xl bg-white dark:bg-[#1E1F20] text-center flex flex-col items-center justify-center space-y-4 border-none shadow-none">
-      <div className="w-14 h-14 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] text-[#747775] dark:text-[#8E918F] flex items-center justify-center">
+    <div className="my-8 p-10 rounded-2xl bg-surface border border-border/80 text-center flex flex-col items-center justify-center space-y-4 shadow-xs">
+      <div className="w-14 h-14 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center">
         <span className="material-symbols-outlined text-[28px]">search_off</span>
       </div>
       <div className="space-y-1 max-w-sm">
-        <h3 className="text-base font-display font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+        <h3 className="text-base font-bold text-foreground font-display">
           {t('emptySearchTitle')}
         </h3>
-        <p className="text-xs text-[#747775] dark:text-[#8E918F]">
+        <p className="text-xs text-muted-foreground">
           {t('emptySearchDesc')}
         </p>
       </div>
       <button
         type="button"
         onClick={onClearFilters}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-surface hover:bg-muted text-foreground text-xs font-semibold transition-colors shadow-xs cursor-pointer"
       >
         <span className="material-symbols-outlined text-[16px]">restart_alt</span>
         <span>{t('clearFilters')}</span>
       </button>
     </div>
+  );
+}
+
+export type StatePreviewType = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
+
+interface ClassStatePreviewSandboxProps {
+  activeState: StatePreviewType;
+  onSelectState: (state: StatePreviewType) => void;
+}
+
+export function ClassStatePreviewSandbox({
+  activeState,
+  onSelectState,
+}: ClassStatePreviewSandboxProps) {
+  const t = useTranslations('classes');
+
+  const states: { id: StatePreviewType; label: string }[] = [
+    { id: 'normal', label: t('stateNormal') },
+    { id: 'skeleton', label: t('stateSkeleton') },
+    { id: 'empty', label: t('stateEmpty') },
+    { id: 'notfound', label: t('stateNotFound') },
+    { id: 'archived', label: t('stateArchived') },
+  ];
+
+  return (
+    <section className="p-5 rounded-2xl bg-surface border border-border/70 space-y-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-[20px] text-primary">
+            developer_mode
+          </span>
+          <h3 className="text-sm font-bold text-foreground">
+            {t('statePreviewsTitle')}
+          </h3>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {t('statePreviewsDesc')}
+        </span>
+      </div>
+
+      {/* State Switcher Pills */}
+      <div className="flex flex-wrap gap-2">
+        {states.map((st) => (
+          <button
+            key={st.id}
+            type="button"
+            onClick={() => onSelectState(st.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeState === st.id
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            {st.label}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

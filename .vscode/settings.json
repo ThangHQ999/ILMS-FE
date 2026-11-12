@@ -1,0 +1,6 @@
+{
+  "terminal.integrated.env.windows": {
+    "PATH": "D:\\;${env:PATH}"
+  }
+}
+
