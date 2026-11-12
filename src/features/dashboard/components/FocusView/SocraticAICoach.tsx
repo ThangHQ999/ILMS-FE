@@ -255,12 +255,12 @@ export function SocraticAICoach({
         } ${isDraggingFab ? 'cursor-grabbing scale-105' : 'cursor-grab'}`}
         title={t('restoreTooltip')}
       >
-        <div className="pointer-events-none bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-3.5 py-2 rounded-full shadow-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-2 transition-shadow group-hover:shadow-2xl">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="pointer-events-none bg-white dark:bg-[#1E1F20] text-[#1F1F1F] dark:text-[#E3E3E3] px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-2 border-none shadow-none">
+          <span className="w-2 h-2 rounded-full bg-[#0D652D] dark:bg-[#81C995] animate-pulse" />
           <span>{t('aiCoachTitle')}</span>
-          <span className="material-symbols-outlined text-slate-400 text-sm">drag_indicator</span>
+          <span className="material-symbols-outlined text-[#747775] dark:text-[#8E918F] text-sm">drag_indicator</span>
         </div>
-        <div className="pointer-events-none w-14 h-14 rounded-full bg-primary dark:bg-secondary text-white flex items-center justify-center shadow-xl ring-4 ring-secondary/30 transition-transform group-hover:scale-105">
+        <div className="pointer-events-none w-14 h-14 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] flex items-center justify-center transition-transform group-hover:scale-105 border-none shadow-none">
           <span className="material-symbols-outlined text-[26px]">smart_toy</span>
         </div>
       </div>
@@ -289,34 +289,34 @@ export function SocraticAICoach({
           <div
             className={`w-1 h-12 rounded-full transition-colors ${isDragging
               ? 'bg-secondary'
-              : 'bg-slate-300 dark:bg-slate-700 group-hover:bg-secondary'
+              : 'bg-slate-300 dark:bg-[#333537] group-hover:bg-secondary'
               }`}
           />
         </div>
       )}
 
       {/* Main AI Chat Box Container */}
-      <div className={`w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col ${
+      <div className={`w-full bg-white dark:bg-[#1E1F20] rounded-3xl p-4 flex flex-col ${
         floatingDock ? 'h-[620px] max-h-[calc(100vh-4rem)]' : 'h-[700px]'
-      } justify-between relative overflow-hidden`}>
+      } justify-between relative overflow-hidden border-none shadow-none`}>
         {/* Chat Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 rounded-full bg-primary dark:bg-secondary flex items-center justify-center text-white shadow-sm">
+            <div className="relative w-10 h-10 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] flex items-center justify-center border-none">
               <span className="material-symbols-outlined text-[20px]">psychology</span>
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
                   {t('aiCoachTitle')}
                 </span>
-                <span className="px-1.5 py-0.5 rounded bg-secondary/10 text-secondary text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] font-bold whitespace-nowrap border-none">
                   PRO
                 </span>
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[11px] text-[#747775] dark:text-[#C4C7C5] flex items-center gap-1 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
                 {t('online')}
               </span>
             </div>
@@ -326,7 +326,7 @@ export function SocraticAICoach({
             {/* Dock/Minimize to FAB */}
             <button
               onClick={onToggleMinimize}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all"
+              className="w-7 h-7 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] flex items-center justify-center transition-all cursor-pointer"
               title={t('minimizeTooltip')}
               type="button"
             >
@@ -336,7 +336,7 @@ export function SocraticAICoach({
             {/* Fullscreen Toggle */}
             <button
               onClick={() => setIsFullscreen((prev) => !prev)}
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all"
+              className="w-7 h-7 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] flex items-center justify-center transition-all cursor-pointer"
               title={isFullscreen ? t('exitFullscreenTooltip') : t('fullscreenTooltip')}
               type="button"
             >
@@ -349,7 +349,7 @@ export function SocraticAICoach({
             <div className="relative">
               <button
                 onClick={() => setShowMenu((prev) => !prev)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all"
+                className="w-7 h-7 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] flex items-center justify-center transition-all cursor-pointer"
                 title={t('sessionOptions')}
                 type="button"
               >
@@ -357,15 +357,15 @@ export function SocraticAICoach({
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50">
-                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-[#1E1F20] rounded-3xl shadow-xl py-1.5 z-50 border border-[#E9EEF6] dark:border-none">
+                  <div className="px-3 py-2">
+                    <div className="text-[11px] font-bold text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
                       {t('coachSettings')}
                     </div>
                   </div>
                   <button
                     onClick={() => setShowMenu(false)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-left text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-left text-xs text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
                     type="button"
                   >
                     <span className="flex items-center gap-2">
@@ -374,27 +374,27 @@ export function SocraticAICoach({
                       </span>
                       <span>{t('changeStyle')}</span>
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary/10 text-secondary font-semibold">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E8F0FE] text-[#0B57D0] dark:bg-[#162B4D] dark:text-[#A8C7FA] font-semibold whitespace-nowrap">
                       {t('gentleHint')}
                     </span>
                   </button>
                   <button
                     onClick={() => setShowMenu(false)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[18px] text-slate-400">
+                    <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F]">
                       picture_as_pdf
                     </span>
                     <span>{t('exportPdf')}</span>
                   </button>
-                  <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                  <div className="my-1 border-t border-[#E9EEF6] dark:border-[#282A2C]" />
                   <button
                     onClick={() => {
                       clearHistory();
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-[#C5221F] dark:text-[#F28B82] hover:bg-[#FCE8E6] dark:hover:bg-[#3C1919] transition-colors cursor-pointer"
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[18px]">delete_outline</span>
@@ -417,16 +417,16 @@ export function SocraticAICoach({
                   }`}
               >
                 {isAi && (
-                  <div className="w-7 h-7 rounded-full bg-primary dark:bg-secondary text-white shrink-0 flex items-center justify-center mt-1 shadow-sm">
+                  <div className="w-7 h-7 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] shrink-0 flex items-center justify-center mt-1 border-none">
                     <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
                   </div>
                 )}
 
                 <div className={`flex flex-col gap-1 ${isAi ? '' : 'items-end'}`}>
                   <div
-                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${isAi
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-sm'
-                      : 'bg-secondary text-white rounded-tr-sm'
+                    className={`p-3.5 rounded-2xl text-xs leading-relaxed ${isAi
+                      ? 'bg-[#F0F4F9] dark:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] rounded-tl-sm border-none shadow-none'
+                      : 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] rounded-tr-sm border-none shadow-none'
                       }`}
                   >
                     {isAi ? (
@@ -438,8 +438,8 @@ export function SocraticAICoach({
 
                   {/* Attachment Card if any */}
                   {msg.attachment && (
-                    <div className="ml-1 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 flex items-center gap-3 w-full">
-                      <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-secondary shadow-sm">
+                    <div className="ml-1 p-3 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#1F1F1F] dark:text-[#E3E3E3] flex items-center gap-3 w-full border-none shadow-none">
+                      <div className="w-9 h-9 rounded-xl bg-white dark:bg-[#333537] flex items-center justify-center text-[#0B57D0] dark:text-[#A8C7FA] border-none shadow-none">
                         <span className="material-symbols-outlined text-[20px]">
                           {msg.attachment.icon}
                         </span>
@@ -448,12 +448,12 @@ export function SocraticAICoach({
                         <span className="text-xs font-bold truncate">
                           {msg.attachment.title}
                         </span>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="text-[11px] text-[#747775] dark:text-[#C4C7C5]">
                           {msg.attachment.subtitle}
                         </span>
                       </div>
                       <button
-                        className="px-2.5 py-1 rounded-lg bg-secondary text-white text-[11px] font-semibold hover:bg-secondary/90 transition-colors"
+                        className="px-3.5 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] dark:hover:bg-[#8AB4F8] text-[11px] font-medium transition-colors whitespace-nowrap border-none cursor-pointer"
                         type="button"
                       >
                         {msg.attachment.actionText}
@@ -461,7 +461,7 @@ export function SocraticAICoach({
                     </div>
                   )}
 
-                  <span className="text-[10px] text-slate-400 px-1">
+                  <span className="text-[10px] text-[#747775] dark:text-[#8E918F] px-1">
                     {msg.timestamp}
                   </span>
                 </div>
@@ -471,13 +471,13 @@ export function SocraticAICoach({
 
           {isTyping && (
             <div className="flex items-start gap-2 max-w-[95%]">
-              <div className="w-7 h-7 rounded-full bg-primary dark:bg-secondary text-white shrink-0 flex items-center justify-center mt-1">
+              <div className="w-7 h-7 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] shrink-0 flex items-center justify-center mt-1 border-none">
                 <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-secondary animate-bounce" />
-                <div className="w-2 h-2 rounded-full bg-secondary animate-bounce [animation-delay:0.2s]" />
-                <div className="w-2 h-2 rounded-full bg-secondary animate-bounce [animation-delay:0.4s]" />
+              <div className="bg-[#F0F4F9] dark:bg-[#282A2C] p-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5 border-none shadow-none">
+                <div className="w-2 h-2 rounded-full bg-[#041E49] dark:bg-[#A8C7FA] animate-bounce" />
+                <div className="w-2 h-2 rounded-full bg-[#041E49] dark:bg-[#A8C7FA] animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 rounded-full bg-[#041E49] dark:bg-[#A8C7FA] animate-bounce [animation-delay:0.4s]" />
               </div>
             </div>
           )}
@@ -486,8 +486,8 @@ export function SocraticAICoach({
         </div>
 
         {/* Suggested Quick Prompts */}
-        <div className="py-2 flex flex-col gap-1 border-t border-slate-100 dark:border-slate-800/80">
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
+        <div className="py-2 flex flex-col gap-1">
+          <span className="text-[10px] text-[#747775] dark:text-[#8E918F] uppercase tracking-wider font-bold">
             {t('quickPrompts')}
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -495,7 +495,7 @@ export function SocraticAICoach({
               <button
                 key={idx}
                 onClick={() => handleQuickChipClick(chip)}
-                className="text-left text-[11px] font-medium px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all"
+                className="text-left text-[11px] font-medium px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] transition-colors border-none shadow-none cursor-pointer"
                 type="button"
               >
                 {chip}
@@ -512,28 +512,28 @@ export function SocraticAICoach({
           }}
           className="pt-1"
         >
-          <div className="flex flex-col bg-slate-100 dark:bg-slate-800/80 rounded-2xl p-2.5 shadow-sm border border-slate-200 dark:border-slate-700/80 focus-within:ring-2 focus-within:ring-secondary/30 transition-all">
+          <div className="flex flex-col bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-2.5 focus-within:ring-2 focus-within:ring-[#0B57D0]/40 dark:focus-within:ring-[#A8C7FA]/40 transition-all border-none shadow-none">
             <textarea
               ref={textareaRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full bg-transparent px-1.5 py-1 text-slate-900 dark:text-slate-100 text-xs outline-none placeholder:text-slate-400 resize-none min-h-[60px] max-h-[140px] overflow-y-auto leading-relaxed"
+              className="w-full bg-transparent px-1.5 py-1 text-[#1F1F1F] dark:text-[#E3E3E3] text-xs outline-none placeholder:text-[#747775] dark:placeholder:text-[#8E918F] resize-none min-h-[60px] max-h-[140px] overflow-y-auto leading-relaxed border-none focus:outline-none"
               placeholder={t('inputPlaceholder')}
               rows={2}
             />
 
-            <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 mt-1">
+            <div className="flex items-center justify-between pt-1.5 mt-1">
               <div className="flex items-center gap-0.5">
                 <button
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-all"
+                  className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#E1E5EA] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#333537] transition-all cursor-pointer border-none shadow-none"
                   title={t('attachFileTooltip')}
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">attach_file</span>
                 </button>
                 <button
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-all"
+                  className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#E1E5EA] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#333537] transition-all cursor-pointer border-none shadow-none"
                   title={t('insertCodeTooltip')}
                   type="button"
                   onClick={() => setInputText((prev) => prev + '\n```cpp\n// Code here\n```\n')}
@@ -541,7 +541,7 @@ export function SocraticAICoach({
                   <span className="material-symbols-outlined text-[18px]">code</span>
                 </button>
                 <button
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-all"
+                  className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#E1E5EA] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#333537] transition-all cursor-pointer border-none shadow-none"
                   title={t('recordVoiceTooltip')}
                   type="button"
                 >
@@ -550,12 +550,12 @@ export function SocraticAICoach({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 hidden sm:inline select-none">
+                <span className="text-[10px] text-[#747775] dark:text-[#8E918F] hidden sm:inline select-none">
                   {t('sendEnter')}
                 </span>
                 <button
                   disabled={!inputText.trim() || isTyping}
-                  className="w-8 h-8 rounded-xl bg-secondary text-white flex items-center justify-center hover:bg-secondary/90 disabled:opacity-50 transition-all shadow-sm active:scale-95"
+                  className="w-8 h-8 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] dark:hover:bg-[#8AB4F8] flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 border-none cursor-pointer shadow-none"
                   title={t('sendButton')}
                   type="submit"
                 >

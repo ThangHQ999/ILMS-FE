@@ -49,7 +49,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Từng bước với ví dụ đồ thị thực tế, tại sao cần hàng đợi ưu tiên (Priority Queue)?',
     prompt: 'Giải thích thuật toán Dijkstra từng bước với ví dụ đồ thị thực tế kèm minh họa cấu trúc dữ liệu Priority Queue',
     icon: 'lightbulb',
-    colorClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    colorClass: 'bg-blue-100 text-blue-700 dark:bg-[#162B4D] dark:text-[#A8C7FA]',
   },
   {
     id: 'segment-tree',
@@ -57,7 +57,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Chứng minh hình học & đại số vì sao cây phân đoạn nhị phân cần 4*N node để tránh tràn bộ nhớ.',
     prompt: 'Phân tích chi tiết vì sao mảng biểu diễn Segment Tree trên mảng 1D cần kích thước 4*N phần tử?',
     icon: 'account_tree',
-    colorClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    colorClass: 'bg-emerald-100 text-emerald-700 dark:bg-[#142E20] dark:text-[#81C995]',
   },
   {
     id: 'avl-vs-rb',
@@ -73,7 +73,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Tạo 5 bài toán con gối nhau (Overlapping Subproblems) và hệ thức truy hồi để tự kiểm tra kiến thức.',
     prompt: 'Hãy tạo 5 câu hỏi trắc nghiệm kiểm tra độ hiểu thuật toán Quy hoạch động (Dynamic Programming), có phân tích tư duy lời giải.',
     icon: 'quiz',
-    colorClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    colorClass: 'bg-amber-100 text-amber-700 dark:bg-[#3C2A1E] dark:text-[#FFB784]',
   },
 ];
 

@@ -22,10 +22,10 @@ function HomePageContent() {
   // If user is authenticated, redirect is in flight
   if (isSuccess && user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6fafe] dark:bg-[#0B0F19]">
+      <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-[#38BDF8] dark:border-t-transparent" />
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-transparent dark:border-t-transparent" />
+          <p className="text-sm font-medium text-slate-600 dark:text-[#C4C7C5]">
             Đang chuyển hướng tới bảng điều khiển...
           </p>
         </div>

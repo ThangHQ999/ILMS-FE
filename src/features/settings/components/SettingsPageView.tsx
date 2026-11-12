@@ -63,7 +63,7 @@ export function SettingsPageView() {
       : 'Trần Nhật Minh';
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
       {/* Dynamic Sidebar (80px in Focus Mode, 80px/260px in Analytics Mode) */}
       <DashboardSidebar
         isFocus={isFocus}

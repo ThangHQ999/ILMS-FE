@@ -70,10 +70,10 @@ export function CompetencyFocusView({
   };
 
   return (
-    <div className="bg-[#f0f4f8] dark:bg-[#080c14] text-[#171c1f] dark:text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-500/20 selection:text-blue-700 relative overflow-x-hidden font-sans">
+    <div className="bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] min-h-screen flex flex-col justify-between selection:bg-[#D3E3FD] selection:text-[#041E49] relative overflow-x-hidden font-sans">
       {/* Background Subtle Ambient Glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[720px] h-[400px] bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-[140px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[720px] h-[400px] bg-blue-200/40 dark:bg-[#162B4D] rounded-full blur-[140px]" />
         <div className="absolute bottom-10 left-1/4 w-[500px] h-[300px] bg-indigo-100/50 dark:bg-indigo-950/20 rounded-full blur-[120px]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e125_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e125_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
       </div>
@@ -120,8 +120,8 @@ export function CompetencyFocusView({
 
       {/* Toast Notification */}
       {toastText && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white border border-slate-700 shadow-2xl text-xs font-semibold backdrop-blur-md animate-bounce">
-          <span className="material-symbols-outlined text-[18px] text-cyan-400">verified</span>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1E1F20] text-[#E3E3E3] border-none shadow-none text-xs font-medium backdrop-blur-md animate-bounce">
+          <span className="material-symbols-outlined text-[18px] text-[#81C995]">verified</span>
           <span>{toastText}</span>
         </div>
       )}

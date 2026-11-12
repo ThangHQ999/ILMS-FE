@@ -8,11 +8,11 @@ export function LandingFooter() {
   const t = useTranslations('landing.footer');
 
   return (
-    <footer className="w-full bg-slate-50 dark:bg-[#080C14] border-t border-slate-200 dark:border-slate-800/80 shadow-xs dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] transition-colors">
+    <footer className="w-full bg-white dark:bg-[#1E1F20] border-none shadow-none transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Brand & Copyright */}
         <div className="flex items-center gap-3">
-          <div className="py-1 px-1.5 rounded-lg bg-white dark:bg-[#161B26] border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+          <div className="py-1 px-2.5 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex items-center justify-center">
             <img
               src="/logo-dark.png"
               alt="ILMS"
@@ -24,7 +24,7 @@ export function LandingFooter() {
               className="h-7 w-auto object-contain block dark:hidden"
             />
           </div>
-          <span className="text-sm text-slate-600 dark:text-slate-300">
+          <span className="text-sm text-slate-600 dark:text-[#C4C7C5]">
             {t('copyright')}
           </span>
         </div>
@@ -33,19 +33,19 @@ export function LandingFooter() {
         <div className="flex items-center gap-6">
           <Link
             href="/terms"
-            className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-colors"
+            className="text-xs sm:text-sm text-slate-500 dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-white transition-colors"
           >
             {t('terms')}
           </Link>
           <Link
             href="/privacy"
-            className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-colors"
+            className="text-xs sm:text-sm text-slate-500 dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-white transition-colors"
           >
             {t('privacy')}
           </Link>
           <a
             href="#lien-he"
-            className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-colors"
+            className="text-xs sm:text-sm text-slate-500 dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-white transition-colors"
           >
             {t('contact')}
           </a>

@@ -48,32 +48,32 @@ export function NotificationDropdown() {
       <button
         aria-expanded={isOpen}
         onClick={toggleOpen}
-        className={`relative p-2 rounded-lg transition-colors shadow-sm ${
+        className={`relative p-2 rounded-full transition-colors cursor-pointer border-none shadow-none ${
           isOpen
-            ? 'bg-secondary/10 text-secondary ring-2 ring-secondary/30'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+            ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
+            : 'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]'
         }`}
         type="button"
         title={t('notificationsTitle')}
       >
-        <span className="material-symbols-outlined text-[22px]">notifications</span>
+        <span className="material-symbols-outlined text-[20px]">notifications</span>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900 animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#B3261E] dark:bg-[#F28B82] text-white dark:text-[#3C1919] text-[10px] font-bold flex items-center justify-center animate-pulse border-none shadow-none">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-12 w-[420px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-12 w-[420px] max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1E1F20] rounded-3xl shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 border-none">
           {/* Header Dropdown */}
-          <div className="p-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
+          <div className="p-4 pb-3 flex items-center justify-between bg-white dark:bg-[#1E1F20]">
             <div className="flex items-center gap-2">
-              <h3 className="font-title-md text-base text-slate-900 dark:text-slate-100 font-semibold">
+              <h3 className="text-base text-[#1F1F1F] dark:text-[#E3E3E3] font-bold">
                 {t('notificationsTitle')}
               </h3>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary/15 text-secondary">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none">
                   {t('newBadge', { count: unreadCount })}
                 </span>
               )}
@@ -81,7 +81,7 @@ export function NotificationDropdown() {
             <div className="flex items-center gap-1">
               <button
                 onClick={markAllAsRead}
-                className="px-2 py-1 rounded-md text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors flex items-center gap-1"
+                className="text-[#0B57D0] hover:bg-[#F0F4F9] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 cursor-pointer border-none"
                 title={t('markAllRead')}
                 type="button"
               >
@@ -89,7 +89,7 @@ export function NotificationDropdown() {
                 <span>{t('markAllRead')}</span>
               </button>
               <button
-                className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none"
                 title={t('notificationSettings')}
                 type="button"
               >
@@ -99,17 +99,17 @@ export function NotificationDropdown() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="px-4 py-2 bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <div className="px-4 py-2 bg-[#F0F4F9] dark:bg-[#1E1F20] flex items-center gap-1.5 overflow-x-auto scrollbar-none border-none">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-2.5 py-1 rounded-full text-xs transition-colors whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap cursor-pointer border-none ${
                     isActive
-                      ? 'font-semibold bg-secondary text-white shadow-sm'
-                      : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                      ? 'font-medium bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] shadow-none'
+                      : 'text-[#444746] hover:text-[#1F1F1F] hover:bg-[#E1E5EA] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C]'
                   }`}
                   type="button"
                 >
@@ -120,9 +120,9 @@ export function NotificationDropdown() {
           </div>
 
           {/* Notification Items List */}
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[380px] overflow-y-auto overscroll-contain bg-white dark:bg-slate-900">
+          <div className="max-h-[380px] overflow-y-auto overscroll-contain bg-white dark:bg-[#1E1F20]">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+              <div className="p-8 text-center text-xs text-[#747775] dark:text-[#8E918F]">
                 {t('noNotifications')}
               </div>
             ) : (
@@ -134,23 +134,17 @@ export function NotificationDropdown() {
                     onClick={() => markAsRead(item.id)}
                     className={`p-3.5 transition-colors flex items-start gap-3 relative group cursor-pointer ${
                       isUnread
-                        ? item.colorType === 'secondary'
-                          ? 'bg-secondary/10 hover:bg-secondary/15'
-                          : item.colorType === 'amber'
-                          ? 'bg-amber-50/50 hover:bg-amber-50/80 dark:bg-amber-950/20 dark:hover:bg-amber-950/40'
-                          : 'bg-emerald-50/40 hover:bg-emerald-50/70 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 opacity-80 hover:opacity-100'
+                        ? 'bg-[#F0F4F9]/70 dark:bg-[#282A2C]/40 hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]/70'
+                        : 'hover:bg-[#F0F4F9]/50 dark:hover:bg-[#282A2C]/20 opacity-85 hover:opacity-100'
                     }`}
                   >
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-sm ${
+                      className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
                         item.colorType === 'secondary'
-                          ? 'bg-secondary/15 text-secondary'
+                          ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
                           : item.colorType === 'amber'
-                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                          : item.colorType === 'emerald'
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                          ? 'bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784]'
+                          : 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                       }`}
                     >
                       <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
@@ -158,32 +152,32 @@ export function NotificationDropdown() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <p className="font-label-md text-[13px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        <p className="text-sm font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate">
                           {item.title}
                         </p>
                         {isUnread && (
                           <span
                             className={`w-2 h-2 rounded-full shrink-0 ${
                               item.colorType === 'secondary'
-                                ? 'bg-secondary'
+                                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
                                 : item.colorType === 'amber'
-                                ? 'bg-amber-500'
-                                : 'bg-emerald-500'
+                                ? 'bg-[#725200] dark:bg-[#FFB784]'
+                                : 'bg-[#0D652D] dark:bg-[#81C995]'
                             }`}
                           />
                         )}
                       </div>
-                      <p className="font-body-sm text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
+                      <p className="text-xs text-[#444746] dark:text-[#C4C7C5] line-clamp-2 leading-relaxed mb-2">
                         {item.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <span className="text-[11px] font-normal text-[#747775] dark:text-[#8E918F] flex items-center gap-1">
                           <span className="material-symbols-outlined text-[13px]">schedule</span>{' '}
                           {item.timeAgo}
                         </span>
                         {item.actionText && (
                           <button
-                            className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-secondary text-white hover:opacity-90 shadow-sm inline-flex items-center gap-1 transition-colors"
+                            className="bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-3.5 py-1 text-xs whitespace-nowrap transition-colors inline-flex items-center gap-1 cursor-pointer border-none shadow-none"
                             type="button"
                           >
                             <span>{item.actionText}</span>
@@ -199,9 +193,9 @@ export function NotificationDropdown() {
           </div>
 
           {/* Footer Dropdown */}
-          <div className="p-3 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center">
+          <div className="p-3 bg-[#F0F4F9] dark:bg-[#282A2C]/60 flex items-center justify-center border-none">
             <a
-              className="font-label-md text-xs font-semibold text-secondary hover:underline transition-colors inline-flex items-center gap-1"
+              className="text-[#0B57D0] hover:bg-[#E1E5EA] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1 border-none"
               href="#"
             >
               <span>{t('viewAllNotifications')}</span>

@@ -29,10 +29,10 @@ export function FocusView({ userFullName = 'Nhật Minh', aiTasks }: FocusViewPr
 
           {/* Heading & Slogan */}
           <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-[#E3E3E3] tracking-tight">
               {t('zenTitle')}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#747775] dark:text-[#C4C7C5] max-w-2xl leading-relaxed">
               {t('zenSubtitle')}
             </p>
           </div>

@@ -46,7 +46,7 @@ export function ClassCardItem({
   const isArchived = item.status === 'ARCHIVED';
 
   return (
-    <div className="group relative flex flex-col rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] transition-all duration-300 overflow-hidden hover:-translate-y-1">
+    <div className="group relative flex flex-col rounded-3xl bg-white dark:bg-[#1E1F20] transition-all duration-300 overflow-hidden hover:-translate-y-1 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
       {/* Top Graphic Banner with Mesh Gradient */}
       <div className={`relative h-28 w-full bg-gradient-to-tr ${gradientClass} p-4 flex flex-col justify-between overflow-hidden`}>
         {/* Abstract Geometric Pattern Overlay */}
@@ -64,10 +64,10 @@ export function ClassCardItem({
         {/* Top Badges & Actions */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg bg-black/25 backdrop-blur-md text-white text-[11px] font-mono font-bold tracking-wider uppercase border border-white/20">
+            <span className="px-3 py-1 rounded-full bg-black/25 backdrop-blur-md text-white text-[11px] font-mono font-bold tracking-wider uppercase whitespace-nowrap border-none">
               {item.name}
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold border border-white/20 hidden sm:inline-block">
+            <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold hidden sm:inline-block whitespace-nowrap border-none">
               {item.semester || 'HK1'}
             </span>
           </div>
@@ -77,7 +77,7 @@ export function ClassCardItem({
             <button
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="w-8 h-8 rounded-lg bg-black/20 hover:bg-black/35 backdrop-blur-md text-white flex items-center justify-center transition-colors border border-white/20"
+              className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-md text-white flex items-center justify-center transition-colors border-none cursor-pointer"
               title="Tùy chọn lớp học"
             >
               <span className="material-symbols-outlined text-[18px]">more_vert</span>
@@ -90,16 +90,16 @@ export function ClassCardItem({
                   className="fixed inset-0 z-20"
                   onClick={() => setIsMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-10 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-30 text-xs">
+                <div className="absolute right-0 top-10 w-44 rounded-2xl bg-white dark:bg-[#282A2C] shadow-xl py-1.5 z-30 text-xs border-none">
                   <button
                     type="button"
                     onClick={() => {
                       setIsMenuOpen(false);
                       if (item.enrollmentKey) onCopyCode(item.enrollmentKey);
                     }}
-                    className="w-full px-3.5 py-2 text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    className="w-full px-3.5 py-2 text-left text-[#1F1F1F] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#333537] flex items-center gap-2 border-none cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                    <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">content_copy</span>
                     <span>{t('copyCode')}</span>
                   </button>
 
@@ -110,7 +110,7 @@ export function ClassCardItem({
                         setIsMenuOpen(false);
                         onArchiveClick(item);
                       }}
-                      className="w-full px-3.5 py-2 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center gap-2"
+                      className="w-full px-3.5 py-2 text-left text-[#B3261E] dark:text-[#F28B82] hover:bg-[#FAD2CF] dark:hover:bg-[#3C1919] flex items-center gap-2 border-none cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">archive</span>
                       <span>{t('menuArchive')}</span>
@@ -123,7 +123,7 @@ export function ClassCardItem({
                           setIsMenuOpen(false);
                           onRestoreClick(item);
                         }}
-                        className="w-full px-3.5 py-2 text-left text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2"
+                        className="w-full px-3.5 py-2 text-left text-[#0D652D] dark:text-[#81C995] hover:bg-[#C4EED0] dark:hover:bg-[#142E20] flex items-center gap-2 border-none cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-[16px]">unarchive</span>
                         <span>{t('menuRestore')}</span>
@@ -139,47 +139,47 @@ export function ClassCardItem({
         {/* Bottom Banner Info */}
         <div className="relative z-10 flex items-center justify-between text-white/90 text-xs font-medium">
           <span className="truncate pr-2">{item.major}</span>
-          <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">
+          <span className="text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full font-mono whitespace-nowrap border-none">
             {item.academicYear}
           </span>
         </div>
       </div>
 
       {/* Card Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+      <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2.5">
           {/* Title */}
           <Link
             href={`/classes/${item.id}`}
             prefetch={true}
-            className="block group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+            className="block group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors"
           >
-            <h3 className="text-base font-display font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+            <h3 className="text-base font-display font-bold text-[#1F1F1F] dark:text-[#E3E3E3] line-clamp-1">
               {item.title}
             </h3>
           </Link>
 
           {/* Description or details */}
           {item.description ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[32px]">
+            <p className="text-xs text-[#747775] dark:text-[#8E918F] line-clamp-2 min-h-[32px] leading-relaxed">
               {item.description}
             </p>
           ) : (
-            <p className="text-xs text-slate-400 italic min-h-[32px]">
+            <p className="text-xs text-[#747775] dark:text-[#8E918F] italic min-h-[32px]">
               Chưa có mô tả lớp học
             </p>
           )}
 
           {/* Schedule Info */}
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+          <div className="p-3 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] text-xs text-[#444746] dark:text-[#C4C7C5] flex items-center gap-2 border-none">
+            <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">
               meeting_room
             </span>
             <span className="font-medium truncate">
               {item.schedule?.room || 'Phòng học trực tuyến'}
             </span>
-            <span className="text-slate-300 dark:text-slate-700">•</span>
-            <span className="truncate text-slate-500 dark:text-slate-400">
+            <span className="text-[#747775] dark:text-[#8E918F]">•</span>
+            <span className="truncate text-[#747775] dark:text-[#8E918F]">
               {item.schedule?.dayOfWeek || 'Linh hoạt'}
             </span>
           </div>
@@ -187,14 +187,14 @@ export function ClassCardItem({
           {/* Capacity Progress */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-400">{t('students')}</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
+              <span className="text-[#747775] dark:text-[#8E918F]">{t('students')}</span>
+              <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
                 {item.enrolledCount || 0} / {item.maxStudents || 60} ({enrolledPercent}%)
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] overflow-hidden">
               <div
-                className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                className="h-full rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] transition-all duration-500"
                 style={{ width: `${enrolledPercent}%` }}
               />
             </div>
@@ -202,8 +202,8 @@ export function ClassCardItem({
 
           {/* Alert Notification Strip (if pending or ungraded tasks exist) */}
           {hasAlert && (
-            <div className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-[11px] font-medium flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[15px] text-amber-600 dark:text-amber-400 shrink-0">
+            <div className="px-3 py-1.5 rounded-full bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784] text-[11px] font-medium flex items-center gap-1.5 whitespace-nowrap border-none">
+              <span className="material-symbols-outlined text-[15px] text-[#725200] dark:text-[#FFB784] shrink-0">
                 notification_important
               </span>
               <span className="truncate">
@@ -220,13 +220,13 @@ export function ClassCardItem({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+        <div className="pt-3 flex items-center justify-between gap-2">
           {/* Copy Code Pill */}
           {item.enrollmentKey ? (
             <button
               type="button"
               onClick={() => onCopyCode(item.enrollmentKey!)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-mono font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#C4C7C5] text-xs font-mono font-medium whitespace-nowrap transition-colors border-none cursor-pointer"
               title={t('copyCode')}
             >
               <span className="material-symbols-outlined text-[15px]">
@@ -235,14 +235,14 @@ export function ClassCardItem({
               <span>{item.enrollmentKey}</span>
             </button>
           ) : (
-            <span className="text-[11px] text-slate-400">Không có mã</span>
+            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">Không có mã</span>
           )}
 
-          {/* Enter Class Space */}
+          {/* Enter Class Space - MD3 Primary Tonal */}
           <Link
             href={`/classes/${item.id}`}
             prefetch={true}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all"
+            className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none"
           >
             <span>{t('enterClassSpace')}</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -252,4 +252,3 @@ export function ClassCardItem({
     </div>
   );
 }
-

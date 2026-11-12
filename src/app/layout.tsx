@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Plus_Jakarta_Sans, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
+import { Outfit, Plus_Jakarta_Sans, Roboto_Mono, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { Providers } from '@/providers';
@@ -9,6 +9,13 @@ import { DesignSystemSync } from '@/components/shared/DesignSystemSync';
 import { RouteProgressBar } from '@/components/shared/RouteProgressBar';
 import './globals.css';
 
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+  preload: true,
+});
+
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin', 'vietnamese'],
   variable: '--font-plus-jakarta-sans',
@@ -16,11 +23,18 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   preload: true,
 });
 
+const robotoMono = Roboto_Mono({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-roboto-mono',
+  display: 'swap',
+  preload: false,
+});
+
 const inter = Inter({
   subsets: ['latin', 'vietnamese'],
   variable: '--font-inter',
   display: 'swap',
-  preload: true,
+  preload: false,
 });
 
 const montserrat = Montserrat({
@@ -62,7 +76,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${inter.variable} ${montserrat.variable} ${beVietnamPro.variable}`}
+      className={`${outfit.variable} ${plusJakartaSans.variable} ${robotoMono.variable} ${inter.variable} ${montserrat.variable} ${beVietnamPro.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -87,7 +101,12 @@ export default async function RootLayout({
                   if (p.neutral) r.style.setProperty('--color-neutral', p.neutral);
                 }
                 var f = localStorage.getItem('ilms_font_family');
+                if (!f || f === 'Google Sans') {
+                  f = 'Outfit';
+                  localStorage.setItem('ilms_font_family', 'Outfit');
+                }
                 var fontMap = {
+                  'Outfit': "var(--font-outfit), var(--font-plus-jakarta-sans), sans-serif",
                   'Plus Jakarta Sans': "var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif",
                   'Inter': "var(--font-inter, 'Inter'), sans-serif",
                   'Montserrat': "var(--font-montserrat, 'Montserrat'), sans-serif",

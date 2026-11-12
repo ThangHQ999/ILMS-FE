@@ -515,6 +515,7 @@
     "learningArea": "Learning Area",
     "navOverview": "Overview",
     "navCourses": "My Classes",
+    "navSessions": "Sessions & Attendance",
     "navGraph": "Knowledge Graph",
     "navRadar": "Competency Radar",
     "navQuizzes": "Exercises & Quizzes",
@@ -543,7 +544,9 @@
     "ploTitle": "5 KEY COMPETENCY PILLARS (PLO FRAMEWORK)",
     "ploIndex": "MASTERY INDEX",
     "viewMatrixDetails": "View Knowledge Matrix Details",
-    "aiInsightsTitle": "AI Insights",
+    "aiInsightsTitle": "Learning Recommendations",
+    "needReinforce": "Needs reinforcement",
+    "topicStruggleDesc": "You have struggled with this topic in your last 3 submissions.",
     "accuracy": "Accuracy {percent}%",
     "duration": "Duration: {minutes} mins",
     "questions": "{count} questions",
@@ -1019,6 +1022,103 @@
       "titleMin": "Course title must have at least 2 characters",
       "academicYearRequired": "Academic year is required",
       "majorRequired": "Department is required"
+    }
+  },
+  "classHub": {
+    "instructor": "Instructor",
+    "students": "Students",
+    "assignments": "Assignments / Quizzes",
+    "avgCompletion": "Avg Completion",
+    "tabs": {
+      "overview": "Overview",
+      "modules": "Courses & Modules",
+      "curriculum": "Curriculum",
+      "assignments": "Assignments & Quizzes",
+      "materials": "Materials",
+      "students": "Students",
+      "grades": "Grades & PLO",
+      "announcements": "Announcements",
+      "settings": "Class Settings"
+    }
+  },
+  "assignments": {
+    "actions": {
+      "createQuizAi": "Generate AI Quiz",
+      "createAssignment": "+ New Assignment / Quiz",
+      "classScoreboard": "Class Scoreboard",
+      "startQuizNow": "Start Quiz Now",
+      "submitLabReport": "Submit Lab Report",
+      "gradeSubmissions": "Grade ({count})",
+      "exportPersonalTranscript": "Export Personal Transcript",
+      "practiceMistakes": "Practice Mistakes",
+      "reviewAndExplain": "Review & Explanations",
+      "viewSubmissionFeedback": "Submission & Feedback",
+      "viewOutline": "View Outline",
+      "retry": "Retry"
+    },
+    "filters": {
+      "searchPlaceholder": "Search assignments, quizzes, PLO...",
+      "clearSearch": "Clear search",
+      "allChapters": "All Chapters",
+      "ch1": "Chapter 1 (Application Layer)",
+      "ch2": "Chapter 2 (Transport Layer)",
+      "ch3": "Chapter 3 (Network Layer)",
+      "ch4": "Chapter 4 (Data Link Layer)",
+      "allTopics": "All Topics",
+      "topicTransport": "Transport Layer & TCP/UDP",
+      "topicNetwork": "Network Layer & OSPF/BGP",
+      "topicApp": "Application Layer & DNS/HTTP",
+      "topicWireshark": "Wireshark Packet Trace",
+      "allDifficulties": "All Difficulties",
+      "bloom1": "Remember (Bloom 1)",
+      "bloom2": "Understand (Bloom 2)",
+      "bloom3": "Apply (Bloom 3)",
+      "bloom4": "Analyze (Bloom 4)"
+    },
+    "clusters": {
+      "activeTitle": "Active & Due Soon",
+      "priorityProcessing": "High Priority",
+      "assignmentsCountSuffix": "assignments",
+      "completedTitle": "Completed & Evaluated",
+      "upcomingTitle": "Upcoming in Next Sprint",
+      "sprintPlan": "Week 10-12 Plan"
+    },
+    "status": {
+      "opening": "Open",
+      "dueSoon": "Due Soon",
+      "twoDaysLeft": "2 days left",
+      "upcomingOpen": "Scheduled",
+      "unannouncedExam": "Not yet published"
+    },
+    "card": {
+      "environment": "Environment",
+      "sampleFile": "Sample file",
+      "classCompleted": "Class completed",
+      "submittedCount": "Submitted",
+      "classAverage": "Class Avg",
+      "pendingGrading": "pending grading",
+      "questionsSuffix": "questions",
+      "minutesSuffix": "minutes",
+      "classAvgShort": "Class Avg",
+      "rankShort": "Rank"
+    },
+    "panels": {
+      "weightsTitle": "Grade Weights & Progress",
+      "moduleScope": "Course Module",
+      "weightsDescription": "Distributed according to CS-202 syllabus approved by the Academic Board:",
+      "totalAccumulated": "Current Total Accumulated",
+      "socraticTitle": "Socratic AI Mentor",
+      "realtimeAi": "Real-time AI",
+      "weaknessTopicTitle": "Knowledge Gaps to Reinforce",
+      "performanceTitle": "Personal Performance",
+      "avgQuizScore": "Avg Quiz Score",
+      "onTimeRate": "On-time Rate",
+      "streakTitle": "Completion Streak",
+      "streakDescription": "{count} consecutive assignments submitted",
+      "ploBadgeTitle": "PLO Target Badge"
+    },
+    "errors": {
+      "loadFailed": "Failed to load assignments & quizzes"
     }
   }
 }

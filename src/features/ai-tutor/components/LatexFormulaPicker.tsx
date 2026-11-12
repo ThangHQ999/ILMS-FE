@@ -65,22 +65,22 @@ export function LatexFormulaPicker({
   return (
     <div
       ref={pickerRef}
-      className="absolute bottom-11 left-0 sm:-left-4 z-40 w-[340px] max-w-[90vw] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.5)] p-3 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150"
+      className="absolute bottom-11 left-0 sm:-left-4 z-40 w-[340px] max-w-[90vw] bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-transparent rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.5)] p-3 text-slate-800 dark:text-[#E3E3E3] animate-in fade-in zoom-in-95 duration-150"
     >
       {/* Header nhỏ */}
-      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-transparent">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-cyan-400">
+          <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
             functions
           </span>
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <span className="text-xs font-semibold text-slate-700 dark:text-[#E3E3E3]">
             Công thức toán LaTeX
           </span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs transition-colors"
+          className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#282A2C] text-xs transition-colors"
         >
           ✕
         </button>
@@ -95,8 +95,8 @@ export function LatexFormulaPicker({
             onClick={() => setActiveTab(cat.key)}
             className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-colors ${
               activeTab === cat.key
-                ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-cyan-400 border border-blue-200/80 dark:border-blue-900/60'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                ? 'bg-blue-50 dark:bg-[#162B4D] text-blue-600 dark:text-[#A8C7FA] border border-blue-200/80 dark:border-transparent'
+                : 'text-slate-500 dark:text-[#C4C7C5] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
             }`}
           >
             {cat.name}
@@ -112,7 +112,7 @@ export function LatexFormulaPicker({
             type="button"
             title={`${item.title} ($${item.latex}$)`}
             onClick={() => onSelectFormula(item.latex)}
-            className="group flex flex-col items-center justify-center min-h-[42px] px-1 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/40 dark:hover:border-blue-700/60 transition-all text-[13px] overflow-hidden"
+            className="group flex flex-col items-center justify-center min-h-[42px] px-1 py-1.5 rounded-xl border border-slate-100 dark:border-transparent bg-slate-50/60 dark:bg-[#1E1F20] hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/40 dark:hover:border-blue-700/60 transition-all text-[13px] overflow-hidden"
           >
             <span
               className="pointer-events-none group-hover:scale-105 transition-transform"
@@ -123,9 +123,9 @@ export function LatexFormulaPicker({
       </div>
 
       {/* Footer gợi ý */}
-      <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10.5px] text-slate-400">
+      <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-transparent flex items-center justify-between text-[10.5px] text-slate-400">
         <span>
-          Click để chèn định dạng <code className="font-mono text-blue-600 dark:text-cyan-400">$công_thức$</code>
+          Click để chèn định dạng <code className="font-mono text-blue-600 dark:text-[#A8C7FA]">$công_thức$</code>
         </span>
       </div>
     </div>

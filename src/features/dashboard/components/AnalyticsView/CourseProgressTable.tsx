@@ -28,41 +28,41 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
   });
 
   return (
-    <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-slate-100 dark:border-slate-800">
+    <section className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 lg:p-7 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
       {/* Table Header / Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
             {t('coursesTitle')}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mt-0.5">
             {t('coursesSubtitle')}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-2.5 top-2 text-[18px] text-slate-400">
+            <span className="material-symbols-outlined absolute left-3 top-2 text-[18px] text-[#747775] dark:text-[#8E918F]">
               search
             </span>
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 pl-8 pr-3 text-xs bg-slate-100 dark:bg-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-secondary w-44 text-slate-900 dark:text-slate-100 border border-transparent focus:border-secondary/30"
+              className="h-9 pl-9 pr-4 text-xs bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] focus:bg-white dark:focus:bg-[#282A2C] rounded-full focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 w-48 text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] transition-all border-none"
               placeholder={t('searchCourses')}
               type="text"
             />
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
+          <div className="bg-[#F0F4F9] dark:bg-[#1E1F20] p-1.5 rounded-full inline-flex items-center gap-1 border-none">
             <button
               onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeFilter === 'all'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -70,10 +70,10 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
             </button>
             <button
               onClick={() => setActiveFilter('in_progress')}
-              className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeFilter === 'in_progress'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -81,10 +81,10 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
             </button>
             <button
               onClick={() => setActiveFilter('completed')}
-              className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeFilter === 'completed'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -98,7 +98,7 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
-            <tr className="bg-slate-50/80 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <tr className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] text-xs font-semibold uppercase tracking-wider">
               <th className="py-3 px-4 rounded-l-xl">{t('thCourse')}</th>
               <th className="py-3 px-4">{t('thNodes')}</th>
               <th className="py-3 px-4 w-44">{t('thProgress')}</th>
@@ -107,42 +107,42 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
               <th className="py-3 px-4 rounded-r-xl text-right">{t('thActions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-[#E9EEF6] dark:divide-[#282A2C]/50">
             {filteredCourses.map((course) => {
               const isSecondary = course.colorType === 'secondary';
               const isTertiary = course.colorType === 'tertiary';
               return (
                 <tr
                   key={course.id}
-                  className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                  className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors"
                 >
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-none ${
                           isSecondary
-                            ? 'bg-secondary/15 text-secondary'
+                            ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
                             : isTertiary
-                            ? 'bg-tertiary/15 text-tertiary'
-                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            ? 'bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784]'
+                            : 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                         }`}
                       >
                         <span className="material-symbols-outlined text-[22px]">{course.icon}</span>
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        <div className="text-sm font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate">
                           {course.title}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                        <div className="text-xs text-[#747775] dark:text-[#8E918F]">
                           {course.codeOrClass} • {course.instructor}
                         </div>
                       </div>
                     </div>
                   </td>
 
-                  <td className="py-4 px-4 font-mono text-xs text-slate-900 dark:text-slate-100">
+                  <td className="py-4 px-4 font-mono text-xs text-[#1F1F1F] dark:text-[#E3E3E3]">
                     {course.nodesCompleted} / {course.nodesTotal}{' '}
-                    <span className="text-[11px] text-slate-400 font-sans">{t('nodesUnit')}</span>
+                    <span className="text-[11px] text-[#747775] dark:text-[#8E918F] font-sans">{t('nodesUnit')}</span>
                   </td>
 
                   <td className="py-4 px-4">
@@ -151,24 +151,24 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
                         <span
                           className={
                             isSecondary
-                              ? 'text-secondary'
+                              ? 'text-[#0B57D0] dark:text-[#A8C7FA]'
                               : isTertiary
-                              ? 'text-tertiary'
-                              : 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-[#B3261E] dark:text-[#F28B82]'
+                              : 'text-[#1EA85A] dark:text-[#81C995]'
                           }
                         >
                           {course.progressPercent}%{' '}
                           {course.status === 'completed' ? t('courseCompleted') : ''}
                         </span>
                       </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-[#F0F4F9] dark:bg-[#282A2C] h-2 rounded-full overflow-hidden border-none">
                         <div
-                          className={`h-full rounded-full ${
+                          className={`h-2 rounded-full transition-all duration-500 ${
                             isSecondary
-                              ? 'bg-secondary'
+                              ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
                               : isTertiary
-                              ? 'bg-tertiary'
-                              : 'bg-emerald-500'
+                              ? 'bg-[#B3261E] dark:bg-[#F28B82]'
+                              : 'bg-[#1EA85A] dark:bg-[#81C995]'
                           }`}
                           style={{ width: `${course.progressPercent}%` }}
                         />
@@ -177,29 +177,29 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
                   </td>
 
                   <td className="py-4 px-4">
-                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
                       {course.avgScore}
                     </span>
-                    <span className="text-xs text-slate-400"> / {course.maxScore}</span>
+                    <span className="text-xs text-[#747775] dark:text-[#8E918F]"> / {course.maxScore}</span>
                   </td>
 
                   <td className="py-4 px-4">
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap border-none ${
                         isSecondary
-                          ? 'bg-secondary/15 text-secondary'
+                          ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
                           : isTertiary
-                          ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                          : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                          ? 'bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784]'
+                          : 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
                           isSecondary
-                            ? 'bg-secondary'
+                            ? 'bg-[#041E49] dark:bg-[#A8C7FA]'
                             : isTertiary
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
+                            ? 'bg-[#725200] dark:bg-[#FFB784]'
+                            : 'bg-[#0D652D] dark:bg-[#81C995]'
                         }`}
                       />
                       {course.statusBadgeText}
@@ -208,10 +208,10 @@ export function CourseProgressTable({ courses }: CourseProgressTableProps) {
 
                   <td className="py-4 px-4 text-right">
                     <button
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors shadow-sm inline-flex items-center gap-1 ${
+                      className={`px-5 py-2.5 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap border-none shadow-none ${
                         isSecondary
-                          ? 'bg-secondary hover:opacity-90 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
+                          ? 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
+                          : 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
                       }`}
                       type="button"
                     >

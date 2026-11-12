@@ -50,7 +50,7 @@ export function DashboardPageView() {
     !isLoading && analytics && competency && aiInsight && courses && aiTasks;
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
       {/* Dynamic Sidebar (80px in Focus Mode, 80px/260px in Analytics Mode) */}
       <DashboardSidebar
         isFocus={isFocus}
@@ -61,7 +61,7 @@ export function DashboardPageView() {
       {/* Main Container */}
       <div
         className={`transition-all duration-300 ${
-          isFocus || isSidebarCollapsed ? 'pl-20' : 'pl-[260px]'
+          isFocus || isSidebarCollapsed ? 'pl-20' : 'pl-72'
         }`}
       >
         {/* Dynamic Header */}
@@ -80,16 +80,16 @@ export function DashboardPageView() {
         >
           {!isDataReady ? (
             <div className="p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
-              <div className="h-44 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
-                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
-                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
-                <div className="h-28 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60" />
+              <div className="h-44 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="h-28 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
+                <div className="h-28 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
+                <div className="h-28 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
+                <div className="h-28 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="h-96 lg:col-span-2 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
-                <div className="h-96 rounded-3xl bg-slate-200/70 dark:bg-slate-800/60" />
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="h-96 lg:col-span-8 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
+                <div className="h-96 lg:col-span-4 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
               </div>
             </div>
           ) : isFocus ? (

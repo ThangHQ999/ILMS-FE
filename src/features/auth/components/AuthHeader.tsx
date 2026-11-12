@@ -33,7 +33,7 @@ export function AuthHeader() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] dark:border-slate-800/80 dark:bg-[#0F131D]/80 dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+    <header className="fixed top-0 z-50 w-full border-none bg-white/90 backdrop-blur-md shadow-none dark:bg-[#131314]">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 md:px-8">
         {/* Brand Logo */}
         <div className="flex items-center gap-4">
@@ -49,12 +49,12 @@ export function AuthHeader() {
         {/* Right Navigation & Theme Switcher */}
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <span className="text-sm text-slate-500 dark:text-[#C4C7C5]">
               {tAuth('headerNoAccount')}
             </span>
             <Link
               href="/register"
-              className="px-2 py-1 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-[#38BDF8] dark:hover:text-white"
+              className="px-2 py-1 text-sm font-medium text-[#0B57D0] transition-colors hover:underline dark:text-[#A8C7FA]"
             >
               {tAuth('headerRegisterNow')}
             </Link>
@@ -62,7 +62,7 @@ export function AuthHeader() {
 
           <Link
             href="/register"
-            className="sm:hidden flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-[#38BDF8]/15 dark:text-[#38BDF8] dark:border dark:border-[#38BDF8]/30"
+            className="sm:hidden flex items-center rounded-full bg-[#D3E3FD] px-4 py-1.5 text-xs font-medium text-[#041E49] transition-colors hover:bg-[#B9D0F9] dark:bg-[#A8C7FA] dark:text-[#062E6F] border-none shadow-none"
           >
             {tAuth('headerRegister')}
           </Link>
@@ -73,7 +73,7 @@ export function AuthHeader() {
             type="button"
             onClick={toggleTheme}
             aria-label={tCommon('toggleTheme')}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800 dark:text-[#38BDF8]"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F0F4F9] text-slate-700 transition-colors hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:text-[#A8C7FA] border-none shadow-none"
           >
             {mounted && resolvedTheme === 'dark' ? (
               <span className="material-symbols-outlined text-[18px]">light_mode</span>
@@ -83,7 +83,7 @@ export function AuthHeader() {
           </button>
 
           {/* Avatar Icon */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-slate-800 dark:border dark:border-slate-700/80 dark:text-[#38BDF8]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F0F4F9] text-slate-700 dark:bg-[#282A2C] dark:text-[#A8C7FA] border-none">
             <span className="material-symbols-outlined text-[18px]">person</span>
           </div>
         </div>

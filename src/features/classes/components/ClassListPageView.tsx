@@ -116,7 +116,7 @@ export function ClassListPageView({
   const isListEmpty = items.length === 0;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#070A10] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] flex flex-col font-sans transition-colors duration-200">
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
@@ -170,17 +170,17 @@ export function ClassListPageView({
           {isLoading ? (
             <ClassLoadingSkeleton />
           ) : isError ? (
-            <div className="my-8 p-10 rounded-2xl bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/60 text-center space-y-3">
-              <span className="material-symbols-outlined text-[32px] text-red-500">
+            <div className="my-8 p-10 rounded-3xl bg-white dark:bg-[#1E1F20] text-center space-y-3">
+              <span className="material-symbols-outlined text-[32px] text-red-500 dark:text-[#F28B82]">
                 error_outline
               </span>
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              <p className="text-sm font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
                 Không thể tải danh sách lớp học
               </p>
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors"
+                className="px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none cursor-pointer"
               >
                 Thử lại
               </button>
@@ -229,4 +229,3 @@ export function ClassListPageView({
     </div>
   );
 }
-

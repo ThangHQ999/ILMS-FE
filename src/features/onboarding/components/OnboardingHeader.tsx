@@ -11,7 +11,7 @@ export function OnboardingHeader() {
     <header className="flex flex-col items-center text-center pb-6 sm:pb-8">
       {/* Top Badge & Logo */}
       <div className="flex flex-col items-center gap-3">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-[#38BDF8]/15 dark:border dark:border-[#38BDF8]/30 dark:text-[#38BDF8] text-xs font-semibold shadow-sm">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-xs font-medium border-none shadow-none">
           <span className="material-symbols-outlined text-[14px]">tune</span>
           {t('step')}
         </span>
@@ -27,12 +27,12 @@ export function OnboardingHeader() {
       </div>
 
       {/* Main Title */}
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight mt-3">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight mt-3">
         {t('title')}
       </h1>
 
       {/* Supporting Description */}
-      <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto mt-2 text-center leading-relaxed">
+      <p className="text-sm sm:text-base text-slate-500 dark:text-[#C4C7C5] max-w-xl mx-auto mt-2 text-center leading-relaxed">
         {t('subtitle')}
       </p>
     </header>

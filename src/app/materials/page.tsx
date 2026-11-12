@@ -12,5 +12,9 @@ export default function MaterialsPage() {
     if (!isLoading && (isError || !user)) router.replace('/login');
   }, [isError, isLoading, router, user]);
   if (isLoading || !user || isError) return null;
-  return <MaterialsWorkspace />;
+  return (
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] py-8">
+      <MaterialsWorkspace />
+    </div>
+  );
 }

@@ -67,7 +67,7 @@ function Nucleus({ nucleus }: { nucleus: AtomNucleus }) {
 
       {/* HTML Label shifted to [0, -1.5, 0] to avoid covering the nucleus */}
       <Html position={[0, -1.5, 0]} center>
-        <div className="select-none pointer-events-none whitespace-nowrap rounded-lg bg-slate-900/90 px-2.5 py-1 text-xs font-semibold text-orange-200 shadow-xl border border-orange-500/30 backdrop-blur-md flex items-center gap-1.5 ring-1 ring-orange-500/20">
+        <div className="select-none pointer-events-none whitespace-nowrap rounded-lg bg-[#1E1F20] px-2.5 py-1 text-xs font-semibold text-orange-200 shadow-xl border border-orange-500/30 backdrop-blur-md flex items-center gap-1.5 ring-1 ring-orange-500/20">
           <span className="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           <span>{labelText}</span>
         </div>
@@ -136,9 +136,9 @@ function ElectronShell({
 
       {/* 2. Anti-collision Diagonal Label (Stays in fixed angle direction) */}
       <Html position={[labelX, 0, labelZ]} center>
-        <div className="select-none pointer-events-none whitespace-nowrap rounded-md bg-slate-900/90 px-2 py-0.5 text-[11px] font-medium text-slate-200 shadow-md border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5">
+        <div className="select-none pointer-events-none whitespace-nowrap rounded-md bg-[#1E1F20] px-2 py-0.5 text-[11px] font-medium text-[#E3E3E3] shadow-md border border-[#282A2C] backdrop-blur-md flex items-center gap-1.5">
           <span className="text-sky-400 font-semibold">{labelText}</span>
-          <span className="text-[10px] text-slate-400">({shell.electrons}e⁻)</span>
+          <span className="text-[10px] text-[#8E918F]">({shell.electrons}e⁻)</span>
         </div>
       </Html>
 
@@ -300,7 +300,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
     return (
       <div
         style={{ height }}
-        className={`w-full rounded-2xl border border-slate-800 bg-slate-950/70 p-6 flex flex-col items-center justify-center text-slate-400 gap-3 ${className}`}
+        className={`w-full rounded-2xl border border-[#282A2C] bg-[#131314] p-6 flex flex-col items-center justify-center text-[#8E918F] gap-3 ${className}`}
       >
         <AtomIcon className="w-8 h-8 animate-spin text-sky-400 opacity-60" />
         <span className="text-sm font-medium">Đang khởi tạo không gian nguyên tử 3D...</span>
@@ -312,19 +312,19 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
     <div
       ref={setRootRef}
       style={{ height: isFullscreen ? '100vh' : height }}
-      className={`relative w-full rounded-2xl border border-slate-800/90 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden shadow-2xl flex flex-col ${
+      className={`relative w-full rounded-2xl border border-[#282A2C] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden shadow-2xl flex flex-col ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''
       } ${className}`}
     >
       {/* Top Header Bar */}
-      <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between p-3.5 bg-slate-950/40 backdrop-blur-md border-b border-slate-800/60 pointer-events-auto">
+      <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between p-3.5 bg-[#131314] backdrop-blur-md border-b border-[#282A2C] pointer-events-auto">
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
             <AtomIcon className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-100">
+              <span className="text-sm font-semibold text-[#E3E3E3]">
                 {data.element_name || 'Mô hình nguyên tử 3D (Bohr Model)'}
               </span>
               {data.symbol && (
@@ -333,7 +333,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+            <div className="flex items-center gap-3 text-[11px] text-[#8E918F] mt-0.5">
               <span>Hạt nhân: <strong className="text-orange-400">{data.nucleus.protons}p</strong> + <strong className="text-amber-300">{data.nucleus.neutrons}n</strong></span>
               <span>•</span>
               <span>Tổng: <strong className="text-sky-400">{totalElectrons}e⁻</strong> ({data.electron_shells.length} lớp)</span>
@@ -347,7 +347,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
             <button
               type="button"
               onClick={() => setIsAnimating((prev) => !prev)}
-              className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1 px-2.5 border border-slate-700"
+              className="p-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-[#C4C7C5] hover:text-white transition-all text-xs flex items-center gap-1 px-2.5 border border-[#282A2C]"
               title={isAnimating ? 'Tạm dừng chuyển động quỹ đạo' : 'Tiếp tục chuyển động'}
             >
               {isAnimating ? <Pause className="w-3.5 h-3.5 text-amber-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
@@ -357,7 +357,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
             <button
               type="button"
               onClick={handleResetCamera}
-              className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700"
+              className="p-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-[#C4C7C5] hover:text-white transition-all border border-[#282A2C]"
               title="Đặt lại góc nhìn camera"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -366,7 +366,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
             <button
               type="button"
               onClick={handleToggleFullscreen}
-              className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700"
+              className="p-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-[#C4C7C5] hover:text-white transition-all border border-[#282A2C]"
               title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
             >
               {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -391,14 +391,14 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
             </Canvas>
           </div>
         ) : (
-          <div className="w-full h-full flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-950/75 select-none">
-            <div className="p-3.5 rounded-full bg-slate-900 border border-slate-800 mb-3 shadow-inner">
+          <div className="w-full h-full flex-1 flex flex-col items-center justify-center p-6 text-center text-[#8E918F] bg-[#131314] select-none">
+            <div className="p-3.5 rounded-full bg-[#1E1F20] border border-[#282A2C] mb-3 shadow-inner">
               <AtomIcon className="w-7 h-7 text-sky-500/60" />
             </div>
-            <p className="text-xs font-medium text-slate-200">
+            <p className="text-xs font-medium text-[#E3E3E3]">
               Mô hình 3D đã tạm dừng để giải phóng bộ nhớ & vRAM
             </p>
-            <p className="text-[11px] text-slate-400 mt-1 max-w-xs">
+            <p className="text-[11px] text-[#8E918F] mt-1 max-w-xs">
               Mô hình đã cuộn ra khỏi màn hình. Cuộn vào vùng nhìn hoặc bấm bên dưới để tiếp tục.
             </p>
             <button
@@ -415,7 +415,7 @@ export const Atom3DViewer = React.memo(function Atom3DViewer({
 
       {/* Bottom Hint */}
       {isCanvasActive && (
-        <div className="absolute bottom-2.5 right-3 pointer-events-none text-[11px] text-slate-500 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/50 backdrop-blur-sm">
+        <div className="absolute bottom-2.5 right-3 pointer-events-none text-[11px] text-[#8E918F] bg-[#131314] px-2 py-0.5 rounded-md border border-[#282A2C] backdrop-blur-sm">
           Kéo chuột để xoay • Cuộn để phóng to/thu nhỏ
         </div>
       )}

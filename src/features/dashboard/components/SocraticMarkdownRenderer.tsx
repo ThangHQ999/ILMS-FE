@@ -14,7 +14,7 @@ const MermaidRenderer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-24 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/40 p-3 flex items-center justify-center text-slate-400 text-xs">
+      <div className="w-full h-24 rounded-2xl bg-slate-100/50 dark:bg-[#282A2C] p-3 flex items-center justify-center text-[#8E918F] text-xs border-none">
         Đang tải đồ thị Mermaid...
       </div>
     ),
@@ -26,7 +26,7 @@ const Vis3dRenderer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-36 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-900/40 p-3 flex items-center justify-center text-slate-400 text-xs">
+      <div className="w-full h-36 rounded-2xl bg-[#282A2C] p-3 flex items-center justify-center text-[#8E918F] text-xs border-none">
         Đang tải không gian 3D...
       </div>
     ),
@@ -38,7 +38,7 @@ const Atom3DViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-44 rounded-xl border border-slate-800 bg-slate-950/70 p-3 flex items-center justify-center text-slate-400 text-xs">
+      <div className="w-full h-44 rounded-2xl bg-[#131314] p-3 flex items-center justify-center text-[#8E918F] text-xs border-none">
         Đang tải mô hình nguyên tử 3D...
       </div>
     ),
@@ -81,20 +81,20 @@ export const SocraticMarkdownRenderer = React.memo(function SocraticMarkdownRend
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
           strong: ({ children }) => (
-            <strong className="font-semibold text-slate-900 dark:text-slate-100">{children}</strong>
+            <strong className="font-semibold text-slate-900 dark:text-[#E3E3E3]">{children}</strong>
           ),
           h1: ({ children }) => (
-            <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-2 mb-1.5">
+            <h1 className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3] mt-2 mb-1.5">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-2 mb-1">
+            <h2 className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] mt-2 mb-1">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xs font-semibold text-secondary mt-2 mb-1">
+            <h3 className="text-xs font-semibold text-[#A8C7FA] mt-2 mb-1">
               {children}
             </h3>
           ),
@@ -106,12 +106,12 @@ export const SocraticMarkdownRenderer = React.memo(function SocraticMarkdownRend
           ),
           li: ({ children }) => <li className="text-xs leading-relaxed">{children}</li>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-secondary pl-2.5 py-0.5 my-2 italic bg-secondary/10 text-slate-700 dark:text-slate-300 rounded-r">
+            <blockquote className="border-l-2 border-[#A8C7FA] pl-2.5 py-0.5 my-2 italic bg-[#162B4D]/30 text-slate-700 dark:text-[#C4C7C5] rounded-r">
               {children}
             </blockquote>
           ),
           pre: ({ children }) => (
-            <pre className="p-3 my-2 rounded-xl bg-slate-900 text-slate-100 text-[11px] font-mono overflow-x-auto shadow-inner border border-slate-800">
+            <pre className="p-3 my-2 rounded-xl bg-[#131314] text-[#E3E3E3] text-[11px] font-mono overflow-x-auto border-none">
               {children}
             </pre>
           ),
@@ -124,7 +124,7 @@ export const SocraticMarkdownRenderer = React.memo(function SocraticMarkdownRend
             if (!isCodeBlock) {
               return (
                 <code
-                  className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-secondary font-mono text-[11px]"
+                  className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#282A2C] text-[#A8C7FA] font-mono text-[11px]"
                   {...props}
                 >
                   {children}

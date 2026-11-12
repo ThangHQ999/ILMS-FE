@@ -23,9 +23,9 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-md lg:max-w-lg mx-auto flex flex-col justify-center">
-      <div className="bg-white dark:bg-[#161D2F]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-[0_20px_50px_rgba(0,89,187,0.07),0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_0_25px_rgba(56,189,248,0.08)] border border-slate-200/60 dark:border-slate-700/60 relative">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 sm:p-8 md:p-10 shadow-none border-none relative">
         {/* Welcome Tag */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 text-blue-700 dark:bg-cyan-950/60 dark:border dark:border-cyan-500/25 dark:text-cyan-400 text-xs font-semibold w-fit mb-5 shadow-sm">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-xs font-medium w-fit mb-5 border-none shadow-none">
           <span className="material-symbols-outlined text-[16px] animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>
             auto_awesome
           </span>
@@ -34,16 +34,16 @@ export function LoginForm() {
 
         {/* Heading */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight">
             {tAuth('heading')}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+          <p className="text-sm text-slate-500 dark:text-[#C4C7C5] mt-2 leading-relaxed">
             {tAuth('description')}
           </p>
         </div>
 
         {errors.general && (
-          <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+          <div role="alert" className="mb-4 rounded-2xl bg-[#FAD2CF] text-[#B3261E] dark:bg-[#3C1919] dark:text-[#F28B82] p-3 text-xs border-none">
             {errors.general}
           </div>
         )}
@@ -52,12 +52,12 @@ export function LoginForm() {
         <form className="space-y-5" onSubmit={handleLogin} noValidate>
           {/* Identifier Input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between" htmlFor="login-identifier">
+            <label className="text-sm font-semibold text-slate-700 dark:text-[#E3E3E3] flex items-center justify-between" htmlFor="login-identifier">
               <span>{tAuth('identifierLabel')}</span>
               <span className="text-xs text-slate-400">{tValidation('required')}</span>
             </label>
             <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-3.5 text-slate-400 dark:text-cyan-400/80 text-[20px] pointer-events-none">
+              <span className="material-symbols-outlined absolute left-4 text-slate-400 dark:text-[#A8C7FA]/80 text-[20px] pointer-events-none">
                 mail
               </span>
               <input
@@ -68,7 +68,7 @@ export function LoginForm() {
                 onChange={handleChange}
                 placeholder={tAuth('identifierPlaceholder')}
                 disabled={isLoading}
-                className="w-full h-12 pl-11 pr-4 bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 transition-all outline-none focus:bg-white dark:focus:bg-[#111A30] focus:ring-2 focus:ring-blue-600 dark:focus:ring-cyan-400/40"
+                className="w-full h-12 pl-12 pr-4 bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm rounded-full border-none transition-all outline-none"
               />
             </div>
             {errors.identifier && <span className="text-xs text-red-500 mt-0.5">{errors.identifier}</span>}
@@ -76,11 +76,11 @@ export function LoginForm() {
 
           {/* Password Input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200" htmlFor="login-password">
+            <label className="text-sm font-semibold text-slate-700 dark:text-[#E3E3E3]" htmlFor="login-password">
               {tAuth('passwordLabel')}
             </label>
             <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-3.5 text-slate-400 dark:text-cyan-400/80 text-[20px] pointer-events-none">
+              <span className="material-symbols-outlined absolute left-4 text-slate-400 dark:text-[#A8C7FA]/80 text-[20px] pointer-events-none">
                 lock
               </span>
               <input
@@ -91,13 +91,13 @@ export function LoginForm() {
                 onChange={handleChange}
                 placeholder={tAuth('passwordPlaceholder')}
                 disabled={isLoading}
-                className="w-full h-12 pl-11 pr-12 bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 transition-all outline-none focus:bg-white dark:focus:bg-[#111A30] focus:ring-2 focus:ring-blue-600 dark:focus:ring-cyan-400/40"
+                className="w-full h-12 pl-12 pr-12 bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm rounded-full border-none transition-all outline-none"
               />
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
                 aria-label={tAuth('togglePassword')}
-                className="absolute right-3.5 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                className="absolute right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
               >
                 <span className="material-symbols-outlined text-[20px]">
                   {showPassword ? 'visibility' : 'visibility_off'}
@@ -115,11 +115,11 @@ export function LoginForm() {
                 type="checkbox"
                 checked={formData.rememberMe}
                 onChange={handleChange}
-                className="w-4 h-4 rounded text-blue-600 dark:text-cyan-400 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 cursor-pointer"
+                className="w-4 h-4 rounded-md accent-[#0B57D0] bg-[#F0F4F9] dark:bg-[#282A2C] border-none cursor-pointer"
               />
-              <span className="text-slate-600 dark:text-slate-400 font-medium">{tAuth('rememberMe')}</span>
+              <span className="text-slate-600 dark:text-[#C4C7C5] font-medium">{tAuth('rememberMe')}</span>
             </label>
-            <Link href="/forgot-password" className="text-blue-600 dark:text-cyan-400 hover:underline font-medium">
+            <Link href="/forgot-password" className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium">
               {tAuth('forgotPassword')}
             </Link>
           </div>
@@ -128,7 +128,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-[#2563EB] dark:via-[#0284C7] dark:to-[#38BDF8] hover:brightness-110 active:scale-[0.99] text-white font-bold tracking-wide shadow-lg shadow-blue-600/25 dark:shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 group mt-2 disabled:opacity-50"
+            className="w-full py-3.5 px-6 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-sm tracking-wide shadow-none border-none transition-all flex items-center justify-center gap-2 group mt-2 disabled:opacity-50 whitespace-nowrap cursor-pointer"
           >
             <span>{isLoading ? tAuth('submitting') : tAuth('submitButton')}</span>
             <span className="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">
@@ -139,8 +139,8 @@ export function LoginForm() {
 
         {/* Divider */}
         <div className="relative my-7 flex items-center justify-center">
-          <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-700/60" />
-          <span className="absolute px-3 bg-white dark:bg-[#161D2F] text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+          <div className="w-full h-[1px] bg-[#F0F4F9] dark:bg-[#282A2C]" />
+          <span className="absolute px-3 bg-white dark:bg-[#1E1F20] text-[11px] font-bold text-slate-400 tracking-wider uppercase">
             {tAuth('quickLogin')}
           </span>
         </div>
@@ -151,10 +151,10 @@ export function LoginForm() {
             type="button"
             disabled={loadingProvider !== null || isLoading}
             onClick={() => loginWithOAuth('google')}
-            className="h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+            className="h-11 px-5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] border-none text-[#1F1F1F] dark:text-[#E3E3E3] font-medium text-sm flex items-center justify-center gap-2.5 transition-all shadow-none disabled:opacity-60 cursor-pointer whitespace-nowrap"
           >
             {loadingProvider === 'google' ? (
-              <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
+              <span className="w-4 h-4 border-2 border-[#0B57D0] border-t-transparent rounded-full animate-spin shrink-0" />
             ) : (
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -171,7 +171,7 @@ export function LoginForm() {
             type="button"
             disabled={loadingProvider !== null || isLoading}
             onClick={() => loginWithOAuth('github')}
-            className="h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+            className="h-11 px-5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] border-none text-[#1F1F1F] dark:text-[#E3E3E3] font-medium text-sm flex items-center justify-center gap-2.5 transition-all shadow-none disabled:opacity-60 cursor-pointer whitespace-nowrap"
           >
             {loadingProvider === 'github' ? (
               <span className="w-4 h-4 border-2 border-slate-700 dark:border-white border-t-transparent rounded-full animate-spin shrink-0" />
@@ -187,10 +187,10 @@ export function LoginForm() {
         </div>
 
         {/* Card Footer Register Link */}
-        <div className="mt-8 pt-5 text-center bg-slate-50/80 dark:bg-[#0F172A]/70 border-t border-slate-200/80 dark:border-slate-800 -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 md:-mx-10 md:-mb-10 rounded-b-2xl sm:rounded-b-3xl py-4">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-8 pt-5 text-center bg-[#F0F4F9] dark:bg-[#282A2C] border-none -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 md:-mx-10 md:-mb-10 rounded-b-3xl py-4">
+          <p className="text-xs text-slate-500 dark:text-[#C4C7C5]">
             {tAuth('noAccountPrompt')}{' '}
-            <Link href="/register" className="font-semibold text-blue-600 dark:text-cyan-400 hover:underline ml-1">
+            <Link href="/register" className="font-medium text-[#0B57D0] dark:text-[#A8C7FA] hover:underline ml-1">
               {tAuth('registerNow')}
             </Link>
           </p>

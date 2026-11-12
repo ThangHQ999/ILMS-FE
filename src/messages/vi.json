@@ -515,6 +515,7 @@
     "learningArea": "Khu vực học tập",
     "navOverview": "Tổng quan",
     "navCourses": "Lớp học của tôi",
+    "navSessions": "Ca học & Điểm danh",
     "navGraph": "Đồ thị Tri thức",
     "navRadar": "Bản đồ năng lực",
     "navQuizzes": "Bài tập & Quiz",
@@ -543,7 +544,9 @@
     "ploTitle": "5 TRỤ CỘT NĂNG LỰC THEN CHỐT (PLO FRAMEWORK)",
     "ploIndex": "CHỈ SỐ THÀNH THẠO",
     "viewMatrixDetails": "Xem chi tiết Ma trận Tri thức",
-    "aiInsightsTitle": "AI Insights",
+    "aiInsightsTitle": "Gợi ý học tập",
+    "needReinforce": "Cần củng cố",
+    "topicStruggleDesc": "Bạn đang gặp khó khăn ở dạng bài này trong 3 bài nộp gần nhất.",
     "accuracy": "Độ chính xác {percent}%",
     "duration": "Thời lượng: {minutes} phút",
     "questions": "{count} câu hỏi",
@@ -1019,6 +1022,103 @@
       "titleMin": "Tên môn học phải có ít nhất 2 ký tự",
       "academicYearRequired": "Năm học là bắt buộc",
       "majorRequired": "Bộ môn/chuyên ngành là bắt buộc"
+    }
+  },
+  "classHub": {
+    "instructor": "Giảng viên",
+    "students": "Học viên",
+    "assignments": "Bài tập / Quiz",
+    "avgCompletion": "Hoàn thành TB",
+    "tabs": {
+      "overview": "Tổng quan",
+      "modules": "Môn học & Học phần",
+      "curriculum": "Chương trình học",
+      "assignments": "Bài tập & Quiz",
+      "materials": "Học liệu",
+      "students": "Học viên",
+      "grades": "Bảng điểm & PLO",
+      "announcements": "Thông báo",
+      "settings": "Cài đặt lớp"
+    }
+  },
+  "assignments": {
+    "actions": {
+      "createQuizAi": "Tạo Quiz nhanh bằng AI",
+      "createAssignment": "+ Tạo mới Bài tập / Quiz",
+      "classScoreboard": "Bảng điểm lớp",
+      "startQuizNow": "Vào làm bài ngay",
+      "submitLabReport": "Nộp báo cáo Lab",
+      "gradeSubmissions": "Chấm bài ({count})",
+      "exportPersonalTranscript": "Xuất bảng điểm cá nhân",
+      "practiceMistakes": "Luyện lại câu sai",
+      "reviewAndExplain": "Xem lại & Giải thích",
+      "viewSubmissionFeedback": "Bài nộp & Phản hồi",
+      "viewOutline": "Xem đề cương",
+      "retry": "Thử lại"
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm kiếm bài tập, quiz, chuẩn PLO...",
+      "clearSearch": "Xóa tìm kiếm",
+      "allChapters": "Tất cả chương học",
+      "ch1": "Chương 1 (Tầng Ứng dụng)",
+      "ch2": "Chương 2 (Tầng Giao vận)",
+      "ch3": "Chương 3 (Tầng Mạng)",
+      "ch4": "Chương 4 (Tầng Liên kết dữ liệu)",
+      "allTopics": "Tất cả chủ đề",
+      "topicTransport": "Tầng Giao vận & TCP/UDP",
+      "topicNetwork": "Tầng Mạng & OSPF/BGP",
+      "topicApp": "Tầng Ứng dụng & DNS/HTTP",
+      "topicWireshark": "Cấu trúc gói tin Wireshark",
+      "allDifficulties": "Tất cả độ khó",
+      "bloom1": "Nhận biết (Bloom 1)",
+      "bloom2": "Thông hiểu (Bloom 2)",
+      "bloom3": "Vận dụng (Bloom 3)",
+      "bloom4": "Vận dụng cao (Bloom 4)"
+    },
+    "clusters": {
+      "activeTitle": "Đang diễn ra & Cần nộp",
+      "priorityProcessing": "Ưu tiên xử lý",
+      "assignmentsCountSuffix": "bài tập",
+      "completedTitle": "Đã kết thúc & Kết quả đánh giá",
+      "upcomingTitle": "Bài tập dự kiến trong Sprint tới",
+      "sprintPlan": "Kế hoạch tuần 10-12"
+    },
+    "status": {
+      "opening": "Đang mở",
+      "dueSoon": "Hạn sắp đến",
+      "twoDaysLeft": "Còn 2 ngày",
+      "upcomingOpen": "Dự kiến mở",
+      "unannouncedExam": "Chưa công bố đề thi"
+    },
+    "card": {
+      "environment": "Môi trường",
+      "sampleFile": "File mẫu",
+      "classCompleted": "Lớp hoàn thành",
+      "submittedCount": "Đã nộp bài",
+      "classAverage": "Điểm TB Lớp",
+      "pendingGrading": "bài chờ chấm",
+      "questionsSuffix": "câu hỏi",
+      "minutesSuffix": "phút",
+      "classAvgShort": "ĐTB Lớp",
+      "rankShort": "Xếp hạng"
+    },
+    "panels": {
+      "weightsTitle": "Trọng số điểm & Tiến độ",
+      "moduleScope": "Học phần",
+      "weightsDescription": "Phân bố theo đề cương chi tiết học phần CS-202 đã được Hội đồng Khoa phê duyệt:",
+      "totalAccumulated": "Tổng tích lũy hiện tại",
+      "socraticTitle": "Socratic AI Mentor",
+      "realtimeAi": "Real-time AI",
+      "weaknessTopicTitle": "Lỗ hổng kiến thức cần củng cố",
+      "performanceTitle": "Hiệu suất cá nhân",
+      "avgQuizScore": "Điểm Quiz TB",
+      "onTimeRate": "Nộp đúng hạn",
+      "streakTitle": "Chuỗi hoàn thành",
+      "streakDescription": "{count} bài tập nộp liên tiếp",
+      "ploBadgeTitle": "Huy hiệu Đạt Chuẩn PLO"
+    },
+    "errors": {
+      "loadFailed": "Không thể tải danh sách bài tập & quiz"
     }
   }
 }

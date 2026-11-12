@@ -13,22 +13,22 @@ export function PasswordStrengthMeter({ strength }: PasswordStrengthMeterProps) 
   const { score, label } = strength;
 
   const getBarColor = (index: number) => {
-    if (index >= score) return 'bg-slate-200 dark:bg-slate-800';
-    if (score <= 1) return 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]';
-    if (score === 2) return 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]';
-    if (score === 3) return 'bg-blue-500 dark:bg-[#38BDF8] shadow-[0_0_6px_rgba(56,189,248,0.5)]';
-    return 'bg-blue-600 dark:bg-[#38BDF8] shadow-[0_0_8px_rgba(56,189,248,0.6)]';
+    if (index >= score) return 'bg-[#E1E5EA] dark:bg-[#1E1F20]';
+    if (score <= 1) return 'bg-[#B3261E] dark:bg-[#F28B82]';
+    if (score === 2) return 'bg-[#B58500] dark:bg-[#FFB784]';
+    if (score === 3) return 'bg-[#0B57D0] dark:bg-[#A8C7FA]';
+    return 'bg-[#0D652D] dark:bg-[#81C995]';
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-[#0F172A]/80 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3">
+    <div className="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-3 border-none shadow-none">
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-          <span className="material-symbols-outlined text-blue-600 dark:text-[#38BDF8] text-[16px]">
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#C4C7C5] font-medium">
+          <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[16px]">
             verified
           </span>
           <span>{t('strengthTitle')}</span>
-          <span className="font-semibold text-blue-600 dark:text-[#38BDF8]">
+          <span className="font-semibold text-[#0B57D0] dark:text-[#A8C7FA]">
             {label}
           </span>
         </div>
