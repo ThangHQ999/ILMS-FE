@@ -26,6 +26,7 @@ export function DashboardSidebar({
   const isSessionsActive = pathname.startsWith('/lesson-sessions') || pathname.includes('/sessions');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
+  const isAssignmentsActive = pathname.startsWith('/assignments') || (pathname.startsWith('/classes') && (pathname.includes('assignments') || pathname.includes('cs-202')));
   const isMaterialsActive = pathname.startsWith('/materials');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isSettingsActive = pathname.startsWith('/settings');
@@ -71,6 +72,14 @@ export function DashboardSidebar({
       icon: 'radar',
       label: isTeacher ? 'Năng lực lớp học' : 'Năng lực cá nhân',
       active: isRadarActive,
+      show: true,
+    },
+    {
+      href: '/assignments',
+      icon: 'quiz',
+      label: t('navQuizzes'),
+      active: isAssignmentsActive,
+      badge: '3 Mới',
       show: true,
     },
     {
