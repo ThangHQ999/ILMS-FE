@@ -52,3 +52,4 @@
 - `npx tsc --noEmit`: Đạt 0 lỗi biên dịch TypeScript strict.
 - Next.js Dev Server (Port 3000): Hoạt động ổn định, `GET /classes 200 OK`, `GET /classes/csdl-k22-01 200 OK`.
 - Hỗ trợ đầy đủ Dark Mode & Light Mode, responsive mượt mà trên mọi kích thước màn hình.
+
