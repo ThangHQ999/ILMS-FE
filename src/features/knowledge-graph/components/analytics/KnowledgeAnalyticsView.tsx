@@ -144,7 +144,7 @@ export function KnowledgeAnalyticsView({
   };
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#070A10] font-sans text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] font-sans text-[#1F1F1F] dark:text-[#E3E3E3]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar
         isFocus={false}
@@ -170,19 +170,19 @@ export function KnowledgeAnalyticsView({
           {/* Top Ribbon & Quick Analytics Bar */}
           <div className="w-full flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm border border-blue-200/50 dark:border-blue-900/50">
+              <div className="w-11 h-11 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] border-none shadow-none">
                 <span className="material-symbols-outlined text-[26px]">hub</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                  <h1 className="text-xl font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight">
                     Knowledge Graph Studio
                   </h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-semibold text-[11px]">
+                  <span className="px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] whitespace-nowrap font-medium text-[11px] border-none">
                     Bản đồ kiến trúc CS
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-[#C4C7C5] mt-0.5">
                   Mạng lưới {nodesData.length} thực thể tri thức, liên kết suy luận đồ thị & lộ trình cá nhân hóa
                 </p>
               </div>
@@ -191,28 +191,28 @@ export function KnowledgeAnalyticsView({
             {/* Right Action Tools */}
             <div className="flex items-center flex-wrap gap-2.5">
               {/* Layout Mode Selector */}
-              <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded-xl shadow-sm">
+              <div className="flex items-center bg-[#F0F4F9] dark:bg-[#1E1F20] border-none px-3 py-1.5 rounded-full shadow-none">
                 <span className="material-symbols-outlined text-slate-400 text-[18px] ml-1 mr-1">
                   account_tree
                 </span>
                 <select
                   value={layoutMode}
                   onChange={(e) => onLayoutModeChange(e.target.value as LayoutMode)}
-                  className="bg-transparent text-xs font-semibold text-slate-800 dark:text-slate-200 py-1 pr-3 pl-1 outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-semibold text-slate-800 dark:text-[#E3E3E3] py-1 pr-3 pl-1 outline-none cursor-pointer"
                 >
-                  <option value="force" className="dark:bg-slate-900">Force-Directed (Lực hút đẩy)</option>
-                  <option value="hierarchical" className="dark:bg-slate-900">Hierarchical (Phân cấp DAG)</option>
-                  <option value="circular" className="dark:bg-slate-900">Circular (Cụm xoay tròn)</option>
+                  <option value="force" className="dark:bg-[#1E1F20]">Force-Directed (Lực hút đẩy)</option>
+                  <option value="hierarchical" className="dark:bg-[#1E1F20]">Hierarchical (Phân cấp DAG)</option>
+                  <option value="circular" className="dark:bg-[#1E1F20]">Circular (Cụm xoay tròn)</option>
                 </select>
               </div>
 
               {/* Shortest Path Finder Trigger */}
               <button
                 onClick={() => setIsPathModalOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap"
                 type="button"
               >
-                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
+                <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">
                   route
                 </span>
                 <span>Lộ trình ngắn nhất (A → B)</span>
@@ -228,10 +228,10 @@ export function KnowledgeAnalyticsView({
                       : 'Đã chuyển về chế độ Xem (Read-only)'
                   );
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap ${
                   isEditMode
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
+                    ? 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
+                    : 'bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3]'
                 }`}
                 type="button"
               >
@@ -245,49 +245,49 @@ export function KnowledgeAnalyticsView({
               {/* Export Data Dropdown */}
               <div className="relative group">
                 <button
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">download</span>
                   <span>Xuất dữ liệu</span>
                   <span className="material-symbols-outlined text-[16px]">expand_more</span>
                 </button>
-                <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 hidden group-hover:block z-50">
+                <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-[#1E1F20] rounded-2xl shadow-xl border-none py-1.5 hidden group-hover:block z-50">
                   <button
                     onClick={() => handleExportData('svg')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                    className="w-full text-left px-3.5 py-2 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-xs font-medium text-slate-700 dark:text-[#E3E3E3] flex items-center gap-2"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">image</span>
+                    <span className="material-symbols-outlined text-[16px] text-[#0B57D0]">image</span>
                     SVG Vector HD
                   </button>
                   <button
                     onClick={() => handleExportData('png')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                    className="w-full text-left px-3.5 py-2 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-xs font-medium text-slate-700 dark:text-[#E3E3E3] flex items-center gap-2"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">photo_camera</span>
+                    <span className="material-symbols-outlined text-[16px] text-[#0B57D0]">photo_camera</span>
                     PNG 300 DPI
                   </button>
                   <button
                     onClick={() => handleExportData('json')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                    className="w-full text-left px-3.5 py-2 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-xs font-medium text-slate-700 dark:text-[#E3E3E3] flex items-center gap-2"
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">data_object</span>
+                    <span className="material-symbols-outlined text-[16px] text-[#0B57D0]">data_object</span>
                     JSON Graph Schema
                   </button>
                 </div>
               </div>
 
               {/* View Switcher (2D Graph vs Matrix Table) */}
-              <div className="flex items-center bg-slate-200 dark:bg-slate-800 p-1 rounded-xl">
+              <div className="flex items-center bg-[#E1E5EA] dark:bg-[#1E1F20] p-1 rounded-full border-none">
                 <button
                   onClick={() => setActiveTab('graph')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === 'graph'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                      ? 'bg-white dark:bg-[#282A2C] text-[#041E49] dark:text-[#E3E3E3] shadow-none'
+                      : 'text-slate-600 dark:text-[#C4C7C5] hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                   type="button"
                 >
@@ -296,10 +296,10 @@ export function KnowledgeAnalyticsView({
                 </button>
                 <button
                   onClick={() => setActiveTab('table')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === 'table'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                      ? 'bg-white dark:bg-[#282A2C] text-[#041E49] dark:text-[#E3E3E3] shadow-none'
+                      : 'text-slate-600 dark:text-[#C4C7C5] hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                   type="button"
                 >
@@ -311,7 +311,7 @@ export function KnowledgeAnalyticsView({
               {/* Enter Zen Focus Mode Button */}
               <button
                 onClick={onSwitchToFocus}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap"
                 type="button"
               >
                 <span className="material-symbols-outlined text-[18px]">center_focus_strong</span>
@@ -344,7 +344,7 @@ export function KnowledgeAnalyticsView({
                 />
 
                 {/* Graph Stage Canvas Wrapper */}
-                <div className="relative w-full h-[640px] bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-md border border-slate-200/80 dark:border-slate-800">
+                <div className="relative w-full h-[640px] bg-white dark:bg-[#1E1F20] rounded-3xl overflow-hidden shadow-none border-none">
                   {/* Floating Edit Palette if Edit Mode Active */}
                   {isEditMode && (
                     <EditFloatingPalette
@@ -380,12 +380,12 @@ export function KnowledgeAnalyticsView({
                   {isInspectorCollapsed && (
                     <button
                       onClick={() => setIsInspectorCollapsed(false)}
-                      className="absolute right-4 top-4 z-30 bg-white dark:bg-slate-900 shadow-lg border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-2 cursor-pointer"
+                      className="absolute right-4 top-4 z-30 bg-white dark:bg-[#1E1F20] shadow-none border-none px-4 py-2 rounded-full text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-all flex items-center gap-2 cursor-pointer"
                       title="Mở rộng Bảng chi tiết thực thể"
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[20px]">first_page</span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100 pr-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-[#E3E3E3] pr-1">
                         Chi tiết Node
                       </span>
                     </button>

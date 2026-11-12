@@ -33,37 +33,33 @@ export function ForbiddenView() {
   };
 
   return (
-    <div className="bg-[#f6fafe] dark:bg-[#070A10] text-slate-900 dark:text-slate-100 min-h-screen flex flex-col justify-between font-sans transition-colors">
+    <div className="bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] min-h-screen flex flex-col justify-between font-sans transition-colors">
       {/* 1. Header with Adaptive Auth state */}
       <ErrorPageHeader currentPage="403" />
 
       {/* 2. Main 403 Stage */}
       <main className="w-full flex-grow pt-16 relative overflow-hidden">
-        {/* Subtle Tech Glows */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[720px] h-[480px] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute -bottom-20 right-10 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
-
         <div className="flex flex-col w-full py-12 px-4 sm:px-6 lg:px-8 items-center justify-center min-h-[calc(100vh-8rem)]">
           {/* Central Master Card */}
-          <div className="w-full max-w-4xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 p-8 sm:p-12 relative">
+          <div className="w-full max-w-4xl bg-white dark:bg-[#1E1F20] rounded-3xl shadow-none border-none p-8 sm:p-12 relative">
             {/* Header Status Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-none">
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] border-none">
                   <span className="material-symbols-outlined text-[22px]">shield_lock</span>
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                     {t('securitySystemTitle')}
                   </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
+                  <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5] font-mono tracking-tight">
                     ILMS Gateway v4.8 • Access Enforcement
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAD2CF] dark:bg-[#3C1919] text-[#B3261E] dark:text-[#F28B82] border-none">
+                <span className="w-2 h-2 rounded-full bg-[#B3261E] animate-pulse" />
                 <span className="font-mono text-xs font-semibold">
                   MÃ LỖI: SEC_ERR_403_INSUFFICIENT_ROLE
                 </span>
@@ -161,58 +157,58 @@ export function ForbiddenView() {
 
               {/* Notice Headlines */}
               <div className="text-center max-w-2xl mt-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2.5 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#E3E3E3] mb-2.5 tracking-tight">
                   {t('restrictedAreaTitle')}
                 </h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-sm text-slate-600 dark:text-[#C4C7C5] leading-relaxed">
                   {t('restrictedAreaDesc')}
                 </p>
               </div>
             </div>
 
             {/* Role Audit Matrix */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 sm:p-5 my-6 border border-slate-200/80 dark:border-slate-800">
+            <div className="bg-[#F0F4F9] dark:bg-[#1E1F20] rounded-3xl p-4 sm:p-5 my-6 border-none">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Current Role */}
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#282A2C] p-4 rounded-2xl shadow-none border-none">
+                  <div className="w-10 h-10 rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] flex items-center justify-center text-[#0B57D0] dark:text-[#A8C7FA] shrink-0">
                     <span className="material-symbols-outlined text-[20px]">person</span>
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                       {t('currentRole')}
                     </span>
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate block">
+                    <span className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] truncate block">
                       Học viên (Student)
                     </span>
                   </div>
                 </div>
 
                 {/* Required Role */}
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#282A2C] p-4 rounded-2xl shadow-none border-none">
+                  <div className="w-10 h-10 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] shrink-0 border-none">
                     <span className="material-symbols-outlined text-[20px]">verified_user</span>
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                       {t('requiredRole')}
                     </span>
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate block">
+                    <span className="text-xs font-bold text-[#0B57D0] dark:text-[#A8C7FA] truncate block">
                       Giảng viên / Admin
                     </span>
                   </div>
                 </div>
 
                 {/* Target Resource */}
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#282A2C] p-4 rounded-2xl shadow-none border-none">
+                  <div className="w-10 h-10 rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] flex items-center justify-center text-slate-500 shrink-0">
                     <span className="material-symbols-outlined text-[20px]">folder_special</span>
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                       {t('targetResource')}
                     </span>
-                    <span className="text-xs font-mono font-semibold text-slate-800 dark:text-slate-200 truncate block">
+                    <span className="text-xs font-mono font-semibold text-slate-800 dark:text-[#E3E3E3] truncate block">
                       /courses/adv-ai/grading-lab
                     </span>
                   </div>
@@ -224,7 +220,7 @@ export function ForbiddenView() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 pb-6">
               <Link
                 href="/dashboard"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] whitespace-nowrap text-xs font-medium border-none shadow-none transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                 <span>{t('returnToDashboard')}</span>
@@ -233,7 +229,7 @@ export function ForbiddenView() {
               <button
                 type="button"
                 onClick={() => setIsSwitchModalOpen(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap"
               >
                 <span className="material-symbols-outlined text-[18px]">switch_account</span>
                 <span>{t('switchAccountBtn')}</span>
@@ -242,7 +238,7 @@ export function ForbiddenView() {
               <button
                 type="button"
                 onClick={() => setIsPermissionModalOpen(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-transparent border border-[#747775] hover:bg-[#F0F4F9] text-[#1F1F1F] dark:border-[#8E918F] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
               >
                 <span className="material-symbols-outlined text-[18px]">key</span>
                 <span>{t('requestAccessBtn')}</span>
@@ -250,13 +246,13 @@ export function ForbiddenView() {
             </div>
 
             {/* Smart Educational Alternative Shortcuts */}
-            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-transparent">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
+                  <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[18px]">
                     explore
                   </span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                     {t('availableShortcutsTitle')}
                   </span>
                 </div>
@@ -268,10 +264,10 @@ export function ForbiddenView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Link
                   href="/dashboard"
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex flex-col justify-between border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+                  className="p-4 rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] transition-all flex flex-col justify-between border-none shadow-none group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                    <span className="p-2 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]">
                       <span className="material-symbols-outlined text-[18px]">school</span>
                     </span>
                     <span className="material-symbols-outlined text-slate-400 text-[16px] group-hover:translate-x-1 transition-transform">
@@ -279,10 +275,10 @@ export function ForbiddenView() {
                     </span>
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-0.5">
+                    <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] mb-0.5">
                       Tiến trình học tập
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 dark:text-[#C4C7C5] truncate">
                       Xem bài giảng & bài tập cá nhân
                     </div>
                   </div>
@@ -290,10 +286,10 @@ export function ForbiddenView() {
 
                 <Link
                   href="/knowledge-graph"
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex flex-col justify-between border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+                  className="p-4 rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] transition-all flex flex-col justify-between border-none shadow-none group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
+                    <span className="p-2 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
                       <span className="material-symbols-outlined text-[18px]">hub</span>
                     </span>
                     <span className="material-symbols-outlined text-slate-400 text-[16px] group-hover:translate-x-1 transition-transform">
@@ -301,10 +297,10 @@ export function ForbiddenView() {
                     </span>
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-0.5">
+                    <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] mb-0.5">
                       Đồ thị tri thức
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 dark:text-[#C4C7C5] truncate">
                       Khám phá bản đồ kỹ năng 24+ node
                     </div>
                   </div>
@@ -312,10 +308,10 @@ export function ForbiddenView() {
 
                 <Link
                   href="/ai-tutor"
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex flex-col justify-between border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+                  className="p-4 rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] transition-all flex flex-col justify-between border-none shadow-none group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                    <span className="p-2 rounded-2xl bg-[#C4EED0] dark:bg-[#142E20] text-[#0D652D] dark:text-[#81C995]">
                       <span className="material-symbols-outlined text-[18px]">psychology</span>
                     </span>
                     <span className="material-symbols-outlined text-slate-400 text-[16px] group-hover:translate-x-1 transition-transform">
@@ -323,10 +319,10 @@ export function ForbiddenView() {
                     </span>
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-0.5">
+                    <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] mb-0.5">
                       Trợ lý AI Socratic
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 dark:text-[#C4C7C5] truncate">
                       Gợi ý lộ trình & giải đáp 24/7
                     </div>
                   </div>
@@ -334,10 +330,10 @@ export function ForbiddenView() {
 
                 <Link
                   href="/settings"
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex flex-col justify-between border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+                  className="p-4 rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] transition-all flex flex-col justify-between border-none shadow-none group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="p-2 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
+                    <span className="p-2 rounded-2xl bg-[#FCEBA4] dark:bg-[#3C2A1E] text-[#725200] dark:text-[#FFB784]">
                       <span className="material-symbols-outlined text-[18px]">support_agent</span>
                     </span>
                     <span className="material-symbols-outlined text-slate-400 text-[16px] group-hover:translate-x-1 transition-transform">
@@ -345,10 +341,10 @@ export function ForbiddenView() {
                     </span>
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-0.5">
+                    <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] mb-0.5">
                       Trung tâm Hỗ trợ
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 dark:text-[#C4C7C5] truncate">
                       Gửi phiếu tra cứu đến Cố vấn
                     </div>
                   </div>
@@ -361,13 +357,13 @@ export function ForbiddenView() {
         {/* Modal: Request Permission Form */}
         {isPermissionModalOpen && (
           <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-scale-up">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl max-w-lg w-full p-6 shadow-2xl border-none animate-scale-up">
+              <div className="flex items-center justify-between pb-3 border-none">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[22px]">
+                  <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[22px]">
                     assignment_ind
                   </span>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-[#E3E3E3]">
                     {t('modalPermissionTitle')}
                   </h3>
                 </div>
@@ -380,19 +376,19 @@ export function ForbiddenView() {
                 </button>
               </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-400 my-3 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-[#C4C7C5] my-3 leading-relaxed">
                 {t('modalPermissionDesc')}
               </p>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-[#C4C7C5] mb-1">
                     {t('accessPurpose')}
                   </label>
                   <select
                     value={selectedPurpose}
                     onChange={(e) => setSelectedPurpose(e.target.value)}
-                    className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100 border border-transparent focus:border-blue-500 outline-none cursor-pointer"
+                    className="w-full bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-3 text-xs text-slate-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer"
                   >
                     <option value="ta">Trợ giảng tham gia hỗ trợ chấm điểm (Teaching Assistant)</option>
                     <option value="research">Học viên tham gia nghiên cứu đề tài chuyên sâu</option>
@@ -402,7 +398,7 @@ export function ForbiddenView() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-[#C4C7C5] mb-1">
                     {t('additionalNote')}
                   </label>
                   <textarea
@@ -410,13 +406,13 @@ export function ForbiddenView() {
                     onChange={(e) => setRequestNote(e.target.value)}
                     placeholder="Nhập mã số sinh viên, tên học phần và lý do cụ thể..."
                     rows={3}
-                    className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100 border border-transparent focus:border-blue-500 outline-none resize-none leading-relaxed"
+                    className="w-full bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-3 text-xs text-slate-900 dark:text-[#E3E3E3] border-none outline-none resize-none leading-relaxed"
                   />
                 </div>
               </div>
 
               {permissionSubmitted ? (
-                <div className="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <div className="mt-4 p-3.5 rounded-2xl bg-[#C4EED0] dark:bg-[#142E20] text-[#0D652D] dark:text-[#81C995] text-xs font-semibold flex items-center gap-2 border-none">
                   <span className="material-symbols-outlined text-[18px]">check_circle</span>
                   <span>{t('permissionSuccessNotice')}</span>
                 </div>
@@ -425,14 +421,14 @@ export function ForbiddenView() {
                   <button
                     type="button"
                     onClick={() => setIsPermissionModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="px-5 py-2.5 rounded-full border border-[#747775] hover:bg-[#F0F4F9] text-[#1F1F1F] dark:border-[#8E918F] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] text-xs font-medium transition-colors"
                   >
                     {t('cancelBtn')}
                   </button>
                   <button
                     type="button"
                     onClick={handleSendPermissionRequest}
-                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                    className="px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] whitespace-nowrap text-xs font-medium border-none shadow-none transition-colors cursor-pointer"
                   >
                     {t('sendRequestBtn')}
                   </button>
@@ -445,13 +441,13 @@ export function ForbiddenView() {
         {/* Modal: Switch Account */}
         {isSwitchModalOpen && (
           <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-scale-up">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl max-w-md w-full p-6 shadow-2xl border-none animate-scale-up">
+              <div className="flex items-center justify-between pb-3 border-none">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[22px]">
+                  <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[22px]">
                     switch_account
                   </span>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-[#E3E3E3]">
                     {t('modalSwitchTitle')}
                   </h3>
                 </div>
@@ -466,21 +462,21 @@ export function ForbiddenView() {
 
               <div className="space-y-2.5 my-4">
                 {/* Current Student Account */}
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] border-none text-[#041E49] dark:text-[#A8C7FA]">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-9 h-9 rounded-full bg-[#0B57D0] flex items-center justify-center text-white font-bold text-xs border-none">
                       HV
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                      <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                         nguyen.van.a@edutech.vn
                       </div>
-                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                      <div className="text-[10px] text-[#0B57D0] dark:text-[#A8C7FA] font-semibold">
                         Đang hoạt động (Student)
                       </div>
                     </div>
                   </div>
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px]">
+                  <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[20px]">
                     check_circle
                   </span>
                 </div>
@@ -488,17 +484,17 @@ export function ForbiddenView() {
                 {/* Switch to Instructor Account */}
                 <div
                   onClick={handleSwitchInstructor}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer transition-all"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] border-none cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
                       GV
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                      <div className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                         inst.nguyen@edutech.vn
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[10px] text-slate-500 dark:text-[#C4C7C5]">
                         Giảng viên Khoa CNTT (Instructor)
                       </div>
                     </div>
@@ -513,7 +509,7 @@ export function ForbiddenView() {
                 <button
                   type="button"
                   onClick={() => setIsSwitchModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] text-xs font-medium border-none shadow-none transition-colors"
                 >
                   {t('closeBtn')}
                 </button>

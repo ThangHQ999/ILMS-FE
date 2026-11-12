@@ -47,6 +47,7 @@ export const classItemSchema = z.object({
   instructor: classInstructorSchema.optional(),
   schedule: scheduleInfoSchema.optional(),
   stats: classStatsSchema.optional(),
+  ownerId: z.string().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   deletedAt: z.string().nullable().optional(),

@@ -40,7 +40,7 @@ export function LandingPageView() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-[#F1F5F9] antialiased selection:bg-blue-600/15 selection:text-blue-700 dark:selection:bg-[#38BDF8]/20 dark:selection:text-[#38BDF8] transition-colors">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased transition-colors">
       <LandingHeader />
       <main className="w-full pt-16">
         <LandingHero />

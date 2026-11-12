@@ -23,20 +23,20 @@ export function ClassListView({
   const t = useTranslations('classes');
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm pt-1">
+    <div className="w-full overflow-hidden rounded-3xl bg-white dark:bg-[#1E1F20] pt-1 border-none shadow-none">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-          <thead className="bg-slate-50 dark:bg-slate-800/60 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
+        <table className="w-full text-left text-xs text-[#444746] dark:text-[#C4C7C5]">
+          <thead className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[11px] font-semibold text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
             <tr>
-              <th className="px-5 py-3.5">{t('classCode')}</th>
+              <th className="px-5 py-3.5 rounded-l-2xl">{t('classCode')}</th>
               <th className="px-5 py-3.5">{t('classTitle')}</th>
               <th className="px-5 py-3.5">{t('schedule')}</th>
               <th className="px-5 py-3.5">{t('students')}</th>
               <th className="px-5 py-3.5">{t('enrollmentCode')}</th>
-              <th className="px-5 py-3.5 text-right">Thao tác</th>
+              <th className="px-5 py-3.5 text-right rounded-r-2xl">Thao tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+          <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50">
             {items.map((item) => {
               const isCopied = copiedCode === item.enrollmentKey;
               const isArchived = item.status === 'ARCHIVED';
@@ -44,11 +44,11 @@ export function ClassListView({
               return (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                  className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors"
                 >
                   {/* Code */}
-                  <td className="px-5 py-4 font-mono font-bold text-slate-900 dark:text-slate-100">
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
+                  <td className="px-5 py-4 font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                    <span className="px-2.5 py-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-xs">
                       {item.name}
                     </span>
                   </td>
@@ -58,24 +58,24 @@ export function ClassListView({
                     <Link
                       href={`/classes/${item.id}`}
                       prefetch={true}
-                      className="font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors block line-clamp-1"
+                      className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors block line-clamp-1"
                     >
                       {item.title}
                     </Link>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                    <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
                       {item.major} • {item.academicYear}
                     </span>
                   </td>
 
                   {/* Schedule */}
                   <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">
+                    <div className="flex items-center gap-1.5 text-[#444746] dark:text-[#C4C7C5]">
+                      <span className="material-symbols-outlined text-[15px] text-[#0B57D0] dark:text-[#A8C7FA]">
                         schedule
                       </span>
                       <span>{item.schedule?.dayOfWeek || 'Linh hoạt'}</span>
-                      <span className="text-slate-300 dark:text-slate-700">•</span>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                      <span className="text-[#747775] dark:text-[#8E918F]">•</span>
+                      <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
                         {item.schedule?.room || 'Phòng học trực tuyến'}
                       </span>
                     </div>
@@ -83,10 +83,10 @@ export function ClassListView({
 
                   {/* Students */}
                   <td className="px-5 py-4 whitespace-nowrap">
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
                       {item.enrolledCount || 0}
                     </span>
-                    <span className="text-slate-400"> / {item.maxStudents || 60}</span>
+                    <span className="text-[#747775] dark:text-[#8E918F]"> / {item.maxStudents || 60}</span>
                   </td>
 
                   {/* Enrollment Key */}
@@ -95,7 +95,7 @@ export function ClassListView({
                       <button
                         type="button"
                         onClick={() => onCopyCode(item.enrollmentKey!)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-[11px] text-slate-700 dark:text-slate-300 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] font-mono text-[11px] text-[#1F1F1F] dark:text-[#C4C7C5] whitespace-nowrap transition-colors border-none cursor-pointer"
                         title={t('copyCode')}
                       >
                         <span className="material-symbols-outlined text-[14px]">
@@ -104,7 +104,7 @@ export function ClassListView({
                         <span>{item.enrollmentKey}</span>
                       </button>
                     ) : (
-                      <span className="text-[11px] text-slate-400">-</span>
+                      <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">-</span>
                     )}
                   </td>
 
@@ -113,7 +113,7 @@ export function ClassListView({
                     <div className="inline-flex items-center gap-2">
                       <Link
                         href={`/classes/${item.id}`}
-                        className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white dark:hover:text-white font-semibold text-xs transition-colors"
+                        className="px-4 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-xs whitespace-nowrap transition-colors border-none shadow-none"
                       >
                         {t('enterClassSpace')}
                       </Link>
@@ -122,7 +122,7 @@ export function ClassListView({
                         <button
                           type="button"
                           onClick={() => onArchiveClick(item)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                          className="p-1.5 rounded-full text-[#747775] dark:text-[#8E918F] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF] dark:hover:bg-[#3C1919] transition-colors border-none cursor-pointer"
                           title={t('menuArchive')}
                         >
                           <span className="material-symbols-outlined text-[18px]">archive</span>
@@ -132,7 +132,7 @@ export function ClassListView({
                           <button
                             type="button"
                             onClick={() => onRestoreClick(item)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                            className="p-1.5 rounded-full text-[#747775] dark:text-[#8E918F] hover:text-[#0D652D] dark:hover:text-[#81C995] hover:bg-[#C4EED0] dark:hover:bg-[#142E20] transition-colors border-none cursor-pointer"
                             title={t('menuRestore')}
                           >
                             <span className="material-symbols-outlined text-[18px]">unarchive</span>
@@ -150,4 +150,3 @@ export function ClassListView({
     </div>
   );
 }
-

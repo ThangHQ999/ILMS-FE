@@ -8,18 +8,18 @@ export function LandingTechStack() {
 
   return (
     <section
-      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 dark:border-slate-800/80 transition-colors"
+      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-none transition-colors"
       id="cong-nghe-doi-tac"
     >
       <div className="flex flex-col items-center justify-center text-center">
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 tracking-wider uppercase font-semibold">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-[#C4C7C5] tracking-wider uppercase font-semibold">
           {t('title')}
         </p>
 
-        <div className="flex items-center justify-center flex-wrap gap-8 sm:gap-12 md:gap-16 lg:gap-20 mt-8 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+        <div className="flex items-center justify-center flex-wrap gap-8 sm:gap-12 md:gap-16 lg:gap-20 mt-8 text-slate-600 dark:text-[#C4C7C5] hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
           {/* Neo4j */}
           <div
-            className="flex items-center gap-2.5 cursor-default hover:text-blue-600 dark:hover:text-[#38BDF8] transition-colors"
+            className="flex items-center gap-2.5 cursor-default hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors"
             title="Neo4j Graph Database"
           >
             <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -37,7 +37,7 @@ export function LandingTechStack() {
 
           {/* OpenAI */}
           <div
-            className="flex items-center gap-2.5 cursor-default hover:text-blue-600 dark:hover:text-[#38BDF8] transition-colors"
+            className="flex items-center gap-2.5 cursor-default hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors"
             title="OpenAI"
           >
             <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +48,7 @@ export function LandingTechStack() {
 
           {/* Spring Boot */}
           <div
-            className="flex items-center gap-2.5 cursor-default hover:text-blue-600 dark:hover:text-[#38BDF8] transition-colors"
+            className="flex items-center gap-2.5 cursor-default hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors"
             title="Spring Boot"
           >
             <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +59,7 @@ export function LandingTechStack() {
 
           {/* Next.js */}
           <div
-            className="flex items-center gap-2.5 cursor-default hover:text-blue-600 dark:hover:text-[#38BDF8] transition-colors"
+            className="flex items-center gap-2.5 cursor-default hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors"
             title="Next.js"
           >
             <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -70,7 +70,7 @@ export function LandingTechStack() {
 
           {/* MySQL */}
           <div
-            className="flex items-center gap-2.5 cursor-default hover:text-blue-600 dark:hover:text-[#38BDF8] transition-colors"
+            className="flex items-center gap-2.5 cursor-default hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors"
             title="MySQL"
           >
             <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

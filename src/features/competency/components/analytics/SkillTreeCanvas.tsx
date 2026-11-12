@@ -20,7 +20,7 @@ export function SkillTreeCanvas({
   const stage4 = stages.find((s) => s.stageNumber === 4);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 overflow-x-auto relative">
+    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-none border border-slate-200/80 dark:border-none overflow-x-auto relative">
       {/* Subtle ambient grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
@@ -35,10 +35,10 @@ export function SkillTreeCanvas({
         {stage1 && (
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[11px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#1E1F20] text-slate-700 dark:text-[#C4C7C5] font-mono text-[11px] font-bold">
                 {stage1.stageCode}
               </span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
+              <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                 {stage1.title}
               </span>
             </div>
@@ -52,19 +52,19 @@ export function SkillTreeCanvas({
                     onClick={() => onSelectNode(node)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-sm ring-2 ring-blue-500/30'
-                        : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-blue-50/70 dark:bg-[#162B4D] border-blue-500 shadow-sm ring-2 ring-blue-500/30'
+                        : 'bg-slate-50/70 dark:bg-[#1E1F20] border-slate-200/70 dark:border-transparent hover:bg-slate-100 dark:hover:bg-[#282A2C]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-[#81C995] flex items-center justify-center font-bold">
                         <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] line-clamp-1">
                           {node.title}
                         </h4>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                        <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5] font-mono">
                           {node.masteryPercentage}% Thông thạo
                         </span>
                       </div>
@@ -92,10 +92,10 @@ export function SkillTreeCanvas({
         {stage2 && (
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[11px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#1E1F20] text-slate-700 dark:text-[#C4C7C5] font-mono text-[11px] font-bold">
                 {stage2.stageCode}
               </span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
+              <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                 {stage2.title}
               </span>
             </div>
@@ -109,19 +109,19 @@ export function SkillTreeCanvas({
                     onClick={() => onSelectNode(node)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-sm ring-2 ring-blue-500/30'
-                        : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-blue-50/70 dark:bg-[#162B4D] border-blue-500 shadow-sm ring-2 ring-blue-500/30'
+                        : 'bg-slate-50/70 dark:bg-[#1E1F20] border-slate-200/70 dark:border-transparent hover:bg-slate-100 dark:hover:bg-[#282A2C]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-[#81C995] flex items-center justify-center font-bold">
                         <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] line-clamp-1">
                           {node.title}
                         </h4>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                        <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5] font-mono">
                           {node.masteryPercentage}% • Đã thông thạo
                         </span>
                       </div>
@@ -138,7 +138,7 @@ export function SkillTreeCanvas({
 
         {/* SVG Connector Wave 2 -> 3 */}
         <div className="h-5 relative">
-          <svg className="w-full h-full text-blue-500 dark:text-blue-400" preserveAspectRatio="none">
+          <svg className="w-full h-full text-blue-500 dark:text-[#A8C7FA]" preserveAspectRatio="none">
             <line x1="33%" y1="0" x2="25%" y2="100%" stroke="currentColor" strokeWidth="2.5" />
             <line x1="33%" y1="0" x2="50%" y2="100%" stroke="currentColor" strokeWidth="2" strokeDasharray="3,3" />
             <line x1="66%" y1="0" x2="75%" y2="100%" stroke="currentColor" strokeWidth="2.5" />
@@ -150,14 +150,14 @@ export function SkillTreeCanvas({
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] font-mono text-[11px] font-bold">
                   {stage3.stageCode}
                 </span>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {stage3.title}
                 </span>
               </div>
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+              <span className="text-xs font-bold text-blue-600 dark:text-[#A8C7FA]">
                 Đang trọng tâm môn học
               </span>
             </div>
@@ -170,29 +170,29 @@ export function SkillTreeCanvas({
                   <div
                     key={node.id}
                     onClick={() => onSelectNode(node)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`p-4 rounded-3xl border-none transition-all cursor-pointer flex flex-col justify-between shadow-none ${
                       isSelected
-                        ? 'bg-blue-50/80 dark:bg-blue-950/60 border-blue-500 ring-2 ring-blue-500 shadow-md transform -translate-y-0.5'
+                        ? 'bg-[#D3E3FD]/60 dark:bg-[#162B4D] transform -translate-y-0.5'
                         : isAmber
-                        ? 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-300/60 dark:border-amber-800/40 hover:bg-amber-50/70'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+                        ? 'bg-[#FCEBA4]/40 dark:bg-[#3C2A1E] hover:bg-[#FCEBA4]/60'
+                        : 'bg-white dark:bg-[#1E1F20] hover:bg-slate-50 dark:hover:bg-[#282A2C]'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border-none ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] whitespace-nowrap'
                             : isAmber
-                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300'
-                            : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300'
+                            ? 'bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784]'
+                            : 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                         }`}
                       >
                         {isSelected ? 'Đang chọn' : isAmber ? 'Đang học' : 'Thành thạo'}
                       </span>
                       <span
                         className={`font-mono text-xs font-bold ${
-                          isSelected ? 'text-blue-600 dark:text-blue-400' : isAmber ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'
+                          isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : isAmber ? 'text-[#725200] dark:text-[#FFB784]' : 'text-[#0D652D] dark:text-[#81C995]'
                         }`}
                       >
                         {node.masteryPercentage}%
@@ -201,12 +201,12 @@ export function SkillTreeCanvas({
 
                     <div className="flex items-start gap-3 my-1">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+                        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 border-none shadow-none ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] whitespace-nowrap'
                             : isAmber
-                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            ? 'bg-[#FCEBA4] text-[#725200] dark:text-[#FFB784]'
+                            : 'bg-[#C4EED0] text-[#0D652D] dark:text-[#81C995]'
                         }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">
@@ -214,19 +214,19 @@ export function SkillTreeCanvas({
                         </span>
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] leading-snug">
                           {node.name}
                         </h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                        <p className="text-[11px] text-slate-500 dark:text-[#C4C7C5] line-clamp-1">
                           {node.desc}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-[#282A2C] flex items-center justify-between text-[11px]">
                       <span
                         className={
-                          isAmber ? 'text-amber-700 dark:text-amber-400 font-semibold' : 'text-blue-600 dark:text-blue-400 font-semibold'
+                          isAmber ? 'text-[#725200] dark:text-[#FFB784] font-medium' : 'text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
                         }
                       >
                         {node.scoreRatio}
@@ -252,10 +252,10 @@ export function SkillTreeCanvas({
         {stage4 && (
           <div className="flex flex-col gap-2.5 opacity-75">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 font-mono text-[11px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#1E1F20] text-slate-400 font-mono text-[11px] font-bold">
                 {stage4.stageCode}
               </span>
-              <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+              <span className="text-sm font-bold text-slate-500 dark:text-[#C4C7C5]">
                 {stage4.title}
               </span>
             </div>
@@ -267,16 +267,16 @@ export function SkillTreeCanvas({
                   <div
                     key={node.id}
                     onClick={() => onSelectNode(node)}
-                    className={`p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex items-center justify-between cursor-not-allowed ${
+                    className={`p-3.5 rounded-xl border border-slate-200/80 dark:border-transparent bg-slate-50/60 dark:bg-[#1E1F20] flex items-center justify-between cursor-not-allowed ${
                       isSelected ? 'ring-2 ring-slate-400' : ''
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-400 flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-[#282A2C] text-slate-400 flex items-center justify-center">
                         <span className="material-symbols-outlined text-[18px]">lock</span>
                       </div>
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <h4 className="text-xs font-semibold text-slate-700 dark:text-[#C4C7C5]">
                           {node.title}
                         </h4>
                         <span className="text-[11px] text-slate-400 line-clamp-1">
@@ -284,7 +284,7 @@ export function SkillTreeCanvas({
                         </span>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded bg-slate-200/80 dark:bg-[#282A2C] text-slate-500 dark:text-[#C4C7C5] font-mono text-[10px]">
                       {node.masteryPercentage}% Đạt
                     </span>
                   </div>

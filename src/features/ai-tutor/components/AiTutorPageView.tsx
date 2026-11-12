@@ -282,7 +282,7 @@ export function AiTutorPageView({ sessionId: propSessionId }: AiTutorPageViewPro
   const isWaitingSessionMessages = Boolean(activeSessionId && isLoadingDetail && messages.length === 0);
 
   return (
-    <div className="bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 font-sans antialiased h-screen flex overflow-hidden">
+    <div className="bg-slate-50 dark:bg-[#131314] text-slate-800 dark:text-[#E3E3E3] font-sans antialiased h-screen flex overflow-hidden">
       <AiTutorSidebar
         sessions={sidebarSessions}
         activeSessionId={activeSessionId}
@@ -296,7 +296,7 @@ export function AiTutorPageView({ sessionId: propSessionId }: AiTutorPageViewPro
         isLoading={isLoadingSessions}
       />
 
-      <main className="flex-1 flex flex-col h-full bg-white dark:bg-[#0B0F19] relative overflow-hidden">
+      <main className="flex-1 flex flex-col h-full bg-white dark:bg-[#131314] relative overflow-hidden">
         <AiTutorHeader
           currentSubject={currentSubject}
           onSelectSubject={setCurrentSubject}

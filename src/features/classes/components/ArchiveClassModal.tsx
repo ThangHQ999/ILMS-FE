@@ -21,42 +21,42 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
     try {
       await archiveClass(item.id);
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div
-        className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4"
+        className="w-full max-w-md rounded-3xl bg-white dark:bg-[#1E1F20] shadow-2xl p-6 space-y-4 border-none"
         role="dialog"
         aria-modal="true"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-[#FAD2CF] text-[#B3261E] dark:bg-[#3C1919] dark:text-[#F28B82] flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[22px]">archive</span>
           </div>
           <div>
-            <h3 className="text-base font-display font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="text-base font-display font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
               {t('modalArchiveTitle')}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+            <p className="text-xs text-[#747775] dark:text-[#8E918F] font-mono">
               {item.name} - {item.title}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p className="text-xs text-[#444746] dark:text-[#C4C7C5] leading-relaxed">
           {t('modalArchiveDesc')}
         </p>
 
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+        <div className="pt-3 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isArchiving}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
+            className="bg-transparent border border-[#747775] hover:bg-[#F0F4F9] text-[#1F1F1F] dark:border-[#8E918F] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] font-medium px-5 py-2.5 rounded-full text-xs whitespace-nowrap transition-colors cursor-pointer"
           >
             {t('btnCancel')}
           </button>
@@ -64,11 +64,11 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
             type="button"
             onClick={handleConfirm}
             disabled={isArchiving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FAD2CF] hover:bg-[#F7BCB6] text-[#B3261E] dark:bg-[#3C1919] dark:hover:bg-[#4E2222] dark:text-[#F28B82] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none cursor-pointer disabled:opacity-50"
           >
             {isArchiving ? (
               <>
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
                 <span>{t('btnArchiving')}</span>
               </>
             ) : (
@@ -80,4 +80,3 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
     </div>
   );
 }
-

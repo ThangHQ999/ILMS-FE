@@ -84,7 +84,7 @@ export function AiTutorInputBar({
   };
 
   return (
-    <footer className="shrink-0 p-4 bg-gradient-to-t from-white via-white to-white/90 dark:from-[#0B0F19] dark:via-[#0B0F19] dark:to-[#0B0F19]/90 border-t border-slate-100 dark:border-slate-800/80">
+    <footer className="shrink-0 p-4 bg-[#F0F4F9]/90 dark:bg-[#131314]/90 backdrop-blur-md border-none">
       <div className="max-w-[780px] mx-auto w-full">
         {/* Banner trạng thái Voice & lỗi micro */}
         <AiTutorInputBanners
@@ -95,13 +95,13 @@ export function AiTutorInputBar({
         />
 
         {/* Khung nhập tin nhắn chính */}
-        <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.09)] focus-within:border-blue-500 dark:focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-blue-500/20 dark:focus-within:ring-cyan-500/20 transition-all">
+        <div className="relative bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-none transition-all">
           <textarea
             ref={textareaRef}
             value={inputText}
             onChange={(e) => onChangeInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full pt-3.5 pb-12 px-4 bg-transparent border-0 outline-none focus:ring-0 resize-none text-[15px] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 leading-relaxed max-h-40 min-h-[52px]"
+            className="w-full pt-3.5 pb-12 px-5 bg-transparent border-0 outline-none focus:ring-0 resize-none text-[15px] text-slate-800 dark:text-[#E3E3E3] placeholder:text-slate-400 dark:placeholder:text-[#8E918F] leading-relaxed max-h-40 min-h-[52px]"
             placeholder={t('chatInputPlaceholder')}
             rows={1}
           />
@@ -111,7 +111,7 @@ export function AiTutorInputBar({
             {/* Trái: Đính kèm, Bảng công thức LaTeX & Voice */}
             <div className="flex items-center gap-1 pointer-events-auto">
               <button
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors"
                 title={t('attachTooltip')}
                 type="button"
               >
@@ -124,8 +124,8 @@ export function AiTutorInputBar({
                   onClick={() => setIsFormulaPickerOpen((prev) => !prev)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     isFormulaPickerOpen
-                      ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-cyan-400'
-                      : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+                      : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
                   }`}
                   title={t('formulaTooltip')}
                   type="button"
@@ -148,8 +148,8 @@ export function AiTutorInputBar({
                   !isSupported
                     ? 'opacity-40 cursor-not-allowed text-slate-400'
                     : isListening
-                    ? 'bg-red-500/15 text-red-600 dark:text-red-400 ring-2 ring-red-500/40 animate-pulse'
-                    : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-[#FAD2CF] text-[#B3261E] dark:bg-[#3C1919] dark:text-[#F28B82] animate-pulse'
+                    : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
                 }`}
                 title={
                   !isSupported
@@ -171,7 +171,7 @@ export function AiTutorInputBar({
               <button
                 onClick={() => onSend()}
                 disabled={!inputText.trim() || isTyping}
-                className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition-all"
+                className="w-8 h-8 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] active:scale-95 disabled:opacity-40 flex items-center justify-center border-none shadow-none transition-all"
                 title={t('sendTooltip')}
                 type="button"
               >
@@ -182,7 +182,7 @@ export function AiTutorInputBar({
         </div>
 
         {/* Disclaimer */}
-        <p className="text-[11px] text-slate-400 text-center mt-2.5">
+        <p className="text-[11px] text-slate-400 dark:text-[#8E918F] text-center mt-2.5">
           {t('disclaimer')}
         </p>
       </div>

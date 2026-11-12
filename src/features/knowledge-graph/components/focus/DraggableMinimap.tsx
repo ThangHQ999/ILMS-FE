@@ -47,26 +47,26 @@ export function DraggableMinimap({ isVisible, onClose }: DraggableMinimapProps) 
   return (
     <div
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
-      className="fixed z-30 w-56 h-36 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl p-2.5 flex flex-col justify-between select-none"
+      className="fixed z-30 w-56 h-36 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-none p-3 flex flex-col justify-between select-none"
     >
       {/* Draggable Header */}
       <div
         onMouseDown={handleMouseDown}
-        className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 font-medium cursor-grab active:cursor-grabbing hover:bg-slate-50 dark:hover:bg-slate-800/50 -mx-1 px-1 rounded-t-lg transition-colors"
+        className="flex items-center justify-between pb-1.5 text-[11px] text-[#444746] dark:text-[#C4C7C5] font-medium cursor-grab active:cursor-grabbing hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-2 py-1 rounded-full transition-colors"
         title="Kéo để di chuyển vị trí"
       >
         <span className="flex items-center gap-1.5 pointer-events-none">
-          <span className="material-symbols-outlined text-[14px] text-slate-400">
+          <span className="material-symbols-outlined text-[14px] text-[#8E918F]">
             drag_indicator
           </span>
-          <span className="material-symbols-outlined text-[14px] text-blue-600 dark:text-blue-400">
+          <span className="material-symbols-outlined text-[14px] text-[#0B57D0] dark:text-[#A8C7FA]">
             explore
           </span>
           Minimap (Vùng nhìn)
         </span>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5 rounded"
+          className="text-[#8E918F] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] cursor-pointer p-1 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none"
           title="Đóng minimap"
           type="button"
         >
@@ -75,32 +75,32 @@ export function DraggableMinimap({ isVisible, onClose }: DraggableMinimapProps) 
       </div>
 
       {/* Mini Visual Representation */}
-      <div className="relative w-full h-24 bg-slate-50 dark:bg-slate-950/60 rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-800 pointer-events-none">
+      <div className="relative w-full h-24 bg-[#F0F4F9] dark:bg-[#131314] rounded-2xl overflow-hidden border-none pointer-events-none">
         {/* Dimmed mini dots */}
-        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 left-8 top-5" />
-        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 left-7 top-14" />
-        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 right-9 top-6" />
-        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 right-6 top-16" />
+        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-[#282A2C] left-8 top-5" />
+        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-[#282A2C] left-7 top-14" />
+        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-[#282A2C] right-9 top-6" />
+        <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-[#282A2C] right-6 top-16" />
 
         {/* Spotlight line in minimap */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
           <path
             d="M 65 52 L 85 38 L 115 50 L 145 48"
             fill="none"
-            stroke="#0070ea"
+            stroke="#0B57D0"
             strokeWidth="2"
             opacity="0.8"
           />
         </svg>
 
         {/* Active mini dots */}
-        <div className="absolute w-2 h-2 rounded-full bg-emerald-500 left-[62px] top-[48px]" />
-        <div className="absolute w-2 h-2 rounded-full bg-blue-500 left-[82px] top-[34px]" />
-        <div className="absolute w-3 h-3 rounded-full bg-blue-600 ring-2 ring-blue-300 dark:ring-blue-800 left-[111px] top-[45px] shadow-sm animate-pulse" />
+        <div className="absolute w-2 h-2 rounded-full bg-[#81C995] left-[62px] top-[48px]" />
+        <div className="absolute w-2 h-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] left-[82px] top-[34px]" />
+        <div className="absolute w-3 h-3 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] ring-2 ring-[#D3E3FD] dark:ring-[#162B4D] left-[111px] top-[45px] shadow-none animate-pulse" />
         <div className="absolute w-2 h-2 rounded-full bg-purple-500 left-[142px] top-[44px]" />
 
         {/* Current Viewport Lens Box */}
-        <div className="absolute w-20 h-14 border-2 border-blue-500/80 bg-blue-500/10 rounded-md left-[75px] top-[26px]" />
+        <div className="absolute w-20 h-14 bg-[#0B57D0]/15 dark:bg-[#A8C7FA]/20 rounded-xl left-[75px] top-[26px]" />
       </div>
     </div>
   );

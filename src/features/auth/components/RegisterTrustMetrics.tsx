@@ -30,12 +30,12 @@ export function RegisterTrustMetrics() {
       {metrics.map((metric) => (
         <div
           key={metric.icon}
-          className="bg-white/80 dark:bg-[#161D2F]/80 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-3 shadow-sm flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5"
+          className="bg-white dark:bg-[#1E1F20] border-none rounded-2xl p-3 shadow-none flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5"
         >
-          <span className="material-symbols-outlined text-blue-600 dark:text-[#38BDF8] text-[20px]">
+          <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[20px]">
             {metric.icon}
           </span>
-          <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+          <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-[#C4C7C5]">
             {metric.label}
           </span>
         </div>

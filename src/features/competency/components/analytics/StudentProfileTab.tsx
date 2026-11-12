@@ -68,18 +68,18 @@ export function StudentProfileTab({
         {quickMetrics.map((qm) => (
           <div
             key={qm.id}
-            className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-3.5"
+            className="p-4 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none flex items-center gap-3.5"
           >
             <div
-              className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${qm.colorClass}`}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${qm.colorClass}`}
             >
               <span className="material-symbols-outlined text-[26px]">{qm.icon}</span>
             </div>
             <div>
-              <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-tight block">
+              <span className="text-xl font-extrabold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight block">
                 {qm.value}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span className="text-xs text-[#444746] dark:text-[#C4C7C5] font-medium">
                 {qm.label}
               </span>
             </div>

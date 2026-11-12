@@ -126,7 +126,7 @@ export function DraftGraphEditor({ jobId, revisionId, jobStatus, text, editable,
       {visible && (
         <>
           <p role="status">{visible.status} · {diagram.nodes.length} {t('nút', 'nodes')}</p>
-          <div className="h-[28rem] rounded border bg-slate-50 text-slate-900 dark:border-slate-600">
+          <div className="h-[28rem] rounded-3xl border-none bg-white text-slate-900 dark:bg-[#1E1F20] dark:text-[#E3E3E3] shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none overflow-hidden">
             <ReactFlow key={revisionId} nodes={diagram.nodes} edges={diagram.edges} fitView
               minZoom={0.05} nodesDraggable={false} nodesConnectable={false}
               onNodeClick={(_, node) => setSelectedPath(visible.nodes.find((item) => item.id === node.id)?.path ?? '')}>
@@ -135,19 +135,19 @@ export function DraftGraphEditor({ jobId, revisionId, jobStatus, text, editable,
             </ReactFlow>
           </div>
           {selected && (
-            <div className="space-y-2 rounded border p-3 dark:border-slate-600">
-              <p className="font-semibold">{selected.kind} · {selected.label}</p>
+            <div className="space-y-3 rounded-3xl bg-white dark:bg-[#1E1F20] p-5 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+              <p className="font-semibold text-slate-900 dark:text-[#E3E3E3]">{selected.kind} · {selected.label}</p>
               {editableFields[selected.kind]?.map((field) => (
-                <label key={field} className="grid gap-1">
+                <label key={field} className="grid gap-1.5 text-xs font-medium text-slate-700 dark:text-[#C4C7C5]">
                   {field}
-                  <textarea className="rounded border bg-transparent px-2 py-1 dark:border-slate-600" rows={2}
+                  <textarea className="rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] px-3.5 py-2 text-sm text-slate-900 dark:text-[#E3E3E3] border-none outline-none" rows={2}
                     value={typeof entry?.[field] === 'string' ? entry[field] as string : ''}
                     readOnly={!editable || !entry} onChange={(event) => editField(field, event.target.value)} />
                 </label>
               ))}
               {selected.kind === 'Exercise' && editable && Array.isArray(data?.entities) && (
-                <label className="grid gap-1">{t('Chuyển bài tập sang khái niệm', 'Move exercise to concept')}
-                  <select className="rounded border bg-transparent px-2 py-1 dark:border-slate-600"
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700 dark:text-[#C4C7C5]">{t('Chuyển bài tập sang khái niệm', 'Move exercise to concept')}
+                  <select className="rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] px-4 py-2 text-sm text-slate-900 dark:text-[#E3E3E3] border-none outline-none"
                     value={selected.path.split('/')[1]} onChange={(event) => moveExercise(Number(event.target.value))}>
                     {data.entities.map((entity, index) => (
                       <option key={index} value={index}>{object(entity)?.name as string ?? index + 1}</option>

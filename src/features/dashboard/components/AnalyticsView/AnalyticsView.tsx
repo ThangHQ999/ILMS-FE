@@ -31,32 +31,32 @@ export function AnalyticsView({
   const [activeTimeRange, setActiveTimeRange] = useState<'7days' | 'month' | 'all'>('7days');
 
   return (
-    <div className="flex flex-col w-full p-4 lg:p-8 space-y-6">
+    <div className="max-w-[1600px] mx-auto px-8 py-6 flex flex-col gap-8">
       {/* 1. Header & Quick Controls */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-2xl font-bold text-[#1F1F1F] dark:text-[#E3E3E3] tracking-tight">
               {t('welcome', { name: userFullName })}
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-secondary/15 text-secondary border border-secondary/20">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] border-none whitespace-nowrap">
               {t('proLearner')}
             </span>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-[#747775] dark:text-[#C4C7C5]">
             {t('analyticsSubtitle')}
           </p>
         </div>
 
         {/* Quick Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-[#F0F4F9] dark:bg-[#1E1F20] p-1.5 rounded-full inline-flex items-center gap-1">
             <button
               onClick={() => setActiveTimeRange('7days')}
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeTimeRange === '7days'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -64,10 +64,10 @@ export function AnalyticsView({
             </button>
             <button
               onClick={() => setActiveTimeRange('month')}
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeTimeRange === 'month'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -75,10 +75,10 @@ export function AnalyticsView({
             </button>
             <button
               onClick={() => setActiveTimeRange('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs transition-colors whitespace-nowrap border-none cursor-pointer ${
                 activeTimeRange === 'all'
-                  ? 'bg-white dark:bg-slate-900 text-secondary font-semibold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#282A2C] dark:text-[#E3E3E3] font-semibold'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#333537]'
               }`}
               type="button"
             >
@@ -88,7 +88,7 @@ export function AnalyticsView({
 
           <button
             onClick={onSwitchToFocus}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-white hover:opacity-90 transition-all shadow-sm text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] rounded-full px-6 py-2.5 font-medium transition-colors text-xs whitespace-nowrap cursor-pointer border-none"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">fit_screen</span>
@@ -101,7 +101,7 @@ export function AnalyticsView({
       <MetricStatCards stats={stats} />
 
       {/* 3. Main Data Row (65% Heatmap / 35% AI Insights) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <CompetencyHeatmap heatmap={heatmap} pillars={pillars} />
         <AIInsightCard insight={insight} />
       </section>

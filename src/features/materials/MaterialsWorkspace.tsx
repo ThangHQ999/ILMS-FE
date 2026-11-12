@@ -8,8 +8,8 @@ import { ApiError } from '@/types/common';
 import { materials, type Draft, type Job, type JobSummary } from './materials-api';
 
 const active = new Set(['QUEUED', 'PROCESSING', 'PUBLISHING']);
-const input = 'rounded border border-slate-300 bg-transparent px-3 py-2 dark:border-slate-600';
-const button = 'rounded bg-blue-700 px-3 py-2 text-white disabled:opacity-40';
+const input = 'rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] px-4 py-2.5 text-sm border-none outline-none text-slate-900 dark:text-[#E3E3E3]';
+const button = 'rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium px-5 py-2.5 text-sm border-none shadow-none transition-colors disabled:opacity-40 whitespace-nowrap cursor-pointer';
 
 export function MaterialsWorkspace() {
   const locale = useLocale();
@@ -126,30 +126,32 @@ export function MaterialsWorkspace() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-6 text-slate-900 dark:text-slate-100">
+    <main className="mx-auto max-w-5xl space-y-6 p-6 text-slate-900 dark:text-[#E3E3E3]">
       <h1 className="text-2xl font-bold">{t('Xử lý học liệu', 'Material ingestion')}</h1>
-      <form onSubmit={upload} className="flex flex-wrap items-end gap-3">
-        <label className="grid gap-1">{t('Tài liệu', 'Document')}<input className={input} name="file" type="file" required /></label>
-        <label className="grid gap-1">{t('Tiêu đề', 'Title')}<input className={input} name="title" required maxLength={255} /></label>
-        <label className="grid gap-1">{t('Môn học', 'Subject')}<input className={input} name="subject" required maxLength={100} /></label>
-        <label className="grid gap-1">{t('ID khóa học', 'Course ID')}<input className={input} name="courseId" /></label>
+      <form onSubmit={upload} className="flex flex-wrap items-end gap-3 bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none">
+        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">{t('Tài liệu', 'Document')}<input className={input} name="file" type="file" required /></label>
+        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">{t('Tiêu đề', 'Title')}<input className={input} name="title" required maxLength={255} /></label>
+        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">{t('Môn học', 'Subject')}<input className={input} name="subject" required maxLength={100} /></label>
+        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">{t('ID khóa học', 'Course ID')}<input className={input} name="courseId" /></label>
         <button className={button} disabled={busy || saving || dirty}>{t('Tải lên', 'Upload')}</button>
       </form>
-      <label className="grid gap-1">
-        {t('Học liệu đã lưu', 'Saved materials')}
-        <select className={input} value={jobId ?? ''} disabled={busy || saving || dirty}
-          onChange={(event) => { const id = event.target.value; if (id) void action(async () => apply(await materials.get(id))); }}>
-          <option value="">{t('Chọn học liệu', 'Select material')}</option>
-          {jobs.map((item) => <option key={item.jobId} value={item.jobId}>{item.title} · {item.status}</option>)}
-        </select>
-      </label>
-      {error && <p role="alert">{error}</p>}
-      {job && <p role="status">{job.status} {job.stage} {job.errorCode}</p>}
-      {job?.status === 'FAILED' && <button className={button} disabled={busy}
-        onClick={() => void action(async () => { await materials.retry(job.jobId); apply(await materials.get(job.jobId)); })}>
-        {t('Thử lại', 'Retry')}</button>}
+      <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none space-y-4">
+        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
+          {t('Học liệu đã lưu', 'Saved materials')}
+          <select className={input} value={jobId ?? ''} disabled={busy || saving || dirty}
+            onChange={(event) => { const id = event.target.value; if (id) void action(async () => apply(await materials.get(id))); }}>
+            <option value="">{t('Chọn học liệu', 'Select material')}</option>
+            {jobs.map((item) => <option key={item.jobId} value={item.jobId}>{item.title} · {item.status}</option>)}
+          </select>
+        </label>
+        {error && <p role="alert" className="text-sm text-[#B3261E] dark:text-[#F28B82]">{error}</p>}
+        {job && <p role="status" className="text-xs text-[#444746] dark:text-[#C4C7C5]">{job.status} {job.stage} {job.errorCode}</p>}
+        {job?.status === 'FAILED' && <button className={button} disabled={busy}
+          onClick={() => void action(async () => { await materials.retry(job.jobId); apply(await materials.get(job.jobId)); })}>
+          {t('Thử lại', 'Retry')}</button>}
+      </div>
       {draft && (
-        <section className="space-y-3">
+        <section className="space-y-4 bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none">
           <p role="status">{t('Bản sửa', 'Revision')} {draft.revision} · {draft.reviewStatus} ·
             {saving ? t(' Đang lưu', ' Saving') : dirty ? t(' Chưa lưu', ' Unsaved') : t(' Đã lưu', ' Saved')}</p>
           {draft.validation?.parser_warnings?.map((warning) => <p key={warning}>{warning}</p>)}

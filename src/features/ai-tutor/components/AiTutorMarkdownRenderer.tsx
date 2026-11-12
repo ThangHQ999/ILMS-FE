@@ -15,7 +15,7 @@ const MermaidRenderer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-28 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/40 p-4 flex items-center justify-center text-slate-400 text-xs">
+      <div className="w-full h-28 rounded-xl border border-slate-200 dark:border-transparent bg-slate-100/50 dark:bg-[#1E1F20] p-4 flex items-center justify-center text-slate-400 text-xs">
         Đang tải đồ thị Mermaid...
       </div>
     ),
@@ -27,7 +27,7 @@ const Vis3dRenderer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-900/40 p-4 flex items-center justify-center text-slate-400 text-xs">
+      <div className="w-full h-44 rounded-xl border border-slate-200 dark:border-transparent bg-slate-900/40 p-4 flex items-center justify-center text-slate-400 text-xs">
         Đang tải không gian 3D...
       </div>
     ),
@@ -92,7 +92,7 @@ export const AiTutorMarkdownRenderer = React.memo(function AiTutorMarkdownRender
   };
 
   return (
-    <div className={`text-[15px] leading-relaxed text-slate-800 dark:text-slate-200 space-y-3.5 socratic-markdown-root ${className}`}>
+    <div className={`text-[15px] leading-relaxed text-slate-800 dark:text-[#E3E3E3] space-y-3.5 socratic-markdown-root ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
@@ -102,13 +102,13 @@ export const AiTutorMarkdownRenderer = React.memo(function AiTutorMarkdownRender
           },
           strong({ children }) {
             return (
-              <strong className="font-semibold text-slate-900 dark:text-slate-100">
+              <strong className="font-semibold text-slate-900 dark:text-[#E3E3E3]">
                 {children}
               </strong>
             );
           },
           em({ children }) {
-            return <em className="italic text-slate-700 dark:text-slate-300">{children}</em>;
+            return <em className="italic text-slate-700 dark:text-[#C4C7C5]">{children}</em>;
           },
           ul({ children }) {
             return <ul className="list-disc pl-5 my-2 space-y-1">{children}</ul>;
@@ -121,21 +121,21 @@ export const AiTutorMarkdownRenderer = React.memo(function AiTutorMarkdownRender
           },
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-4 border-blue-500 pl-3.5 py-1 my-2 bg-blue-50/50 dark:bg-blue-950/20 text-slate-700 dark:text-slate-300 rounded-r-lg italic">
+              <blockquote className="border-l-4 border-blue-500 pl-3.5 py-1 my-2 bg-blue-50/50 dark:bg-[#162B4D] text-slate-700 dark:text-[#C4C7C5] rounded-r-lg italic">
                 {children}
               </blockquote>
             );
           },
           table({ children }) {
             return (
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs my-3.5 bg-white dark:bg-slate-900">
+              <div className="border border-slate-200 dark:border-transparent rounded-xl overflow-hidden shadow-xs my-3.5 bg-white dark:bg-[#1E1F20]">
                 <table className="w-full text-left text-[13.5px] border-collapse">{children}</table>
               </div>
             );
           },
           thead({ children }) {
             return (
-              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-700/80">
+              <thead className="bg-slate-50 dark:bg-[#1E1F20] text-slate-700 dark:text-[#C4C7C5] font-semibold border-b border-slate-200 dark:border-transparent">
                 {children}
               </thead>
             );
@@ -145,13 +145,13 @@ export const AiTutorMarkdownRenderer = React.memo(function AiTutorMarkdownRender
           },
           tbody({ children }) {
             return (
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-600 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-[#282A2C]/50 text-slate-600 dark:text-[#C4C7C5]">
                 {children}
               </tbody>
             );
           },
           tr({ children }) {
-            return <tr className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">{children}</tr>;
+            return <tr className="hover:bg-slate-50/70 dark:hover:bg-[#282A2C] transition-colors">{children}</tr>;
           },
           td({ children }) {
             return <td className="py-2.5 px-4">{children}</td>;
@@ -165,7 +165,7 @@ export const AiTutorMarkdownRenderer = React.memo(function AiTutorMarkdownRender
             if (!isCodeBlock) {
               return (
                 <code
-                  className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 font-mono text-[13px] font-semibold border border-slate-200 dark:border-slate-700/80"
+                  className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1E1F20] text-amber-700 dark:text-[#FFB784] font-mono text-[13px] font-semibold border border-slate-200 dark:border-transparent"
                   {...props}
                 >
                   {children}

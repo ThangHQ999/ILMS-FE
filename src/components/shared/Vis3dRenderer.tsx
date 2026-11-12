@@ -211,7 +211,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
         if (elem.label) {
           const labelDiv = document.createElement('div');
           labelDiv.className =
-            'px-2 py-0.5 rounded-md text-[11px] font-medium font-sans bg-slate-900/90 text-slate-100 border border-slate-700/80 shadow-lg pointer-events-none select-none backdrop-blur-xs whitespace-nowrap';
+            'px-2 py-0.5 rounded-md text-[11px] font-medium font-sans bg-[#1E1F20] text-[#E3E3E3] border border-[#282A2C] shadow-lg pointer-events-none select-none backdrop-blur-xs whitespace-nowrap';
           labelDiv.textContent = elem.label;
 
           const labelObj = new CSS2DObject(labelDiv);
@@ -254,7 +254,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
           if (elem.label) {
             const labelDiv = document.createElement('div');
             labelDiv.className =
-              'px-2 py-0.5 rounded-md text-[11px] font-medium font-sans bg-blue-950/90 text-cyan-300 border border-blue-800 shadow-md pointer-events-none select-none backdrop-blur-xs whitespace-nowrap';
+              'px-2 py-0.5 rounded-md text-[11px] font-medium font-sans bg-blue-950/90 text-[#A8C7FA] border border-blue-800 shadow-md pointer-events-none select-none backdrop-blur-xs whitespace-nowrap';
             labelDiv.textContent = elem.label;
 
             const labelObj = new CSS2DObject(labelDiv);
@@ -287,7 +287,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
         if (elem.label) {
           const labelDiv = document.createElement('div');
           labelDiv.className =
-            'px-2 py-0.5 rounded-md text-[11px] font-sans bg-slate-900/90 text-slate-200 border border-slate-700 shadow-md pointer-events-none select-none backdrop-blur-xs';
+            'px-2 py-0.5 rounded-md text-[11px] font-sans bg-[#1E1F20] text-[#E3E3E3] border border-[#282A2C] shadow-md pointer-events-none select-none backdrop-blur-xs';
           labelDiv.textContent = elem.label;
 
           const labelObj = new CSS2DObject(labelDiv);
@@ -319,7 +319,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
         if (elem.label) {
           const labelDiv = document.createElement('div');
           labelDiv.className =
-            'px-2 py-0.5 rounded-md text-[11px] font-sans bg-slate-900/90 text-emerald-300 border border-emerald-800 shadow-md pointer-events-none select-none';
+            'px-2 py-0.5 rounded-md text-[11px] font-sans bg-[#1E1F20] text-emerald-300 border border-emerald-800 shadow-md pointer-events-none select-none';
           labelDiv.textContent = elem.label;
 
           const labelObj = new CSS2DObject(labelDiv);
@@ -433,7 +433,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
           </div>
           <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono">vis-3d</span>
         </div>
-        <pre className="p-4 text-xs font-mono text-slate-200 bg-[#0f172a] overflow-x-auto">
+        <pre className="p-4 text-xs font-mono text-[#E3E3E3] bg-[#0f172a] overflow-x-auto">
           <code>{cleanCode}</code>
         </pre>
       </div>
@@ -448,18 +448,18 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
     <>
       <div
         ref={inViewRef}
-        className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-[#0B0F19] overflow-hidden shadow-md my-4 transition-all duration-200 ${className}`}
+        className={`rounded-xl border border-slate-200 dark:border-transparent bg-[#0B0F19] overflow-hidden shadow-md my-4 transition-all duration-200 ${className}`}
       >
         {/* 3D Viewport Header Toolbar */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 text-slate-300">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1E1F20] border-b border-[#282A2C] text-[#C4C7C5]">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[19px] text-cyan-400">
+            <span className="material-symbols-outlined text-[19px] text-[#A8C7FA]">
               view_in_ar
             </span>
-            <span className="text-xs font-semibold tracking-wide font-sans text-slate-100">
+            <span className="text-xs font-semibold tracking-wide font-sans text-[#E3E3E3]">
               {data?.title || t('vis3dTitle')}
             </span>
-            <span className="px-2 py-0.5 text-[10px] rounded-full font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/80">
+            <span className="px-2 py-0.5 text-[10px] rounded-full font-mono bg-[#162B4D] text-[#A8C7FA] border border-transparent">
               {elementsCount} Objects • Interactive 3D
             </span>
           </div>
@@ -469,10 +469,10 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
             <button
               onClick={() => setActiveTab(activeTab === 'viewport' ? 'config' : 'viewport')}
               type="button"
-              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded transition-colors ${
+              className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-colors ${
                 activeTab === 'config'
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-slate-800 text-slate-300'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] whitespace-nowrap'
+                  : 'hover:bg-[#F0F4F9] dark:hover:bg-[#1E1F20] text-slate-700 dark:text-[#C4C7C5]'
               }`}
               title={activeTab === 'config' ? 'Xem khung nhìn 3D' : t('vis3dConfig')}
             >
@@ -487,7 +487,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
             <button
               onClick={handleCopy}
               type="button"
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-800 text-slate-300 transition-colors"
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[#1E1F20] text-[#C4C7C5] transition-colors"
               title={t('vis3dCopyConfig')}
             >
               <span className="material-symbols-outlined text-[14px]">
@@ -498,7 +498,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
             <button
               onClick={() => setIsFullscreen(true)}
               type="button"
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-800 text-slate-300 transition-colors"
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[#1E1F20] text-[#C4C7C5] transition-colors"
               title={t('zoomFullscreen')}
             >
               <span className="material-symbols-outlined text-[14px]">fullscreen</span>
@@ -508,7 +508,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
 
         {/* Content Body: Three.js WebGL Canvas or JSON Config */}
         {activeTab === 'config' ? (
-          <pre className="p-4 text-xs font-mono text-cyan-300 bg-[#070b14] overflow-x-auto leading-relaxed border-t border-slate-800/80">
+          <pre className="p-4 text-xs font-mono text-[#A8C7FA] bg-[#070b14] overflow-x-auto leading-relaxed border-t border-[#282A2C]">
             <code>{cleanCode}</code>
           </pre>
         ) : (
@@ -517,18 +517,18 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
             {isCanvasActive ? (
               <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-950/80">
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-[#8E918F] bg-[#131314]">
                 <span className="material-symbols-outlined text-[28px] text-cyan-500/60 mb-2">view_in_ar</span>
-                <p className="text-xs font-medium text-slate-200">
+                <p className="text-xs font-medium text-[#E3E3E3]">
                   Mô hình 3D đã tạm dừng để giải phóng tài nguyên đồ họa (vRAM)
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+                <p className="text-[11px] text-[#8E918F] mt-1 max-w-xs">
                   Mô hình đã cuộn ra khỏi màn hình. Cuộn vào vùng nhìn hoặc bấm nút bên dưới để tiếp tục.
                 </p>
                 <button
                   type="button"
                   onClick={() => setForceActive(true)}
-                  className="mt-3 px-3 py-1.5 rounded-lg bg-cyan-950/70 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-800/80 text-xs font-medium transition-colors cursor-pointer pointer-events-auto"
+                  className="mt-3 px-3 py-1.5 rounded-lg bg-[#162B4D] hover:bg-cyan-900/70 text-[#A8C7FA] border border-transparent text-xs font-medium transition-colors cursor-pointer pointer-events-auto"
                 >
                   Kích hoạt lại
                 </button>
@@ -537,12 +537,12 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
 
             {/* Viewport Floating HUD Controls */}
             {isCanvasActive && (
-              <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-slate-900/85 backdrop-blur-md px-2 py-1 rounded-lg border border-slate-800 text-slate-400 shadow-lg">
+              <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-[#1E1F20] backdrop-blur-md px-2 py-1 rounded-lg border border-[#282A2C] text-[#8E918F] shadow-lg">
               {/* Reset View Button */}
               <button
                 onClick={() => resetCameraRef.current?.()}
                 type="button"
-                className="p-1 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors"
+                className="p-1 rounded hover:bg-[#1E1F20] hover:text-[#E3E3E3] transition-colors"
                 title="Đặt lại góc nhìn (Reset Camera)"
               >
                 <span className="material-symbols-outlined text-[16px]">center_focus_strong</span>
@@ -553,7 +553,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
                 onClick={() => setIsAutoRotate((prev) => !prev)}
                 type="button"
                 className={`p-1 rounded transition-colors ${
-                  isAutoRotate ? 'text-cyan-400 bg-cyan-950/50' : 'hover:bg-slate-800 text-slate-400'
+                  isAutoRotate ? 'text-[#A8C7FA] bg-[#162B4D]' : 'hover:bg-[#1E1F20] text-[#8E918F]'
                 }`}
                 title="Tự động xoay 360°"
               >
@@ -565,7 +565,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
                 onClick={() => setShowGrid((prev) => !prev)}
                 type="button"
                 className={`p-1 rounded transition-colors ${
-                  showGrid ? 'text-cyan-400 bg-cyan-950/50' : 'hover:bg-slate-800 text-slate-400'
+                  showGrid ? 'text-[#A8C7FA] bg-[#162B4D]' : 'hover:bg-[#1E1F20] text-[#8E918F]'
                 }`}
                 title="Bật/tắt lưới tọa độ"
               >
@@ -576,7 +576,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
 
             {/* Quick Interaction Tip HUD */}
             {isCanvasActive && (
-              <div className="absolute bottom-2.5 left-3 z-20 text-[10px] font-mono text-slate-500 bg-slate-950/70 px-2 py-0.5 rounded border border-slate-800/60 pointer-events-none">
+              <div className="absolute bottom-2.5 left-3 z-20 text-[10px] font-mono text-[#8E918F] bg-[#131314] px-2 py-0.5 rounded border border-[#282A2C] pointer-events-none">
                 Chuột trái: Xoay 360° • Cuộn chuột: Zoom • Chuột phải: Kéo không gian
               </div>
             )}
@@ -589,7 +589,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col p-4 md:p-8 animate-in fade-in">
           <div className="flex items-center justify-between pb-3 text-white">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[22px] text-cyan-400">view_in_ar</span>
+              <span className="material-symbols-outlined text-[22px] text-[#A8C7FA]">view_in_ar</span>
               <span className="font-semibold text-sm">
                 {data?.title || t('vis3dTitle')} • {t('zoomFullscreen')}
               </span>
@@ -598,7 +598,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
               <button
                 onClick={() => resetCameraRef.current?.()}
                 type="button"
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center gap-1.5 text-white transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-xs flex items-center gap-1.5 text-white transition-colors"
               >
                 <span className="material-symbols-outlined text-[15px]">center_focus_strong</span>
                 <span>Đặt lại góc nhìn</span>
@@ -606,7 +606,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
               <button
                 onClick={() => setIsFullscreen(false)}
                 type="button"
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors"
+                className="p-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-white transition-colors"
                 title="Đóng toàn màn hình"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
@@ -614,7 +614,7 @@ export const Vis3dRenderer = memo(function Vis3dRenderer({
             </div>
           </div>
 
-          <div className="flex-1 w-full relative bg-[#070B14] rounded-2xl overflow-hidden border border-slate-800">
+          <div className="flex-1 w-full relative bg-[#070B14] rounded-2xl overflow-hidden border border-[#282A2C]">
             <div ref={fullscreenContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
           </div>
         </div>

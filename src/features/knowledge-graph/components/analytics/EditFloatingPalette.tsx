@@ -29,17 +29,17 @@ export function EditFloatingPalette({
   return (
     <>
       {/* Floating Toolbar (Top-Left of Canvas) */}
-      <div className="absolute left-4 top-4 z-30 flex flex-col gap-2 p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800">
+      <div className="absolute left-4 top-4 z-30 flex flex-col gap-2 p-2 bg-white dark:bg-[#1E1F20] rounded-3xl shadow-none border-none">
         {tools.map((t) => {
           const isActive = activeTool === t.id;
           return (
             <button
               key={t.id}
               onClick={() => onSelectTool(t.id)}
-              className={`group relative p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer ${
+              className={`group relative p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer border-none shadow-none ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] whitespace-nowrap'
+                  : 'text-slate-600 dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] hover:text-slate-900 dark:hover:text-slate-100'
               }`}
               title={`${t.label} (${t.shortcut})`}
               type="button"
@@ -47,14 +47,14 @@ export function EditFloatingPalette({
               <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
 
               {/* Tooltip */}
-              <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 hidden group-hover:block whitespace-nowrap rounded-lg bg-slate-900 text-white px-2.5 py-1 text-[11px] font-semibold shadow-xl z-50">
+              <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 hidden group-hover:block whitespace-nowrap rounded-full bg-slate-900 text-white px-3 py-1 text-[11px] font-medium shadow-none z-50">
                 {t.label} ({t.shortcut})
               </span>
             </button>
           );
         })}
 
-        <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800 my-0.5" />
+        <div className="w-full h-[1px] bg-[#E1E5EA] dark:bg-[#282A2C] my-0.5" />
 
         {/* Info Indicator */}
         <div

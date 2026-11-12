@@ -2,15 +2,15 @@ import Link from 'next/link';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-white">
-      <div className="max-w-lg w-full rounded-2xl bg-white dark:bg-[#161D2F] p-8 border border-slate-200 dark:border-slate-800 shadow-lg text-center">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3]">
+      <div className="max-w-lg w-full rounded-3xl bg-white dark:bg-[#1E1F20] p-8 border-none shadow-none text-center">
         <h1 className="text-2xl font-bold mb-2">Chính sách bảo mật</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+        <p className="text-sm text-[#747775] dark:text-[#C4C7C5] mb-6">
           Chính sách bảo mật thông tin và tuân thủ tiêu chuẩn GDPR, ISO 27001 của hệ thống ILMS.
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] whitespace-nowrap font-medium border-none shadow-none transition-colors"
         >
           Quay lại Đăng nhập
         </Link>

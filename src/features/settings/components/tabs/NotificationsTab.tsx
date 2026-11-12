@@ -50,12 +50,12 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-5">
+      <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none flex flex-col gap-5">
         <div className="flex flex-col">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-[#E3E3E3]">
             {t('notifChannelsTitle')}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-[#C4C7C5]">
             {t('notifChannelsSubtitle')}
           </p>
         </div>
@@ -63,7 +63,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
         {/* Channels Toggles */}
         <div className="flex flex-col gap-3">
           {/* Push Notification */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[20px]">
@@ -71,10 +71,10 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('pushNotifTitle')}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
                   {t('pushNotifDesc')}
                 </span>
               </div>
@@ -84,7 +84,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 settings.channels.push
                   ? 'bg-secondary'
-                  : 'bg-slate-300 dark:bg-slate-700'
+                  : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
@@ -99,7 +99,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
           </div>
 
           {/* Email Notification */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[20px]">
@@ -107,10 +107,10 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('emailNotifTitle')}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
                   {t('emailNotifDesc')}
                 </span>
               </div>
@@ -120,7 +120,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 settings.channels.email
                   ? 'bg-secondary'
-                  : 'bg-slate-300 dark:bg-slate-700'
+                  : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
@@ -135,16 +135,16 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
           </div>
 
           {/* SMS Notification */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[20px]">sms</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('smsNotifTitle')}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
                   {t('smsNotifDesc')}
                 </span>
               </div>
@@ -154,7 +154,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 settings.channels.sms
                   ? 'bg-secondary'
-                  : 'bg-slate-300 dark:bg-slate-700'
+                  : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
@@ -170,18 +170,18 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
         </div>
 
         {/* Granular Content Preferences */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+        <div className="pt-4 border-t border-slate-200 dark:border-transparent flex flex-col gap-4">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
             {t('notifCategoriesTitle')}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Item 1 */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-center justify-between">
               <div className="flex flex-col pr-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('catTutorMessages')}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5]">
                   {t('catTutorMessagesDesc')}
                 </span>
               </div>
@@ -194,12 +194,12 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             </div>
 
             {/* Item 2 */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-center justify-between">
               <div className="flex flex-col pr-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('catDeadlineReminders')}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5]">
                   {t('catDeadlineRemindersDesc')}
                 </span>
               </div>
@@ -212,12 +212,12 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             </div>
 
             {/* Item 3 */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-center justify-between">
               <div className="flex flex-col pr-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('catStreakRanking')}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5]">
                   {t('catStreakRankingDesc')}
                 </span>
               </div>
@@ -230,12 +230,12 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             </div>
 
             {/* Item 4 */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-center justify-between">
               <div className="flex flex-col pr-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3]">
                   {t('catWebinarPromos')}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-[#C4C7C5]">
                   {t('catWebinarPromosDesc')}
                 </span>
               </div>

@@ -15,56 +15,60 @@ export function CompetencyHeatmap({ heatmap, pillars }: CompetencyHeatmapProps) 
   const getCellColor = (level: HeatmapCell['level'], isCurrent?: boolean) => {
     switch (level) {
       case 'master':
-        return `bg-emerald-500 ${isCurrent ? 'ring-2 ring-secondary ring-offset-1 dark:ring-offset-slate-900' : ''}`;
+        return `bg-[#6CC38D] dark:bg-[#81C995] ${
+          isCurrent
+            ? 'ring-2 ring-[#0B57D0] dark:ring-[#A8C7FA] ring-offset-1 ring-offset-white dark:ring-offset-[#131314]'
+            : ''
+        }`;
       case 'good':
-        return 'bg-secondary/70';
+        return 'bg-[#A8C7FA] dark:bg-[#162B4D]';
       case 'medium':
-        return 'bg-amber-500';
+        return 'bg-[#FCEBA4] dark:bg-[#3C2A1E]';
       case 'weak':
-        return 'bg-red-500';
+        return 'bg-[#C4EED0] dark:bg-[#142E20]';
       default:
-        return 'bg-slate-200 dark:bg-slate-800';
+        return 'bg-[#E1E5EA] dark:bg-[#282A2C]';
     }
   };
 
   return (
-    <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between border border-slate-100 dark:border-slate-800">
+    <div className="lg:col-span-8 bg-white dark:bg-[#1E1F20] rounded-3xl p-7 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none flex flex-col justify-between">
       <div>
         {/* Header & Legend */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
               {t('heatmapTitle')}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#444746] dark:text-[#C4C7C5] mt-0.5">
               {t('heatmapSubtitle')}
             </p>
           </div>
-          {/* Legend */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />
+          {/* Legend - Soft Muted Pastel Scale */}
+          <div className="flex items-center gap-3 text-xs text-[#444746] dark:text-[#C4C7C5]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C4EED0] dark:bg-[#142E20]" />
               {t('levelWeak')}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FCEBA4] dark:bg-[#3C2A1E]" />
               {t('levelMedium')}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-secondary/70" />
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#A8C7FA] dark:bg-[#162B4D]" />
               {t('levelGood')}
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#6CC38D] dark:bg-[#81C995]" />
               {t('levelMaster')}
             </span>
           </div>
         </div>
 
-        {/* Heatmap Grid (7 days x 12 weeks) */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl mb-6 overflow-x-auto scrollbar-none border border-slate-100 dark:border-slate-800/60">
+        {/* Heatmap Grid (7 days x 12 weeks) - Inset box */}
+        <div className="p-4 bg-[#F0F4F9] dark:bg-[#282A2C]/40 rounded-2xl my-6 overflow-x-auto scrollbar-none border-none">
           <div className="min-w-[500px]">
-            <div className="flex justify-between text-[11px] font-mono text-slate-400 mb-1.5 px-6">
+            <div className="flex justify-between text-[11px] font-mono text-[#444746] dark:text-[#8E918F] mb-3 px-6">
               <span>T1</span>
               <span>T2</span>
               <span>T3</span>
@@ -78,8 +82,8 @@ export function CompetencyHeatmap({ heatmap, pillars }: CompetencyHeatmapProps) 
               <span>T11</span>
               <span>{t('weekLabel', { week: 12 })}</span>
             </div>
-            <div className="flex gap-2">
-              <div className="flex flex-col justify-between text-[10px] font-mono text-slate-400 py-0.5">
+            <div className="flex gap-2.5">
+              <div className="flex flex-col justify-between text-[10px] font-mono text-[#444746] dark:text-[#8E918F] py-0.5">
                 <span>T2</span>
                 <span>T4</span>
                 <span>T6</span>
@@ -105,51 +109,57 @@ export function CompetencyHeatmap({ heatmap, pillars }: CompetencyHeatmapProps) 
         </div>
 
         {/* 5 Key Competency Pillars (PLO Framework) */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-[11px] font-bold text-[#444746] dark:text-[#8E918F] uppercase tracking-wider mb-2">
             <span>{t('ploTitle')}</span>
             <span>{t('ploIndex')}</span>
           </div>
 
-          {pillars.map((pillar) => {
-            const isWeak = pillar.level === 'weak';
-            const isGood = pillar.level === 'good';
-            return (
-              <div key={pillar.id} className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-medium text-slate-800 dark:text-slate-200">
-                    {pillar.title}
-                  </span>
-                  <span
-                    className={`font-semibold ${
-                      isWeak
-                        ? 'text-red-600 dark:text-red-400'
-                        : isGood
-                        ? 'text-secondary'
-                        : 'text-emerald-600 dark:text-emerald-400'
-                    }`}
-                  >
-                    {pillar.statusText}
-                  </span>
+          <div className="flex flex-col gap-6">
+            {pillars.map((pillar) => {
+              const isWeak = pillar.level === 'weak';
+              const isGood = pillar.level === 'good';
+              return (
+                <div key={pillar.id}>
+                  <div className="flex justify-between items-center text-xs mb-2.5">
+                    <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
+                      {pillar.title}
+                    </span>
+                    <span
+                      className={`font-semibold ${
+                        isWeak
+                          ? 'text-[#B3261E] dark:text-[#F28B82]'
+                          : isGood
+                          ? 'text-[#0B57D0] dark:text-[#A8C7FA]'
+                          : 'text-[#1EA85A] dark:text-[#81C995]'
+                      }`}
+                    >
+                      {pillar.statusText}
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#F0F4F9] dark:bg-[#282A2C] h-2 rounded-full overflow-hidden border-none">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        isWeak
+                          ? 'bg-[#B3261E] dark:bg-[#F28B82]'
+                          : isGood
+                          ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
+                          : 'bg-[#1EA85A] dark:bg-[#81C995]'
+                      }`}
+                      style={{ width: `${pillar.percentage}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      isWeak ? 'bg-red-500' : isGood ? 'bg-secondary' : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${pillar.percentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Action link */}
-      <div className="pt-4 mt-4 flex justify-end border-t border-slate-100 dark:border-slate-800">
+      <div className="pt-4 mt-6 flex justify-end">
         <a
-          className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-secondary/80 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0B57D0] hover:bg-[#F0F4F9] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full transition-colors whitespace-nowrap border-none"
           href="#"
         >
           <span>{t('viewMatrixDetails')}</span>

@@ -8,31 +8,31 @@ export function LandingKnowledgeGraph() {
   const t = useTranslations('landing.graph');
 
   return (
-    <div className="relative w-full bg-white dark:bg-[#161B26]/95 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-lg dark:shadow-2xl dark:shadow-black/60 p-5 sm:p-6 transition-transform hover:-translate-y-1 duration-300 z-20">
+    <div className="relative w-full bg-white dark:bg-[#1E1F20] border-none rounded-3xl shadow-none p-5 sm:p-6 transition-transform hover:-translate-y-1 duration-300 z-20">
       {/* Card Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800/80 mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-[#38BDF8]/20 border border-blue-200 dark:border-[#38BDF8]/30 flex items-center justify-center text-blue-600 dark:text-[#38BDF8]">
+          <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA]">
             <Network className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-base font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
               {t('cardTitle')}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 -mt-0.5">
+            <p className="text-xs text-[#444746] dark:text-[#C4C7C5] -mt-0.5">
               {t('cardSub')}
             </p>
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold">
-          <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-[#38BDF8] animate-ping" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-[#1F1F1F] dark:text-[#C4C7C5] text-xs font-semibold">
+          <span className="w-2 h-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-ping" />
           <span>{t('realtimeNodes')}</span>
         </div>
       </div>
 
       {/* SVG Canvas Topology */}
-      <div className="relative w-full h-64 bg-slate-50 dark:bg-[#0A0E18] border border-slate-200 dark:border-slate-800/80 rounded-xl overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-64 bg-[#F0F4F9] dark:bg-[#131314] border-none rounded-2xl overflow-hidden flex items-center justify-center">
         {/* Background Grid Pattern */}
         <svg
           className="absolute inset-0 w-full h-full opacity-30 dark:opacity-20"
@@ -43,7 +43,7 @@ export function LandingKnowledgeGraph() {
           <defs>
             <pattern height="28" id="graph-grid" patternUnits="userSpaceOnUse" width="28">
               <path
-                className="text-slate-300 dark:text-slate-600"
+                className="text-slate-300 dark:text-[#8E918F]"
                 d="M 28 0 L 0 0 0 28"
                 fill="none"
                 stroke="currentColor"
@@ -64,32 +64,32 @@ export function LandingKnowledgeGraph() {
         >
           {/* Edge Connectors */}
           <path
-            className="text-blue-400 dark:text-[#38BDF8]/80"
+            className="text-blue-400 dark:text-[#A8C7FA]/80"
             d="M120 70 L250 50"
             stroke="currentColor"
             strokeDasharray="4 2"
             strokeWidth="2.2"
           />
           <path
-            className="text-slate-300 dark:text-slate-600"
+            className="text-slate-300 dark:text-[#8E918F]"
             d="M120 70 L190 150"
             stroke="currentColor"
             strokeWidth="1.8"
           />
           <path
-            className="text-blue-500 dark:text-[#38BDF8]"
+            className="text-blue-500 dark:text-[#A8C7FA]"
             d="M250 50 L390 85"
             stroke="currentColor"
             strokeWidth="2.5"
           />
           <path
-            className="text-blue-400 dark:text-[#38BDF8]/80"
+            className="text-blue-400 dark:text-[#A8C7FA]/80"
             d="M250 50 L275 160"
             stroke="currentColor"
             strokeWidth="1.8"
           />
           <path
-            className="text-slate-300 dark:text-slate-600"
+            className="text-slate-300 dark:text-[#8E918F]"
             d="M190 150 L275 160"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -102,13 +102,13 @@ export function LandingKnowledgeGraph() {
             strokeWidth="2"
           />
           <path
-            className="text-slate-300 dark:text-slate-600"
+            className="text-slate-300 dark:text-[#8E918F]"
             d="M390 85 L410 190"
             stroke="currentColor"
             strokeWidth="1.5"
           />
           <path
-            className="text-blue-400 dark:text-[#38BDF8]/80"
+            className="text-blue-400 dark:text-[#A8C7FA]/80"
             d="M390 85 L480 60"
             stroke="currentColor"
             strokeWidth="2"
@@ -270,16 +270,16 @@ export function LandingKnowledgeGraph() {
         </svg>
 
         {/* Dynamic Tooltip */}
-        <div className="absolute top-3 left-4 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md pointer-events-none flex items-center gap-1.5">
-          <Brain className="w-4 h-4 text-blue-600 dark:text-[#38BDF8]" />
-          <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+        <div className="absolute top-3 left-4 bg-white dark:bg-[#1E1F20] border-none px-3.5 py-1.5 rounded-full shadow-none pointer-events-none flex items-center gap-1.5">
+          <Brain className="w-4 h-4 text-[#0B57D0] dark:text-[#A8C7FA]" />
+          <span className="text-xs font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
             {t('deficitTooltip')}
           </span>
         </div>
 
         {/* Mini Pill */}
-        <div className="absolute bottom-3 right-3 bg-blue-50 dark:bg-[#38BDF8]/20 border border-blue-200 dark:border-[#38BDF8]/50 text-blue-700 dark:text-sky-200 px-2.5 py-1 rounded-md shadow-xs flex items-center gap-1 backdrop-blur-sm">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-[#38BDF8]" />
+        <div className="absolute bottom-3 right-3 bg-[#D3E3FD] dark:bg-[#162B4D] border-none text-[#041E49] dark:text-[#A8C7FA] px-3 py-1 rounded-full shadow-none flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#041E49] dark:text-[#A8C7FA]" />
           <span className="text-[11px] font-medium">{t('aiTutorPill')}</span>
         </div>
       </div>

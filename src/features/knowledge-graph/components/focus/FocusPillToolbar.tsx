@@ -20,14 +20,14 @@ export function FocusPillToolbar({
   onCenterSegmentTree,
 }: FocusPillToolbarProps) {
   return (
-    <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-2 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl">
+    <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-2 rounded-full bg-white dark:bg-[#1E1F20] backdrop-blur-2xl border-none shadow-none">
       {/* Minimap Toggle */}
       <button
         onClick={onToggleMinimap}
-        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
           isMinimapVisible
-            ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ? 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+            : 'text-[#1F1F1F] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
         }`}
         title="Bật/Tắt Bản đồ thu nhỏ (M)"
         type="button"
@@ -36,32 +36,32 @@ export function FocusPillToolbar({
         <span>Bản đồ thu nhỏ</span>
       </button>
 
-      <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 my-auto" />
+      <div className="w-px h-5 bg-[#E1E5EA] dark:bg-[#282A2C] my-auto" />
 
       {/* Center Segment Tree */}
       <button
         onClick={onCenterSegmentTree}
-        className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+        className="w-9 h-9 rounded-full flex items-center justify-center text-[#1F1F1F] dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-all cursor-pointer border-none"
         title="Tập trung vào Segment Tree"
         type="button"
       >
         <span className="material-symbols-outlined text-[18px]">center_focus_strong</span>
       </button>
 
-      <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 my-auto" />
+      <div className="w-px h-5 bg-[#E1E5EA] dark:bg-[#282A2C] my-auto" />
 
       {/* Draw / Sketch Annotation Tool */}
       <button
         onClick={onToggleDrawingMode}
-        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
           isDrawingMode
-            ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 shadow-sm'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ? 'bg-[#FCEBA4] dark:bg-[#3C2A1E] text-[#725200] dark:text-[#FFB784]'
+            : 'text-[#1F1F1F] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
         }`}
         title="Công cụ vẽ nháp / Khoanh vùng ghi chú (D)"
         type="button"
       >
-        <span className="material-symbols-outlined text-[17px] text-amber-500">draw</span>
+        <span className="material-symbols-outlined text-[17px] text-[#725200] dark:text-[#FFB784]">draw</span>
         <span>{isDrawingMode ? 'Đang vẽ (D)' : 'Vẽ ghi chú'}</span>
       </button>
 
@@ -69,7 +69,7 @@ export function FocusPillToolbar({
       {isDrawingMode && (
         <button
           onClick={onClearDrawing}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-all cursor-pointer"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[#B3261E] hover:bg-[#FAD2CF] dark:hover:bg-[#3C1919] transition-all cursor-pointer border-none"
           title="Xóa nét vẽ"
           type="button"
         >

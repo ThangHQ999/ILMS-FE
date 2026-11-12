@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface DashboardSidebarProps {
   isFocus: boolean;
@@ -18,22 +19,78 @@ export function DashboardSidebar({
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
+  const { isTeacher } = useUserRole();
 
   const isOverviewActive = pathname === '/dashboard';
   const isClassesActive = pathname.startsWith('/classes');
+  const isSessionsActive = pathname.startsWith('/lesson-sessions') || pathname.includes('/sessions');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
+  const isMaterialsActive = pathname.startsWith('/materials');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isSettingsActive = pathname.startsWith('/settings');
+
+  const navItems = [
+    {
+      href: '/dashboard',
+      icon: 'grid_view',
+      label: t('navOverview'),
+      active: isOverviewActive,
+      show: true,
+    },
+    {
+      href: '/classes',
+      icon: 'school',
+      label: isTeacher ? 'Quản lý Lớp học' : 'Khóa học của tôi',
+      active: isClassesActive,
+      show: true,
+    },
+    {
+      href: '/lesson-sessions',
+      icon: 'calendar_view_week',
+      label: isTeacher ? 'Ca học & Điểm danh' : 'Lịch học của tôi',
+      active: isSessionsActive,
+      show: true,
+    },
+    {
+      href: '/materials',
+      icon: 'upload_file',
+      label: 'Xử lý học liệu',
+      active: isMaterialsActive,
+      show: isTeacher,
+    },
+    {
+      href: '/knowledge-graph',
+      icon: 'hub',
+      label: t('navGraph'),
+      active: isGraphActive,
+      show: true,
+    },
+    {
+      href: '/competency',
+      icon: 'radar',
+      label: isTeacher ? 'Năng lực lớp học' : 'Năng lực cá nhân',
+      active: isRadarActive,
+      show: true,
+    },
+    {
+      href: '/ai-tutor',
+      icon: 'auto_awesome',
+      label: t('navAiTutor'),
+      active: isAiTutorActive,
+      badge: '24/7',
+      show: true,
+    },
+  ].filter((item) => item.show);
 
   if (isFocus) {
     // 80px Compact Sidebar for Focus Mode
     return (
-      <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 flex flex-col justify-between py-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all duration-300">
+      <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
         <div className="flex flex-col items-center gap-6">
           <Link
             href="/dashboard"
-            className="flex items-center justify-center h-12 w-12 rounded-xl focus:outline-none hover:opacity-90 transition-opacity"
+            className="flex items-center justify-center h-12 w-12 rounded-full focus:outline-none hover:opacity-90 transition-opacity"
             title="ILMS"
           >
             <img
@@ -47,112 +104,60 @@ export function DashboardSidebar({
               className="h-8 w-auto object-contain block dark:hidden"
             />
           </Link>
-          <nav className="flex flex-col items-center gap-2 w-full px-2">
-            <Link
-              href="/dashboard"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isOverviewActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+          <nav className="flex flex-col items-center gap-1.5 w-full px-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.href + item.label}
+                href={item.href}
+                prefetch={item.href.startsWith('/')}
+                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                  item.active
+                    ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
+                    : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
                 }`}
-              title={t('navOverview')}
-            >
-              <span className="material-symbols-outlined text-[22px]">space_dashboard</span>
-            </Link>
-            <Link
-              href="/classes"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isClassesActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              title={t('navCourses')}
-            >
-              <span className="material-symbols-outlined text-[22px]">menu_book</span>
-            </a>
-            <Link
-              href="/knowledge-graph"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isGraphActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              title={t('navGraph')}
-            >
-              <span className="material-symbols-outlined text-[22px]">hub</span>
-            </Link>
-            <Link
-              href="/competency"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isRadarActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              title={t('navRadar')}
-            >
-              <span className="material-symbols-outlined text-[22px]">radar</span>
-            </Link>
-            <a
-              href="#"
-              className="flex items-center justify-center w-12 h-12 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-all"
-              title={t('navQuizzes')}
-            >
-              <span className="material-symbols-outlined text-[22px]">fact_check</span>
-            </a>
-            <Link
-              href="/ai-tutor"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isAiTutorActive
-                  ? 'bg-secondary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              title={t('navAiTutor')}
-            >
-              <span className="material-symbols-outlined text-[22px]">auto_awesome</span>
-            </Link>
-            <a
-              href="#"
-              className="flex items-center justify-center w-12 h-12 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-all"
-              title={t('navDiscussion')}
-            >
-              <span className="material-symbols-outlined text-[22px]">forum</span>
-            </a>
+                title={item.label}
+              >
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+              </Link>
+            ))}
           </nav>
         </div>
 
-        <div className="flex flex-col items-center gap-2 w-full px-2">
+        <div className="flex flex-col items-center gap-1.5 w-full px-2">
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${isSettingsActive
-                ? 'bg-secondary text-white shadow-sm'
-                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+            className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+              isSettingsActive
+                ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
+                : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+            }`}
             title={t('navSettings')}
           >
-            <span className="material-symbols-outlined text-[22px]">settings</span>
+            <span className="material-symbols-outlined text-[20px]">settings</span>
           </Link>
         </div>
       </aside>
     );
   }
 
-  // Sidebar for Analytics Mode (Expandable / Collapsible between 260px and 80px)
+  // Sidebar for Analytics Mode (Expandable / Collapsible between 288px (w-72) and 80px (w-20))
   return (
     <aside
-      className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-[260px]'
-        } bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all duration-300`}
+      className={`fixed left-0 top-0 h-full ${
+        isCollapsed ? 'w-20' : 'w-72'
+      } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
     >
       {/* Collapse/Expand Floating Button on the border */}
       {onToggleCollapse && (
         <button
           onClick={onToggleCollapse}
-          className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-[0_2px_6px_rgba(0,0,0,0.08)] hover:shadow-[0_3px_8px_rgba(0,0,0,0.12)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
+          className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border-none shadow-none flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
           title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
           type="button"
           aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
         >
-          <span className="material-symbols-outlined text-[15px] text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+          <span className="material-symbols-outlined text-[15px] text-[#444746] group-hover:text-black dark:text-[#C4C7C5] dark:group-hover:text-white transition-colors">
             {isCollapsed ? 'chevron_right' : 'chevron_left'}
           </span>
         </button>
@@ -160,11 +165,11 @@ export function DashboardSidebar({
 
       <div className="flex flex-col flex-1 min-h-0">
         {/* Brand Header */}
-        <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-6'}`}>
+        <div className={`h-14 flex items-center mb-3 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
           <Link
             href="/dashboard"
             prefetch={true}
-            className="flex items-center justify-center focus:outline-none hover:opacity-90 transition-opacity"
+            className="flex items-center focus:outline-none hover:opacity-90 transition-opacity"
             title="ILMS"
           >
             {isCollapsed ? (
@@ -190,204 +195,118 @@ export function DashboardSidebar({
           </Link>
         </div>
 
-        {/* Section title / divider */}
-        {!isCollapsed ? (
-          <div className="px-4 py-1">
-            <div className="px-3 py-1 font-semibold text-[11px] text-slate-400 uppercase tracking-wider">
+        {/* Section title */}
+        {!isCollapsed && (
+          <div className="px-3 py-1 mb-1">
+            <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
               {t('learningArea')}
-            </div>
-          </div>
-        ) : (
-          <div className="py-1">
-            <div className="w-8 h-px bg-slate-200 dark:bg-slate-800 mx-auto my-1" />
+            </span>
           </div>
         )}
 
         {/* Nav Links */}
-        <nav
-          className={`flex-1 space-y-1 overflow-y-auto scrollbar-none ${isCollapsed ? 'px-2 flex flex-col items-center' : 'px-4'
-            }`}
-        >
-          {/* Overview */}
-          <Link
-            href="/dashboard"
-            prefetch={true}
-            className={
-              isOverviewActive
-                ? isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
-                : isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navOverview')}
-          >
-            <span className="material-symbols-outlined text-[20px]">grid_view</span>
-            {!isCollapsed && <span className="text-sm">{t('navOverview')}</span>}
-          </Link>
+        <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
+          {navItems.map((item) => {
+            const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
+            const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
 
-          {/* Courses / Classes */}
-          <Link
-            href="/classes"
-            prefetch={true}
-            className={
-              isClassesActive
-                ? isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
-                  : 'flex items-center justify-between px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
-                : isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
+            if (isCollapsed) {
+              return (
+                <Link
+                  key={item.href + item.label}
+                  href={item.href}
+                  prefetch={item.href.startsWith('/')}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                    item.active ? activeClass : inactiveClass
+                  }`}
+                  title={item.label}
+                >
+                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                </Link>
+              );
             }
-            title={t('navCourses')}
-          >
-            <span className="material-symbols-outlined text-[20px]">school</span>
-            {!isCollapsed && <span>{t('navCourses')}</span>}
-          </a>
 
-          {/* Knowledge Graph */}
-          <Link
-            href="/knowledge-graph"
-            prefetch={true}
-            className={
-              isGraphActive
-                ? isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
-                : isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navGraph')}
-          >
-            <span className="material-symbols-outlined text-[20px]">hub</span>
-            {!isCollapsed && <span>{t('navGraph')}</span>}
-          </Link>
-
-          {/* Competency Radar */}
-          <Link
-            href="/competency"
-            prefetch={true}
-            className={
-              isRadarActive
-                ? isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm transition-all'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 transition-colors bg-secondary text-white font-medium rounded-xl shadow-sm'
-                : isCollapsed
-                  ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                  : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navRadar')}
-          >
-            <span className="material-symbols-outlined text-[20px]">radar</span>
-            {!isCollapsed && <span>{t('navRadar')}</span>}
-          </Link>
-
-          {/* Quizzes */}
-          <a
-            href="#"
-            className={
-              isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navQuizzes')}
-          >
-            <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span>
-            {!isCollapsed && <span>{t('navQuizzes')}</span>}
-          </a>
-
-          {/* AI Tutor */}
-          <Link
-            href="/ai-tutor"
-            prefetch={true}
-            className={
-              isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navAiTutor')}
-          >
-            <span className="material-symbols-outlined text-[20px] text-secondary">
-              auto_awesome
-            </span>
-            {!isCollapsed && (
-              <>
-                <span className="flex-1">{t('navAiTutor')}</span>
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-secondary/15 text-secondary">
-                  24/7
-                </span>
-              </>
-            )}
-          </Link>
-
-          {/* Discussion */}
-          <a
-            href="#"
-            className={
-              isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navDiscussion')}
-          >
-            <span className="material-symbols-outlined text-[20px]">forum</span>
-            {!isCollapsed && <span>{t('navDiscussion')}</span>}
-          </a>
-
-          <div className="pt-2 pb-1">
-            <div
-              className={`h-px bg-slate-200 dark:bg-slate-800 my-1 ${isCollapsed ? 'w-8 mx-auto' : 'mx-2'
+            return (
+              <Link
+                key={item.href + item.label}
+                href={item.href}
+                prefetch={item.href.startsWith('/')}
+                className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
+                  item.active ? activeClass : inactiveClass
                 }`}
-            />
-          </div>
+              >
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.badge && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA]">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+
+          <div className="my-1 border-none" />
 
           {/* Settings */}
-          <Link
-            href="/settings"
-            prefetch={true}
-            className={
-              isCollapsed
-                ? 'flex items-center justify-center w-12 h-12 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors'
-                : 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors text-sm font-medium'
-            }
-            title={t('navSettings')}
-          >
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-            {!isCollapsed && <span>{t('navSettings')}</span>}
-          </Link>
+          {isCollapsed ? (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                isSettingsActive
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
+                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
+              }`}
+              title={t('navSettings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
+          ) : (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
+                isSettingsActive
+                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
+                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+              <span>{t('navSettings')}</span>
+            </Link>
+          )}
         </nav>
       </div>
 
-      {/* Cloud Lab Storage Widget */}
+      {/* Bottom Storage Widget ("Bộ nhớ Cloud Lab") */}
       {!isCollapsed ? (
-        <div className="p-4 m-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <div className="bg-[#F0F4F9] dark:bg-[#131314] rounded-2xl p-4 border-none mt-4 shadow-none">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
               {t('cloudStorage')}
             </span>
-            <span className="font-mono text-xs text-secondary font-bold">78%</span>
+            <span className="font-mono text-xs text-[#0B57D0] dark:text-[#A8C7FA] font-medium">78%</span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mb-2">
-            <div className="bg-secondary h-full rounded-full" style={{ width: '78%' }} />
+          <div className="w-full h-1.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] overflow-hidden mb-2.5">
+            <div className="bg-[#0B57D0] dark:bg-[#A8C7FA] h-full rounded-full transition-all duration-300" style={{ width: '78%' }} />
           </div>
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
+          <div className="flex items-center justify-between text-xs text-[#747775] dark:text-[#8E918F]">
             <span>15.6 GB / 20 GB</span>
-            <a href="#" className="font-semibold text-secondary hover:underline">
+            <a href="#" className="font-medium text-[#0B57D0] dark:text-[#A8C7FA] hover:underline">
               {t('upgrade')}
             </a>
           </div>
         </div>
       ) : (
         <div
-          className="p-2.5 mx-auto my-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center gap-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2.5 mx-auto mt-4 rounded-full bg-[#F0F4F9] dark:bg-[#131314] border-none shadow-none flex flex-col items-center gap-1 cursor-pointer hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors"
           title={`${t('cloudStorage')}: 15.6 GB / 20 GB (78%)`}
         >
-          <span className="material-symbols-outlined text-[20px] text-secondary">
+          <span className="material-symbols-outlined text-[20px] text-[#0B57D0] dark:text-[#A8C7FA]">
             cloud
           </span>
-          <span className="font-mono text-[10px] text-secondary font-bold">
+          <span className="font-mono text-[10px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
             78%
           </span>
         </div>

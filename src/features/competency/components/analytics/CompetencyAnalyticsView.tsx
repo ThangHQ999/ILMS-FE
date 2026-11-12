@@ -62,7 +62,7 @@ export function CompetencyAnalyticsView({
   };
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-blue-500/20 selection:text-blue-600">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-[#D3E3FD] selection:text-[#041E49]">
       {/* Existing Dashboard Sidebar in Analytics mode */}
       <DashboardSidebar
         isFocus={false}

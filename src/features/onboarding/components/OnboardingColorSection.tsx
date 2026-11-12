@@ -44,15 +44,15 @@ export function OnboardingColorSection({
     palette: ColorOption[],
     type: 'primary' | 'secondary' | 'tertiary' | 'neutral'
   ) => (
-    <div className="bg-white dark:bg-[#0B0F19] rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+    <div className="bg-white dark:bg-[#1E1F20] rounded-2xl p-3.5 border-none shadow-none flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[13px] font-semibold text-slate-900 dark:text-white">{title}</span>
-          <span className="text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono">
+          <span className="text-[13px] font-semibold text-slate-900 dark:text-[#E3E3E3]">{title}</span>
+          <span className="text-[10px] text-slate-600 dark:text-[#C4C7C5] bg-[#F0F4F9] dark:bg-[#282A2C] px-2 py-0.5 rounded-full font-mono">
             {tag}
           </span>
         </div>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2.5 leading-relaxed">{desc}</p>
+        <p className="text-[11px] text-slate-500 dark:text-[#C4C7C5] mb-2.5 leading-relaxed">{desc}</p>
         <div className="flex items-center gap-1.5 flex-wrap">
           {palette.map((color) => {
             const isSelected = current.hex === color.hex;
@@ -62,8 +62,8 @@ export function OnboardingColorSection({
                 type="button"
                 title={`${color.name} (${color.hex})`}
                 onClick={() => onSelectColor(type, color)}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white shadow-xs transition-transform hover:scale-110 ${
-                  isSelected ? 'ring-2 ring-offset-2 ring-blue-600 dark:ring-[#38BDF8] scale-105' : 'opacity-85 hover:opacity-100'
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white border-none shadow-none transition-transform hover:scale-110 ${
+                  isSelected ? 'scale-110' : 'opacity-85 hover:opacity-100'
                 }`}
                 style={{ backgroundColor: color.hex }}
               >
@@ -73,7 +73,7 @@ export function OnboardingColorSection({
           })}
         </div>
       </div>
-      <div className="font-mono text-[11px] text-blue-600 dark:text-[#38BDF8] font-medium mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+      <div className="font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium mt-2.5 pt-2 border-t border-[#F0F4F9] dark:border-[#282A2C]">
         {current.name} ({current.hex})
       </div>
     </div>
@@ -81,8 +81,8 @@ export function OnboardingColorSection({
 
   return (
     <fieldset className="flex flex-col border-none p-0 m-0">
-      <legend className="text-base font-semibold text-slate-900 dark:text-white mb-3.5 flex items-center gap-2.5">
-        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+      <legend className="text-base font-semibold text-slate-900 dark:text-[#E3E3E3] mb-3.5 flex items-center gap-2.5">
+        <span className="w-6 h-6 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] whitespace-nowrap text-xs font-bold flex items-center justify-center">
           3
         </span>
         {t('legend')}
@@ -91,13 +91,13 @@ export function OnboardingColorSection({
       <div className="flex flex-col gap-4">
         {/* Row 1: Theme Mode & Live Preview */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-5 bg-slate-50 dark:bg-[#161D2F] rounded-xl p-4 flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <div className="md:col-span-5 bg-[#F0F4F9] dark:bg-[#282A2C] rounded-3xl p-5 flex flex-col justify-between border-none shadow-none">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <span className="text-xs uppercase tracking-wider text-slate-600 dark:text-[#C4C7C5] font-semibold">
                   {t('themeTitle')}
                 </span>
-                <span className="font-mono text-[11px] text-slate-500 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded">
+                <span className="font-mono text-[11px] text-slate-600 dark:text-[#C4C7C5] bg-white dark:bg-[#1E1F20] px-2.5 py-0.5 rounded-full">
                   {t('themeBadge')}
                 </span>
               </div>
@@ -106,23 +106,23 @@ export function OnboardingColorSection({
                 <button
                   type="button"
                   onClick={() => onSelectTheme('light')}
-                  className={`rounded-lg p-2.5 text-left transition-all flex flex-col gap-2 border ${
+                  className={`rounded-2xl p-2.5 text-left transition-all flex flex-col gap-2 border-none ${
                     themeMode === 'light'
-                      ? 'bg-white shadow-md border-blue-500/40 dark:border-transparent'
-                      : 'bg-slate-100 dark:bg-slate-800/80 border-transparent opacity-80 hover:opacity-100'
+                      ? 'bg-white shadow-none text-slate-900'
+                      : 'bg-white/60 dark:bg-[#1E1F20] opacity-80 hover:opacity-100'
                   }`}
                 >
-                  <div className="w-full h-12 bg-white rounded p-1.5 flex flex-col justify-between shadow-xs border border-slate-200">
-                    <div className="h-2 w-1/2 bg-blue-600 rounded-sm" />
+                  <div className="w-full h-12 bg-[#F0F4F9] rounded-xl p-1.5 flex flex-col justify-between border-none">
+                    <div className="h-2 w-1/2 bg-[#0B57D0] rounded-full" />
                     <div className="flex gap-1">
-                      <div className="h-4 flex-1 bg-slate-200 rounded-sm" />
-                      <div className="h-4 w-1/3 bg-slate-300 rounded-sm" />
+                      <div className="h-4 flex-1 bg-white rounded-lg" />
+                      <div className="h-4 w-1/3 bg-white/60 rounded-lg" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{t('lightTheme')}</span>
+                    <span className="text-xs font-semibold text-slate-900 dark:text-[#E3E3E3]">{t('lightTheme')}</span>
                     {themeMode === 'light' && (
-                      <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                      <span className="w-4 h-4 rounded-full bg-[#0B57D0] text-white whitespace-nowrap flex items-center justify-center">
                         <span className="material-symbols-outlined text-[10px]">check</span>
                       </span>
                     )}
@@ -132,23 +132,23 @@ export function OnboardingColorSection({
                 <button
                   type="button"
                   onClick={() => onSelectTheme('dark')}
-                  className={`rounded-lg p-2.5 text-left transition-all flex flex-col gap-2 border ${
+                  className={`rounded-2xl p-2.5 text-left transition-all flex flex-col gap-2 border-none ${
                     themeMode === 'dark'
-                      ? 'bg-[#0B0F19] shadow-md border-[#38BDF8] text-white'
-                      : 'bg-slate-100 dark:bg-slate-800/80 border-transparent opacity-80 hover:opacity-100'
+                      ? 'bg-[#131314] shadow-none text-white'
+                      : 'bg-white/60 dark:bg-[#1E1F20] opacity-80 hover:opacity-100'
                   }`}
                 >
-                  <div className="w-full h-12 bg-[#0B0F19] rounded p-1.5 flex flex-col justify-between shadow-inner border border-slate-800">
-                    <div className="h-2 w-1/2 bg-[#38BDF8] rounded-sm" />
+                  <div className="w-full h-12 bg-[#1E1F20] rounded-xl p-1.5 flex flex-col justify-between border-none">
+                    <div className="h-2 w-1/2 bg-[#A8C7FA] rounded-full" />
                     <div className="flex gap-1">
-                      <div className="h-4 flex-1 bg-slate-700 rounded-sm" />
-                      <div className="h-4 w-1/3 bg-slate-800 rounded-sm" />
+                      <div className="h-4 flex-1 bg-[#282A2C] rounded-lg" />
+                      <div className="h-4 w-1/3 bg-[#333537] rounded-lg" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{t('darkTheme')}</span>
+                    <span className="text-xs font-semibold text-slate-900 dark:text-[#E3E3E3]">{t('darkTheme')}</span>
                     {themeMode === 'dark' && (
-                      <span className="w-4 h-4 rounded-full bg-[#38BDF8] text-slate-900 flex items-center justify-center">
+                      <span className="w-4 h-4 rounded-full bg-[#A8C7FA] text-[#062E6F] flex items-center justify-center">
                         <span className="material-symbols-outlined text-[10px]">check</span>
                       </span>
                     )}
@@ -156,7 +156,7 @@ export function OnboardingColorSection({
                 </button>
               </div>
             </div>
-            <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-2.5">
+            <p className="text-[12px] text-slate-500 dark:text-[#C4C7C5] mt-2.5">
               {t('themeDesc')}
             </p>
           </div>
@@ -171,13 +171,13 @@ export function OnboardingColorSection({
         </div>
 
         {/* Row 2: 4 Color Tokens */}
-        <div className="bg-slate-50 dark:bg-[#161D2F] rounded-xl p-4 flex flex-col gap-3.5 border border-slate-200 dark:border-slate-800">
-          <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
-            <div className="text-xs uppercase tracking-wider text-slate-900 dark:text-white font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-[#38BDF8]">palette</span>
+        <div className="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-3xl p-5 flex flex-col gap-3.5 border-none shadow-none">
+          <div className="pb-2">
+            <div className="text-xs uppercase tracking-wider text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">palette</span>
               {t('tokensTitle')}
             </div>
-            <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[12px] text-[#444746] dark:text-[#C4C7C5] mt-0.5">
               {t('tokensDesc')}
             </p>
           </div>
