@@ -21,8 +21,8 @@ export function DashboardHeader({
   isFocus,
   isSidebarCollapsed = false,
   onToggleMode,
-  userFullName = 'Trần Nhật Minh',
-  workspaceMode = 'student',
+  userFullName,
+  workspaceMode = 'faculty',
   onToggleWorkspaceMode,
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
@@ -31,6 +31,9 @@ export function DashboardHeader({
   const isClasses = pathname.startsWith('/classes');
   const isGraph = pathname.startsWith('/knowledge-graph');
   const isCompetency = pathname.startsWith('/competency');
+
+  const currentUserName =
+    userFullName || (workspaceMode === 'student' ? 'Trần Nhật Minh' : 'TS. Lê Hoàng Nam');
 
   if (isFocus) {
     return (
@@ -53,7 +56,7 @@ export function DashboardHeader({
             </button>
             <ThemeToggle />
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
-            <UserMenuDropdown userFullName={userFullName} isFocus={true} />
+            <UserMenuDropdown userFullName={currentUserName} isFocus={true} />
           </div>
         </div>
       </header>
@@ -74,7 +77,7 @@ export function DashboardHeader({
           className="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-medium flex items-center gap-1 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px] text-slate-400">
-            {workspaceMode === 'student' ? 'local_library' : 'school'}
+            {workspaceMode === 'student' ? 'school' : 'school'}
           </span>
           <span>{workspaceMode === 'student' ? 'Không gian học tập' : 'Không gian giảng dạy'}</span>
         </Link>
@@ -113,7 +116,7 @@ export function DashboardHeader({
 
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
-        {/* Mode Switch Button: "Đổi sang Giảng dạy" / "Đổi sang Học tập" */}
+        {/* Mode Switch Button */}
         {onToggleWorkspaceMode && (
           <button
             onClick={onToggleWorkspaceMode}
@@ -121,10 +124,10 @@ export function DashboardHeader({
             type="button"
           >
             <span className="material-symbols-outlined text-[16px] text-blue-600">
-              swap_horiz
+              sync_alt
             </span>
             <span>
-              {workspaceMode === 'student' ? 'Đổi sang Giảng dạy' : 'Đổi sang Học tập'}
+              {workspaceMode === 'student' ? 'Đổi sang Giảng dạy' : 'Đổi chế độ'}
             </span>
           </button>
         )}
@@ -137,7 +140,7 @@ export function DashboardHeader({
 
         {/* Header Profile Pill */}
         <div className="flex items-center gap-2 pl-2">
-          <UserMenuDropdown userFullName={userFullName} isFocus={false} />
+          <UserMenuDropdown userFullName={currentUserName} isFocus={false} />
         </div>
       </div>
     </header>

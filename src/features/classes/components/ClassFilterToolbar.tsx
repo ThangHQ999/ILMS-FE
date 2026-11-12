@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { AVAILABLE_MAJORS } from '../constants';
 import type { ClassFilters, ClassViewMode, WorkspaceRoleMode } from '../types';
 
 interface ClassFilterToolbarProps {
@@ -32,8 +31,8 @@ export function ClassFilterToolbar({
   activeCount = 12,
   enrolledCount = 4,
   archivedCount = 3,
-  allCount = 4,
-  displayedCount = 4,
+  allCount = 12,
+  displayedCount = 6,
   onOpenMobileFilter,
   activeKpi,
   onClearKpi,
@@ -72,14 +71,14 @@ export function ClassFilterToolbar({
           <button
             type="button"
             role="tab"
-            aria-selected={workspaceMode === 'faculty'}
+            aria-selected={workspaceMode === 'faculty' && filters.status === 'ACTIVE'}
             onClick={() => {
               if (onWorkspaceModeChange) onWorkspaceModeChange('faculty');
               onFilterChange({ status: 'ACTIVE', page: 0 });
             }}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               workspaceMode === 'faculty' && filters.status === 'ACTIVE'
-                ? 'bg-blue-600 text-white font-bold shadow-2xs shadow-blue-500/25'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -87,7 +86,7 @@ export function ClassFilterToolbar({
             <span
               className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                 workspaceMode === 'faculty' && filters.status === 'ACTIVE'
-                  ? 'bg-white/20 text-white'
+                  ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
@@ -95,18 +94,18 @@ export function ClassFilterToolbar({
             </span>
           </button>
 
-          {/* Tab: Đang theo học (4) */}
+          {/* Tab: Đang theo học */}
           <button
             type="button"
             role="tab"
-            aria-selected={workspaceMode === 'student'}
+            aria-selected={workspaceMode === 'student' && filters.status === 'ACTIVE'}
             onClick={() => {
               if (onWorkspaceModeChange) onWorkspaceModeChange('student');
               onFilterChange({ status: 'ACTIVE', page: 0 });
             }}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               workspaceMode === 'student' && filters.status === 'ACTIVE'
-                ? 'bg-blue-600 text-white font-bold shadow-2xs shadow-blue-500/25'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -114,7 +113,7 @@ export function ClassFilterToolbar({
             <span
               className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                 workspaceMode === 'student' && filters.status === 'ACTIVE'
-                  ? 'bg-white/20 text-white'
+                  ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
@@ -122,7 +121,7 @@ export function ClassFilterToolbar({
             </span>
           </button>
 
-          {/* Tab: Đã hoàn thành / Lưu trữ */}
+          {/* Tab: Đã lưu trữ */}
           <button
             type="button"
             role="tab"
@@ -130,7 +129,7 @@ export function ClassFilterToolbar({
             onClick={() => onFilterChange({ status: 'ARCHIVED', page: 0 })}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               filters.status === 'ARCHIVED'
-                ? 'bg-blue-600 text-white font-bold shadow-2xs shadow-blue-500/25'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -138,7 +137,7 @@ export function ClassFilterToolbar({
             <span
               className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                 filters.status === 'ARCHIVED'
-                  ? 'bg-white/20 text-white'
+                  ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
@@ -155,8 +154,8 @@ export function ClassFilterToolbar({
             onClick={() => onViewModeChange('grid')}
             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
               viewMode === 'grid'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 font-bold'
-                : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent'
+                ? 'bg-white dark:bg-slate-700 shadow-2xs text-blue-600 dark:text-blue-400 font-bold'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">grid_view</span>
@@ -167,8 +166,8 @@ export function ClassFilterToolbar({
             onClick={() => onViewModeChange('list')}
             className={`p-1.5 rounded-lg transition-all cursor-pointer ${
               viewMode === 'list'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 font-bold'
-                : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent'
+                ? 'bg-white dark:bg-slate-700 shadow-2xs text-blue-600 dark:text-blue-400 font-bold'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">view_list</span>
@@ -191,64 +190,103 @@ export function ClassFilterToolbar({
             placeholder={
               workspaceMode === 'student'
                 ? 'Tìm theo tên lớp, môn học, tên giảng viên...'
-                : 'Tìm theo tên lớp, mã lớp (CSDL, CTDL,...)'
+                : 'Tìm theo tên lớp, mã lớp (CSDL, CTDL...)'
             }
-            className="w-full pl-9 pr-14 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-500 transition-all"
+            className="w-full pl-9 pr-14 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-500 transition-all"
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-500 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded shadow-2xs pointer-events-none">
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded shadow-2xs pointer-events-none">
               Ctrl K
             </kbd>
           </div>
         </div>
 
-        {/* Dropdown 1: Học kỳ */}
-        <div className="lg:col-span-3 relative">
-          <select
-            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer"
-          >
-            <option value="hk1-2425">Học kỳ: Học kỳ 1 2024-2025</option>
-            <option value="hk2-2324">Học kỳ: Học kỳ 2 2023-2024</option>
-            <option value="all">Học kỳ: Tất cả các kỳ</option>
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
-            expand_more
-          </span>
-        </div>
+        {/* Dropdown 1: Role or Semester */}
+        {workspaceMode === 'student' ? (
+          <div className="lg:col-span-3 relative">
+            <select
+              className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer"
+            >
+              <option value="hk1-2425">Học kỳ: Học kỳ 1 2024-2025</option>
+              <option value="hk2-2324">Học kỳ: Học kỳ 2 2023-2024</option>
+              <option value="all">Học kỳ: Tất cả các kỳ</option>
+            </select>
+            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
+              expand_more
+            </span>
+          </div>
+        ) : (
+          <div className="lg:col-span-3 relative">
+            <select
+              value={filters.role || 'ALL'}
+              onChange={(e) =>
+                onFilterChange({
+                  role: e.target.value as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
+                  page: 0,
+                })
+              }
+              className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer"
+            >
+              <option value="ALL">Vai trò: Tất cả</option>
+              <option value="PRIMARY_INSTRUCTOR">Chủ lớp (Owner)</option>
+              <option value="TA">Giảng viên (Teacher)</option>
+              <option value="STUDENT">Học viên (Student)</option>
+            </select>
+            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
+              expand_more
+            </span>
+          </div>
+        )}
 
-        {/* Dropdown 2: Trạng thái */}
-        <div className="lg:col-span-3 relative">
-          <select
-            value={filters.role || 'ALL'}
-            onChange={(e) =>
-              onFilterChange({
-                role: e.target.value as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
-                page: 0,
-              })
-            }
-            className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer truncate"
-          >
-            {workspaceMode === 'student' ? (
-              <>
-                <option value="ALL">Trạng thái: Tất cả lớp</option>
-                <option value="pending-tasks">Có bài tập cần nộp</option>
-                <option value="high-progress">Tiến độ &gt; 80%</option>
-                <option value="ai-recommended">Có gợi ý AI Tutor</option>
-              </>
-            ) : (
-              <>
-                <option value="ALL">Vai trò: Tất cả</option>
-                <option value="PRIMARY_INSTRUCTOR">Chủ lớp</option>
-                <option value="TA">Giảng viên</option>
-              </>
-            )}
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
-            expand_more
-          </span>
-        </div>
+        {/* Dropdown 2: Subject/Course or Status */}
+        {workspaceMode === 'student' ? (
+          <div className="lg:col-span-3 relative">
+            <select
+              value={filters.role || 'ALL'}
+              onChange={(e) =>
+                onFilterChange({
+                  role: e.target.value as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
+                  page: 0,
+                })
+              }
+              className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer truncate"
+            >
+              <option value="ALL">Trạng thái: Tất cả lớp</option>
+              <option value="pending-tasks">Có bài tập cần nộp</option>
+              <option value="high-progress">Tiến độ &gt; 80%</option>
+              <option value="ai-recommended">Có gợi ý AI Tutor</option>
+            </select>
+            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
+              expand_more
+            </span>
+          </div>
+        ) : (
+          <div className="lg:col-span-3 relative">
+            <select
+              value={filters.major || 'all'}
+              onChange={(e) =>
+                onFilterChange({
+                  major: e.target.value === 'all' ? undefined : e.target.value,
+                  page: 0,
+                })
+              }
+              className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 cursor-pointer truncate"
+            >
+              <option value="all">Khóa học: Tất cả các môn</option>
+              <option value="Khoa học máy tính">Cơ sở dữ liệu</option>
+              <option value="Khoa học máy tính">Cấu trúc dữ liệu &amp; giải thuật</option>
+              <option value="Công nghệ phần mềm">Lập trình hướng đối tượng</option>
+              <option value="Mạng & An toàn thông tin">Mạng máy tính</option>
+              <option value="Khoa học máy tính">Kỹ thuật lập trình</option>
+              <option value="Trí tuệ nhân tạo">Trí tuệ nhân tạo</option>
+            </select>
+            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">
+              expand_more
+            </span>
+          </div>
+        )}
 
-        {/* Dropdown 3: Sắp xếp / Hạn bài tập */}
+        {/* Dropdown 3: Sort */}
         <div className="lg:col-span-2 relative">
           <select
             value={filters.sort || 'updated_desc'}
@@ -269,8 +307,8 @@ export function ClassFilterToolbar({
             ) : (
               <>
                 <option value="updated_desc">Hoạt động gần nhất</option>
-                <option value="name_asc">Tên lớp A-Z</option>
-                <option value="students_desc">Sĩ số đông nhất</option>
+                <option value="created_desc">Mới tạo nhất</option>
+                <option value="name_asc">Tên lớp A–Z</option>
               </>
             )}
           </select>

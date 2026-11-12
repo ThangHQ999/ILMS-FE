@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import type { ClassItem, WorkspaceRoleMode } from '../types';
 
 interface ClassCardItemProps {
   item: ClassItem;
   workspaceMode?: WorkspaceRoleMode;
-  onArchiveClick?: (item: ClassItem) => void;
+  onArchiveClick: (item: ClassItem) => void;
   onRestoreClick?: (item: ClassItem) => void;
   isCopied: boolean;
   onCopyCode: (code: string) => void;
@@ -22,10 +21,9 @@ export function ClassCardItem({
   isCopied,
   onCopyCode,
 }: ClassCardItemProps) {
-  const t = useTranslations('classes');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Derive theme gradient, tech badge & SVG overlay based on major / title / name
+  // Dynamic Tech Gradient, Diagram & Accent Tag
   const getTechDetails = (major: string = '', title: string = '', name: string = '') => {
     const text = `${major} ${title} ${name}`.toLowerCase();
 
@@ -34,7 +32,7 @@ export function ClassCardItem({
       return {
         type: 'ai',
         gradient: 'from-slate-900 via-purple-950 to-indigo-800',
-        tag: 'AI • KNOWLEDGE GRAPH & MINING',
+        tag: 'AI • KNOWLEDGE GRAPH',
         icon: 'psychology',
         textColor: 'text-purple-200',
         progressGradient: 'from-purple-500 to-indigo-600',
@@ -50,28 +48,53 @@ export function ClassCardItem({
       };
     }
 
-    // 2. OOP / Java Architecture
-    if (text.includes('đối tượng') || text.includes('oop') || text.includes('java')) {
+    // 2. Kỹ thuật lập trình (C++)
+    if (text.includes('kỹ thuật lập trình') || text.includes('ktlt') || text.includes('c++')) {
       return {
-        type: 'oop',
-        gradient: 'from-slate-900 via-teal-950 to-teal-700',
-        tag: 'JAVA • OOP ARCHITECTURE',
-        icon: 'code_blocks',
-        textColor: 'text-teal-200',
-        progressGradient: 'from-emerald-500 to-teal-600',
+        type: 'cpp',
+        gradient: 'from-slate-900 via-cyan-950 to-blue-800',
+        tag: 'C++ • MODERN CODING',
+        icon: 'terminal',
+        textColor: 'text-cyan-200',
+        progressGradient: 'from-cyan-500 to-blue-600',
         diagram: (
           <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
-            <rect height="70" rx="6" strokeWidth="1.5" width="80" x="50" y="30" />
-            <rect height="70" rx="6" strokeWidth="1.5" width="80" x="220" y="30" />
-            <path d="M130,65 L220,65" strokeDasharray="3 3" strokeWidth="2" />
-            <polygon fill="currentColor" points="215,60 225,65 215,70" />
+            <path d="M30,75 L120,30 L220,110 L310,40 L380,80" strokeWidth="2" />
+            <circle cx="120" cy="30" fill="currentColor" r="4" />
+            <circle cx="220" cy="110" fill="currentColor" r="4" />
+            <circle cx="310" cy="40" fill="currentColor" r="4" />
           </svg>
         ),
       };
     }
 
-    // 3. Algorithms & Graph Theory (THTT)
-    if (text.includes('thông minh') || text.includes('thiet ke') || text.includes('thực hành') || text.includes('thtt')) {
+    // 3. Algorithms & Data Structures (CTDL / THTT)
+    if (text.includes('cấu trúc dữ liệu') || text.includes('ctdl') || text.includes('tree / graph') || text.includes('thuật nâng cao')) {
+      return {
+        type: 'algorithms',
+        gradient: 'from-slate-900 via-indigo-950 to-indigo-700',
+        tag: 'ALGORITHMS • TREE / GRAPH',
+        icon: 'account_tree',
+        textColor: 'text-indigo-200',
+        progressGradient: 'from-indigo-500 to-purple-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <circle cx="200" cy="30" r="10" strokeWidth="2" />
+            <circle cx="120" cy="90" r="8" strokeWidth="2" />
+            <circle cx="280" cy="90" r="8" strokeWidth="2" />
+            <circle cx="80" cy="130" r="6" strokeWidth="1.5" />
+            <circle cx="160" cy="130" r="6" strokeWidth="1.5" />
+            <line strokeWidth="1.5" x1="195" x2="125" y1="38" y2="82" />
+            <line strokeWidth="1.5" x1="205" x2="275" y1="38" y2="82" />
+            <line strokeWidth="1.5" x1="115" x2="85" y1="98" y2="125" />
+            <line strokeWidth="1.5" x1="125" x2="155" y1="98" y2="125" />
+          </svg>
+        ),
+      };
+    }
+
+    // 4. Algorithms & Graph Theory (THTT)
+    if (text.includes('thông minh') || text.includes('thiet ke') || text.includes('thtt') || text.includes('graph theory')) {
       return {
         type: 'graph',
         gradient: 'from-slate-900 via-sky-950 to-blue-800',
@@ -92,46 +115,67 @@ export function ClassCardItem({
       };
     }
 
-    // 4. DSA / Tree & Graph (CTDL)
-    if (text.includes('cấu trúc') || text.includes('ctdl') || text.includes('thuật')) {
+    // 5. Object Oriented Programming (OOP)
+    if (text.includes('hướng đối tượng') || text.includes('oop') || text.includes('java')) {
       return {
-        type: 'algorithms',
-        gradient: 'from-slate-900 via-indigo-950 to-indigo-700',
-        tag: 'ADVANCED DSA • TREE & GRAPH',
-        icon: 'account_tree',
-        textColor: 'text-indigo-200',
-        progressGradient: 'from-blue-600 to-indigo-600',
+        type: 'oop',
+        gradient: 'from-slate-900 via-sky-950 to-blue-700',
+        tag: 'JAVA • OOP ARCHITECTURE',
+        icon: 'code_blocks',
+        textColor: 'text-sky-200',
+        progressGradient: 'from-sky-500 to-blue-600',
         diagram: (
           <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
-            <circle cx="200" cy="30" r="10" strokeWidth="2" />
-            <circle cx="120" cy="90" r="8" strokeWidth="2" />
-            <circle cx="280" cy="90" r="8" strokeWidth="2" />
-            <circle cx="80" cy="130" r="6" strokeWidth="1.5" />
-            <circle cx="160" cy="130" r="6" strokeWidth="1.5" />
-            <line strokeWidth="1.5" x1="195" x2="125" y1="38" y2="82" />
-            <line strokeWidth="1.5" x1="205" x2="275" y1="38" y2="82" />
-            <line strokeWidth="1.5" x1="115" x2="85" y1="98" y2="125" />
-            <line strokeWidth="1.5" x1="125" x2="155" y1="98" y2="125" />
+            <rect height="70" rx="6" strokeWidth="1.5" width="80" x="50" y="30" />
+            <rect height="70" rx="6" strokeWidth="1.5" width="80" x="220" y="30" />
+            <path d="M130,65 L220,65" strokeDasharray="3 3" strokeWidth="2" />
+            <polygon fill="currentColor" points="215,60 225,65 215,70" />
           </svg>
         ),
       };
     }
 
-    // 5. Database (CSDL)
-    if (text.includes('dữ liệu') || text.includes('csdl') || text.includes('database')) {
+    // 6. Networking (MMT)
+    if (text.includes('mạng') || text.includes('mmt') || text.includes('networking') || text.includes('tcp')) {
+      return {
+        type: 'networking',
+        gradient: 'from-slate-900 via-teal-950 to-teal-700',
+        tag: 'NETWORKING • TCP / IP',
+        icon: 'router',
+        textColor: 'text-teal-200',
+        progressGradient: 'from-teal-500 to-emerald-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <circle cx="60" cy="75" r="12" strokeWidth="1.5" />
+            <circle cx="200" cy="35" r="10" strokeWidth="1.5" />
+            <circle cx="200" cy="115" r="10" strokeWidth="1.5" />
+            <circle cx="340" cy="75" r="12" strokeWidth="1.5" />
+            <line strokeWidth="1.5" x1="72" x2="190" y1="75" y2="35" />
+            <line strokeWidth="1.5" x1="72" x2="190" y1="75" y2="115" />
+            <line strokeWidth="1.5" x1="210" x2="328" y1="35" y2="75" />
+            <line strokeWidth="1.5" x1="210" x2="328" y1="115" y2="75" />
+          </svg>
+        ),
+      };
+    }
+
+    // 7. Database (CSDL)
+    if (text.includes('dữ liệu') || text.includes('csdl') || text.includes('database') || text.includes('sql')) {
       return {
         type: 'database',
-        gradient: 'from-slate-900 via-blue-950 to-blue-700',
+        gradient: 'from-slate-900 via-blue-950 to-blue-800',
         tag: 'DATABASE • SQL / NOSQL',
         icon: 'database',
-        textColor: 'text-sky-200',
+        textColor: 'text-blue-200',
         progressGradient: 'from-blue-600 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 text-sky-400 pointer-events-none" viewBox="0 0 600 140" fill="none">
-            <path d="M 180 45 L 340 90 L 500 50" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 4" />
-            <circle cx="180" cy="45" r="5" fill="currentColor" />
-            <circle cx="340" cy="90" r="5.5" fill="currentColor" />
-            <circle cx="500" cy="50" r="5" fill="currentColor" />
+          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <path d="M0,75 C100,20 150,130 250,75 C350,20 400,100 400,100" strokeDasharray="4 4" strokeWidth="2" />
+            <circle cx="80" cy="55" fill="currentColor" r="4" />
+            <circle cx="200" cy="95" fill="currentColor" r="5" />
+            <circle cx="320" cy="50" fill="currentColor" r="4" />
+            <line strokeWidth="1.5" x1="80" x2="200" y1="55" y2="95" />
+            <line strokeWidth="1.5" x1="200" x2="320" y1="95" y2="50" />
           </svg>
         ),
       };
@@ -159,8 +203,10 @@ export function ClassCardItem({
     item.teachingRole === 'PRIMARY_INSTRUCTOR' ||
     item.name.includes('CSDL') ||
     item.name.includes('OOP') ||
+    item.name.includes('KTLT') ||
     item.title?.includes('Nhóm 01') ||
-    item.title?.includes('Nhóm 03');
+    item.title?.includes('Nhóm 03') ||
+    item.title?.includes('Nhóm 04');
 
   // Student mode specific metrics
   const getStudentMetrics = () => {
@@ -277,36 +323,132 @@ export function ClassCardItem({
     if (nameLower.includes('ctdl') || nameLower.includes('thuật')) return 'Thứ 5 (Tiết 4-6)';
     if (nameLower.includes('oop') || nameLower.includes('đối tượng')) return 'Thứ 2 (Tiết 7-9)';
     if (nameLower.includes('mmt') || nameLower.includes('mạng')) return 'Thứ 6 (Tiết 1-3)';
+    if (nameLower.includes('ktlt') || nameLower.includes('kỹ thuật')) return 'Thứ 4 (Tiết 1-3)';
+    if (nameLower.includes('ai') || nameLower.includes('trí tuệ')) return 'Thứ 7 (Tiết 4-6)';
     return 'Lịch học linh hoạt';
   };
 
+  // Status / Alert Strip for Faculty mode
+  const renderFacultyStatusStrip = () => {
+    const textLower = (item.name + item.title).toLowerCase();
+
+    // 1. CSDL: 3 yêu cầu tham gia đang chờ duyệt
+    if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+            <span className="font-semibold truncate">3 yêu cầu tham gia đang chờ duyệt</span>
+          </div>
+          <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400 shrink-0">arrow_forward</span>
+        </div>
+      );
+    }
+
+    // 2. CTDL: Hoạt động gần nhất 2 giờ trước • Tuần 8
+    if (textLower.includes('ctdl') || textLower.includes('thuật')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
+          <span className="flex items-center gap-2 truncate">
+            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">history</span>
+            <span className="truncate">Hoạt động gần nhất 2 giờ trước</span>
+          </span>
+          <span className="text-[11px] font-semibold text-slate-400 shrink-0">Tuần 8</span>
+        </div>
+      );
+    }
+
+    // 3. OOP: 1 yêu cầu tham gia đang chờ duyệt
+    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+            <span className="font-semibold truncate">1 yêu cầu tham gia đang chờ duyệt</span>
+          </div>
+          <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400 shrink-0">arrow_forward</span>
+        </div>
+      );
+    }
+
+    // 4. MMT: Bài thực hành Lab 3 sắp đến hạn vào ngày mai • 23:59
+    if (textLower.includes('mmt') || textLower.includes('mạng')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 text-rose-800 dark:text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2 truncate">
+            <span className="material-symbols-outlined text-[16px] text-rose-600 shrink-0">alarm</span>
+            <span className="font-semibold truncate">Bài thực hành Lab 3 sắp đến hạn vào ngày mai</span>
+          </div>
+          <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 shrink-0">23:59</span>
+        </div>
+      );
+    }
+
+    // 5. KTLT: Hoạt động gần nhất hôm nay • 98% nộp bài
+    if (textLower.includes('ktlt') || textLower.includes('kỹ thuật') || textLower.includes('c++')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
+          <span className="flex items-center gap-2 truncate">
+            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">update</span>
+            <span className="truncate">Hoạt động gần nhất hôm nay</span>
+          </span>
+          <span className="text-[11px] font-semibold text-emerald-600 shrink-0">98% nộp bài</span>
+        </div>
+      );
+    }
+
+    // 6. AI: Hoạt động gần nhất hôm qua • Tích hợp AI Tutor
+    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
+      return (
+        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
+          <span className="flex items-center gap-2 truncate">
+            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">schedule</span>
+            <span className="truncate">Hoạt động gần nhất hôm qua</span>
+          </span>
+          <span className="text-[11px] font-semibold text-blue-600 shrink-0">Tích hợp AI Tutor</span>
+        </div>
+      );
+    }
+
+    // Default faculty strip
+    return (
+      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
+        <span className="flex items-center gap-2 truncate">
+          <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">schedule</span>
+          <span className="truncate">Hoạt động gần nhất hôm nay</span>
+        </span>
+        <span className="text-[11px] font-semibold text-emerald-600 shrink-0">100% tiến độ</span>
+      </div>
+    );
+  };
+
   return (
-    <article className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between relative">
+    <article className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between relative shadow-2xs">
       {/* 1. GRAPHIC HEADER BANNER */}
-      <div className={`h-36 relative p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none`}>
+      <div className={`h-36 relative p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-2xl m-2 mb-0`}>
         {/* Dynamic Vector Topology Overlay */}
         {tech.diagram}
 
-        {/* Top Badges & Actions */}
+        {/* Top Badges & Actions inside banner */}
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-2">
             {/* Role Badge */}
             <span
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide uppercase shadow-2xs ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase shadow-2xs backdrop-blur-md ${
                 workspaceMode === 'student'
-                  ? 'bg-blue-600/90 backdrop-blur-md text-white'
+                  ? 'bg-blue-600/90 text-white'
                   : isOwner
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-indigo-600 text-white'
+                  ? 'bg-blue-600/90 text-white'
+                  : 'bg-indigo-600/90 text-white'
               }`}
             >
-              {workspaceMode === 'student' ? 'Học viên' : isOwner ? 'CHỦ LỚP' : 'GIẢNG VIÊN'}
+              {workspaceMode === 'student' ? 'Học viên' : isOwner ? 'Chủ lớp' : 'Giảng viên'}
             </span>
 
             {/* Status Indicator */}
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/60 backdrop-blur-md text-slate-100 text-[11px] font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>{isArchived ? 'Đã lưu trữ' : 'Đang diễn ra'}</span>
+              <span>{isArchived ? 'Đã lưu trữ' : 'Hoạt động'}</span>
             </span>
           </div>
 
@@ -316,7 +458,7 @@ export function ClassCardItem({
               type="button"
               aria-label="Tác vụ"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="w-8 h-8 rounded-lg bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">more_vert</span>
             </button>
@@ -327,7 +469,7 @@ export function ClassCardItem({
                 <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 z-50">
                   <Link
                     href={`/classes/${item.id}`}
-                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span className="material-symbols-outlined text-[16px] text-blue-600">login</span>
@@ -335,12 +477,12 @@ export function ClassCardItem({
                   </Link>
 
                   <Link
-                    href="/knowledge-graph"
-                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    href={`/classes/${item.id}?tab=members`}
+                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="material-symbols-outlined text-[16px] text-slate-400">hub</span>
-                    <span>Xem đồ thị tri thức</span>
+                    <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
+                    <span>Xem thành viên ({item.enrolledCount || 42})</span>
                   </Link>
 
                   <button
@@ -349,20 +491,39 @@ export function ClassCardItem({
                       setIsMenuOpen(false);
                       onCopyCode(item.enrollmentKey || item.name);
                     }}
-                    className="w-full text-left flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    className="w-full text-left flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[16px] text-slate-400">content_copy</span>
                     <span>Sao chép mã lớp</span>
                   </button>
 
-                  <Link
-                    href="/ai-tutor"
-                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-purple-600">smart_toy</span>
-                    <span>Hỏi AI Socratic</span>
-                  </Link>
+                  {isOwner && (
+                    <Link
+                      href={`/classes/${item.id}?tab=settings`}
+                      className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">settings</span>
+                      <span>Cấu hình lớp</span>
+                    </Link>
+                  )}
+
+                  {isOwner && (
+                    <>
+                      <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          onArchiveClick(item);
+                        }}
+                        className="w-full text-left flex items-center gap-2 px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">archive</span>
+                        <span>Lưu trữ lớp học</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -382,8 +543,8 @@ export function ClassCardItem({
 
       {/* 2. CARD CONTENT BODY */}
       <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-        <div className="space-y-3">
-          {/* Class Title & Grade / Sĩ số */}
+        <div className="space-y-2.5">
+          {/* Class Title & Code */}
           <div>
             <div className="flex items-start justify-between gap-3">
               <Link href={`/classes/${item.id}`} className="flex-1">
@@ -393,16 +554,12 @@ export function ClassCardItem({
               </Link>
 
               {/* Student Grade Badge */}
-              {workspaceMode === 'student' ? (
-                <div className={`flex items-center gap-1 shrink-0 px-2.5 py-1 rounded-lg border text-xs font-semibold ${studentData.gradeColor}`}>
-                  <span className="text-[11px] font-medium opacity-70">Điểm QT:</span>
-                  <strong className="font-display font-extrabold text-xs">{studentData.grade}</strong>
+              {workspaceMode === 'student' && (
+                <div className={`flex items-center gap-1 shrink-0 px-2 py-0.5 rounded border text-[11px] font-semibold ${studentData.gradeColor}`}>
+                  <span className="text-[10px] font-medium opacity-70">Điểm QT:</span>
+                  <strong className="font-display font-extrabold">{studentData.grade}</strong>
                   <span className="text-[10px] opacity-60">/10</span>
                 </div>
-              ) : (
-                <span className="text-xs text-slate-500 font-medium shrink-0">
-                  {item.enrolledCount || 42} học viên
-                </span>
               )}
             </div>
 
@@ -424,45 +581,55 @@ export function ClassCardItem({
             </div>
           </div>
 
-          {/* Teacher / Instructors Info */}
-          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-            <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">person</span>
-            <span className="truncate">
-              <strong>Giảng viên:</strong>{' '}
-              {workspaceMode === 'student'
-                ? studentData.teacher
-                : item.instructor?.fullName || 'TS. Lê Hoàng Nam • 2 giảng viên'}
-            </span>
-          </div>
-
-          {/* Student Mode Specific: Knowledge Graph Progress Bar */}
+          {/* Meta specs: Student Mode vs Faculty Mode */}
           {workspaceMode === 'student' ? (
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[15px] text-blue-600">hub</span>
-                  <span>Tiến độ học tập:</span>
-                  <strong className="text-slate-900 dark:text-white">{studentData.progressPercent}% hoàn thành</strong>
-                </span>
-                <span className="font-mono text-[11px] font-semibold text-slate-500">
-                  Đã mở {studentData.nodesUnlocked} Node tri thức
+            <>
+              {/* Teacher Info */}
+              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pt-0.5">
+                <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">person</span>
+                <span className="truncate">
+                  <strong>Giảng viên:</strong> {studentData.teacher}
                 </span>
               </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700">
-                <div
-                  className={`bg-gradient-to-r ${tech.progressGradient} h-2 rounded-full transition-all duration-500`}
-                  style={{ width: `${studentData.progressPercent}%` }}
-                />
+
+              {/* Knowledge Graph Progress Bar */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px] text-blue-600">hub</span>
+                    <span>Tiến độ học tập:</span>
+                    <strong className="text-slate-900 dark:text-white">{studentData.progressPercent}% hoàn thành</strong>
+                  </span>
+                  <span className="font-mono text-[11px] font-semibold text-slate-500">
+                    Đã mở {studentData.nodesUnlocked} Node tri thức
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700">
+                  <div
+                    className={`bg-gradient-to-r ${tech.progressGradient} h-2 rounded-full transition-all duration-500`}
+                    style={{ width: `${studentData.progressPercent}%` }}
+                  />
+                </div>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between font-medium">
-              <span className="flex items-center gap-2 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span className="truncate">3 yêu cầu tham gia đang chờ duyệt</span>
-              </span>
-              <span className="material-symbols-outlined text-[16px] shrink-0">arrow_forward</span>
-            </div>
+            <>
+              {/* Meta specs: X học viên • Y giảng viên */}
+              <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
+                  <strong className="text-slate-800 dark:text-slate-200">{item.enrolledCount || 42}</strong> học viên
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span className="material-symbols-outlined text-[16px] text-slate-400">badge</span>
+                  {item.stats?.pendingRequestsCount ? '2' : '1'} giảng viên
+                </span>
+              </div>
+
+              {/* Status / Alert Strip for Faculty Mode */}
+              {renderFacultyStatusStrip()}
+            </>
           )}
         </div>
 
@@ -505,9 +672,9 @@ export function ClassCardItem({
 
           <Link
             href={`/classes/${item.id}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-2xs shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs shadow-blue-500/20 transition-all group-hover:gap-1.5 shrink-0 cursor-pointer"
           >
-            <span>Vào lớp học ngay</span>
+            <span>{workspaceMode === 'student' ? 'Vào lớp học ngay' : 'Vào không gian lớp'}</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
         </div>

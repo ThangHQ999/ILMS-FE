@@ -145,7 +145,7 @@ const DEFAULT_STUDENT_CLASSES: ClassItem[] = [
   },
 ];
 
-// 4 Faculty Classes
+// 6 Faculty Classes from the user's template
 const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
   {
     id: 'csdl-k22-01',
@@ -157,10 +157,13 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     major: 'Khoa học máy tính',
     maxStudents: 60,
     enrolledCount: 42,
-    enrollmentKey: 'CSDL22K',
+    enrollmentKey: 'CSDL-K22-01',
     isCodeClosed: false,
     status: 'ACTIVE',
     teachingRole: 'PRIMARY_INSTRUCTOR',
+    instructor: {
+      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 giảng viên',
+    },
     schedule: {
       room: 'A2-301',
       dayOfWeek: 'Thứ 3',
@@ -182,10 +185,13 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     major: 'Khoa học máy tính',
     maxStudents: 60,
     enrolledCount: 38,
-    enrollmentKey: 'CTDL22K',
+    enrollmentKey: 'CTDL-K22-02',
     isCodeClosed: false,
     status: 'ACTIVE',
     teachingRole: 'TA',
+    instructor: {
+      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
+    },
     schedule: {
       room: 'A2-205',
       dayOfWeek: 'Thứ 5',
@@ -198,8 +204,8 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     },
   },
   {
-    id: 'oop-k22-03',
-    name: 'OOP-K22-03',
+    id: 'oop-k23-03',
+    name: 'OOP-K23-03',
     title: 'Lập trình hướng đối tượng — Nhóm 03',
     description: 'JAVA • OOP ARCHITECTURE',
     academicYear: '2024-2025',
@@ -207,10 +213,13 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     major: 'Công nghệ phần mềm',
     maxStudents: 60,
     enrolledCount: 45,
-    enrollmentKey: 'OOP22K',
+    enrollmentKey: 'OOP-K23-03',
     isCodeClosed: false,
     status: 'ACTIVE',
     teachingRole: 'PRIMARY_INSTRUCTOR',
+    instructor: {
+      fullName: 'ThS. Hoàng Minh Tuấn • 1 giảng viên',
+    },
     schedule: {
       room: 'B1-102',
       dayOfWeek: 'Thứ 2',
@@ -232,10 +241,13 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     major: 'Mạng & An toàn thông tin',
     maxStudents: 60,
     enrolledCount: 36,
-    enrollmentKey: 'MMT22K',
+    enrollmentKey: 'MMT-K22-01',
     isCodeClosed: false,
     status: 'ACTIVE',
     teachingRole: 'TA',
+    instructor: {
+      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
+    },
     schedule: {
       room: 'Lab-Net-01',
       dayOfWeek: 'Thứ 6',
@@ -247,6 +259,62 @@ const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
       attendanceRate: 92,
     },
   },
+  {
+    id: 'ktlt-k24-04',
+    name: 'KTLT-K24-04',
+    title: 'Kỹ thuật lập trình — Nhóm 04',
+    description: 'C++ • MODERN CODING',
+    academicYear: '2024-2025',
+    semester: 'Học kỳ 1 • 2024-2025',
+    major: 'Khoa học máy tính',
+    maxStudents: 60,
+    enrolledCount: 48,
+    enrollmentKey: 'KTLT-K24-04',
+    isCodeClosed: false,
+    status: 'ACTIVE',
+    teachingRole: 'PRIMARY_INSTRUCTOR',
+    instructor: {
+      fullName: 'TS. Lê Hoàng Nam • 1 giảng viên',
+    },
+    schedule: {
+      room: 'B2-201',
+      dayOfWeek: 'Thứ 4',
+      timeSlot: 'Tiết 1-3',
+    },
+    stats: {
+      pendingRequestsCount: 0,
+      ungradedAssignmentsCount: 0,
+      attendanceRate: 98,
+    },
+  },
+  {
+    id: 'ai-k22-01',
+    name: 'AI-K22-01',
+    title: 'Nhập môn trí tuệ nhân tạo',
+    description: 'AI • KNOWLEDGE GRAPH',
+    academicYear: '2024-2025',
+    semester: 'Học kỳ 1 • 2024-2025',
+    major: 'Trí tuệ nhân tạo',
+    maxStudents: 60,
+    enrolledCount: 40,
+    enrollmentKey: 'AI-K22-01',
+    isCodeClosed: false,
+    status: 'ACTIVE',
+    teachingRole: 'TA',
+    instructor: {
+      fullName: 'TS. Nguyễn Bảo Anh • 3 giảng viên',
+    },
+    schedule: {
+      room: 'Hội trường C1',
+      dayOfWeek: 'Thứ 7',
+      timeSlot: 'Tiết 4-6',
+    },
+    stats: {
+      pendingRequestsCount: 0,
+      ungradedAssignmentsCount: 0,
+      attendanceRate: 94,
+    },
+  },
 ];
 
 type StatePreviewMode = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
@@ -256,7 +324,7 @@ interface ClassListPageViewProps {
 }
 
 export function ClassListPageView({
-  userFullName = 'Trần Nhật Minh',
+  userFullName,
 }: ClassListPageViewProps) {
   const t = useTranslations('classes');
 
@@ -264,19 +332,22 @@ export function ClassListPageView({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Workspace Role Mode: Default to 'student' (Chế độ Học viên dạng lưới thẻ)
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceRoleMode>('student');
+  // Workspace Role Mode: Default to 'faculty' (Chế độ Giảng dạy như yêu cầu hiện tại)
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceRoleMode>('faculty');
 
-  // Filters & View State
+  // Filters & View State (in Faculty mode, default view is list / 1-column bento)
   const [filters, setFilters] = useState<ClassFilters>({
     search: '',
     status: 'ACTIVE',
     role: 'ALL',
     sort: 'updated_desc',
     page: 0,
-    size: 36,
+    size: 12,
   });
-  const [viewMode, setViewMode] = useState<ClassViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ClassViewMode>('list');
+
+  // Active page state for pagination demo
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
@@ -327,8 +398,13 @@ export function ClassListPageView({
     (type: string) => {
       setActiveKpi((prev) => (prev === type ? null : type));
 
-      if (type === 'enrolled' || type === 'teaching') {
-        handleFilterUpdate({ status: 'ACTIVE', page: 0 });
+      if (type === 'teaching') {
+        showToast('Hiển thị tất cả 12 lớp học đang giảng dạy!');
+      } else if (type === 'students') {
+        showToast('Hiển thị danh sách sắp xếp theo quy mô học viên!');
+      } else if (type === 'pending') {
+        showToast('Đang lọc các lớp có yêu cầu cần xử lý!');
+      } else if (type === 'enrolled') {
         showToast('Hiển thị tất cả lớp học đang tham gia!');
       } else if (type === 'tasks') {
         showToast('Lọc các lớp có bài tập sắp đến hạn nộp!');
@@ -336,8 +412,22 @@ export function ClassListPageView({
         showToast('Hiển thị bảng phân tích điểm chuẩn đầu ra PLO!');
       }
     },
-    [handleFilterUpdate, showToast]
+    [showToast]
   );
+
+  const handleToggleWorkspace = useCallback(() => {
+    setWorkspaceMode((prev) => {
+      const next = prev === 'faculty' ? 'student' : 'faculty';
+      setViewMode(next === 'faculty' ? 'list' : 'grid');
+      showToast(next === 'faculty' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
+      return next;
+    });
+  }, [showToast]);
+
+  const handleViewModeChange = useCallback((mode: ClassViewMode) => {
+    setViewMode(mode);
+    showToast(mode === 'list' ? 'Đã chuyển sang chế độ hiển thị Danh sách' : 'Đã chuyển sang chế độ hiển thị Dạng lưới thẻ');
+  }, [showToast]);
 
   // Filtered Items Computation
   const items = useMemo(() => {
@@ -346,11 +436,7 @@ export function ClassListPageView({
     if (workspaceMode === 'student') {
       list = [...DEFAULT_STUDENT_CLASSES];
     } else {
-      if (responseData?.items && responseData.items.length > 0) {
-        list = [...responseData.items];
-      } else {
-        list = [...DEFAULT_FACULTY_CLASSES];
-      }
+      list = [...DEFAULT_FACULTY_CLASSES];
     }
 
     // Filter by status tab
@@ -361,7 +447,11 @@ export function ClassListPageView({
     }
 
     // Filter by KPI
-    if (activeKpi === 'tasks') {
+    if (activeKpi === 'pending') {
+      list = list.filter((i) => (i.stats?.pendingRequestsCount ?? 0) > 0 || (i.stats?.ungradedAssignmentsCount ?? 0) > 0);
+    } else if (activeKpi === 'students') {
+      list = [...list].sort((a, b) => (b.enrolledCount ?? 0) - (a.enrolledCount ?? 0));
+    } else if (activeKpi === 'tasks') {
       list = list.filter((_, idx) => idx % 2 === 0);
     }
 
@@ -377,12 +467,17 @@ export function ClassListPageView({
     }
 
     // Client-side filtering by major
-    if (filters.major) {
+    if (filters.major && filters.major !== 'all') {
       list = list.filter((i) => i.major === filters.major);
     }
 
+    // Client-side filtering by role
+    if (filters.role && filters.role !== 'ALL') {
+      list = list.filter((i) => i.teachingRole === filters.role);
+    }
+
     return list;
-  }, [workspaceMode, responseData?.items, filters.status, filters.search, filters.major, activeKpi]);
+  }, [workspaceMode, filters.status, filters.search, filters.major, filters.role, activeKpi]);
 
   // Compute Faculty KPI Stats
   const facultyKpiStats: ClassKpiStats = useMemo(() => {
@@ -405,9 +500,8 @@ export function ClassListPageView({
   const activeCount = 12;
   const enrolledCount = 4;
   const archivedCount = 3;
-  const allCount = 4;
-
-  const hasSearchOrFilters = Boolean(filters.search || filters.major || activeKpi);
+  const allCount = workspaceMode === 'student' ? 4 : 12;
+  const displayedCount = workspaceMode === 'student' ? items.length : (previewState === 'normal' ? 6 : items.length);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
@@ -426,9 +520,7 @@ export function ClassListPageView({
         onToggleMode={() => setIsFocusMode(!isFocusMode)}
         userFullName={userFullName}
         workspaceMode={workspaceMode}
-        onToggleWorkspaceMode={() =>
-          setWorkspaceMode((prev) => (prev === 'faculty' ? 'student' : 'faculty'))
-        }
+        onToggleWorkspaceMode={handleToggleWorkspace}
       />
 
       {/* 3. Main Workspace Content */}
@@ -448,7 +540,12 @@ export function ClassListPageView({
             onToggleWorkspaceMode={setWorkspaceMode}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
-            onExportClick={() => window.print()}
+            onExportClick={() => {
+              showToast('Đang tạo tệp xuất báo cáo các lớp học...');
+              setTimeout(() => {
+                showToast('Xuất báo cáo thành công (classes-report.xlsx)');
+              }, 1200);
+            }}
           />
 
           {/* KPI Stats Bar */}
@@ -463,16 +560,19 @@ export function ClassListPageView({
           {/* Filter Toolbar */}
           <ClassFilterToolbar
             workspaceMode={workspaceMode}
-            onWorkspaceModeChange={setWorkspaceMode}
+            onWorkspaceModeChange={(mode) => {
+              setWorkspaceMode(mode);
+              setViewMode(mode === 'faculty' ? 'list' : 'grid');
+            }}
             filters={filters}
             onFilterChange={handleFilterUpdate}
             viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            onViewModeChange={handleViewModeChange}
             activeCount={activeCount}
             enrolledCount={enrolledCount}
             archivedCount={archivedCount}
             allCount={allCount}
-            displayedCount={items.length}
+            displayedCount={displayedCount}
             onOpenMobileFilter={() => setIsMobileFilterOpen(true)}
             activeKpi={activeKpi}
             onClearKpi={() => setActiveKpi(null)}
@@ -481,8 +581,8 @@ export function ClassListPageView({
           {/* Dynamic Content Display based on State Preview Sandbox or Normal View */}
           {previewState === 'skeleton' ? (
             <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 shadow-2xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
-                {[1, 2].map((k) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+                {[1, 2, 3].map((k) => (
                   <div key={k} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-3">
                     <div className="h-32 rounded-xl bg-slate-200 dark:bg-slate-800" />
                     <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
@@ -492,28 +592,43 @@ export function ClassListPageView({
                 ))}
               </div>
               <p className="text-center text-xs text-slate-400 mt-4">
-                Đang đồng bộ dữ liệu các lớp đang theo học từ máy chủ...
+                Đang đồng bộ dữ liệu các lớp học từ máy chủ...
               </p>
             </div>
           ) : previewState === 'empty' ? (
             <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
               <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[32px]">school</span>
+                <span className="material-symbols-outlined text-[32px]">
+                  {workspaceMode === 'student' ? 'school' : 'menu_book'}
+                </span>
               </div>
               <h4 className="font-display font-bold text-slate-900 dark:text-white text-base mb-1">
-                Chưa tham gia lớp học nào
+                {workspaceMode === 'student' ? 'Chưa tham gia lớp học nào' : 'Chưa có lớp giảng dạy'}
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                Bạn chưa ghi danh vào lớp học nào trong học kỳ này. Hãy nhập mã mời từ giảng viên để bắt đầu hành trình học tập.
+                {workspaceMode === 'student'
+                  ? 'Bạn chưa ghi danh vào lớp học nào trong học kỳ này. Hãy nhập mã mời từ giảng viên để bắt đầu hành trình học tập.'
+                  : 'Bạn chưa được phân công hoặc tạo lớp học nào trong học kỳ này. Hãy bắt đầu bằng cách tạo lớp học mới hoặc liên hệ phòng đào tạo.'}
               </p>
-              <button
-                type="button"
-                onClick={() => setIsJoinOpen(true)}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">key</span>
-                <span>Tham gia lớp học ngay</span>
-              </button>
+              {workspaceMode === 'student' ? (
+                <button
+                  type="button"
+                  onClick={() => setIsJoinOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                  <span>Tham gia lớp học ngay</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <span>Tạo lớp học đầu tiên</span>
+                </button>
+              )}
             </div>
           ) : previewState === 'notfound' ? (
             <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -542,57 +657,56 @@ export function ClassListPageView({
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
                 <span className="font-display font-bold text-slate-900 dark:text-white text-sm">
-                  Lớp học đã hoàn thành / Lưu trữ
+                  Lớp học đã lưu trữ (Học kỳ trước)
                 </span>
-                <span className="text-xs text-slate-500">Chế độ xem lại học liệu • 3 môn học</span>
+                <span className="text-xs text-slate-500">Chế độ chỉ đọc • 3 lớp học</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { code: 'CSDL-K21-01', title: 'Cơ sở dữ liệu căn bản', grade: '9.0/10', teacher: 'TS. Lê Hoàng Nam' },
-                  { code: 'WEB-K22-03', title: 'Phát triển ứng dụng Web Front-end', grade: '9.4/10', teacher: 'ThS. Nguyễn Văn Toàn' },
-                  { code: 'DSA-K21-02', title: 'Thuật toán cơ bản', grade: '8.7/10', teacher: 'PGS.TS. Vũ Đình Thành' },
+                  { code: 'CSDL-K21-01', title: 'Cơ sở dữ liệu (HK2 23-24)', students: 44 },
+                  { code: 'WEB-K22-03', title: 'Phát triển ứng dụng Web', students: 50 },
+                  { code: 'DSA-K21-02', title: 'Thuật toán nâng cao', students: 35 },
                 ].map((c) => (
-                  <div key={c.code} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between gap-3 shadow-2xs">
+                  <div key={c.code} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900 flex flex-col justify-between gap-3 shadow-2xs">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-semibold">
+                        <span className="font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-semibold">
                           {c.code}
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                          Điểm tổng kết: {c.grade}
+                        <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
+                          Đã lưu trữ
                         </span>
                       </div>
                       <h5 className="font-display font-bold text-slate-900 dark:text-white text-sm">
                         {c.title}
                       </h5>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">GV: {c.teacher}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{c.students} học viên</span>
                     </div>
-                    <div className="pt-2">
+                    <div className="flex items-center gap-2 pt-2">
                       <button
                         type="button"
-                        className="w-full py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        className="flex-1 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[15px]">history_edu</span>
-                        <span>Xem lại học liệu & đồ thị</span>
+                        Xem lớp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => showToast('Khôi phục lớp thành công!')}
+                        className="py-1.5 px-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
+                        title="Khôi phục lớp"
+                      >
+                        Khôi phục
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          ) : viewMode === 'grid' ? (
+          ) : (
             <ClassCardGrid
               items={items}
               workspaceMode={workspaceMode}
-              onArchiveClick={(item) => setArchiveTarget(item)}
-              onRestoreClick={(item) => restoreClass(item.id)}
-              copiedCode={copiedCode}
-              onCopyCode={handleCopyCode}
-            />
-          ) : (
-            <ClassListView
-              items={items}
-              workspaceMode={workspaceMode}
+              viewMode={viewMode}
               onArchiveClick={(item) => setArchiveTarget(item)}
               onRestoreClick={(item) => restoreClass(item.id)}
               copiedCode={copiedCode}
@@ -603,24 +717,51 @@ export function ClassListPageView({
           {/* 4. Pagination */}
           <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              Hiển thị <strong className="font-semibold text-slate-900 dark:text-white">1 - {items.length}</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">{items.length}</strong> lớp học
+              {workspaceMode === 'student' ? (
+                <>Hiển thị <strong className="font-semibold text-slate-900 dark:text-white">1 - 4</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">4</strong> lớp học</>
+              ) : (
+                <>Hiển thị trang <strong className="font-semibold text-slate-900 dark:text-white">{currentPage}</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">2</strong> (tổng 12 lớp)</>
+              )}
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 cursor-not-allowed text-xs font-semibold flex items-center gap-1 opacity-50"
-                disabled
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                 <span>Trước</span>
               </button>
-              <button type="button" className="w-8 h-8 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-2xs">
-                1
-              </button>
               <button
                 type="button"
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 cursor-not-allowed text-xs font-semibold flex items-center gap-1 opacity-50"
-                disabled
+                onClick={() => setCurrentPage(1)}
+                className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  currentPage === 1
+                    ? 'bg-blue-600 text-white shadow-2xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                1
+              </button>
+              {workspaceMode !== 'student' && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(2)}
+                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    currentPage === 2
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
+                  }`}
+                >
+                  2
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setCurrentPage(2)}
+                disabled={currentPage === 2 || workspaceMode === 'student'}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
               >
                 <span>Tiếp theo</span>
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -654,7 +795,7 @@ export function ClassListPageView({
                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
                 }`}
               >
-                Danh sách hiện tại (4 lớp)
+                Danh sách hiện tại
               </button>
               <button
                 type="button"
