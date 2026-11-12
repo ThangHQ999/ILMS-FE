@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios';
-import { ApiResponse } from '@/types/common';
+import { ApiResponse, PaginatedResponse } from '@/types/common';
 import {
   assignmentItemSchema,
   gradeProgressSchema,
@@ -21,7 +21,8 @@ export const MOCK_ASSIGNMENTS: AssignmentItem[] = [
     id: 'quiz-03',
     classId: 'cs-202',
     title: 'Quiz 03: Phân tích Header & Giao thức TCP / UDP',
-    description: '20 câu hỏi mô phỏng • Thời gian làm bài: 35 phút • Đánh giá theo chuẩn năng lực Bloom bậc 1-3.',
+    description:
+      '20 câu hỏi mô phỏng • Thời gian làm bài: 35 phút • Đánh giá theo chuẩn năng lực Bloom bậc 1-3.',
     type: 'QUIZ',
     status: 'OPEN',
     typeLabel: 'Trắc nghiệm khách quan',
@@ -211,27 +212,139 @@ export const MOCK_CLASS_HUB_INFO: ClassHubInfo = {
   completionRate: 78.5,
 };
 
+// Interface matching Spring Boot AssignmentSummaryResponseDTO
+interface BackendAssignmentDTO {
+  id: string;
+  lessonId?: string;
+  title: string;
+  maxScore?: number;
+  dueDate?: string;
+  allowLateSubmission?: boolean;
+  createdAt?: string;
+}
+
+// Interface matching Spring Boot QuizResponseDTO
+interface BackendQuizDTO {
+  id: string;
+  classId?: string;
+  lessonId?: string;
+  courseId?: string;
+  title: string;
+  description?: string;
+  durationMinutes?: number;
+  passingScore?: number;
+  maxAttempts?: number;
+  isPublished?: boolean;
+  createdAt?: string;
+}
+
+// Interface matching Spring Boot GradeReportResponseDTO
+interface BackendGradeReportDTO {
+  id: string;
+  classId?: string;
+  studentId?: string;
+  studentName?: string;
+  studentAvatar?: string;
+  attendanceScore?: number;
+  midtermScore?: number;
+  finalScore?: number;
+}
+
+// Interface matching Spring Boot ClassResponseDTO
+interface BackendClassDTO {
+  id: string;
+  classCode?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  academicYear?: string;
+  major?: string;
+  maxCapacity?: number;
+  status?: string;
+}
+
 /**
- * Fetch assignments and quizzes for a given class.
- * Endpoint: GET /api/v1/classes/{classId}/assignments
+ * Fetch assignments and quizzes from Spring Boot backend endpoints:
+ * 1. GET /api/v1/classes/{classId}/assignments (AssignmentController)
+ * 2. GET /api/v1/quizzes?classId={classId} (QuizController)
  */
 export async function getAssignments(
   classId: string,
   filters?: Partial<AssignmentFilters>
 ): Promise<AssignmentItem[]> {
+  const fetchedItems: AssignmentItem[] = [];
+
+  // 1. Query Assignments API from Spring Boot
   try {
-    const { data } = await api.get<ApiResponse<AssignmentItem[]>>(
+    const res = await api.get<ApiResponse<PaginatedResponse<BackendAssignmentDTO>>>(
       `/classes/${classId}/assignments`,
-      { params: filters }
+      {
+        params: {
+          search: filters?.search || undefined,
+          page: 0,
+          size: 20,
+        },
+      }
     );
-    if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-      return data.data.map((item) => assignmentItemSchema.parse(item));
+    const backendAssignments = res.data?.data?.items;
+    if (Array.isArray(backendAssignments) && backendAssignments.length > 0) {
+      backendAssignments.forEach((b) => {
+        const isPastDue = b.dueDate ? new Date(b.dueDate) < new Date() : false;
+        fetchedItems.push({
+          id: b.id,
+          classId,
+          title: b.title,
+          type: 'LAB',
+          status: isPastDue ? 'GRADED' : 'DUE_SOON',
+          typeLabel: 'Thực hành Lab',
+          dueDate: b.dueDate,
+          dueDateLabel: b.dueDate ? `Hạn: ${new Date(b.dueDate).toLocaleDateString('vi-VN')}` : undefined,
+          studentMaxScore: b.maxScore || 10,
+        });
+      });
     }
   } catch {
-    // Graceful fallback to resilient mock data
+    // Backend endpoint call failed or not yet reachable
   }
 
-  // Filter local mock data if params provided
+  // 2. Query Quizzes API from Spring Boot
+  try {
+    const res = await api.get<ApiResponse<PaginatedResponse<BackendQuizDTO>>>(
+      `/quizzes`,
+      {
+        params: {
+          classId,
+          search: filters?.search || undefined,
+          page: 0,
+          size: 20,
+        },
+      }
+    );
+    const backendQuizzes = res.data?.data?.items;
+    if (Array.isArray(backendQuizzes) && backendQuizzes.length > 0) {
+      backendQuizzes.forEach((q) => {
+        fetchedItems.push({
+          id: q.id,
+          classId,
+          title: q.title,
+          description: q.description || '',
+          type: 'QUIZ',
+          status: q.isPublished ? 'OPEN' : 'UPCOMING',
+          typeLabel: 'Trắc nghiệm khách quan',
+          durationMinutes: q.durationMinutes || 30,
+        });
+      });
+    }
+  } catch {
+    // Backend endpoint call failed or not yet reachable
+  }
+
+  // If backend returned items, return parsed items
+  if (fetchedItems.length > 0) {
+    return fetchedItems.map((item) => assignmentItemSchema.parse(item));
+  }
+
+  // Fallback to Resilient Mock Data
   let result = [...MOCK_ASSIGNMENTS];
   if (filters?.search) {
     const query = filters.search.toLowerCase();
@@ -246,15 +359,43 @@ export async function getAssignments(
 }
 
 /**
- * Get grade weights and progress for a class.
+ * Fetch grade weights and progress from Spring Boot:
+ * Endpoint: GET /api/v1/classes/{classId}/grade-reports/me (GradeReportController)
  */
 export async function getGradeProgress(classId: string): Promise<GradeProgress> {
   try {
-    const { data } = await api.get<ApiResponse<GradeProgress>>(
-      `/classes/${classId}/grade-progress`
+    const { data } = await api.get<ApiResponse<BackendGradeReportDTO>>(
+      `/classes/${classId}/grade-reports/me`
     );
     if (data?.data) {
-      return gradeProgressSchema.parse(data.data);
+      const rep = data.data;
+      const categories = [...MOCK_GRADE_PROGRESS.categories];
+
+      if (typeof rep.midtermScore === 'number') {
+        const midCat = categories.find((c) => c.id === 'midterm');
+        if (midCat) {
+          midCat.achievedScore = rep.midtermScore;
+          midCat.statusLabel = `20% (Đạt: ${rep.midtermScore}%)`;
+          midCat.progressPercent = Math.min(100, Math.round((rep.midtermScore / midCat.weight) * 100));
+        }
+      }
+
+      if (typeof rep.finalScore === 'number') {
+        const finalCat = categories.find((c) => c.id === 'final');
+        if (finalCat) {
+          finalCat.achievedScore = rep.finalScore;
+          finalCat.statusLabel = `30% (Đạt: ${rep.finalScore}%)`;
+          finalCat.progressPercent = Math.min(100, Math.round((rep.finalScore / finalCat.weight) * 100));
+        }
+      }
+
+      const total = categories.reduce((acc, curr) => acc + (curr.achievedScore || 0), 0);
+
+      return gradeProgressSchema.parse({
+        categories,
+        currentAccumulated: Number(total.toFixed(1)) || 46.5,
+        maxAccumulated: 50.0,
+      });
     }
   } catch {
     // Fallback
@@ -263,7 +404,8 @@ export async function getGradeProgress(classId: string): Promise<GradeProgress> 
 }
 
 /**
- * Get Socratic AI weakness recommendation.
+ * Fetch Socratic AI weakness recommendation from Spring Boot:
+ * Endpoint: GET /api/v1/student/chat/sessions or recommendations
  */
 export async function getAiRecommendation(classId: string): Promise<AiRecommendation> {
   try {
@@ -281,7 +423,8 @@ export async function getAiRecommendation(classId: string): Promise<AiRecommenda
 }
 
 /**
- * Get student personal performance stats.
+ * Fetch student personal performance stats from Spring Boot:
+ * Endpoint: GET /api/v1/classes/{classId}/performance
  */
 export async function getStudentPerformance(classId: string): Promise<StudentPerformance> {
   try {
@@ -298,17 +441,28 @@ export async function getStudentPerformance(classId: string): Promise<StudentPer
 }
 
 /**
- * Get class hub header information.
+ * Fetch class hub header info from Spring Boot:
+ * Endpoint: GET /api/v1/classes/{id} (ClassController)
  */
 export async function getClassHubInfo(classId: string): Promise<ClassHubInfo> {
   try {
-    const { data } = await api.get<ApiResponse<ClassHubInfo>>(`/classes/${classId}`);
+    const { data } = await api.get<ApiResponse<BackendClassDTO>>(`/classes/${classId}`);
     if (data?.data) {
-      return classHubInfoSchema.parse(data.data);
+      const cls = data.data;
+      return classHubInfoSchema.parse({
+        courseCode: cls.classCode || 'CS-202',
+        semester: cls.academicYear || 'HK2 2024-2025',
+        room: 'Phòng học thông minh H6-302',
+        title: cls.title || cls.name || 'Mạng máy tính & Truyền thông dữ liệu',
+        instructorName: 'TS. Lê Hoàng Nam',
+        department: cls.major ? `Bộ môn: ${cls.major}` : 'Bộ môn: Kỹ thuật Mạng & Truyền thông',
+        studentsCount: cls.maxCapacity || 48,
+        assignmentsCount: 8,
+        completionRate: 78.5,
+      });
     }
   } catch {
     // Fallback
   }
   return classHubInfoSchema.parse(MOCK_CLASS_HUB_INFO);
 }
-
