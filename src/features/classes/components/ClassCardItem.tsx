@@ -32,12 +32,12 @@ export function ClassCardItem({
       return {
         type: 'ai',
         gradient: 'from-slate-900 via-purple-950 to-indigo-800',
-        tag: 'AI • KNOWLEDGE GRAPH',
+        tag: 'AI • KNOWLEDGE GRAPHS & MINING',
         icon: 'psychology',
         textColor: 'text-purple-200',
         progressGradient: 'from-purple-500 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="100" cy="75" r="25" strokeDasharray="2 2" strokeWidth="1.5" />
             <circle cx="200" cy="75" r="35" strokeWidth="1.5" />
             <circle cx="300" cy="75" r="25" strokeDasharray="2 2" strokeWidth="1.5" />
@@ -58,7 +58,7 @@ export function ClassCardItem({
         textColor: 'text-cyan-200',
         progressGradient: 'from-cyan-500 to-blue-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M30,75 L120,30 L220,110 L310,40 L380,80" strokeWidth="2" />
             <circle cx="120" cy="30" fill="currentColor" r="4" />
             <circle cx="220" cy="110" fill="currentColor" r="4" />
@@ -69,16 +69,16 @@ export function ClassCardItem({
     }
 
     // 3. Algorithms & Data Structures (CTDL / THTT)
-    if (text.includes('cấu trúc dữ liệu') || text.includes('ctdl') || text.includes('tree / graph') || text.includes('thuật nâng cao')) {
+    if (text.includes('cấu trúc dữ liệu') || text.includes('ctdl') || text.includes('thuật nâng cao')) {
       return {
         type: 'algorithms',
         gradient: 'from-slate-900 via-indigo-950 to-indigo-700',
-        tag: 'ALGORITHMS • TREE / GRAPH',
+        tag: workspaceMode === 'student' ? 'ADVANCED DSA • TREE & GRAPH' : 'ALGORITHMS • TREE / GRAPH',
         icon: 'account_tree',
         textColor: 'text-indigo-200',
         progressGradient: 'from-indigo-500 to-purple-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="200" cy="30" r="10" strokeWidth="2" />
             <circle cx="120" cy="90" r="8" strokeWidth="2" />
             <circle cx="280" cy="90" r="8" strokeWidth="2" />
@@ -103,7 +103,7 @@ export function ClassCardItem({
         textColor: 'text-sky-200',
         progressGradient: 'from-blue-600 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M0,75 C100,20 150,130 250,75 C350,20 400,100 400,100" strokeDasharray="4 4" strokeWidth="2" />
             <circle cx="80" cy="55" fill="currentColor" r="4" />
             <circle cx="200" cy="95" fill="currentColor" r="5" />
@@ -125,7 +125,7 @@ export function ClassCardItem({
         textColor: 'text-sky-200',
         progressGradient: 'from-sky-500 to-blue-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <rect height="70" rx="6" strokeWidth="1.5" width="80" x="50" y="30" />
             <rect height="70" rx="6" strokeWidth="1.5" width="80" x="220" y="30" />
             <path d="M130,65 L220,65" strokeDasharray="3 3" strokeWidth="2" />
@@ -145,7 +145,7 @@ export function ClassCardItem({
         textColor: 'text-teal-200',
         progressGradient: 'from-teal-500 to-emerald-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="60" cy="75" r="12" strokeWidth="1.5" />
             <circle cx="200" cy="35" r="10" strokeWidth="1.5" />
             <circle cx="200" cy="115" r="10" strokeWidth="1.5" />
@@ -169,7 +169,7 @@ export function ClassCardItem({
         textColor: 'text-blue-200',
         progressGradient: 'from-blue-600 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M0,75 C100,20 150,130 250,75 C350,20 400,100 400,100" strokeDasharray="4 4" strokeWidth="2" />
             <circle cx="80" cy="55" fill="currentColor" r="4" />
             <circle cx="200" cy="95" fill="currentColor" r="5" />
@@ -190,7 +190,7 @@ export function ClassCardItem({
       textColor: 'text-slate-200',
       progressGradient: 'from-blue-600 to-indigo-600',
       diagram: (
-        <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+        <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
           <circle cx="200" cy="75" r="40" strokeDasharray="3 3" strokeWidth="1.5" />
         </svg>
       ),
@@ -201,12 +201,7 @@ export function ClassCardItem({
   const isArchived = item.status === 'ARCHIVED' || Boolean(item.deletedAt);
   const isOwner =
     item.teachingRole === 'PRIMARY_INSTRUCTOR' ||
-    item.name.includes('CSDL') ||
-    item.name.includes('OOP') ||
-    item.name.includes('KTLT') ||
-    item.title?.includes('Nhóm 01') ||
-    item.title?.includes('Nhóm 03') ||
-    item.title?.includes('Nhóm 04');
+    (!item.teachingRole && (item.name.includes('CSDL') || item.name.includes('OOP')));
 
   // Student mode specific metrics
   const getStudentMetrics = () => {
@@ -224,7 +219,7 @@ export function ClassCardItem({
         alert: {
           type: 'danger',
           icon: 'alarm',
-          text: '⏰ Bài tập Lab 05 (Segment Tree) hết hạn lúc 23:59 hôm nay (Chưa nộp)',
+          text: 'Bài tập Lab 05 (Segment Tree) hết hạn lúc 23:59 hôm nay',
           action: 'Nộp ngay',
           actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
           containerClass: 'bg-rose-50 border-rose-200/60 text-rose-700',
@@ -244,7 +239,7 @@ export function ClassCardItem({
         alert: {
           type: 'warning',
           icon: 'edit_note',
-          text: '📝 Quiz 04 (Dijkstra & DSU) mở đến Chủ nhật tuần này',
+          text: 'Quiz 04 (Dijkstra & DSU) mở đến Chủ nhật tuần này',
           action: 'Làm Quiz',
           actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
           containerClass: 'bg-amber-50 border-amber-200/60 text-amber-800',
@@ -264,9 +259,9 @@ export function ClassCardItem({
         alert: {
           type: 'success',
           icon: 'check_circle',
-          text: '✓ Đã nộp toàn bộ bài tập tuần này • Điểm Lab gần nhất: 9.5/10',
-          action: 'Xuất sắc',
-          actionClass: 'text-emerald-600 font-bold',
+          text: 'Đã nộp toàn bộ bài tập tuần này • Điểm Lab gần nhất: Xuất sắc',
+          action: '',
+          actionClass: '',
           containerClass: 'bg-emerald-50 border-emerald-200/60 text-emerald-800',
         },
       };
@@ -284,7 +279,7 @@ export function ClassCardItem({
         alert: {
           type: 'purple',
           icon: 'smart_toy',
-          text: '🤖 Socratic AI gợi ý: Ôn tập 5 câu hỏi Flashcard thuật toán A*',
+          text: 'Socratic AI gợi ý: Ôn tập 5 câu hỏi Flashcard thuật toán A*',
           action: 'Ôn ngay',
           actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
           containerClass: 'bg-purple-50 border-purple-200/60 text-purple-800',
@@ -335,7 +330,7 @@ export function ClassCardItem({
     // 1. CSDL: 3 yêu cầu tham gia đang chờ duyệt
     if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
       return (
-        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2 truncate">
             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
             <span className="font-semibold truncate">3 yêu cầu tham gia đang chờ duyệt</span>
@@ -348,7 +343,7 @@ export function ClassCardItem({
     // 2. CTDL: Hoạt động gần nhất 2 giờ trước • Tuần 8
     if (textLower.includes('ctdl') || textLower.includes('thuật')) {
       return (
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
           <span className="flex items-center gap-2 truncate">
             <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">history</span>
             <span className="truncate">Hoạt động gần nhất 2 giờ trước</span>
@@ -361,7 +356,7 @@ export function ClassCardItem({
     // 3. OOP: 1 yêu cầu tham gia đang chờ duyệt
     if (textLower.includes('oop') || textLower.includes('đối tượng')) {
       return (
-        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2 truncate">
             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
             <span className="font-semibold truncate">1 yêu cầu tham gia đang chờ duyệt</span>
@@ -374,7 +369,7 @@ export function ClassCardItem({
     // 4. MMT: Bài thực hành Lab 3 sắp đến hạn vào ngày mai • 23:59
     if (textLower.includes('mmt') || textLower.includes('mạng')) {
       return (
-        <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 text-rose-800 dark:text-rose-300 text-xs flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2 truncate">
             <span className="material-symbols-outlined text-[16px] text-rose-600 shrink-0">alarm</span>
             <span className="font-semibold truncate">Bài thực hành Lab 3 sắp đến hạn vào ngày mai</span>
@@ -425,7 +420,7 @@ export function ClassCardItem({
   return (
     <article className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between relative shadow-2xs">
       {/* 1. GRAPHIC HEADER BANNER */}
-      <div className={`h-36 relative p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-2xl m-2 mb-0`}>
+      <div className={`h-36 w-full relative p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-t-2xl`}>
         {/* Dynamic Vector Topology Overlay */}
         {tech.diagram}
 
@@ -448,7 +443,9 @@ export function ClassCardItem({
             {/* Status Indicator */}
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/60 backdrop-blur-md text-slate-100 text-[11px] font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>{isArchived ? 'Đã lưu trữ' : 'Hoạt động'}</span>
+              <span>
+                {workspaceMode === 'student' ? 'Đang diễn ra' : isArchived ? 'Đã lưu trữ' : 'Hoạt động'}
+              </span>
             </span>
           </div>
 
@@ -543,7 +540,7 @@ export function ClassCardItem({
 
       {/* 2. CARD CONTENT BODY */}
       <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {/* Class Title & Code */}
           <div>
             <div className="flex items-start justify-between gap-3">
@@ -555,7 +552,7 @@ export function ClassCardItem({
 
               {/* Student Grade Badge */}
               {workspaceMode === 'student' && (
-                <div className={`flex items-center gap-1 shrink-0 px-2 py-0.5 rounded border text-[11px] font-semibold ${studentData.gradeColor}`}>
+                <div className={`flex items-center gap-1 shrink-0 px-2.5 py-0.5 rounded border text-[11px] font-semibold ${studentData.gradeColor}`}>
                   <span className="text-[10px] font-medium opacity-70">Điểm QT:</span>
                   <strong className="font-display font-extrabold">{studentData.grade}</strong>
                   <span className="text-[10px] opacity-60">/10</span>
@@ -585,7 +582,7 @@ export function ClassCardItem({
           {workspaceMode === 'student' ? (
             <>
               {/* Teacher Info */}
-              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pt-0.5">
+              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                 <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">person</span>
                 <span className="truncate">
                   <strong>Giảng viên:</strong> {studentData.teacher}
@@ -593,20 +590,18 @@ export function ClassCardItem({
               </div>
 
               {/* Knowledge Graph Progress Bar */}
-              <div className="space-y-1.5 pt-1">
+              <div className="space-y-1.5 pt-0.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[15px] text-blue-600">hub</span>
-                    <span>Tiến độ học tập:</span>
-                    <strong className="text-slate-900 dark:text-white">{studentData.progressPercent}% hoàn thành</strong>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">
+                    Tiến độ học tập: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{studentData.progressPercent}% hoàn thành</strong>
                   </span>
-                  <span className="font-mono text-[11px] font-semibold text-slate-500">
-                    Đã mở {studentData.nodesUnlocked} Node tri thức
+                  <span className="text-slate-400 text-[11px]">
+                    Đã mở <strong className="text-blue-600 dark:text-blue-400 font-semibold">{studentData.nodesUnlocked}</strong> Node tri thức
                   </span>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                   <div
-                    className={`bg-gradient-to-r ${tech.progressGradient} h-2 rounded-full transition-all duration-500`}
+                    className="bg-blue-600 h-full rounded-full transition-all duration-500"
                     style={{ width: `${studentData.progressPercent}%` }}
                   />
                 </div>
@@ -614,16 +609,15 @@ export function ClassCardItem({
             </>
           ) : (
             <>
-              {/* Meta specs: X học viên • Y giảng viên */}
-              <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
-                  <strong className="text-slate-800 dark:text-slate-200">{item.enrolledCount || 42}</strong> học viên
+              {/* Faculty Students & Teachers count */}
+              <div className="flex items-center gap-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-slate-400">group</span>
+                  <span><strong className="text-slate-800 dark:text-slate-200 font-bold">{item.enrolledCount || 42}</strong> học viên</span>
                 </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className="material-symbols-outlined text-[16px] text-slate-400">badge</span>
-                  {item.stats?.pendingRequestsCount ? '2' : '1'} giảng viên
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-slate-400">person</span>
+                  <span><strong className="text-slate-800 dark:text-slate-200 font-bold">{item.name.includes('OOP') ? 1 : 2}</strong> giảng viên</span>
                 </span>
               </div>
 
@@ -644,18 +638,18 @@ export function ClassCardItem({
                 {studentData.alert.text}
               </span>
             </div>
-            {studentData.alert.action && (
-              studentData.alert.type === 'success' ? (
+            {studentData.alert.action ? (
+              <Link
+                href={`/classes/${item.id}`}
+                className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors ${studentData.alert.actionClass}`}
+              >
+                {studentData.alert.action}
+              </Link>
+            ) : (
+              studentData.alert.type === 'success' && (
                 <span className="text-[11px] font-bold text-emerald-600 shrink-0">
-                  {studentData.alert.action}
+                  Xuất sắc
                 </span>
-              ) : (
-                <Link
-                  href={`/classes/${item.id}`}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors ${studentData.alert.actionClass}`}
-                >
-                  {studentData.alert.action}
-                </Link>
               )
             )}
           </div>
@@ -672,7 +666,7 @@ export function ClassCardItem({
 
           <Link
             href={`/classes/${item.id}`}
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs shadow-blue-500/20 transition-all group-hover:gap-1.5 shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
           >
             <span>{workspaceMode === 'student' ? 'Vào lớp học ngay' : 'Vào không gian lớp'}</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

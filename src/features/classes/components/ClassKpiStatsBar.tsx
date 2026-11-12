@@ -59,7 +59,7 @@ export function ClassKpiStatsBar({
               {studentStats.enrolledClassesCount || 4}
             </span>
             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              lớp học tín chỉ
+              lớp tín chỉ
             </span>
           </div>
 

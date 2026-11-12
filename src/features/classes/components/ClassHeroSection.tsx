@@ -64,10 +64,10 @@ export function ClassHeroSection({
             <button
               type="button"
               onClick={onJoinClick}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all transform active:scale-95 cursor-pointer group"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all transform active:scale-95 cursor-pointer group"
             >
               <span className="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110">
-                key
+                vpn_key
               </span>
               <span>Tham gia lớp bằng mã</span>
             </button>
@@ -90,7 +90,7 @@ export function ClassHeroSection({
             <button
               onClick={onCreateClick}
               type="button"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 transition-all transform active:scale-95 cursor-pointer group"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/25 hover:shadow-lg transition-all transform active:scale-95 cursor-pointer group"
             >
               <span className="material-symbols-outlined text-[20px] transition-transform group-hover:rotate-90">
                 add
