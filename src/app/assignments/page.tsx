@@ -22,3 +22,4 @@ export default function AssignmentsPage() {
 
   return <AssignmentsTabView classId="cs-202" userFullName={userFullName} />;
 }
+

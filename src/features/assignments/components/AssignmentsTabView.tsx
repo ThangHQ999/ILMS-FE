@@ -35,7 +35,6 @@ export function AssignmentsTabView({
   // Shell Layout States
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('assignments');
 
   // Filter States
   const [filters, setFilters] = useState<AssignmentFilters>({
@@ -156,17 +155,10 @@ export function AssignmentsTabView({
         }`}
       >
         <div className="flex flex-col w-full">
-          {/* Course Hub Header Banner with Tabs */}
+          {/* Course Hub Header Banner */}
           {hubInfo && (
             <ClassHubHeader
               info={hubInfo}
-              activeTab={activeTab}
-              onTabChange={(tab) => {
-                setActiveTab(tab);
-                if (tab === 'overview') {
-                  router.push(`/classes`);
-                }
-              }}
               onCreateQuizAI={() => alert('Khởi tạo Quiz thông minh với Socratic AI')}
               onCreateAssignment={() => alert('Mở form giao bài tập / quiz mới')}
             />

@@ -1,44 +1,22 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { ClassHubInfo } from '../types';
 
 interface ClassHubHeaderProps {
   info: ClassHubInfo;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
   onCreateQuizAI?: () => void;
   onCreateAssignment?: () => void;
 }
 
 export function ClassHubHeader({
   info,
-  activeTab = 'assignments',
-  onTabChange,
   onCreateQuizAI,
   onCreateAssignment,
 }: ClassHubHeaderProps) {
   const t = useTranslations('assignments');
   const tHub = useTranslations('classHub');
-
-  const tabs = [
-    { id: 'overview', label: tHub('tabs.overview'), icon: 'space_dashboard' },
-    { id: 'modules', label: tHub('tabs.modules'), icon: 'library_books' },
-    { id: 'curriculum', label: tHub('tabs.curriculum'), icon: 'calendar_view_week' },
-    {
-      id: 'assignments',
-      label: tHub('tabs.assignments'),
-      icon: 'assignment',
-      badge: info.assignmentsCount,
-    },
-    { id: 'materials', label: tHub('tabs.materials'), icon: 'folder_open' },
-    { id: 'students', label: tHub('tabs.students'), icon: 'group' },
-    { id: 'grades', label: tHub('tabs.grades'), icon: 'grade' },
-    { id: 'announcements', label: tHub('tabs.announcements'), icon: 'campaign' },
-    { id: 'settings', label: tHub('tabs.settings'), icon: 'settings' },
-  ];
 
   return (
     <div className="w-full bg-card text-card-foreground rounded-2xl p-6 shadow-sm border border-border mb-6 relative overflow-hidden">
@@ -120,67 +98,27 @@ export function ClassHubHeader({
         </div>
       </div>
 
-      {/* Navigation Tabs Bar & Action Buttons */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6 pt-3 bg-muted/30 -mx-6 -mb-6 px-6 pb-0 rounded-b-2xl overflow-x-auto border-t border-border">
-        <nav className="flex items-center gap-1 sm:gap-2 min-w-max">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => onTabChange?.(tab.id)}
-                className={`px-3.5 py-3 text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 relative ${
-                  isActive
-                    ? 'font-bold text-secondary bg-card rounded-t-lg shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${
-                    isActive ? 'text-secondary' : 'text-muted-foreground'
-                  }`}
-                  style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
-                >
-                  {tab.icon}
-                </span>
-                <span>{tab.label}</span>
-                {typeof tab.badge === 'number' && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-secondary/15 text-secondary text-[10px] font-bold">
-                    {tab.badge}
-                  </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary rounded-full" />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Primary Action Buttons */}
-        <div className="flex items-center gap-2.5 pb-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={onCreateQuizAI}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs sm:text-sm font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all shadow-xs cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px] text-indigo-600 dark:text-indigo-400 animate-pulse">
-              auto_awesome
-            </span>
-            <span>{t('actions.createQuizAi')}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onCreateAssignment}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs sm:text-sm font-semibold hover:bg-secondary/90 transition-all shadow-sm cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            <span>{t('actions.createAssignment')}</span>
-          </button>
-        </div>
+      {/* Primary Action Buttons */}
+      <div className="flex items-center justify-end gap-2.5 mt-5 pt-4 border-t border-border">
+        <button
+          type="button"
+          onClick={onCreateQuizAI}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs sm:text-sm font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all shadow-xs cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px] text-indigo-600 dark:text-indigo-400 animate-pulse">
+            auto_awesome
+          </span>
+          <span>{t('actions.createQuizAi')}</span>
+        </button>
+        <button
+          type="button"
+          onClick={onCreateAssignment}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs sm:text-sm font-semibold hover:bg-secondary/90 transition-all shadow-sm cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          <span>{t('actions.createAssignment')}</span>
+        </button>
       </div>
     </div>
   );
 }
-
