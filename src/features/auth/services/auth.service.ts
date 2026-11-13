@@ -35,6 +35,11 @@ export async function getMe(): Promise<UserProfile> {
 }
 
 export async function logout(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('ilms_user');
+    } catch {}
+  }
   await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.LOGOUT);
 }
 
