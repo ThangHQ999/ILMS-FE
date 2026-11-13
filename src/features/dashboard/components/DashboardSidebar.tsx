@@ -190,7 +190,15 @@ export function DashboardSidebar({
             </nav>
           </div>
 
-          <div className="flex flex-col items-center gap-1.5 w-full px-2">
+          <div className="flex flex-col items-center gap-1.5 w-full px-2 pt-2 border-t border-[#E1E5EA]/60 dark:border-[#282A2C]">
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${inactiveClass}`}
+              title="Trợ giúp & Hướng dẫn"
+            >
+              <span className="material-symbols-outlined text-[20px]">help_outline</span>
+            </Link>
             <Link
               href="/settings"
               prefetch={true}
@@ -228,9 +236,9 @@ export function DashboardSidebar({
           </button>
         )}
 
-        <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col flex-1 min-h-0 w-full">
           {/* Brand Header */}
-          <div className={`h-14 flex items-center mb-3 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+          <div className={`h-14 flex items-center mb-2 shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
             <Link
               href="/dashboard"
               prefetch={true}
@@ -261,17 +269,17 @@ export function DashboardSidebar({
           </div>
 
           {/* Navigation Scroll Area */}
-          <nav className={`flex-1 flex flex-col gap-1 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
+          <nav className={`flex-1 flex flex-col gap-3 overflow-y-auto scrollbar-none w-full ${isCollapsed ? 'items-center' : ''}`}>
             {teacherSections.map((section) => (
-              <div key={section.title} className="flex flex-col gap-1">
+              <div key={section.title} className="flex flex-col gap-1 w-full">
                 {!isCollapsed && (
-                  <div className="px-3 py-1 mb-1 mt-2.5 first:mt-0">
+                  <div className="px-3 py-1 mb-0.5">
                     <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
                       {section.title}
                     </span>
                   </div>
                 )}
-                <div className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`flex flex-col gap-1 w-full ${isCollapsed ? 'items-center' : ''}`}>
                   {section.items.map((item) => {
                     if (isCollapsed) {
                       return (
@@ -279,7 +287,7 @@ export function DashboardSidebar({
                           key={item.href + item.label}
                           href={item.href}
                           prefetch={item.href.startsWith('/')}
-                          className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
                             item.active ? activeClass : inactiveClass
                           }`}
                           title={item.label}
@@ -300,7 +308,7 @@ export function DashboardSidebar({
                         key={item.href + item.label}
                         href={item.href}
                         prefetch={item.href.startsWith('/')}
-                        className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${
+                        className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${
                           item.active ? activeClass : inactiveClass
                         }`}
                       >
@@ -319,64 +327,65 @@ export function DashboardSidebar({
                 </div>
               </div>
             ))}
-
-            <div className="my-1 border-none" />
-
-            {/* Trợ giúp & Hướng dẫn */}
-            {isCollapsed ? (
-              <Link
-                href="/settings"
-                prefetch={true}
-                className={`flex items-center justify-center w-12 h-12 rounded-full ${inactiveClass}`}
-                title="Trợ giúp & Hướng dẫn"
-              >
-                <span className="material-symbols-outlined text-[20px]">help_outline</span>
-              </Link>
-            ) : (
-              <Link
-                href="/settings"
-                prefetch={true}
-                className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${inactiveClass}`}
-              >
-                <span className="material-symbols-outlined text-[20px]">help_outline</span>
-                <span>Trợ giúp & Hướng dẫn</span>
-              </Link>
-            )}
-
-            {/* Cài đặt tài khoản */}
-            {isCollapsed ? (
-              <Link
-                href="/settings"
-                prefetch={true}
-                className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                  isSettingsActive ? activeClass : inactiveClass
-                }`}
-                title={t('navSettings')}
-              >
-                <span className="material-symbols-outlined text-[20px]">settings</span>
-              </Link>
-            ) : (
-              <Link
-                href="/settings"
-                prefetch={true}
-                className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${
-                  isSettingsActive ? activeClass : inactiveClass
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">settings</span>
-                <span>{t('navSettings')}</span>
-              </Link>
-            )}
           </nav>
         </div>
 
-        {/* Footer Info */}
-        {!isCollapsed && (
-          <div className="px-3 pt-2 text-[11px] text-[#747775] dark:text-[#8E918F] flex items-center justify-between border-t border-[#E1E5EA]/40 dark:border-[#282A2C] mt-2">
-            <span>Học kỳ II - 2024</span>
-            <span className="font-mono">v2.5</span>
-          </div>
-        )}
+        {/* Bottom System & Account Items + Footer */}
+        <div className={`shrink-0 pt-2 border-t border-[#E1E5EA]/60 dark:border-[#282A2C] flex flex-col gap-1 w-full mt-2 ${isCollapsed ? 'items-center' : ''}`}>
+          {/* Trợ giúp & Hướng dẫn */}
+          {isCollapsed ? (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${inactiveClass}`}
+              title="Trợ giúp & Hướng dẫn"
+            >
+              <span className="material-symbols-outlined text-[20px]">help_outline</span>
+            </Link>
+          ) : (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${inactiveClass}`}
+            >
+              <span className="material-symbols-outlined text-[20px]">help_outline</span>
+              <span className="flex-1 truncate">Trợ giúp & Hướng dẫn</span>
+            </Link>
+          )}
+
+          {/* Cài đặt tài khoản */}
+          {isCollapsed ? (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                isSettingsActive ? activeClass : inactiveClass
+              }`}
+              title={t('navSettings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
+          ) : (
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${
+                isSettingsActive ? activeClass : inactiveClass
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+              <span className="flex-1 truncate">{t('navSettings')}</span>
+            </Link>
+          )}
+
+          {/* Footer Metadata */}
+          {!isCollapsed && (
+            <div className="px-3 pt-2 pb-0.5 text-[11px] text-[#747775] dark:text-[#8E918F] flex items-center justify-between border-t border-[#E1E5EA]/40 dark:border-[#282A2C] mt-1 shrink-0">
+              <span>Học kỳ II - 2024</span>
+              <span className="font-mono">v2.5</span>
+            </div>
+          )}
+        </div>
       </aside>
     );
   }
