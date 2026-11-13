@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ClassMaterial } from '../../schemas/class-detail.schema';
+import { UploadMaterialModal } from './UploadMaterialModal';
 
 interface ClassMaterialsTabProps {
   materials?: ClassMaterial[];
@@ -29,6 +30,7 @@ export function ClassMaterialsTab({
   // Modals state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isAiScanOpen, setIsAiScanOpen] = useState(false);
+  const [isUploadAiModalOpen, setIsUploadAiModalOpen] = useState(false);
   const [isAutoQuizOpen, setIsAutoQuizOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<ClassMaterial | null>(null);
@@ -156,7 +158,7 @@ export function ClassMaterialsTab({
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => setIsAiScanOpen(true)}
+            onClick={() => setIsUploadAiModalOpen(true)}
             className="h-9 px-3.5 rounded-full font-semibold text-xs bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-all inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs active:scale-95"
           >
             <span className="material-symbols-outlined text-[17px] text-indigo-600 dark:text-indigo-400">
@@ -993,7 +995,8 @@ export function ClassMaterialsTab({
                 type="button"
                 onClick={() => {
                   setIsUploadOpen(false);
-                  notify('Đã tải lên học liệu mới thành công và chuyển sang hàng đợi phân tích AI!');
+                  setIsUploadAiModalOpen(true);
+                  notify('Đang bắt đầu truyền tải tệp và phân tích AI học liệu...');
                 }}
                 className="px-5 py-2 rounded-full text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
               >
@@ -1281,6 +1284,20 @@ export function ClassMaterialsTab({
           </div>
         </div>
       )}
+
+      {/* MODAL 5: UPLOAD & AI REALTIME PIPELINE MODAL */}
+      <UploadMaterialModal
+        isOpen={isUploadAiModalOpen}
+        onClose={() => setIsUploadAiModalOpen(false)}
+        onCancelAll={() => {
+          setIsUploadAiModalOpen(false);
+          notify('Đã hủy toàn bộ tiến trình tải lên và phân tích AI!');
+        }}
+        onRunInBackground={() => {
+          setIsUploadAiModalOpen(false);
+          notify('Tiến trình tải lên và phân tích AI đang tiếp tục chạy ngầm trong nền!');
+        }}
+      />
     </div>
   );
 }

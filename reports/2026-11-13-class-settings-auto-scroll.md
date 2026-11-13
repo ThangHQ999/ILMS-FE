@@ -19,3 +19,4 @@
 - TypeScript strict (`npx tsc --noEmit`): 0 lỗi.
 - Next.js dev server: HTTP 200 OK trên route `/classes/csdl-k22-01`.
 - Đã đẩy commit `61f2cf2` lên nhánh remote `origin/tung_anh_branch`.
+
