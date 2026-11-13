@@ -60,7 +60,7 @@ export async function getOAuthUrl(provider: OAuthProvider): Promise<string> {
  * This avoids Spring Security rejecting the request due to stale access-token cookies.
  */
 export async function getOAuthUrlPublic(provider: OAuthProvider): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.ilms.page/api/v1';
   const response = await fetch(`${baseUrl}${AUTH_ENDPOINTS.OAUTH_URL(provider)}`, {
     method: 'GET',
     credentials: 'omit',

@@ -13,12 +13,12 @@ Always on. Applies to any UI or user-visible string. We strictly follow Google's
 8. UI tone: short, polite, and objective (system-like, not chatty).
 
 ## 2. Color & Design Tokens (MD3 / Borderless Logic)
-1. Use semantic Tailwind tokens mapped to globals.css (bg-background, bg-surface, bg-surface-hover, text-primary, bg-primary-container, text-on-primary-container).
-2. *ZERO BORDERS BY DEFAULT*: Do NOT use border, border-gray-*, ring-*, or shadow-glow. Visual hierarchy MUST rely completely on flat tonal contrast between surfaces (e.g., Background vs. Card Surface).
-3. *Forbidden*: Neon colors (bg-blue-600), raw hex classes (bg-[#xxxxxx]), bordered badges, and gradient borders.
-4. *Semantic Status*: Use flat, pastel tonal chips without borders. 
-   - Success: bg-success-container text-on-success-container
-   - Warning: bg-warning-container text-on-warning-container
+1. Use semantic Tailwind tokens mapped to `globals.css` (`bg-background`, `bg-surface`, `bg-surface-hover`, `text-primary`, `bg-primary-container`, `text-on-primary-container`).
+2. **ZERO BORDERS BY DEFAULT**: Do NOT use `border`, `border-gray-*`, `ring-*`, or `shadow-glow`. Visual hierarchy MUST rely completely on flat tonal contrast between surfaces (e.g., Background vs. Card Surface).
+3. **Forbidden**: Neon colors (`bg-blue-600`), raw hex classes (`bg-[#xxxxxx]`), bordered badges, and gradient borders.
+4. **Semantic Status**: Use flat, pastel tonal chips without borders. 
+   - Success: `bg-success-container text-on-success-container`
+   - Warning: `bg-warning-container text-on-warning-container`
 
 ## 3. Shapes & Typography (Gemini Style)
 1. *Pill Shapes*: All interactive elements (Buttons, Tabs, Nav items, Badges, Search bars) MUST use rounded-full.
