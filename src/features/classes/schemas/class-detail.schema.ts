@@ -105,6 +105,17 @@ export const classMemberSchema = z.object({
   role: z.enum(['OWNER', 'TEACHER', 'STUDENT']).default('STUDENT'),
   status: z.enum(['APPROVED', 'PENDING']).default('APPROVED'),
   avatar: z.string().default('SV'),
+  avatarUrl: z.string().optional(),
+  isClassLeader: z.boolean().optional(),
+  leaderBadge: z.string().optional(),
+  attendanceRate: z.number().optional(),
+  knowledgeNodesUnlocked: z.number().optional(),
+  knowledgeNodesTotal: z.number().optional(),
+  knowledgePercent: z.number().optional(),
+  gpa: z.number().optional(),
+  learningStatus: z.enum(['EXCELLENT', 'ACTIVE', 'NEED_HELP', 'NORMAL', 'AT_RISK']).optional(),
+  statusBadge: z.string().optional(),
+  statusDetail: z.string().optional(),
   joinedAt: z.string().optional(),
 });
 export type ClassMember = z.infer<typeof classMemberSchema>;

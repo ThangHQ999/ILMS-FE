@@ -318,6 +318,7 @@ export function ClassDetailPageView({
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
+                onToast={showToast}
               />
             )}
 
