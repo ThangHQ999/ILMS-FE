@@ -15,6 +15,7 @@ const routeMap: Record<string, string> = {
   '/teacher/dashboard': 'Tổng quan',
   '/classes': 'Lớp học của tôi',
   '/teacher/classes': 'Lớp học của tôi',
+  '/courses': 'Không gian môn học',
   '/lesson-sessions': 'Ca học & Điểm danh',
   '/teacher/attendance': 'Ca học & Điểm danh',
   '/teacher/lesson-sessions': 'Ca học & Điểm danh',
@@ -59,6 +60,7 @@ interface DashboardHeaderProps {
   userFullName?: string;
   workspaceMode?: 'faculty' | 'student';
   onToggleWorkspaceMode?: () => void;
+  title?: string;
 }
 
 export function DashboardHeader({
@@ -68,10 +70,11 @@ export function DashboardHeader({
   userFullName = 'Nhật Minh',
   workspaceMode = 'faculty',
   onToggleWorkspaceMode,
+  title,
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
-  const currentPageName = getPageTitle(pathname || '');
+  const currentPageName = title || getPageTitle(pathname || '');
 
   if (isFocus) {
     return (
@@ -123,28 +126,28 @@ export function DashboardHeader({
       } right-0 h-16 bg-white/85 dark:bg-[#131314] backdrop-blur-xl px-8 flex items-center justify-between border-none shadow-none z-40 transition-all duration-300`}
     >
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 min-w-0">
+      <div className="flex items-center gap-1.5 shrink-0 min-w-0">
         <Link
           href="/dashboard"
           prefetch={true}
-          className="flex items-center text-gray-500 hover:text-gray-900 dark:text-[#8E918F] dark:hover:text-[#E3E3E3] transition-colors"
+          className="flex items-center text-gray-500 hover:text-gray-900 dark:text-[#8E918F] dark:hover:text-[#E3E3E3] transition-colors shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">home</span>
         </Link>
-        <span className="text-gray-400 dark:text-[#8E918F] mx-2">/</span>
-        <span className="text-lg font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight ml-1 font-sans">
+        <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0">/</span>
+        <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap truncate max-w-[150px] sm:max-w-xs md:max-w-sm">
           {currentPageName}
         </span>
       </div>
 
       {/* Search Bar ("Tìm kiếm bài học...") */}
-      <div className="flex-1 max-w-md mx-6">
+      <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md mx-3 sm:mx-6 min-w-0">
         <div className="relative flex items-center">
           <span className="material-symbols-outlined absolute left-4 text-[20px] text-[#747775] dark:text-[#8E918F]">
             search
           </span>
           <input
-            className="w-full sm:w-96 h-10 pl-11 pr-20 bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 focus:bg-white dark:focus:bg-[#282A2C] transition-all border-none"
+            className="w-full h-10 pl-11 pr-20 bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 focus:bg-white dark:focus:bg-[#282A2C] transition-all border-none"
             placeholder={t('searchPlaceholder')}
             type="text"
           />

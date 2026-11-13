@@ -131,6 +131,7 @@ export function CourseDetailPageView({
           isFocus={isFocusMode}
           onToggleMode={() => setIsFocusMode((prev) => !prev)}
           userFullName={userFullName}
+          title="Không gian môn học"
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
