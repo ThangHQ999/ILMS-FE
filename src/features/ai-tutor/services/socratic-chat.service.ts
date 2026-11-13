@@ -59,7 +59,7 @@ export async function streamChat(
   callbacks: SocraticStreamCallbacks,
   options?: StreamChatOptions
 ): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.ilms.page/api/v1';
   const url = new URL(`${baseUrl}${SOCRATIC_ENDPOINTS.STREAM}`);
   if (options?.provider) {
     url.searchParams.append('provider', options.provider);

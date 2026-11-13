@@ -8,8 +8,8 @@ import { loginInputSchema } from '../schemas/auth.schema';
 import { LoginFormState, LoginFormErrors } from '../types';
 
 const INITIAL_FORM_STATE: LoginFormState = {
-  identifier: 'alex.nguyen@engineer.dev',
-  password: 'SecuredPassword2025#',
+  identifier: 'tunganh9876544@gmail.com',
+  password: 'Password123@',
   rememberMe: true,
 };
 
@@ -65,9 +65,13 @@ export function useLoginForm() {
     try {
       await loginMutation.mutateAsync(validationResult.data);
       router.push('/dashboard');
-    } catch {
+    } catch (err: unknown) {
+      let errorMessage = tErrors('loginFailed');
+      if (err instanceof Error && err.message) {
+        errorMessage = err.message;
+      }
       setErrors({
-        general: tErrors('loginFailed'),
+        general: errorMessage,
       });
     }
   };

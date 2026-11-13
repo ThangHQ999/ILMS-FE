@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import {
   ChevronDown,
   LayoutGrid,
@@ -328,9 +327,6 @@ export function LandingHeader() {
 
         {/* Action Buttons & Theme Switcher */}
         <div className="flex items-center gap-3">
-          {/* Language Switcher */}
-          <LanguageSwitcher />
-
           {/* Theme Toggle */}
           <button
             id="landing-theme-toggle-btn"
