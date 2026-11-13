@@ -3,16 +3,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useDashboardMode } from '../hooks/useDashboardMode';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { AnalyticsView } from './AnalyticsView/AnalyticsView';
 import { FocusView } from './FocusView/FocusView';
+import { TeacherOverviewView } from './TeacherOverview/TeacherOverviewView';
 
 export function DashboardPageView() {
   const t = useTranslations('dashboard');
   const { data: user } = useCurrentUser();
+  const { isTeacher } = useUserRole();
   const { isFocus, toggleMode, switchMode } = useDashboardMode();
   const { analytics, competency, aiInsight, courses, aiTasks, isLoading } = useDashboardData();
 
@@ -91,6 +94,10 @@ export function DashboardPageView() {
                 <div className="h-96 lg:col-span-8 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
                 <div className="h-96 lg:col-span-4 rounded-3xl bg-slate-200/70 dark:bg-[#1E1F20]" />
               </div>
+            </div>
+          ) : isTeacher ? (
+            <div className="p-4 sm:p-6 lg:p-8">
+              <TeacherOverviewView />
             </div>
           ) : isFocus ? (
             <FocusView userFullName={userFullName} aiTasks={aiTasks!} />

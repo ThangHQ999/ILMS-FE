@@ -16,9 +16,9 @@ export default function ClassDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
-      router.replace('/login');
+      router.push('/login');
     }
-  }, [isLoading, isError, user, router]);
+  }, [user, isLoading, isError, router]);
 
   const userFullName =
     user?.firstName || user?.lastName
@@ -27,4 +27,3 @@ export default function ClassDetailPage({ params }: PageProps) {
 
   return <ClassDetailPageView classId={id} userFullName={userFullName} />;
 }
-
