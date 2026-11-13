@@ -24,148 +24,119 @@ export function CourseBanner({
 }: CourseBannerProps) {
   const t = useTranslations('courses.detail');
   const progressPercent =
-    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : course.teachingProgress || 0;
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : course.teachingProgress || 36;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-700 to-indigo-900 text-white p-6 sm:p-8 shadow-md">
-      {/* Background ambient decorative shapes */}
-      <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-white/5 blur-3xl pointer-events-none" />
-      <div className="absolute right-32 -bottom-20 w-64 h-64 rounded-full bg-blue-400/10 blur-2xl pointer-events-none" />
+    <div className="bg-[#39359e] rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between gap-6">
+      {/* Background Decoration */}
+      <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
 
-      {/* Top Breadcrumb & Status */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 relative z-10">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-100/90 font-medium">
+      {/* Left Info */}
+      <div className="flex flex-col gap-4 relative z-10 w-full md:w-2/3">
+        {/* Breadcrumbs & Badges */}
+        <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
           <Link
             href="/classes"
-            className="hover:text-white transition-colors flex items-center gap-1 hover:underline"
+            className="flex items-center gap-1 text-white/80 hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">school</span>
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             <span>{t('backToClasses')}</span>
           </Link>
-          <span>/</span>
-          <span className="text-white font-semibold truncate max-w-[200px] sm:max-w-md">
+          <span className="text-white/50">/</span>
+          <span className="font-semibold text-white/90 truncate max-w-xs sm:max-w-md">
             {course.name}
           </span>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-white backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{t('statusActive')}</span>
-          </span>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/30 text-white backdrop-blur-sm">
-            {t('credits', { count: course.credits || 3 })}
-          </span>
-        </div>
-      </div>
-
-      {/* Main Title & Description */}
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2.5 mb-2.5">
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-white text-blue-900 shadow-xs">
-              {course.courseCode}
+          <div className="ml-auto flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30 flex items-center gap-1.5 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{t('statusActive')}</span>
             </span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/40 text-blue-100 font-medium">
-              {course.semester || 'Học kỳ II (2024-2025)'}
+            <span className="px-2.5 py-1 rounded-full bg-white/10 font-semibold text-xs">
+              {t('credits', { count: course.credits || 3 })}
             </span>
-            {course.specialFeature && (
-              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-blue-400/20 text-white font-medium">
-                <span className="material-symbols-outlined text-[14px]">
-                  {course.specialFeatureIcon || 'auto_awesome'}
-                </span>
-                <span>{course.specialFeature}</span>
-              </span>
-            )}
           </div>
+        </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2 leading-snug">
+        {/* Tags */}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="px-3 py-1 bg-white text-[#39359e] rounded font-bold shadow-xs">
+            {course.courseCode}
+          </span>
+          <span className="px-3 py-1 bg-white/10 rounded border border-white/20">
+            {course.semester || 'Học kỳ II (2024-2025)'}
+          </span>
+          <span className="px-3 py-1 bg-white/10 rounded border border-white/20 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">stars</span>
+            <span>{course.specialFeature || 'Đồ thị AVL tự chấm'}</span>
+          </span>
+        </div>
+
+        {/* Title & Desc */}
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight leading-snug">
             {course.name}
           </h1>
-
-          <p className="text-sm text-blue-100/90 leading-relaxed max-w-2xl line-clamp-2">
-            {course.description || 'Chương trình giảng dạy học phần tích hợp Đồ thị tri thức và Trợ lý AI Socratic.'}
+          <p className="text-white/80 max-w-2xl leading-relaxed text-sm md:text-base">
+            {course.description ||
+              'Học phần chuyên sâu nghiên cứu các cấu trúc dữ liệu cây cân bằng (AVL, Red-Black), Segment Tree, Fenwick Tree và các thuật toán đồ thị nâng cao phục vụ thiết kế hệ thống xử lý dữ liệu lớn.'}
           </p>
-
-          <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-blue-200">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-blue-300">person</span>
-              <span>{t('instructor')}:</span>
-              <strong className="text-white font-semibold">{course.instructorName || 'TS. Lê Hoàng Nam'}</strong>
-            </div>
-            <span>•</span>
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-blue-300">hub</span>
-              <strong className="text-white font-semibold">{course.knowledgeNodesCount || 142}</strong>
-              <span>{t('knowledgeNodes')}</span>
-            </div>
-          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap lg:flex-col items-stretch gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={onOpenAddLesson}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-blue-50 text-blue-900 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            <span>{t('btnAddLesson')}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenAddChapter}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm backdrop-blur-sm transition-all active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[18px]">playlist_add</span>
-            <span>{t('btnAddChapter')}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onSelectTab('aiTutor')}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 hover:brightness-105 text-slate-900 font-bold text-xs shadow-xs transition-all active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[17px]">smart_toy</span>
-            <span>{t('btnOpenAiTutor')}</span>
-          </button>
+        {/* Meta Info */}
+        <div className="flex flex-wrap items-end justify-between gap-4 mt-2">
+          <div className="flex items-center gap-6 text-white/90 text-xs md:text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[20px]">person</span>
+              <span>{t('instructor')}:</span>
+              <strong className="text-white ml-1">{course.instructorName || 'TS. Nguyễn Văn An (CN)'}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[20px]">hub</span>
+              <strong>{course.knowledgeNodesCount || 142}</strong> {t('knowledgeNodes')}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Progress Footer */}
-      <div className="mt-8 pt-6 border-t border-white/10 relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-6 text-xs text-blue-100">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold">
-              <span className="material-symbols-outlined text-[18px]">menu_book</span>
-            </span>
-            <div>
-              <div className="font-bold text-white text-sm">{course.chaptersCount || 4}</div>
-              <div className="text-blue-200 text-[11px]">{t('chaptersCount')}</div>
-            </div>
-          </div>
+      {/* Right Actions & Stats */}
+      <div className="flex flex-col gap-3 relative z-10 w-full md:w-auto min-w-[240px]">
+        <button
+          type="button"
+          onClick={onOpenAddLesson}
+          className="flex items-center justify-center gap-2 bg-white text-[#39359e] font-bold px-4 py-2.5 rounded-xl border-2 border-white/40 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
+        >
+          <span className="material-symbols-outlined text-[20px]">add_circle</span>
+          <span>{t('btnAddLesson')}</span>
+        </button>
 
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold">
-              <span className="material-symbols-outlined text-[18px]">play_lesson</span>
-            </span>
-            <div>
-              <div className="font-bold text-white text-sm">{totalLessons || 12}</div>
-              <div className="text-blue-200 text-[11px]">{t('lessonsCount')}</div>
-            </div>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={onOpenAddChapter}
+          className="flex items-center justify-center gap-2 bg-white/10 border-2 border-white/40 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer text-xs sm:text-sm active:scale-95"
+        >
+          <span className="material-symbols-outlined text-[20px]">playlist_add</span>
+          <span>{t('btnAddChapter')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelectTab('aiTutor')}
+          className="flex items-center justify-center gap-2 bg-amber-400 text-amber-950 font-bold px-4 py-2.5 rounded-xl border-2 border-amber-300 hover:bg-amber-300 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
+        >
+          <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+          <span>{t('btnOpenAiTutor')}</span>
+        </button>
 
         {/* Progress Bar */}
-        <div className="w-full sm:w-64">
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-blue-200 font-medium">{t('teachingProgress')}</span>
-            <span className="text-white font-bold font-mono">{progressPercent}%</span>
+        <div className="mt-auto pt-4 border-t border-white/20 flex flex-col gap-1.5">
+          <div className="flex justify-between text-white/90 text-xs">
+            <span>{t('teachingProgress')}</span>
+            <span className="font-bold">{progressPercent}%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-white/20 overflow-hidden">
+          <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-500"
+              className="h-full bg-emerald-400 rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(5, progressPercent))}%` }}
             />
           </div>

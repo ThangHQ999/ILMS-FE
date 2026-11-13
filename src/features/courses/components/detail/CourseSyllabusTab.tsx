@@ -71,7 +71,6 @@ export function CourseSyllabusTab({
           return matchQuery && matchType;
         });
 
-        // Also include chapter if title matches query and no type filter
         const chapterTitleMatch = !q || ch.title.toLowerCase().includes(q);
 
         return {
@@ -86,16 +85,36 @@ export function CourseSyllabusTab({
   const getLessonTypeIcon = (type: LessonType) => {
     switch (type) {
       case 'VIDEO':
-        return { icon: 'smart_display', color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40' };
-      case 'QUIZ':
-        return { icon: 'quiz', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40' };
+        return {
+          icon: 'play_circle',
+          containerClass:
+            'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border-2 border-rose-200 dark:border-rose-800/60 group-hover:bg-rose-100 dark:group-hover:bg-rose-900/60',
+        };
       case 'ASSIGNMENT':
-        return { icon: 'code', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' };
+        return {
+          icon: 'code',
+          containerClass:
+            'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-800/60 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/60',
+        };
+      case 'QUIZ':
+        return {
+          icon: 'quiz',
+          containerClass:
+            'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-2 border-amber-200 dark:border-amber-800/60 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/60',
+        };
       case 'DOCUMENT':
-        return { icon: 'description', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40' };
+        return {
+          icon: 'description',
+          containerClass:
+            'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border-2 border-indigo-200 dark:border-indigo-800/60 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/60',
+        };
       case 'THEORY':
       default:
-        return { icon: 'menu_book', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' };
+        return {
+          icon: 'menu_book',
+          containerClass:
+            'bg-slate-100 text-[#0059bb] dark:bg-blue-950/60 dark:text-blue-400 border-2 border-slate-300/60 dark:border-blue-800/60 group-hover:bg-[#d8e2ff] dark:group-hover:bg-blue-900/60 group-hover:border-[#0059bb]/50',
+        };
     }
   };
 
@@ -103,124 +122,124 @@ export function CourseSyllabusTab({
     switch (status) {
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
-            <span className="material-symbols-outlined text-[13px]">check_circle</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 font-semibold text-xs border-2 border-emerald-300 dark:border-emerald-700 shrink-0">
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
             <span>{t('lessonStatus.COMPLETED')}</span>
-          </span>
+          </div>
         );
       case 'IN_PROGRESS':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
-            <span className="material-symbols-outlined text-[13px]">pending</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 font-semibold text-xs border-2 border-amber-300 dark:border-amber-700 shrink-0">
+            <span className="material-symbols-outlined text-[18px]">more_horiz</span>
             <span>{t('lessonStatus.IN_PROGRESS')}</span>
-          </span>
+          </div>
         );
       case 'NOT_STARTED':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-            <span className="material-symbols-outlined text-[13px]">radio_button_unchecked</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 font-medium text-xs border-2 border-slate-300/60 dark:border-slate-700 shrink-0">
+            <span className="material-symbols-outlined text-[18px]">circle</span>
             <span>{t('lessonStatus.NOT_STARTED')}</span>
-          </span>
+          </div>
         );
     }
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        {/* Search input */}
-        <div className="relative flex-1 min-w-[240px]">
-          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
-            search
-          </span>
+      {/* TOOLBAR LỌC & TÌM KIẾM */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border-2 border-slate-300 dark:border-slate-700">
+        <div className="flex items-center gap-2 w-full md:w-auto flex-1 min-w-[250px]">
+          <span className="material-symbols-outlined text-slate-400 ml-2 text-[20px]">search</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchLessonPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 rounded-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 transition-all"
+            className="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 p-2"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[16px]"
+              className="text-slate-400 hover:text-slate-600 text-sm px-2"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* Type Filter & Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3.5 py-2 rounded-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300 transition-all"
+            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none cursor-pointer hover:text-slate-900 dark:hover:text-white px-2 py-1.5 rounded-lg border-2 border-slate-300/60 dark:border-slate-700"
           >
-            <option value="ALL">{t('filterTypeAll')}</option>
-            <option value="THEORY">{t('filterTypeTheory')}</option>
-            <option value="VIDEO">{t('filterTypeVideo')}</option>
-            <option value="QUIZ">{t('filterTypeQuiz')}</option>
-            <option value="ASSIGNMENT">{t('filterTypeAssignment')}</option>
+            <option value="ALL" className="bg-white dark:bg-slate-900">{t('filterTypeAll')}</option>
+            <option value="THEORY" className="bg-white dark:bg-slate-900">{t('filterTypeTheory')}</option>
+            <option value="VIDEO" className="bg-white dark:bg-slate-900">{t('filterTypeVideo')}</option>
+            <option value="ASSIGNMENT" className="bg-white dark:bg-slate-900">{t('filterTypeAssignment')}</option>
+            <option value="QUIZ" className="bg-white dark:bg-slate-900">{t('filterTypeQuiz')}</option>
           </select>
+
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
           <button
             type="button"
             onClick={handleExpandAll}
-            className="hidden md:inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-1 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border-2 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 transition-colors"
           >
-            <span className="material-symbols-outlined text-[15px]">unfold_more</span>
+            <span className="material-symbols-outlined text-[18px]">unfold_more</span>
             <span>{t('expandAll')}</span>
           </button>
 
           <button
             type="button"
             onClick={handleCollapseAll}
-            className="hidden md:inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-1 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border-2 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 transition-colors"
           >
-            <span className="material-symbols-outlined text-[15px]">unfold_less</span>
+            <span className="material-symbols-outlined text-[18px]">unfold_less</span>
             <span>{t('collapseAll')}</span>
           </button>
 
           <button
             type="button"
             onClick={onOpenAddChapter}
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all active:scale-95 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#0059bb] hover:bg-[#004899] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm ml-2 border-2 border-[#0059bb] transition-colors cursor-pointer active:scale-95"
           >
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span className="material-symbols-outlined text-[18px]">add</span>
             <span>{t('btnAddChapter')}</span>
           </button>
         </div>
       </div>
 
-      {/* Chapters Accordion List */}
+      {/* KHUNG NỘI DUNG CÁC CHƯƠNG */}
       {filteredChapters.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200/80 dark:border-slate-800">
-          <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-12 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#0059bb] dark:text-blue-400 flex items-center justify-center mx-auto mb-4">
             <span className="material-symbols-outlined text-[32px]">menu_book</span>
           </div>
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1">
             {searchQuery ? t('emptySearch') : t('emptyChapters')}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
-            {searchQuery ? 'Thử tìm với từ khóa khác hoặc xóa bộ lọc định dạng.' : 'Bắt đầu xây dựng đề cương môn học bằng cách thêm chương học đầu tiên.'}
+            {searchQuery
+              ? 'Thử tìm với từ khóa khác hoặc xóa bộ lọc định dạng.'
+              : 'Bắt đầu xây dựng đề cương môn học bằng cách thêm chương học đầu tiên.'}
           </p>
           {!searchQuery && (
             <button
               type="button"
               onClick={onOpenAddChapter}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0059bb] hover:bg-[#004899] text-white text-xs font-bold shadow-sm transition-all"
             >
-              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span className="material-symbols-outlined text-[18px]">add</span>
               <span>{t('btnAddChapter')}</span>
             </button>
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8 mt-2">
           {filteredChapters.map((ch, chIdx) => {
             const isOpen = openChapterIds[ch.id] ?? true;
             const displayedLessons = ch.matchedLessons;
@@ -228,64 +247,62 @@ export function CourseSyllabusTab({
             return (
               <div
                 key={ch.id}
-                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden transition-all"
+                className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col gap-6"
               >
-                {/* Chapter Accordion Header */}
-                <div
-                  onClick={() => toggleChapter(ch.id)}
-                  className="p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors select-none"
-                >
-                  <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                    <span className="w-9 h-9 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5 sm:mt-0">
+                {/* Header Chương */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    {/* Circle Chapter Index */}
+                    <div className="w-12 h-12 rounded-full bg-[#d6e3ff] text-[#0d1c32] dark:bg-blue-950 dark:text-blue-200 flex items-center justify-center text-lg shrink-0 font-bold border-2 border-[#b9c7e4] dark:border-blue-800">
                       {ch.orderIndex || chIdx + 1}
-                    </span>
+                    </div>
 
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
                           {ch.title}
                         </h2>
-                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap text-xs font-semibold border-2 border-slate-300/40 dark:border-slate-700">
                           {t('lessonsInChapter', { count: ch.lessons.length })}
                         </span>
                       </div>
                       {ch.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                           {ch.description}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {/* Actions & Chevron */}
-                  <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {/* Actions Right */}
+                  <div className="flex items-center gap-3 shrink-0">
                     <button
                       type="button"
                       onClick={() => onOpenAddLessonForChapter(ch.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-colors"
-                      title={t('btnAddLesson')}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[#0059bb] dark:text-blue-400 border-2 border-[#0059bb]/30 hover:border-[#0059bb] hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors text-xs sm:text-sm font-medium cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[15px]">add</span>
-                      <span className="hidden sm:inline">{t('btnAddLesson')}</span>
+                      <span className="material-symbols-outlined text-[20px]">add</span>
+                      <span>{t('btnAddLesson')}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => toggleChapter(ch.id)}
-                      className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                      className="p-2 rounded-lg text-slate-600 dark:text-slate-400 border-2 border-slate-300/40 dark:border-slate-700 hover:border-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title={isOpen ? t('collapseAll') : t('expandAll')}
                     >
-                      <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                        expand_more
+                      <span className="material-symbols-outlined text-[20px]">
+                        {isOpen ? 'expand_less' : 'expand_more'}
                       </span>
                     </button>
                   </div>
                 </div>
 
-                {/* Lessons list inside chapter */}
+                {/* Danh sách Bài học Chương */}
                 {isOpen && (
-                  <div className="border-t border-slate-100 dark:border-slate-800/80 px-4 sm:px-6 py-4 flex flex-col gap-2.5 bg-slate-50/40 dark:bg-slate-950/30">
+                  <div className="flex flex-col gap-4">
                     {displayedLessons.length === 0 ? (
-                      <div className="py-6 text-center text-xs text-slate-400">
+                      <div className="py-6 text-center text-xs text-slate-400 italic">
                         {t('emptyLessons')}
                       </div>
                     ) : (
@@ -295,38 +312,38 @@ export function CourseSyllabusTab({
                         return (
                           <div
                             key={les.id}
-                            className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 border border-slate-200/60 dark:border-slate-800/80 shadow-2xs hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                            className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-[#0059bb] dark:hover:border-blue-500 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all group shadow-sm"
                           >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              {/* Type Icon */}
-                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${typeInfo.color}`}>
-                                <span className="material-symbols-outlined text-[18px]">
+                            <div className="flex items-start md:items-center gap-4 min-w-0 flex-1">
+                              {/* Type Icon Box */}
+                              <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${typeInfo.containerClass}`}
+                              >
+                                <span className="material-symbols-outlined text-[22px]">
                                   {typeInfo.icon}
                                 </span>
                               </div>
 
                               {/* Title & Metadata */}
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                                    {les.title}
-                                  </h4>
-                                </div>
+                              <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                                <h3 className="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-semibold group-hover:text-[#0059bb] dark:group-hover:text-blue-400 transition-colors truncate">
+                                  {les.title}
+                                </h3>
 
-                                <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                  <span className="font-medium text-slate-600 dark:text-slate-300">
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                                  <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
                                     {t(`lessonType.${les.lessonType}`)}
                                   </span>
                                   <span>•</span>
                                   <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[13px]">schedule</span>
+                                    <span className="material-symbols-outlined text-[16px]">schedule</span>
                                     <span>{t('lessonDuration', { minutes: les.duration || 45 })}</span>
                                   </span>
                                   {les.materials && les.materials.length > 0 && (
                                     <>
                                       <span>•</span>
-                                      <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
-                                        <span className="material-symbols-outlined text-[13px]">attach_file</span>
+                                      <span className="flex items-center gap-1 text-[#0059bb] dark:text-blue-400 font-semibold">
+                                        <span className="material-symbols-outlined text-[16px]">attach_file</span>
                                         <span>{les.materials.length} tài liệu</span>
                                       </span>
                                     </>
@@ -335,17 +352,19 @@ export function CourseSyllabusTab({
                               </div>
                             </div>
 
-                            {/* Right Status & Action */}
-                            <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                            {/* Right Status Badge & Action Button */}
+                            <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
                               {getLessonStatusBadge(les.status)}
 
                               <button
                                 type="button"
                                 onClick={() => onSelectLesson(les, ch)}
-                                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-700 hover:border-[#0059bb] dark:hover:border-blue-500 transition-colors text-xs font-semibold cursor-pointer active:scale-95"
                               >
-                                <span>{les.status === 'COMPLETED' ? t('actionPreview') : t('actionLearn')}</span>
-                                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                <span>
+                                  {les.status === 'COMPLETED' ? t('actionPreview') : t('actionLearn')}
+                                </span>
+                                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                               </button>
                             </div>
                           </div>
@@ -362,4 +381,3 @@ export function CourseSyllabusTab({
     </div>
   );
 }
-

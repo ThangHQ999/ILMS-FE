@@ -182,24 +182,24 @@ export function CourseDetailPageView({
                 onSelectTab={(tab) => setActiveTab(tab as any)}
               />
 
-              {/* Tab Navigation Pill Bar */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              {/* TABS NAVIGATION */}
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab('syllabus')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold border-2 transition-all cursor-pointer ${
                     activeTab === 'syllabus'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
+                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 font-semibold'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+                  <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
                   <span>{t('tabSyllabus')}</span>
                   <span
-                    className={`text-[11px] px-2 py-0.2 rounded-full font-mono ${
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono ${
                       activeTab === 'syllabus'
                         ? 'bg-white/20 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     {chapters.length}
@@ -209,39 +209,39 @@ export function CourseDetailPageView({
                 <button
                   type="button"
                   onClick={() => setActiveTab('materials')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
                     activeTab === 'materials'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
+                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">folder_open</span>
+                  <span className="material-symbols-outlined text-[20px]">folder_open</span>
                   <span>{t('tabMaterials')}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('knowledgeGraph')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
                     activeTab === 'knowledgeGraph'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
+                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">hub</span>
+                  <span className="material-symbols-outlined text-[20px]">hub</span>
                   <span>{t('tabKnowledgeGraph')}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('aiTutor')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
                     activeTab === 'aiTutor'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
+                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-amber-400">smart_toy</span>
+                  <span className="material-symbols-outlined text-[20px] text-amber-500">smart_toy</span>
                   <span>{t('tabAiTutor')}</span>
                 </button>
               </div>
