@@ -208,100 +208,101 @@ export function TeacherExamManagementView({
       />
 
       {/* 3. Main Workspace Area */}
-      <main
-        className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-7xl w-full mx-auto ${
-          isSidebarCollapsed ? 'pl-24' : 'lg:pl-[304px]'
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          isSidebarCollapsed ? 'pl-20' : 'pl-0 lg:pl-72'
         }`}
       >
-        <div className="relative w-full flex flex-col gap-6">
-          {/* Subtle Ambient Glow Accents */}
-          <div className="absolute -top-12 right-24 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
-          <div className="absolute top-80 left-12 w-80 h-80 bg-purple-500/10 dark:bg-purple-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
+        <main className="w-full pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1680px] mx-auto">
+          <div className="relative w-full flex flex-col gap-6">
+            {/* Subtle Ambient Glow Accents */}
+            <div className="absolute -top-12 right-24 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute top-80 left-12 w-80 h-80 bg-purple-500/10 dark:bg-purple-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
-          {/* SECTION 1: PAGE HEADER & PRIMARY ACTIONS */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold tracking-tight text-[#171c1f] dark:text-white">
-                  Quản lý Đề thi &amp; Quiz trắc nghiệm
-                </h1>
-                {/* Course Selector Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsCourseDropdownOpen(!isCourseDropdownOpen)}
-                    className="flex items-center gap-2 bg-white dark:bg-[#1E1F20] px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-[#282A2C] cursor-pointer hover:border-blue-500 transition-all text-xs font-semibold text-[#171c1f] dark:text-white"
-                  >
-                    <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
-                      menu_book
-                    </span>
-                    <span className="truncate max-w-[220px]">{selectedCourse}</span>
-                    <span className="material-symbols-outlined text-slate-400 text-[18px]">
-                      expand_more
-                    </span>
-                  </button>
+            {/* SECTION 1: PAGE HEADER & PRIMARY ACTIONS */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171c1f] dark:text-white whitespace-nowrap">
+                    Quản lý Đề thi &amp; Quiz trắc nghiệm
+                  </h1>
+                  {/* Course Selector Dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsCourseDropdownOpen(!isCourseDropdownOpen)}
+                      className="flex items-center gap-2 bg-white dark:bg-[#1E1F20] px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-[#282A2C] cursor-pointer hover:border-blue-500 transition-all text-xs font-semibold text-[#171c1f] dark:text-white whitespace-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
+                        menu_book
+                      </span>
+                      <span className="truncate max-w-[220px]">{selectedCourse}</span>
+                      <span className="material-symbols-outlined text-slate-400 text-[18px]">
+                        expand_more
+                      </span>
+                    </button>
 
-                  {isCourseDropdownOpen && (
-                    <div className="absolute left-0 mt-1 w-72 bg-white dark:bg-[#1E1F20] rounded-xl shadow-lg border border-slate-200 dark:border-[#282A2C] py-1.5 z-50">
-                      {courseList.map((course) => (
-                        <button
-                          key={course}
-                          onClick={() => {
-                            setSelectedCourse(course);
-                            setIsCourseDropdownOpen(false);
-                            showToast(`Đã chuyển sang môn học: ${course}`);
-                          }}
-                          className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors flex items-center gap-2 ${
-                            selectedCourse === course
-                              ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/30'
-                              : 'text-slate-700 dark:text-slate-300'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[16px]">school</span>
-                          <span className="truncate">{course}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    {isCourseDropdownOpen && (
+                      <div className="absolute left-0 mt-1 w-72 bg-white dark:bg-[#1E1F20] rounded-xl shadow-lg border border-slate-200 dark:border-[#282A2C] py-1.5 z-50">
+                        {courseList.map((course) => (
+                          <button
+                            key={course}
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setIsCourseDropdownOpen(false);
+                              showToast(`Đã chuyển sang môn học: ${course}`);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors flex items-center gap-2 ${
+                              selectedCourse === course
+                                ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/30'
+                                : 'text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">school</span>
+                            <span className="truncate">{course}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs text-[#75777e] dark:text-[#8E918F] mt-1">
-                Khoa Công nghệ Thông tin • Học kỳ II - 2024
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <button
-                type="button"
-                onClick={() => showToast('Mở cửa sổ nhập đề thi từ file Moodle XML hoặc Excel (.xlsx)')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-[#171c1f] dark:text-white text-xs font-semibold hover:bg-slate-50 dark:hover:bg-[#282A2C] transition-colors shadow-sm cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px] text-[#75777e] dark:text-[#8E918F]">
-                  upload_file
+                <span className="text-xs text-[#75777e] dark:text-[#8E918F] mt-1">
+                  Khoa Công nghệ Thông tin • Học kỳ II - 2024
                 </span>
-                <span>Nhập từ Moodle / Excel</span>
-              </button>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => showToast('Bắt đầu khởi tạo Exam Blueprint tự động từ Ma trận chuẩn đầu ra Bloom')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                <span>Tạo đề bằng AI (Exam Blueprint)</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+                <button
+                  type="button"
+                  onClick={() => showToast('Mở cửa sổ nhập đề thi từ file Moodle XML hoặc Excel (.xlsx)')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-[#171c1f] dark:text-white text-xs font-semibold hover:bg-slate-50 dark:hover:bg-[#282A2C] transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-[#75777e] dark:text-[#8E918F]">
+                    upload_file
+                  </span>
+                  <span>Nhập từ Moodle / Excel</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => showToast('Mở trình soạn thảo tạo mới Quiz trắc nghiệm')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-                <span>Tạo Quiz mới</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => showToast('Bắt đầu khởi tạo Exam Blueprint tự động từ Ma trận chuẩn đầu ra Bloom')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                  <span>Tạo đề bằng AI (Exam Blueprint)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => showToast('Mở trình soạn thảo tạo mới Quiz trắc nghiệm')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <span>Tạo Quiz mới</span>
+                </button>
+              </div>
             </div>
-          </div>
 
           {/* SECTION 2: 4 KPI METRICS ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -427,12 +428,12 @@ export function TeacherExamManagementView({
           {/* SECTION 3: SEARCH & MULTI-FILTER TOOLBAR */}
           <div className="flex flex-col gap-3 p-4 rounded-xl bg-white dark:bg-[#1E1F20] shadow-sm border border-slate-200/80 dark:border-[#282A2C]">
             {/* Top Category Tabs */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#282A2C] flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 p-1 bg-[#eaeef2] dark:bg-[#131314] rounded-lg flex-wrap text-xs font-semibold">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#282A2C] gap-3">
+              <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#eaeef2] dark:bg-[#131314] rounded-lg text-xs font-semibold overflow-x-auto scrollbar-none whitespace-nowrap">
                 <button
                   type="button"
                   onClick={() => setActiveCategory('all')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'all'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
@@ -445,46 +446,46 @@ export function TeacherExamManagementView({
                 <button
                   type="button"
                   onClick={() => setActiveCategory('quiz')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'quiz'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">bolt</span>
-                  <span>⚡ Quiz trắc nghiệm (9)</span>
+                  <span>Quiz trắc nghiệm (9)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveCategory('exam')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'exam'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">description</span>
-                  <span>📝 Đề thi chính khóa (5)</span>
+                  <span>Đề thi chính khóa (5)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveCategory('live')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'live'
                       ? 'bg-red-500 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span>• Đang mở / Live (1)</span>
+                  <span>Đang mở / Live (1)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveCategory('completed')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'completed'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
@@ -497,7 +498,7 @@ export function TeacherExamManagementView({
                 <button
                   type="button"
                   onClick={() => setActiveCategory('draft')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeCategory === 'draft'
                       ? 'bg-purple-600 text-white shadow-sm'
                       : 'text-[#44474d] dark:text-[#8E918F] hover:bg-white dark:hover:bg-[#282A2C] hover:text-[#171c1f]'
@@ -509,11 +510,15 @@ export function TeacherExamManagementView({
               </div>
 
               {/* Advanced Filter Chip */}
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-semibold">
-                  <span className="material-symbols-outlined text-[15px]">filter_alt</span>
-                  Bộ lọc nâng cao
-                </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => showToast('Mở bộ lọc nâng cao')}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">filter_alt</span>
+                  <span>Bộ lọc nâng cao</span>
+                </button>
               </div>
             </div>
 
@@ -1067,6 +1072,7 @@ export function TeacherExamManagementView({
           </div>
         </div>
       </main>
+    </div>
 
       {/* Floating Toast Notification */}
       {toastMessage && (
