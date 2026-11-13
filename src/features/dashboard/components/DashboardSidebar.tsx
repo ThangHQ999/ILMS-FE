@@ -22,7 +22,7 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   const isOverviewActive = pathname === '/dashboard';
-  const isClassesActive = pathname.startsWith('/classes');
+  const isClassesActive = pathname.startsWith('/classes') || pathname.startsWith('/courses');
   const isMaterialsActive = pathname.startsWith('/materials');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
