@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { ClassMaterial } from '../../schemas/class-detail.schema';
 import { UploadMaterialModal } from './UploadMaterialModal';
@@ -156,6 +157,20 @@ export function ClassMaterialsTab({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            href="/materials/tasks"
+            className="h-9 px-3.5 rounded-full font-semibold text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all inline-flex items-center gap-1.5 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 shadow-xs active:scale-95"
+            title="Quản lý tiến trình xử lý ngầm (Background AI Queue)"
+          >
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400">
+              assignment
+            </span>
+            <span>Hàng đợi AI</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+              2
+            </span>
+          </Link>
+
           <button
             type="button"
             onClick={() => setIsUploadAiModalOpen(true)}

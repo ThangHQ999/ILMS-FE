@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 interface UploadMaterialModalProps {
   isOpen: boolean;
@@ -331,6 +332,14 @@ export function UploadMaterialModal({
             >
               Hủy toàn bộ tiến trình
             </button>
+            <Link
+              href="/materials/tasks"
+              onClick={onClose}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">queue</span>
+              <span>Xem hàng đợi AI</span>
+            </Link>
             <button
               type="button"
               onClick={handleRunInBackground}
