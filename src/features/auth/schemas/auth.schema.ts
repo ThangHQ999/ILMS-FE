@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 export const userProfileSchema = z.object({
   id: z.string(),
-  roleName: z.string(),
+  roleName: z.string().optional().default('ROLE_USER'),
   email: z.string().email(),
-  firstName: z.string(),
+  firstName: z.string().optional().default(''),
   middleName: z.string().nullable().optional(),
-  lastName: z.string(),
+  lastName: z.string().optional().default(''),
   avatarUrl: z.string().nullable().optional(),
 });
 

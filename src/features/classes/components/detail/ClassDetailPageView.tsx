@@ -305,9 +305,17 @@ export function ClassDetailPageView({
 
             {activeTab === 'announcements' && (
               <ClassAnnouncementsTab
+                classId={classId}
                 announcements={announcements}
                 currentRole={currentRole}
+                onPublishAnnouncement={(ann) => {
+                  postAnnouncementMutation.mutate({
+                    title: ann.title,
+                    content: ann.content,
+                  });
+                }}
                 onPostClick={() => showToast('Mở khung soạn thông báo mới cho lớp')}
+                onToast={showToast}
               />
             )}
 
@@ -318,6 +326,7 @@ export function ClassDetailPageView({
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
+                onToast={showToast}
               />
             )}
 

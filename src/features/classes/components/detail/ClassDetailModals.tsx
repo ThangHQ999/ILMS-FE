@@ -335,3 +335,5 @@ export function ToastNotification({ message }: ToastNotificationProps) {
   );
 }
 
+export { UploadMaterialModal } from './UploadMaterialModal';
+

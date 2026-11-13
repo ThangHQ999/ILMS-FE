@@ -48,6 +48,40 @@ export const classAnnouncementSchema = z.object({
   authorColor: z.string().default('bg-blue-700'),
   createdAt: z.string(),
   isPinned: z.boolean().default(false),
+  pinBadge: z.string().optional(),
+  badgeType: z.enum(['error', 'secondary', 'primary', 'archived', 'poll']).optional(),
+  attachments: z
+    .array(
+      z.object({
+        name: z.string(),
+        size: z.string(),
+        desc: z.string().optional(),
+        type: z.enum(['pdf', 'pptx', 'cpp', 'doc', 'link']),
+        url: z.string().optional(),
+      })
+    )
+    .optional(),
+  readCount: z.number().optional(),
+  totalStudents: z.number().optional(),
+  readPercent: z.number().optional(),
+  commentsCount: z.number().optional(),
+  dueText: z.string().optional(),
+  tag: z.string().optional(),
+  poll: z
+    .object({
+      totalVotes: z.number(),
+      options: z.array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          votes: z.number(),
+          percent: z.number(),
+        })
+      ),
+      deadlineText: z.string(),
+    })
+    .optional(),
+  isArchived: z.boolean().optional(),
 });
 export type ClassAnnouncement = z.infer<typeof classAnnouncementSchema>;
 
@@ -105,6 +139,17 @@ export const classMemberSchema = z.object({
   role: z.enum(['OWNER', 'TEACHER', 'STUDENT']).default('STUDENT'),
   status: z.enum(['APPROVED', 'PENDING']).default('APPROVED'),
   avatar: z.string().default('SV'),
+  avatarUrl: z.string().optional(),
+  isClassLeader: z.boolean().optional(),
+  leaderBadge: z.string().optional(),
+  attendanceRate: z.number().optional(),
+  knowledgeNodesUnlocked: z.number().optional(),
+  knowledgeNodesTotal: z.number().optional(),
+  knowledgePercent: z.number().optional(),
+  gpa: z.number().optional(),
+  learningStatus: z.enum(['EXCELLENT', 'ACTIVE', 'NEED_HELP', 'NORMAL', 'AT_RISK']).optional(),
+  statusBadge: z.string().optional(),
+  statusDetail: z.string().optional(),
   joinedAt: z.string().optional(),
 });
 export type ClassMember = z.infer<typeof classMemberSchema>;

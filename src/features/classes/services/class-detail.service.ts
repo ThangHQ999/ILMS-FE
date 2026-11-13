@@ -156,27 +156,133 @@ export const MOCK_TEMPLATES: CourseTemplate[] = [
 export const MOCK_ANNOUNCEMENTS: ClassAnnouncement[] = [
   {
     id: 'ann-01',
-    title: 'Chào mừng các bạn đến với lớp Công nghệ thông tin K22',
+    title: 'Lịch kiểm tra giữa kỳ Quiz 05 & Thực hành Cây Cân Bằng AVL',
     content:
-      'Các bạn vui lòng kiểm tra danh sách môn học đã được gắn vào lớp, rà soát lại thông tin cá nhân và cài đặt môi trường lập trình trước buổi học đầu tiên vào thứ Hai tuần tới.',
-    authorName: 'TS. Lê Hoàng Nam',
-    authorRole: 'Chủ lớp',
-    authorInitials: 'LN',
-    authorColor: 'bg-blue-700',
-    createdAt: '2 ngày trước',
+      'Nhắc nhở toàn thể 42 sinh viên lớp CNTT-K22-01: Bài thi kiểm tra thực hành giải thuật giữa kỳ sẽ diễn ra vào tiết 3-5 thứ Sáu tuần này tại phòng Lab 402. Sinh viên cần chủ động rà soát toàn bộ kỹ thuật xoay cây LL, RR, LR, RL và cài đặt mã nguồn trực tiếp trên hệ thống Sandbox ILMS. Đề cương chi tiết và bộ test case mẫu được đính kèm bên dưới.',
+    authorName: 'TS. Nguyễn Văn An',
+    authorRole: 'Giảng viên Chủ nhiệm',
+    authorInitials: 'AN',
+    authorColor: 'bg-primary text-on-primary',
+    createdAt: 'Đăng 2 giờ trước • Ngày 24/03/2025',
     isPinned: true,
+    pinBadge: 'ĐÃ GHIM - QUAN TRỌNG',
+    badgeType: 'error',
+    attachments: [
+      {
+        name: 'De_Cuong_On_Tap_AVL_Tree_Quiz05_2025.pdf',
+        size: '1.2 MB',
+        desc: 'Tài liệu chính thức bộ môn Cấu trúc dữ liệu',
+        type: 'pdf',
+      },
+    ],
+    readCount: 40,
+    totalStudents: 42,
+    readPercent: 95,
+    commentsCount: 8,
   },
   {
     id: 'ann-02',
-    title: 'Lịch thực hành Lab môn Cấu trúc dữ liệu & Giải thuật',
+    title: 'Mở đợt bổ sung nộp lại bài tập Lab 04 cho các bạn bị trừ điểm',
     content:
-      'Phòng máy B2-302 đã được bổ sung tài khoản kết nối cụm máy chủ CodeLab. Sinh viên nhóm 01 mang theo laptop cá nhân và thẻ sinh viên khi tham gia.',
-    authorName: 'Trần Quốc Huy',
-    authorRole: 'Giảng viên',
-    authorInitials: 'QH',
-    authorColor: 'bg-purple-600',
-    createdAt: '5 giờ trước',
+      'Hệ thống đã mở cổng nộp bổ sung cho 6 bạn sinh viên gặp lỗi biên dịch ở bài Lab 04 (Binary Search Tree). Lưu ý: Điểm nộp bổ sung được tính tối đa 80% thang điểm bài gốc. Cổng nộp tự động đóng chuẩn xác không gia hạn.',
+    authorName: 'TS. Nguyễn Văn An',
+    authorRole: 'Giảng viên Chủ nhiệm',
+    authorInitials: 'AN',
+    authorColor: 'bg-primary text-on-primary',
+    createdAt: 'Đăng hôm qua lúc 16:30',
+    isPinned: true,
+    pinBadge: 'ĐÃ GHIM',
+    badgeType: 'secondary',
+    dueText: 'Thời hạn nộp lại: 23:59 ngày mai (25/03/2025)',
+    tag: 'Lab_04_BST_Resubmit',
+    readCount: 36,
+    totalStudents: 42,
+    readPercent: 86,
+    commentsCount: 3,
+  },
+  {
+    id: 'ann-03',
+    title: 'Cập nhật tài liệu tham khảo bài giảng Tuần 09 - Segment Tree & Fenwick Tree',
+    content:
+      'Chào cả lớp, thầy đã đăng tải toàn bộ Slide bài giảng và mã nguồn Starter Code C++ cho dạng bài toán Range Minimum Query (RMQ). Các bạn tải về để chuẩn bị trước câu hỏi cho buổi seminar lý thuyết tuần tới nhé.',
+    authorName: 'ThS. Lê Hoàng Nam',
+    authorRole: 'Giảng viên Thực hành',
+    authorInitials: 'HN',
+    authorColor: 'bg-secondary text-on-secondary',
+    createdAt: 'Đăng 3 ngày trước • 21/03/2025',
     isPinned: false,
+    attachments: [
+      {
+        name: 'Slide_Week09_Fenwick.pptx',
+        size: '3.4 MB',
+        desc: 'Bài giảng lý thuyết RMQ & Fenwick Tree',
+        type: 'pptx',
+      },
+      {
+        name: 'RMQ_StarterCode.cpp',
+        size: '12 KB',
+        desc: 'Mã nguồn C++ mẫu chuẩn O(log N)',
+        type: 'cpp',
+      },
+    ],
+    readCount: 42,
+    totalStudents: 42,
+    readPercent: 100,
+    commentsCount: 5,
+  },
+  {
+    id: 'ann-04',
+    title: 'Khảo sát ý kiến sinh viên về buổi phụ đạo AI Socratic cuối tuần',
+    content:
+      'Thầy tổ chức một buổi Live Coding giải đáp thắc mắc cùng trợ giảng AI Mentor. Mời các em vote khung thời gian phù hợp nhất:',
+    authorName: 'TS. Nguyễn Văn An',
+    authorRole: 'Bình chọn lớp',
+    authorInitials: 'AN',
+    authorColor: 'bg-primary text-on-primary',
+    createdAt: 'Đăng 5 ngày trước',
+    isPinned: false,
+    badgeType: 'poll',
+    poll: {
+      totalVotes: 35,
+      options: [
+        {
+          id: 'opt-a',
+          label: 'A. Tối Thứ Bảy (19:30 - 21:00)',
+          votes: 24,
+          percent: 68.5,
+        },
+        {
+          id: 'opt-b',
+          label: 'B. Sáng Chủ Nhật (09:00 - 10:30)',
+          votes: 8,
+          percent: 22.8,
+        },
+        {
+          id: 'opt-c',
+          label: 'C. Chiều Chủ Nhật (15:00 - 16:30)',
+          votes: 3,
+          percent: 8.7,
+        },
+      ],
+      deadlineText: 'Bình chọn sẽ khóa vào 18:00 Thứ Sáu',
+    },
+  },
+  {
+    id: 'ann-05',
+    title: 'Thông báo nghỉ học bù môn Cơ sở dữ liệu sang thứ Bảy',
+    content:
+      'Do giảng viên bận tham gia hội nghị Khoa học Công nghệ tại Hà Nội, buổi học thứ Năm được dời sang tiết 1-3 sáng thứ Bảy tại Giảng đường B201.',
+    authorName: 'TS. Nguyễn Văn An',
+    authorRole: 'Giảng viên Chủ nhiệm',
+    authorInitials: 'AN',
+    authorColor: 'bg-slate-700 text-white',
+    createdAt: 'Đăng tuần trước • 14/03/2025',
+    isPinned: false,
+    isArchived: true,
+    readCount: 41,
+    totalStudents: 42,
+    readPercent: 98,
+    commentsCount: 0,
   },
 ];
 
@@ -300,51 +406,158 @@ export const MOCK_MEMBERS: ClassMember[] = [
   },
   {
     id: 'mem-02',
-    name: 'Trần Quốc Huy',
-    email: 'huy.tq@ilms.edu.vn',
+    name: 'TS. Nguyễn Văn An',
+    email: 'an.nv@ilms.edu.vn',
     role: 'TEACHER',
     status: 'APPROVED',
-    avatar: 'QH',
-    joinedAt: '02/09/2024',
+    avatar: 'NA',
+    joinedAt: '01/09/2024',
   },
   {
     id: 'mem-03',
-    name: 'Lê Thu Hà',
-    email: 'ha.lt@ilms.edu.vn',
-    role: 'TEACHER',
-    status: 'APPROVED',
-    avatar: 'TH',
-    joinedAt: '03/09/2024',
-  },
-  {
-    id: 'mem-04',
     name: 'Trần Nhật Minh',
-    studentCode: 'SV220101',
-    email: 'nhatminh.edu@gmail.com',
+    studentCode: '22028192',
+    email: 'minh.tn22@sis.edu.vn',
     role: 'STUDENT',
     status: 'APPROVED',
     avatar: 'TM',
+    avatarUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBnee4nWlyNVaqQyYH9D-di2Q3z-oTGlDaLOCX1YiBLd38BOb9qgssPI3odkYvDwUVY6HL2v0PhEhoK5LsYO3b3QQSSHIHqwzOV08loHT8spQhzQQl6qvZyumcD34gBQixk_mAoZ9uCL20oIM1dYamydDBzkLSLJh_L7aPGuXOIUGj5lLM2q-FlcwZDQvFMMfo7vKc5uGReBi4-q5MHIqnEZ_LAX2FGqbLpqinGFDuE',
+    isClassLeader: true,
+    leaderBadge: 'LT',
+    attendanceRate: 100,
+    knowledgeNodesUnlocked: 79,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 96,
+    gpa: 9.2,
+    learningStatus: 'EXCELLENT',
+    statusBadge: 'Top 1 Xuất sắc 🔥',
+    joinedAt: '05/09/2024',
+  },
+  {
+    id: 'mem-04',
+    name: 'Nguyễn Tuấn Anh',
+    studentCode: '22028195',
+    email: 'anh.nt22@sis.edu.vn',
+    role: 'STUDENT',
+    status: 'APPROVED',
+    avatar: 'TA',
+    avatarUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAM0iyIAtKIVmNk6J_C6zq4m48kjVtG0r3oj2Tv9LdbwIlwJ_o0Gve91ud03OJX_6QZbsbTfG5TOqjhhyP7JKLtZbD3RDWNJtzfbXrcuO2n12LqMRtKfK-R4NyEP_ih2f-rK9eJLKzxiMbmbvJrcDDSo1oX-xjLv_nUyESC3BC7cAZBIqwsk--HfCkU5wSU_r8loxYkpSGgSMAX9DkMZefp3gZ7F4Yr-SmLWNeBll9S',
+    attendanceRate: 95,
+    knowledgeNodesUnlocked: 70,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 85,
+    gpa: 8.8,
+    learningStatus: 'ACTIVE',
+    statusBadge: 'Tích cực',
     joinedAt: '05/09/2024',
   },
   {
     id: 'mem-05',
-    name: 'Nguyễn Thu Hương',
-    studentCode: 'SV220102',
-    email: 'huong.nt@student.edu.vn',
+    name: 'Lê Hoàng Yến',
+    studentCode: '22028198',
+    email: 'yen.lh22@sis.edu.vn',
     role: 'STUDENT',
     status: 'APPROVED',
-    avatar: 'TH',
+    avatar: 'HY',
+    avatarUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBrxzlCcZXA8_bs74SNDius1dT82_MpI7vzq1etmx--k7pHnCSotNddCkssy-bSEd2lI3luIbwkttrQSBwcTPtMRddXpKs3fveN1OpkVg2jvTSw3ygGcx1DARiFIVbTr5KZhHrH76rhUhA_sWnHjN44tPYV7DXbA4v_VtV1txIabiZJTFFaLwCz0D34yS0GzEqgupCRpC1O6xT42ipr3jrXvJc8ZNTbQxA8Kg7_Ex4Y',
+    attendanceRate: 90,
+    knowledgeNodesUnlocked: 65,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 79,
+    gpa: 8.4,
+    learningStatus: 'ACTIVE',
+    statusBadge: 'Tích cực',
     joinedAt: '05/09/2024',
   },
   {
     id: 'mem-06',
-    name: 'Đặng Quốc Bảo',
-    studentCode: 'SV220145',
-    email: 'bao.dq@student.edu.vn',
+    name: 'Phạm Văn Hùng',
+    studentCode: '22028204',
+    email: 'hung.pv22@sis.edu.vn',
     role: 'STUDENT',
-    status: 'PENDING',
-    avatar: 'QB',
-    joinedAt: 'Hôm nay',
+    status: 'APPROVED',
+    avatar: 'PH',
+    attendanceRate: 72,
+    knowledgeNodesUnlocked: 38,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 46,
+    gpa: 5.5,
+    learningStatus: 'NEED_HELP',
+    statusBadge: 'Cần trợ giúp ⚠️',
+    statusDetail: '(Hổng cây AVL)',
+    joinedAt: '05/09/2024',
+  },
+  {
+    id: 'mem-07',
+    name: 'Đỗ Minh Châu',
+    studentCode: '22028210',
+    email: 'chau.dm22@sis.edu.vn',
+    role: 'STUDENT',
+    status: 'APPROVED',
+    avatar: 'MC',
+    attendanceRate: 88,
+    knowledgeNodesUnlocked: 62,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 75,
+    gpa: 7.9,
+    learningStatus: 'NORMAL',
+    statusBadge: 'Bình thường',
+    joinedAt: '05/09/2024',
+  },
+  {
+    id: 'mem-08',
+    name: 'Vũ Đức Long',
+    studentCode: '22028215',
+    email: 'long.vd22@sis.edu.vn',
+    role: 'STUDENT',
+    status: 'APPROVED',
+    avatar: 'DL',
+    attendanceRate: 65,
+    knowledgeNodesUnlocked: 30,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 36,
+    gpa: 4.8,
+    learningStatus: 'AT_RISK',
+    statusBadge: 'Nguy cơ trượt ⚠️',
+    statusDetail: '(Vắng 3 buổi)',
+    joinedAt: '05/09/2024',
+  },
+  {
+    id: 'mem-09',
+    name: 'Trịnh Mai Lan',
+    studentCode: '22028220',
+    email: 'lan.tm22@sis.edu.vn',
+    role: 'STUDENT',
+    status: 'APPROVED',
+    avatar: 'ML',
+    attendanceRate: 98,
+    knowledgeNodesUnlocked: 75,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 91,
+    gpa: 9.0,
+    learningStatus: 'ACTIVE',
+    statusBadge: 'Tích cực',
+    joinedAt: '05/09/2024',
+  },
+  {
+    id: 'mem-10',
+    name: 'Hoàng Gia Bảo',
+    studentCode: '22028225',
+    email: 'bao.hg22@sis.edu.vn',
+    role: 'STUDENT',
+    status: 'APPROVED',
+    avatar: 'GB',
+    attendanceRate: 92,
+    knowledgeNodesUnlocked: 68,
+    knowledgeNodesTotal: 82,
+    knowledgePercent: 82,
+    gpa: 8.2,
+    learningStatus: 'NORMAL',
+    statusBadge: 'Bình thường',
+    joinedAt: '05/09/2024',
   },
 ];
 
@@ -445,6 +658,31 @@ export const MOCK_MATERIALS: ClassMaterial[] = [
   },
 ];
 
+const ANNOUNCEMENT_STORAGE_KEY = (classId: string) => `ilms_announcements_${classId}`;
+
+export function getLocalAnnouncements(classId: string): ClassAnnouncement[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY(classId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalAnnouncement(classId: string, item: ClassAnnouncement): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalAnnouncements(classId);
+    const updated = [item, ...existing.filter((x) => x.id !== item.id)];
+    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY(classId), JSON.stringify(updated));
+  } catch {
+    // quota exceeded or storage disabled
+  }
+}
+
 /**
  * Fetch full class detail bundle with graceful API connect & fallback.
  */
@@ -484,6 +722,14 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     }
   } catch {
     // Fallback to mock announcements
+  }
+
+  // Merge locally persisted announcements (offline/mock persistence)
+  const localAnnouncements = getLocalAnnouncements(classId);
+  if (localAnnouncements.length > 0) {
+    const existingIds = new Set(announcements.map((a) => a.id));
+    const newItems = localAnnouncements.filter((a) => !existingIds.has(a.id));
+    announcements = [...newItems, ...announcements];
   }
 
   try {
@@ -549,7 +795,29 @@ export async function postClassAnnouncement(
   try {
     await api.post<ApiResponse<unknown>>(`/classes/class/${classId}/Announcements`, payload);
   } catch {
-    // Local simulation fallback
+    // Local simulation fallback: ensure persisted in localStorage for offline/mock mode
+    const existing = getLocalAnnouncements(classId);
+    const alreadySaved = existing.some(
+      (a) => a.title === payload.title && a.content === payload.content
+    );
+    if (!alreadySaved) {
+      saveLocalAnnouncement(classId, {
+        id: `ann-${Date.now()}`,
+        title: payload.title,
+        content: payload.content,
+        authorName: 'TS. Lê Hoàng Nam',
+        authorRole: 'Giảng viên Chủ nhiệm',
+        authorInitials: 'LN',
+        authorColor: 'bg-primary text-on-primary',
+        createdAt: 'Vừa xong',
+        isPinned: false,
+        tag: 'Thông báo chung',
+        readCount: 1,
+        totalStudents: 42,
+        readPercent: 2,
+        commentsCount: 0,
+      });
+    }
   }
 }
 

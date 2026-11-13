@@ -2,16 +2,17 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { createClassRequestSchema, type CreateClassRequest } from '../schemas/class.schema';
+import { createClassRequestSchema, type CreateClassRequest, type ClassItem } from '../schemas/class.schema';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
 import { useCreateClass } from '../hooks/useCreateClass';
 
 interface CreateClassModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (created: ClassItem) => void;
 }
 
-export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
+export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModalProps) {
   const t = useTranslations('classes');
   const { mutateAsync: createClassMutate, isPending } = useCreateClass();
 
@@ -62,7 +63,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
 
     try {
       setApiError(null);
-      await createClassMutate(result.data);
+      const created = await createClassMutate(result.data);
       setFormData({
         name: '',
         title: '',
@@ -73,6 +74,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
         enrollmentKey: '',
       });
       setErrors({});
+      onSuccess?.(created);
       onClose();
     } catch (err: unknown) {
       let msg = 'Có lỗi xảy ra khi gửi yêu cầu tới API Spring Boot.';
