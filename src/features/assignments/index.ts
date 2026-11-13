@@ -15,4 +15,5 @@ export { AssignmentUpcomingCluster } from './components/AssignmentUpcomingCluste
 export { GradeWeightsPanel } from './components/GradeWeightsPanel';
 export { SocraticAiMentorPanel } from './components/SocraticAiMentorPanel';
 export { PersonalPerformancePanel } from './components/PersonalPerformancePanel';
+export { TeacherExamManagementView } from './components/teacher/TeacherExamManagementView';
 
