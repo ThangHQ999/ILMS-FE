@@ -8,8 +8,6 @@ interface TimetableHeaderControlsProps {
   currentWeek: number;
   startDate: string;
   endDate: string;
-  semesterName: string;
-  facultyName: string;
   filterType: TimetableFilterType;
   onFilterChange: (type: TimetableFilterType) => void;
   onNavigateWeek: (delta: number) => void;
@@ -22,8 +20,6 @@ export function TimetableHeaderControls({
   currentWeek,
   startDate,
   endDate,
-  semesterName,
-  facultyName,
   filterType,
   onFilterChange,
   onNavigateWeek,
@@ -42,35 +38,32 @@ export function TimetableHeaderControls({
   ];
 
   return (
-    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 lg:p-7 shadow-sm dark:shadow-none mb-6 transition-colors border-none ring-0 outline-none">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-[#E3E3E3] font-sans">
-              {t('weeklyTitle')}
-            </h1>
-            <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#004A77] dark:text-[#C2E7FF] border-none font-sans">
-              {t('weekBadge', { week: currentWeek })}
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-[#C4C7C5] font-sans">
-            {semesterName} • {startDate} - {endDate} • {facultyName}
-          </p>
+    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none mb-6 transition-colors border-none ring-0 outline-none flex flex-col gap-5">
+      {/* Top Row: Title & Action Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Title */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-[#E3E3E3] font-sans">
+            {t('weeklyTitle')}
+          </h1>
+          <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-[#004A77] text-blue-900 dark:text-[#C2E7FF] border-none font-sans whitespace-nowrap">
+            {t('weekBadge', { week: currentWeek })}
+          </span>
         </div>
 
-        {/* Action controls */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Today shortcut */}
           <button
             type="button"
             onClick={onGoToCurrentWeek}
-            className="px-4 py-2 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#004A77] dark:text-[#C2E7FF] hover:bg-[#C2E7FF] dark:hover:bg-[#005c94] text-xs font-semibold transition-all border-none cursor-pointer whitespace-nowrap font-sans"
+            className="px-4 py-2 rounded-full bg-blue-100 text-blue-900 dark:bg-[#004A77] dark:text-[#C2E7FF] hover:opacity-80 text-xs font-semibold transition-opacity border-none cursor-pointer whitespace-nowrap font-sans"
           >
             {t('todayBtn')}
           </button>
 
           {/* Date Range Navigation */}
-          <div className="flex items-center bg-[#F0F4F9] dark:bg-[#282A2C] rounded-full p-1 text-xs font-medium border-none font-sans">
+          <div className="flex items-center bg-gray-100 dark:bg-[#282A2C] rounded-full p-1 text-xs font-medium border-none font-sans">
             <button
               type="button"
               onClick={() => onNavigateWeek(-1)}
@@ -101,7 +94,7 @@ export function TimetableHeaderControls({
           <button
             type="button"
             onClick={onOpenExportModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-gray-200/80 dark:hover:bg-[#333538] text-gray-800 dark:text-[#E3E3E3] text-xs font-medium transition-colors border-none cursor-pointer whitespace-nowrap font-sans"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-100 dark:bg-[#282A2C] hover:opacity-80 text-gray-800 dark:text-[#E3E3E3] text-xs font-medium transition-opacity border-none cursor-pointer whitespace-nowrap font-sans"
           >
             <span className="material-symbols-outlined text-[17px] text-[#0B57D0] dark:text-[#A8C7FA]">
               ios_share
@@ -113,7 +106,7 @@ export function TimetableHeaderControls({
           <button
             type="button"
             onClick={onOpenSwapRoomModal}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] hover:bg-[#0842a0] dark:hover:bg-[#8ab4f8] text-xs font-semibold transition-colors shadow-sm dark:shadow-none border-none cursor-pointer whitespace-nowrap font-sans"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] hover:opacity-90 text-xs font-semibold transition-opacity border-none cursor-pointer whitespace-nowrap font-sans"
           >
             <span className="material-symbols-outlined text-[17px]">event_repeat</span>
             <span>{t('swapRoomBtn')}</span>
@@ -121,8 +114,8 @@ export function TimetableHeaderControls({
         </div>
       </div>
 
-      {/* Quick filter tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pt-2 scrollbar-none">
+      {/* Filter Chips in a neat horizontal row */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1">
         {filterTabs.map((tab) => {
           const isActive = filterType === tab.type;
           return (
@@ -130,10 +123,10 @@ export function TimetableHeaderControls({
               key={tab.type}
               type="button"
               onClick={() => onFilterChange(tab.type)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border-none cursor-pointer font-sans ${
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-opacity border-none cursor-pointer font-sans whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] shadow-sm dark:shadow-none'
-                  : 'bg-[#F0F4F9] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-200/80 dark:hover:bg-[#333538]'
+                  ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] hover:opacity-90'
+                  : 'bg-gray-200 dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] hover:opacity-80'
               }`}
             >
               {tab.label}
@@ -144,4 +137,3 @@ export function TimetableHeaderControls({
     </div>
   );
 }
-

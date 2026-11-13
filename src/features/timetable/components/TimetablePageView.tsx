@@ -18,7 +18,7 @@ export function TimetablePageView({
   const [isFocusMode, setIsFocusMode] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
+    <div className="min-h-screen bg-[#F0F4F9] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
       <DashboardSidebar
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
