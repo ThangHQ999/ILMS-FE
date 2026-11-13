@@ -26,6 +26,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateClassRequest, string>>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -40,6 +41,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
     if (errors[name as keyof CreateClassRequest]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+    if (apiError) setApiError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,6 +61,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
     }
 
     try {
+      setApiError(null);
       await createClassMutate(result.data);
       setFormData({
         name: '',
@@ -71,33 +74,43 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
       });
       setErrors({});
       onClose();
-    } catch {
-      // Error handled by TanStack Query / global ApiError
+    } catch (err: unknown) {
+      let msg = 'Có lỗi xảy ra khi gửi yêu cầu tới API Spring Boot.';
+      if (typeof err === 'object' && err !== null) {
+        const anyErr = err as { httpStatus?: number; message?: string };
+        if (anyErr.httpStatus === 401) {
+          msg =
+            'Lỗi 401 Unauthorized: Bạn cần đăng nhập tài khoản Giảng viên / Quản trị viên (tại /login) để thực hiện tạo lớp học!';
+        } else if (typeof anyErr.message === 'string') {
+          msg = anyErr.message;
+        }
+      }
+      setApiError(msg);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#1E1F20] shadow-2xl overflow-hidden border-none"
+        className="w-full max-w-lg rounded-3xl bg-surface border border-border/80 shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">add_circle</span>
+        <div className="px-6 sm:px-8 py-5 flex items-center justify-between border-b border-border/60">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[22px]">add_circle</span>
             </div>
             <div>
               <h3
                 id="modal-title"
-                className="text-base font-display font-bold text-[#1F1F1F] dark:text-[#E3E3E3]"
+                className="text-base font-bold text-foreground"
               >
                 {t('modalCreateTitle')}
               </h3>
-              <p className="text-[11px] text-[#747775] dark:text-[#8E918F]">
+              <p className="text-[11px] text-muted-foreground">
                 {t('modalCreateDesc')}
               </p>
             </div>
@@ -105,19 +118,28 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-[#747775] dark:text-[#8E918F] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
+            className="w-8 h-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-4">
+          {apiError && (
+            <div className="p-4 rounded-xl bg-destructive/15 text-destructive text-xs flex items-start gap-2.5 border border-destructive/30">
+              <span className="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5">
+                error
+              </span>
+              <div className="flex-1 leading-relaxed font-medium">{apiError}</div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Class Code / Name */}
             <div>
-              <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
-                {t('fieldName')} <span className="text-[#B3261E] dark:text-[#F28B82]">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldName')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -125,27 +147,27 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder={t('fieldNamePlaceholder')}
-                className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] border-none outline-none transition-all font-mono"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 font-mono transition-all"
               />
               {errors.name && (
-                <p className="mt-1 text-[11px] text-[#B3261E] dark:text-[#F28B82] font-medium">{errors.name}</p>
+                <p className="mt-1 text-[11px] text-destructive font-medium">{errors.name}</p>
               )}
             </div>
 
             {/* Academic Year */}
             <div>
-              <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
-                {t('fieldAcademicYear')} <span className="text-[#B3261E] dark:text-[#F28B82]">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldAcademicYear')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
                 name="academicYear"
                 value={formData.academicYear}
                 onChange={handleChange}
-                className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] border-none outline-none transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />
               {errors.academicYear && (
-                <p className="mt-1 text-[11px] text-[#B3261E] dark:text-[#F28B82] font-medium">
+                <p className="mt-1 text-[11px] text-destructive font-medium">
                   {errors.academicYear}
                 </p>
               )}
@@ -154,8 +176,8 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
-              {t('fieldTitle')} <span className="text-[#B3261E] dark:text-[#F28B82]">*</span>
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
+              {t('fieldTitle')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -163,24 +185,24 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.title}
               onChange={handleChange}
               placeholder={t('fieldTitlePlaceholder')}
-              className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] border-none outline-none transition-all"
+              className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
             />
             {errors.title && (
-              <p className="mt-1 text-[11px] text-[#B3261E] dark:text-[#F28B82] font-medium">{errors.title}</p>
+              <p className="mt-1 text-[11px] text-destructive font-medium">{errors.title}</p>
             )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Major */}
             <div>
-              <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
-                {t('fieldMajor')} <span className="text-[#B3261E] dark:text-[#F28B82]">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldMajor')} <span className="text-destructive">*</span>
               </label>
               <select
                 name="major"
                 value={formData.major}
                 onChange={handleChange}
-                className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] border-none outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all cursor-pointer"
               >
                 {AVAILABLE_MAJORS.map((m) => (
                   <option key={m} value={m}>
@@ -192,7 +214,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
 
             {/* Max Students */}
             <div>
-              <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 {t('fieldMaxStudents')}
               </label>
               <input
@@ -202,14 +224,14 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
                 max="500"
                 value={formData.maxStudents}
                 onChange={handleChange}
-                className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] border-none outline-none transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />
             </div>
           </div>
 
           {/* Enrollment Key */}
           <div>
-            <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               {t('fieldEnrollmentKey')}
             </label>
             <input
@@ -218,13 +240,13 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.enrollmentKey || ''}
               onChange={handleChange}
               placeholder={t('fieldEnrollmentKeyPlaceholder')}
-              className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] border-none outline-none transition-all font-mono"
+              className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 font-mono transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-[#444746] dark:text-[#C4C7C5] mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               {t('fieldDescription')}
             </label>
             <textarea
@@ -233,28 +255,28 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.description || ''}
               onChange={handleChange}
               placeholder={t('fieldDescriptionPlaceholder')}
-              className="w-full p-4 rounded-2xl bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] border-none outline-none transition-all resize-none"
+              className="w-full p-3.5 rounded-2xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all resize-none"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-border/60 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="bg-transparent border border-[#747775] hover:bg-[#F0F4F9] text-[#1F1F1F] dark:border-[#8E918F] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] font-medium px-5 py-2.5 rounded-full text-xs whitespace-nowrap transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-xl border border-border bg-surface text-foreground hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
             >
               {t('btnCancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium whitespace-nowrap transition-colors border-none shadow-none cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground hover:opacity-90 active:scale-95 disabled:opacity-50 text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               {isPending ? (
                 <>
-                  <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
                   <span>{t('btnCreating')}</span>
                 </>
               ) : (

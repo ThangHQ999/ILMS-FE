@@ -10,16 +10,19 @@ interface DashboardSidebarProps {
   isFocus: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  workspaceMode?: 'faculty' | 'student';
 }
 
 export function DashboardSidebar({
   isFocus,
   isCollapsed = false,
   onToggleCollapse,
+  workspaceMode,
 }: DashboardSidebarProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
-  const { isTeacher } = useUserRole();
+  const { isTeacher: roleIsTeacher } = useUserRole();
+  const isTeacher = workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher;
 
   const isOverviewActive = pathname === '/dashboard';
   const isClassesActive = pathname.startsWith('/classes');

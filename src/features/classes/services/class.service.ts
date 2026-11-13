@@ -89,3 +89,15 @@ export async function toggleClassCodeStatus(
   });
 }
 
+/**
+ * Join a class by class code or enrollment key (Student action).
+ * Endpoint: POST /api/v1/classes/join-by-code
+ */
+export async function joinClassByCode(classCode: string): Promise<unknown> {
+  const { data } = await api.post<ApiResponse<unknown>>('/classes/join-by-code', {
+    class_code: classCode.trim(),
+  });
+  return data.data;
+}
+
+
