@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
+import { TeacherCreateQuizStudioView } from './TeacherCreateQuizStudioView';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -41,6 +42,12 @@ export function TeacherExamManagementView({
   userFullName = 'TS. Lê Hoàng Nam',
 }: TeacherExamManagementViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // View Mode: 'list' (Exam & Quiz Management) or 'create' (Quiz Studio Builder)
+  const [viewMode, setViewMode] = useState<'list' | 'create'>(() => {
+    return searchParams.get('action') === 'create' ? 'create' : 'list';
+  });
 
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -188,6 +195,16 @@ export function TeacherExamManagementView({
     });
   }, [allExams, activeCategory, searchQuery]);
 
+  if (viewMode === 'create') {
+    return (
+      <TeacherCreateQuizStudioView
+        onBack={() => setViewMode('list')}
+        userFullName={userFullName}
+        onPublishSuccess={() => setViewMode('list')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] text-[#171c1f] dark:text-[#E3E3E3] flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors">
       {/* 1. App Shell Sidebar (Standard Teacher Sidebar with official logo) */}
@@ -295,7 +312,7 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  onClick={() => showToast('Mở trình soạn thảo tạo mới Quiz trắc nghiệm')}
+                  onClick={() => setViewMode('create')}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[18px]">add</span>
