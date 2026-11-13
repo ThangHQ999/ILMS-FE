@@ -66,7 +66,7 @@ export function DashboardSidebar({
         {
           href: '/classes',
           icon: 'school',
-          label: 'Lớp học phụ trách',
+          label: 'Lớp học của tôi',
           active: isClassesActive && !isAssignmentsActive,
         },
         {
