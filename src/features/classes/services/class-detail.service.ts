@@ -683,6 +683,31 @@ export function saveLocalAnnouncement(classId: string, item: ClassAnnouncement):
   }
 }
 
+const CLASS_COURSE_STORAGE_KEY = (classId: string) => `ilms_class_courses_${classId}`;
+
+export function getLocalClassCourses(classId: string): ClassCourse[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CLASS_COURSE_STORAGE_KEY(classId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalClassCourse(classId: string, item: ClassCourse): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalClassCourses(classId);
+    const updated = [item, ...existing.filter((x) => x.id !== item.id)];
+    localStorage.setItem(CLASS_COURSE_STORAGE_KEY(classId), JSON.stringify(updated));
+  } catch {
+    // quota exceeded or storage disabled
+  }
+}
+
 /**
  * Fetch full class detail bundle with graceful API connect & fallback.
  */
@@ -711,6 +736,14 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     }
   } catch {
     // Fallback to mock courses
+  }
+
+  // Merge locally created courses for this class (offline/refresh persistence)
+  const localSubjects = getLocalClassCourses(classId);
+  if (localSubjects.length > 0) {
+    const existingCourseIds = new Set(courses.map((c) => c.id));
+    const newCourses = localSubjects.filter((c) => !existingCourseIds.has(c.id));
+    courses = [...newCourses, ...courses];
   }
 
   try {

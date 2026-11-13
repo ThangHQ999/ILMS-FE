@@ -22,6 +22,7 @@ import {
   InviteMemberModal,
   ToastNotification,
 } from './ClassDetailModals';
+import { CreateSubjectModal } from './CreateSubjectModal';
 
 interface ClassDetailPageViewProps {
   classId: string;
@@ -47,6 +48,7 @@ export function ClassDetailPageView({
   const [removeTarget, setRemoveTarget] = useState<ClassCourse | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
+  const [isCreateSubjectOpen, setIsCreateSubjectOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -279,9 +281,7 @@ export function ClassDetailPageView({
                 courses={courses}
                 currentRole={currentRole}
                 onAddExistingClick={() => setIsAddSubjectOpen(true)}
-                onCreateNewClick={() =>
-                  showToast('Mở trình tạo môn học mới trong chương trình đào tạo')
-                }
+                onCreateNewClick={() => setIsCreateSubjectOpen(true)}
                 onRemoveClick={(c) => setRemoveTarget(c)}
                 onAssignTeacherClick={(c) =>
                   showToast(`Mở phân công giảng viên cho môn ${c.code}`)
@@ -399,6 +399,17 @@ export function ClassDetailPageView({
         isOpen={isAddSubjectOpen}
         onClose={() => setIsAddSubjectOpen(false)}
         onConfirm={handleAddSubjectsConfirm}
+      />
+
+      <CreateSubjectModal
+        isOpen={isCreateSubjectOpen}
+        classId={classId}
+        classNameTitle={classInfo?.title || classInfo?.name}
+        onClose={() => setIsCreateSubjectOpen(false)}
+        onSuccess={(newSubject) => {
+          refetch();
+          showToast(`Tạo môn học "${newSubject.name}" (${newSubject.code}) thành công và đã gán vào lớp!`);
+        }}
       />
 
       <InviteMemberModal
