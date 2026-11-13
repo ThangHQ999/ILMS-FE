@@ -31,6 +31,7 @@ export function DashboardHeader({
   const isClasses = pathname.startsWith('/classes');
   const isGraph = pathname.startsWith('/knowledge-graph');
   const isCompetency = pathname.startsWith('/competency');
+  const isAssignments = pathname.startsWith('/assignments');
 
   const currentUserName =
     userFullName || (workspaceMode === 'student' ? 'Trần Nhật Minh' : 'TS. Lê Hoàng Nam');
@@ -67,8 +68,8 @@ export function DashboardHeader({
   return (
     <header
       className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-20' : 'left-64'
-      } right-0 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md z-40 border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300 px-8 flex items-center justify-between`}
+        isSidebarCollapsed ? 'left-20' : 'left-0 lg:left-72'
+      } right-0 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md z-40 border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300 px-6 lg:px-8 flex items-center justify-between`}
     >
       {/* Left: Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm min-w-0">
@@ -85,7 +86,9 @@ export function DashboardHeader({
           chevron_right
         </span>
         <span className="text-slate-900 dark:text-white font-semibold tracking-tight truncate">
-          {isClasses
+          {isAssignments
+            ? 'Quản lý Đề thi & Quiz'
+            : isClasses
             ? workspaceMode === 'student'
               ? 'Lớp học đang tham gia'
               : 'Các lớp học'

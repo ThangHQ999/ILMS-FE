@@ -4,8 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
-import { useUserRole } from '@/hooks/useUserRole';
+import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -42,7 +41,6 @@ export function TeacherExamManagementView({
   userFullName = 'TS. Lê Hoàng Nam',
 }: TeacherExamManagementViewProps) {
   const router = useRouter();
-  const { switchRole, isTeacher } = useUserRole();
 
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -200,101 +198,14 @@ export function TeacherExamManagementView({
         workspaceMode="faculty"
       />
 
-      {/* 2. Top Header Navigation (Teacher Space) */}
-      <header
-        className={`fixed top-0 ${
-          isSidebarCollapsed ? 'left-20' : 'left-0 lg:left-72'
-        } right-0 h-16 bg-[#F6FAFE]/90 dark:bg-[#131314]/90 backdrop-blur-xl z-40 flex items-center justify-between px-6 lg:px-8 border-b border-[#E1E5EA]/80 dark:border-[#282A2C] transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03)]`}
-      >
-        <div className="flex items-center gap-3">
-          {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-[#44474d] dark:text-[#8E918F]">
-            <Link
-              href="/assignments"
-              className="hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-            >
-              Khảo thí &amp; Bài thi
-            </Link>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="font-semibold text-[#171c1f] dark:text-white">
-              Quản lý Đề thi &amp; Quiz
-            </span>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Quick Search in Header */}
-          <div className="hidden md:flex relative items-center">
-            <span className="material-symbols-outlined absolute left-2.5 text-[#75777e] text-[18px]">
-              search
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm đề thi, quiz..."
-              className="pl-8 pr-3 py-1.5 rounded-lg bg-[#eaeef2] dark:bg-[#1E1F20] text-[#171c1f] dark:text-white placeholder:text-[#75777e] text-xs w-48 lg:w-60 focus:bg-white dark:focus:bg-[#282A2C] focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-            />
-          </div>
-
-          {/* Quick Help Button */}
-          <button
-            type="button"
-            onClick={() => showToast('Mở tài liệu hướng dẫn tạo đề thi & ngân hàng câu hỏi')}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[#44474d] dark:text-[#C4C7C5] hover:bg-[#eaeef2] dark:hover:bg-[#282A2C] hover:text-[#171c1f] transition-colors"
-            title="Trợ giúp nhanh"
-          >
-            <span className="material-symbols-outlined text-[20px]">help_outline</span>
-          </button>
-
-          {/* Notifications Button */}
-          <button
-            type="button"
-            onClick={() => showToast('Bạn có 3 thông báo mới về khiếu nại điểm thi')}
-            className="relative w-9 h-9 rounded-full flex items-center justify-center text-[#44474d] dark:text-[#C4C7C5] hover:bg-[#eaeef2] dark:hover:bg-[#282A2C] hover:text-[#171c1f] transition-colors"
-            title="Thông báo"
-          >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#131314]" />
-          </button>
-
-          {/* Theme Toggle */}
-          <ThemeToggle />
-
-          {/* Role Switcher Pill */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-[11px] font-semibold text-blue-700 dark:text-blue-300">
-            <span className="material-symbols-outlined text-[14px]">verified_user</span>
-            <span>Giảng viên</span>
-            <button
-              onClick={() => {
-                switchRole('STUDENT');
-                showToast('Đã chuyển sang góc nhìn Học viên');
-              }}
-              className="ml-1 text-[10px] underline hover:text-blue-900 dark:hover:text-blue-100"
-              title="Chuyển sang vai trò Sinh viên"
-            >
-              (Đổi vai trò)
-            </button>
-          </div>
-
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800" />
-
-          {/* Teacher Profile Header */}
-          <div className="flex items-center gap-2.5 cursor-pointer group">
-            <div className="flex flex-col text-right">
-              <span className="text-xs font-semibold text-[#171c1f] dark:text-white leading-tight">
-                {userFullName}
-              </span>
-              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium leading-tight">
-                Giảng viên phụ trách
-              </span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-[#0d1c32] dark:bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
-              <span className="material-symbols-outlined text-[18px]">person</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* 2. Top Header Navigation (Unified DashboardHeader matching user template) */}
+      <DashboardHeader
+        isFocus={isFocusMode}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleMode={() => setIsFocusMode(!isFocusMode)}
+        userFullName={userFullName}
+        workspaceMode="faculty"
+      />
 
       {/* 3. Main Workspace Area */}
       <main
