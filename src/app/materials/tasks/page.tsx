@@ -17,3 +17,4 @@ export default function MaterialBackgroundTasksPage() {
 
   return <BackgroundTasksPageView />;
 }
+

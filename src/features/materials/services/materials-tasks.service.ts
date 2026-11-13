@@ -439,3 +439,4 @@ export function removeTask(taskId: string): MaterialBackgroundTask[] {
   saveStoredTasks(updated);
   return updated;
 }
+

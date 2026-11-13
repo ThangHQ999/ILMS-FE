@@ -29,293 +29,11 @@ import type {
   WorkspaceRoleMode,
 } from '../types';
 
-// 4 Student Classes from the user's template
-const DEFAULT_STUDENT_CLASSES: ClassItem[] = [
-  {
-    id: 'ctdl-k22-02',
-    name: 'CTDL-K22-02',
-    title: 'Cấu trúc dữ liệu và giải thuật nâng cao — Nhóm 02',
-    description: 'ADVANCED DSA • TREE & GRAPH',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Khoa học máy tính',
-    maxStudents: 60,
-    enrolledCount: 38,
-    enrollmentKey: 'CTDL-K22-02',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'STUDENT',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
-    },
-    schedule: {
-      room: 'H6-302',
-      dayOfWeek: 'Thứ 5',
-      timeSlot: 'Tiết 4-6',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 1,
-      attendanceRate: 95,
-    },
-  },
-  {
-    id: 'thtt-k22-01',
-    name: 'THTT-K22-01',
-    title: 'Thiết kế Thuật toán & Đồ thị thông minh — Nhóm 01',
-    description: 'ALGORITHMS • GRAPH THEORY',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Khoa học máy tính',
-    maxStudents: 60,
-    enrolledCount: 42,
-    enrollmentKey: 'THTT-K22-01',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'STUDENT',
-    instructor: {
-      fullName: 'PGS.TS. Vũ Đình Thành',
-    },
-    schedule: {
-      room: 'Online MS Teams',
-      dayOfWeek: 'Thứ 3',
-      timeSlot: 'Tiết 1-3',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 1,
-      attendanceRate: 98,
-    },
-  },
-  {
-    id: 'oop-k23-03',
-    name: 'OOP-K23-03',
-    title: 'Lập trình hướng đối tượng — Nhóm 03',
-    description: 'JAVA • OOP ARCHITECTURE',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Công nghệ phần mềm',
-    maxStudents: 60,
-    enrolledCount: 45,
-    enrollmentKey: 'OOP-K23-03',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'STUDENT',
-    instructor: {
-      fullName: 'ThS. Hoàng Minh Tuấn',
-    },
-    schedule: {
-      room: 'Lab B2-104',
-      dayOfWeek: 'Thứ 2',
-      timeSlot: 'Tiết 7-9',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 100,
-    },
-  },
-  {
-    id: 'ai-k22-01',
-    name: 'AI-K22-01',
-    title: 'Nhập môn Trí tuệ nhân tạo & Khai phá dữ liệu — Nhóm 01',
-    description: 'AI • KNOWLEDGE GRAPH & MINING',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Trí tuệ nhân tạo',
-    maxStudents: 60,
-    enrolledCount: 50,
-    enrollmentKey: 'AI-K22-01',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'STUDENT',
-    instructor: {
-      fullName: 'TS. Nguyễn Bảo Anh • Trợ giảng AI Socratic 24/7',
-    },
-    schedule: {
-      room: 'Hội trường C1',
-      dayOfWeek: 'Thứ 7',
-      timeSlot: 'Tiết 4-6',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 90,
-    },
-  },
-];
-
-// 6 Faculty Classes from the user's template
-const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
-  {
-    id: 'csdl-k22-01',
-    name: 'CSDL-K22-01',
-    title: 'Cơ sở dữ liệu — Nhóm 01',
-    description: 'DATABASE • SQL / NOSQL',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Khoa học máy tính',
-    maxStudents: 60,
-    enrolledCount: 42,
-    enrollmentKey: 'CSDL-K22-01',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'PRIMARY_INSTRUCTOR',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 giảng viên',
-    },
-    schedule: {
-      room: 'A2-301',
-      dayOfWeek: 'Thứ 3',
-      timeSlot: 'Tiết 1-3',
-    },
-    stats: {
-      pendingRequestsCount: 3,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 98,
-    },
-  },
-  {
-    id: 'ctdl-k22-02',
-    name: 'CTDL-K22-02',
-    title: 'Cấu trúc dữ liệu và giải thuật — Nhóm 02',
-    description: 'ALGORITHMS • TREE / GRAPH',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Khoa học máy tính',
-    maxStudents: 60,
-    enrolledCount: 38,
-    enrollmentKey: 'CTDL-K22-02',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'TA',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
-    },
-    schedule: {
-      room: 'A2-205',
-      dayOfWeek: 'Thứ 5',
-      timeSlot: 'Tiết 4-6',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 95,
-    },
-  },
-  {
-    id: 'oop-k23-03',
-    name: 'OOP-K23-03',
-    title: 'Lập trình hướng đối tượng — Nhóm 03',
-    description: 'JAVA • OOP ARCHITECTURE',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Công nghệ phần mềm',
-    maxStudents: 60,
-    enrolledCount: 45,
-    enrollmentKey: 'OOP-K23-03',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'PRIMARY_INSTRUCTOR',
-    instructor: {
-      fullName: 'ThS. Hoàng Minh Tuấn • 1 giảng viên',
-    },
-    schedule: {
-      room: 'B1-102',
-      dayOfWeek: 'Thứ 2',
-      timeSlot: 'Tiết 7-9',
-    },
-    stats: {
-      pendingRequestsCount: 1,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 100,
-    },
-  },
-  {
-    id: 'mmt-k22-01',
-    name: 'MMT-K22-01',
-    title: 'Mạng máy tính — Nhóm 01',
-    description: 'NETWORKING • TCP / IP',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Mạng & An toàn thông tin',
-    maxStudents: 60,
-    enrolledCount: 36,
-    enrollmentKey: 'MMT-K22-01',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'TA',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
-    },
-    schedule: {
-      room: 'Lab-Net-01',
-      dayOfWeek: 'Thứ 6',
-      timeSlot: 'Tiết 1-3',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 2,
-      attendanceRate: 92,
-    },
-  },
-  {
-    id: 'ktlt-k24-04',
-    name: 'KTLT-K24-04',
-    title: 'Kỹ thuật lập trình — Nhóm 04',
-    description: 'C++ • MODERN CODING',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Khoa học máy tính',
-    maxStudents: 60,
-    enrolledCount: 48,
-    enrollmentKey: 'KTLT-K24-04',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'PRIMARY_INSTRUCTOR',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 1 giảng viên',
-    },
-    schedule: {
-      room: 'B2-201',
-      dayOfWeek: 'Thứ 4',
-      timeSlot: 'Tiết 1-3',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 98,
-    },
-  },
-  {
-    id: 'ai-k22-01',
-    name: 'AI-K22-01',
-    title: 'Nhập môn trí tuệ nhân tạo',
-    description: 'AI • KNOWLEDGE GRAPH',
-    academicYear: '2024-2025',
-    semester: 'Học kỳ 1 • 2024-2025',
-    major: 'Trí tuệ nhân tạo',
-    maxStudents: 60,
-    enrolledCount: 40,
-    enrollmentKey: 'AI-K22-01',
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'TA',
-    instructor: {
-      fullName: 'TS. Nguyễn Bảo Anh • 3 giảng viên',
-    },
-    schedule: {
-      room: 'Hội trường C1',
-      dayOfWeek: 'Thứ 7',
-      timeSlot: 'Tiết 4-6',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 94,
-    },
-  },
-];
+import {
+  DEFAULT_FACULTY_CLASSES,
+  DEFAULT_STUDENT_CLASSES,
+} from '../constants';
+import { getLocalCreatedClasses } from '../services/class.service';
 
 type StatePreviewMode = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
 
@@ -354,6 +72,11 @@ export function ClassListPageView({
 
   // State Previews sandbox
   const [previewState, setPreviewState] = useState<StatePreviewMode>('normal');
+  const [isClient, setIsClient] = useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Mobile Filter Sheet State
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -434,9 +157,26 @@ export function ClassListPageView({
     let list: ClassItem[] = [];
 
     if (workspaceMode === 'student') {
-      list = [...DEFAULT_STUDENT_CLASSES];
+      const studentApiItems = responseData?.items?.filter((x) => x.teachingRole === 'STUDENT');
+      list =
+        studentApiItems && studentApiItems.length > 0
+          ? studentApiItems
+          : [...DEFAULT_STUDENT_CLASSES];
     } else {
-      list = [...DEFAULT_FACULTY_CLASSES];
+      const baseList =
+        responseData?.items && responseData.items.length > 0
+          ? responseData.items
+          : [...DEFAULT_FACULTY_CLASSES];
+
+      // Merge locally created classes at top (guarantees newly created classes persist across F5 refresh)
+      const localCreated = isClient ? getLocalCreatedClasses() : [];
+      const baseIds = new Set(baseList.map((c) => String(c.id)));
+      const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
+      const newCreated = localCreated.filter(
+        (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
+      );
+
+      list = [...newCreated, ...baseList];
     }
 
     // Filter by status tab
@@ -477,7 +217,16 @@ export function ClassListPageView({
     }
 
     return list;
-  }, [workspaceMode, filters.status, filters.search, filters.major, filters.role, activeKpi]);
+  }, [
+    workspaceMode,
+    filters.status,
+    filters.search,
+    filters.major,
+    filters.role,
+    activeKpi,
+    responseData,
+    isClient,
+  ]);
 
   // Compute Faculty KPI Stats
   const facultyKpiStats: ClassKpiStats = useMemo(() => {
@@ -850,6 +599,10 @@ export function ClassListPageView({
       <CreateClassModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+        onSuccess={(created) => {
+          showToast(`Đã tạo thành công lớp học "${created.title || created.name}"!`);
+          refetch();
+        }}
       />
 
       <JoinClassModal

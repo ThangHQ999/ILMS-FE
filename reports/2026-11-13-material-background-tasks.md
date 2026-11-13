@@ -49,3 +49,4 @@ NEXT: Kiểm thử trực tiếp tương tác trên trình duyệt và kết n�
    - Sử dụng `localStorage` (`ilms_material_background_tasks`, `ilms_material_pipeline_settings`) để lưu trữ ngoại tuyến và khôi phục tiến trình bền vững khi F5 hoặc mở lại trình duyệt.
    - Mô phỏng polling tăng phần trăm tiến độ mỗi 2.5s khi không ở trạng thái "Tạm dừng tất cả".
    - Tích hợp điều hướng từ Modal `UploadMaterialModal` và Tab học liệu lớp học `ClassMaterialsTab` trực tiếp tới `/materials/tasks`.
+
