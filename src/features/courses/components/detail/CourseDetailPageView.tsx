@@ -62,6 +62,11 @@ export function CourseDetailPageView({
     (acc, ch) => acc + (ch.lessons?.filter((l) => l.status === 'COMPLETED').length || 0),
     0
   );
+  const totalDurationMinutes = chapters.reduce(
+    (acc, ch) => acc + (ch.lessons?.reduce((lAcc, l) => lAcc + (l.duration || 45), 0) || 0),
+    0
+  );
+  const totalHours = Math.round(totalDurationMinutes / 60) || 36;
 
   const handleCreateChapter = (input: CreateChapterInput) => {
     addChapterMutation.mutate(input, {
@@ -170,6 +175,8 @@ export function CourseDetailPageView({
                 course={course}
                 totalLessons={totalLessons}
                 completedLessons={completedLessons}
+                totalChapters={chapters.length || 8}
+                totalHours={totalHours}
                 onOpenAddChapter={() => setIsAddChapterOpen(true)}
                 onOpenAddLesson={() => {
                   const firstChapId = chapters[0]?.id;

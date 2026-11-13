@@ -9,6 +9,8 @@ interface CourseBannerProps {
   course: CourseDetail;
   totalLessons: number;
   completedLessons: number;
+  totalChapters?: number;
+  totalHours?: number;
   onOpenAddChapter: () => void;
   onOpenAddLesson: () => void;
   onSelectTab: (tab: string) => void;
@@ -18,6 +20,8 @@ export function CourseBanner({
   course,
   totalLessons,
   completedLessons,
+  totalChapters,
+  totalHours,
   onOpenAddChapter,
   onOpenAddLesson,
   onSelectTab,
@@ -25,6 +29,10 @@ export function CourseBanner({
   const t = useTranslations('courses.detail');
   const progressPercent =
     totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : course.teachingProgress || 36;
+
+  const chaptersCountDisplay = totalChapters || course.chaptersCount || 8;
+  const lessonsCountDisplay = totalLessons || course.lecturesCount || 24;
+  const hoursCountDisplay = totalHours || 36;
 
   return (
     <div className="bg-[#39359e] rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between gap-6">
@@ -83,8 +91,8 @@ export function CourseBanner({
           </p>
         </div>
 
-        {/* Meta Info */}
-        <div className="flex flex-wrap items-end justify-between gap-4 mt-2">
+        {/* Meta Info & Progress Summary Badges */}
+        <div className="flex flex-col gap-3 mt-2">
           <div className="flex items-center gap-6 text-white/90 text-xs md:text-sm">
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[20px]">person</span>
@@ -95,6 +103,28 @@ export function CourseBanner({
               <span className="material-symbols-outlined text-[20px]">hub</span>
               <strong>{course.knowledgeNodesCount || 142}</strong> {t('knowledgeNodes')}
             </span>
+          </div>
+
+          {/* New row: Tổng số chương, Tổng số bài học, Thời lượng */}
+          <div className="flex flex-wrap items-center gap-3 w-full pt-3 border-t border-white/20">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+              <span className="material-symbols-outlined text-[18px] text-emerald-300">folder</span>
+              <span>
+                Tổng số: <strong className="text-white font-bold ml-0.5">{chaptersCountDisplay} Chương</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+              <span className="material-symbols-outlined text-[18px] text-emerald-300">list_alt</span>
+              <span>
+                Tổng số: <strong className="text-white font-bold ml-0.5">{lessonsCountDisplay} Bài học</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+              <span className="material-symbols-outlined text-[18px] text-emerald-300">schedule</span>
+              <span>
+                Thời lượng: <strong className="text-white font-bold ml-0.5">{hoursCountDisplay} Giờ học</strong>
+              </span>
+            </div>
           </div>
         </div>
       </div>
