@@ -953,11 +953,11 @@
     "activatePath": "Kích hoạt lộ trình học"
   },
   "classes": {
-    "pageTitle": "Các lớp học",
-    "pageSubtitle": "Quản lý lớp đang giảng dạy, phê duyệt sinh viên, phân phối học liệu và theo dõi tiến độ học tập.",
-    "semester": "Học kỳ 1 (2024-2025)",
+    "pageTitle": "Quản lý Lớp học",
+    "pageSubtitle": "Không gian quản trị & tương tác giảng dạy đa phương thức",
+    "semester": "Học kỳ 1 (2026-2027)",
     "exportReport": "Xuất báo cáo",
-    "createClassBtn": "Tạo lớp học",
+    "createClassBtn": "Tạo lớp học mới",
     "kpiTeaching": "Lớp đang giảng dạy",
     "kpiTeachingSub": "Đạt 100% kế hoạch học kỳ",
     "kpiStudents": "Tổng số học viên",
@@ -1101,7 +1101,7 @@
       "kpiPloRate": "Tỷ lệ đạt chuẩn PLO",
       "kpiGradingProgress": "Tiến độ chấm điểm",
       "kpiEarlySupport": "Cần can thiệp sớm",
-      "aiAssistantTitle": "Trợ lý AI phân tích phổ điểm & Khuyến nghị sư phạm",
+      "aiAssistantTitle": "Trợ lý học liệu AI & Khung trích xuất tri thức tự động",
       "aiSendSuggestion": "Gửi gợi ý ôn tập tự động bằng Socratic AI",
       "announcementsTitle": "Thông báo của lớp",
       "announcementsDesc": "Các tin tức, lịch thi và lời nhắc quan trọng dành riêng cho thành viên lớp.",
@@ -1137,7 +1137,6 @@
       "viewList": "Xem danh sách",
       "viewGrid": "Xem lưới",
       "showingMaterials": "Hiển thị {from} - {to} trong số {total} học liệu",
-      "aiAssistantTitle": "Trợ lý học liệu AI & Khung trích xuất tri thức tự động",
       "aiBadge": "ILMS Intelligence",
       "aiAssistantDesc": "Tự động bóc tách bài học thành cây tri thức, hỗ trợ sinh câu hỏi trắc nghiệm và tóm tắt theo phong cách Socratic.",
       "btnAutoQuiz": "Tạo Auto-Quiz từ Slide",
@@ -1237,5 +1236,102 @@
     "emptyStudentDesc": "Hãy nhập mã lớp do Giảng viên cung cấp để bắt đầu hành trình học tập cùng trợ lý AI.",
     "sortProgress": "Tiến độ cao nhất",
     "filterRoleStudent": "Học viên (Student)"
+  },
+  "classHub": {
+    "instructor": "Giảng viên",
+    "students": "Học viên",
+    "assignments": "Bài tập / Quiz",
+    "avgCompletion": "Hoàn thành TB",
+    "tabs": {
+      "overview": "Tổng quan",
+      "modules": "Môn học & Học phần",
+      "curriculum": "Chương trình học",
+      "assignments": "Bài tập & Quiz",
+      "materials": "Học liệu",
+      "students": "Học viên",
+      "grades": "Bảng điểm & PLO",
+      "announcements": "Thông báo",
+      "settings": "Cài đặt lớp"
+    }
+  },
+  "assignments": {
+    "actions": {
+      "createQuizAi": "Tạo Quiz nhanh bằng AI",
+      "createAssignment": "+ Tạo mới Bài tập / Quiz",
+      "classScoreboard": "Bảng điểm lớp",
+      "startQuizNow": "Vào làm bài ngay",
+      "submitLabReport": "Nộp báo cáo Lab",
+      "gradeSubmissions": "Chấm bài ({count})",
+      "exportPersonalTranscript": "Xuất bảng điểm cá nhân",
+      "practiceMistakes": "Luyện lại câu sai",
+      "reviewAndExplain": "Xem lại & Giải thích",
+      "viewSubmissionFeedback": "Bài nộp & Phản hồi",
+      "viewOutline": "Xem đề cương",
+      "retry": "Thử lại"
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm kiếm bài tập, quiz, chuẩn PLO...",
+      "clearSearch": "Xóa tìm kiếm",
+      "allChapters": "Tất cả chương học",
+      "ch1": "Chương 1 (Tầng Ứng dụng)",
+      "ch2": "Chương 2 (Tầng Giao vận)",
+      "ch3": "Chương 3 (Tầng Mạng)",
+      "ch4": "Chương 4 (Tầng Liên kết dữ liệu)",
+      "allTopics": "Tất cả chủ đề",
+      "topicTransport": "Tầng Giao vận & TCP/UDP",
+      "topicNetwork": "Tầng Mạng & OSPF/BGP",
+      "topicApp": "Tầng Ứng dụng & DNS/HTTP",
+      "topicWireshark": "Cấu trúc gói tin Wireshark",
+      "allDifficulties": "Tất cả độ khó",
+      "bloom1": "Nhận biết (Bloom 1)",
+      "bloom2": "Thông hiểu (Bloom 2)",
+      "bloom3": "Vận dụng (Bloom 3)",
+      "bloom4": "Vận dụng cao (Bloom 4)"
+    },
+    "clusters": {
+      "activeTitle": "Đang diễn ra & Cần nộp",
+      "priorityProcessing": "Ưu tiên xử lý",
+      "assignmentsCountSuffix": "bài tập",
+      "completedTitle": "Đã kết thúc & Kết quả đánh giá",
+      "upcomingTitle": "Bài tập dự kiến trong Sprint tới",
+      "sprintPlan": "Kế hoạch tuần 10-12"
+    },
+    "status": {
+      "opening": "Đang mở",
+      "dueSoon": "Hạn sắp đến",
+      "twoDaysLeft": "Còn 2 ngày",
+      "upcomingOpen": "Dự kiến mở",
+      "unannouncedExam": "Chưa công bố đề thi"
+    },
+    "card": {
+      "environment": "Môi trường",
+      "sampleFile": "File mẫu",
+      "classCompleted": "Lớp hoàn thành",
+      "submittedCount": "Đã nộp bài",
+      "classAverage": "Điểm TB Lớp",
+      "pendingGrading": "bài chờ chấm",
+      "questionsSuffix": "câu hỏi",
+      "minutesSuffix": "phút",
+      "classAvgShort": "ĐTB Lớp",
+      "rankShort": "Xếp hạng"
+    },
+    "panels": {
+      "weightsTitle": "Trọng số điểm & Tiến độ",
+      "moduleScope": "Học phần",
+      "weightsDescription": "Phân bố theo đề cương chi tiết học phần CS-202 đã được Hội đồng Khoa phê duyệt:",
+      "totalAccumulated": "Tổng tích lũy hiện tại",
+      "socraticTitle": "Socratic AI Mentor",
+      "realtimeAi": "Real-time AI",
+      "weaknessTopicTitle": "Lỗ hổng kiến thức cần củng cố",
+      "performanceTitle": "Hiệu suất cá nhân",
+      "avgQuizScore": "Điểm Quiz TB",
+      "onTimeRate": "Nộp đúng hạn",
+      "streakTitle": "Chuỗi hoàn thành",
+      "streakDescription": "{count} bài tập nộp liên tiếp",
+      "ploBadgeTitle": "Huy hiệu Đạt Chuẩn PLO"
+    },
+    "errors": {
+      "loadFailed": "Không thể tải danh sách bài tập & quiz"
+    }
   }
 }

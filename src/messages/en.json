@@ -953,11 +953,11 @@
     "activatePath": "Activate Learning Path"
   },
   "classes": {
-    "pageTitle": "Classes",
-    "pageSubtitle": "Manage teaching classes, approve students, distribute learning materials, and track study progress.",
-    "semester": "Semester 1 (2024-2025)",
+    "pageTitle": "Class Management",
+    "pageSubtitle": "Multi-modal instructional and administrative workspace",
+    "semester": "Semester 1 (2026-2027)",
     "exportReport": "Export Report",
-    "createClassBtn": "Create Class",
+    "createClassBtn": "Create New Class",
     "kpiTeaching": "Active Classes",
     "kpiTeachingSub": "100% on schedule this semester",
     "kpiStudents": "Total Students",
@@ -1101,7 +1101,7 @@
       "kpiPloRate": "PLO Attainment Rate",
       "kpiGradingProgress": "Grading Progress",
       "kpiEarlySupport": "Needs Early Support",
-      "aiAssistantTitle": "AI Grade Analytics & Pedagogical Recommendations",
+      "aiAssistantTitle": "AI Learning Assistant & Automated Knowledge Extraction",
       "aiSendSuggestion": "Send automated review recommendations via Socratic AI",
       "announcementsTitle": "Class Announcements",
       "announcementsDesc": "Updates, exam schedules, and important reminders for class members.",
@@ -1137,7 +1137,6 @@
       "viewList": "List view",
       "viewGrid": "Grid view",
       "showingMaterials": "Showing {from} - {to} of {total} materials",
-      "aiAssistantTitle": "AI Learning Assistant & Automated Knowledge Extraction",
       "aiBadge": "ILMS Intelligence",
       "aiAssistantDesc": "Automatically decomposes lessons into knowledge trees, supports quiz generation, and Socratic summaries.",
       "btnAutoQuiz": "Generate Auto-Quiz from Slides",
@@ -1237,5 +1236,102 @@
     "emptyStudentDesc": "Enter a class code from your instructor to begin learning with AI tutor.",
     "sortProgress": "Highest Progress",
     "filterRoleStudent": "Student"
+  },
+  "classHub": {
+    "instructor": "Instructor",
+    "students": "Students",
+    "assignments": "Assignments / Quizzes",
+    "avgCompletion": "Avg Completion",
+    "tabs": {
+      "overview": "Overview",
+      "modules": "Courses & Modules",
+      "curriculum": "Curriculum",
+      "assignments": "Assignments & Quizzes",
+      "materials": "Materials",
+      "students": "Students",
+      "grades": "Grades & PLO",
+      "announcements": "Announcements",
+      "settings": "Class Settings"
+    }
+  },
+  "assignments": {
+    "actions": {
+      "createQuizAi": "Generate AI Quiz",
+      "createAssignment": "+ New Assignment / Quiz",
+      "classScoreboard": "Class Scoreboard",
+      "startQuizNow": "Start Quiz Now",
+      "submitLabReport": "Submit Lab Report",
+      "gradeSubmissions": "Grade ({count})",
+      "exportPersonalTranscript": "Export Personal Transcript",
+      "practiceMistakes": "Practice Mistakes",
+      "reviewAndExplain": "Review & Explanations",
+      "viewSubmissionFeedback": "Submission & Feedback",
+      "viewOutline": "View Outline",
+      "retry": "Retry"
+    },
+    "filters": {
+      "searchPlaceholder": "Search assignments, quizzes, PLO...",
+      "clearSearch": "Clear search",
+      "allChapters": "All Chapters",
+      "ch1": "Chapter 1 (Application Layer)",
+      "ch2": "Chapter 2 (Transport Layer)",
+      "ch3": "Chapter 3 (Network Layer)",
+      "ch4": "Chapter 4 (Data Link Layer)",
+      "allTopics": "All Topics",
+      "topicTransport": "Transport Layer & TCP/UDP",
+      "topicNetwork": "Network Layer & OSPF/BGP",
+      "topicApp": "Application Layer & DNS/HTTP",
+      "topicWireshark": "Wireshark Packet Trace",
+      "allDifficulties": "All Difficulties",
+      "bloom1": "Remember (Bloom 1)",
+      "bloom2": "Understand (Bloom 2)",
+      "bloom3": "Apply (Bloom 3)",
+      "bloom4": "Analyze (Bloom 4)"
+    },
+    "clusters": {
+      "activeTitle": "Active & Due Soon",
+      "priorityProcessing": "High Priority",
+      "assignmentsCountSuffix": "assignments",
+      "completedTitle": "Completed & Evaluated",
+      "upcomingTitle": "Upcoming in Next Sprint",
+      "sprintPlan": "Week 10-12 Plan"
+    },
+    "status": {
+      "opening": "Open",
+      "dueSoon": "Due Soon",
+      "twoDaysLeft": "2 days left",
+      "upcomingOpen": "Scheduled",
+      "unannouncedExam": "Not yet published"
+    },
+    "card": {
+      "environment": "Environment",
+      "sampleFile": "Sample file",
+      "classCompleted": "Class completed",
+      "submittedCount": "Submitted",
+      "classAverage": "Class Avg",
+      "pendingGrading": "pending grading",
+      "questionsSuffix": "questions",
+      "minutesSuffix": "minutes",
+      "classAvgShort": "Class Avg",
+      "rankShort": "Rank"
+    },
+    "panels": {
+      "weightsTitle": "Grade Weights & Progress",
+      "moduleScope": "Course Module",
+      "weightsDescription": "Distributed according to CS-202 syllabus approved by the Academic Board:",
+      "totalAccumulated": "Current Total Accumulated",
+      "socraticTitle": "Socratic AI Mentor",
+      "realtimeAi": "Real-time AI",
+      "weaknessTopicTitle": "Knowledge Gaps to Reinforce",
+      "performanceTitle": "Personal Performance",
+      "avgQuizScore": "Avg Quiz Score",
+      "onTimeRate": "On-time Rate",
+      "streakTitle": "Completion Streak",
+      "streakDescription": "{count} consecutive assignments submitted",
+      "ploBadgeTitle": "PLO Target Badge"
+    },
+    "errors": {
+      "loadFailed": "Failed to load assignments & quizzes"
+    }
   }
 }

@@ -1,0 +1,18 @@
+export * from './types';
+export * from './constants';
+export * from './services/assignment.service';
+export * from './hooks/useAssignments';
+export * from './hooks/useGradeProgress';
+export * from './hooks/useAiRecommendation';
+export * from './hooks/useStudentPerformance';
+export * from './hooks/useClassHubInfo';
+export { AssignmentsTabView } from './components/AssignmentsTabView';
+export { ClassHubHeader } from './components/ClassHubHeader';
+export { AssignmentFilterToolbar } from './components/AssignmentFilterToolbar';
+export { AssignmentActiveCluster } from './components/AssignmentActiveCluster';
+export { AssignmentCompletedCluster } from './components/AssignmentCompletedCluster';
+export { AssignmentUpcomingCluster } from './components/AssignmentUpcomingCluster';
+export { GradeWeightsPanel } from './components/GradeWeightsPanel';
+export { SocraticAiMentorPanel } from './components/SocraticAiMentorPanel';
+export { PersonalPerformancePanel } from './components/PersonalPerformancePanel';
+
