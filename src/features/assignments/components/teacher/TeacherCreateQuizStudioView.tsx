@@ -186,7 +186,7 @@ export function TeacherCreateQuizStudioView({
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Nhập tên bài thi trắc nghiệm..."
-                      className="h-10 px-3.5 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-sm font-semibold border border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                      className="h-10 px-3.5 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-sm font-semibold border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                     />
                   </div>
 
@@ -200,7 +200,7 @@ export function TeacherCreateQuizStudioView({
                         <select
                           value={selectedModule}
                           onChange={(e) => setSelectedModule(e.target.value)}
-                          className="w-full h-10 px-3.5 pr-9 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-2 focus:ring-blue-500/20 appearance-none outline-none cursor-pointer"
+                          className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer"
                         >
                           <option>Chương 4: Tầng Mạng &amp; Giao thức IP, Định tuyến</option>
                           <option>Chương 3: Tầng Giao vận (TCP &amp; UDP)</option>
@@ -223,11 +223,11 @@ export function TeacherCreateQuizStudioView({
                           + Gắn thêm
                         </button>
                       </label>
-                      <div className="min-h-10 p-1.5 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] flex flex-wrap items-center gap-1.5">
+                      <div className="min-h-10 p-1.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex flex-wrap items-center gap-1.5">
                         {ploTags.map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-medium"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-900"
                           >
                             <span>{tag}</span>
                             <button
@@ -248,27 +248,27 @@ export function TeacherCreateQuizStudioView({
                     <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
                       Mô tả bài tập &amp; Hướng dẫn sinh viên
                     </label>
-                    <div className="rounded-lg bg-[#f0f4f8] dark:bg-[#131314] border border-slate-200/80 dark:border-[#282A2C] overflow-hidden">
+                    <div className="rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 overflow-hidden">
                       {/* Simulated WYSIWYG Toolbar */}
-                      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-100/70 dark:bg-[#1E1F20] border-b border-slate-200/60 dark:border-[#282A2C]">
+                      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-100/70 dark:bg-[#1E1F20] border-b border-slate-300 dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => showToast('Định dạng in đậm')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white font-bold text-[13px] cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white font-bold text-[13px] cursor-pointer"
                         >
                           B
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Định dạng in nghiêng')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white italic text-[13px] cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white italic text-[13px] cursor-pointer"
                         >
                           I
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Định dạng gạch chân')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white underline text-[13px] cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white underline text-[13px] cursor-pointer"
                         >
                           U
                         </button>
@@ -276,7 +276,7 @@ export function TeacherCreateQuizStudioView({
                         <button
                           type="button"
                           onClick={() => showToast('Thêm danh sách dấu chấm')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">
                             format_list_bulleted
@@ -285,7 +285,7 @@ export function TeacherCreateQuizStudioView({
                         <button
                           type="button"
                           onClick={() => showToast('Thêm danh sách số')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">
                             format_list_numbered
@@ -295,28 +295,28 @@ export function TeacherCreateQuizStudioView({
                         <button
                           type="button"
                           onClick={() => showToast('Chèn khối code')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 font-mono text-[12px] px-1 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 font-mono text-[12px] px-1 cursor-pointer"
                         >
                           &lt;/&gt;
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Chèn công thức toán học LaTeX')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">functions</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Tải lên hình ảnh')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">image</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Chèn liên kết')}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">link</span>
                         </button>
@@ -329,7 +329,7 @@ export function TeacherCreateQuizStudioView({
                         onChange={(e) => setInstructions(e.target.value)}
                         placeholder="Nhập lưu ý thi, công thức hoặc hướng dẫn làm bài cho sinh viên..."
                         rows={3}
-                        className="w-full p-3.5 bg-transparent text-[#171c1f] dark:text-white text-xs leading-relaxed focus:outline-none resize-y placeholder:text-slate-400"
+                        className="w-full p-3.5 bg-transparent text-[#171c1f] dark:text-white text-xs leading-relaxed focus:outline-none resize-y placeholder:text-slate-400 rounded-none"
                       />
                     </div>
                   </div>
@@ -420,14 +420,14 @@ export function TeacherCreateQuizStudioView({
 
                     <div className="flex items-center gap-3">
                       {/* Points Input */}
-                      <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                      <div className="flex items-center gap-1.5 bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-none">
                         <span className="text-xs text-slate-500 font-medium">Điểm:</span>
                         <input
                           type="number"
                           step="0.5"
                           value={q1Points}
                           onChange={(e) => setQ1Points(e.target.value)}
-                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none"
+                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none rounded-none"
                         />
                       </div>
 
@@ -472,7 +472,7 @@ export function TeacherCreateQuizStudioView({
                         <textarea
                           rows={2}
                           defaultValue="Trong giao thức OSPF, loại gói tin nào được các Router gửi định kỳ để thiết lập và duy trì mối quan hệ láng giềng (Neighbor Adjacency)?"
-                          className="w-full p-3.5 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs font-medium leading-relaxed focus:outline-none focus:bg-white dark:focus:bg-[#1E1F20] border border-transparent focus:border-blue-500 transition-all"
+                          className="w-full p-3.5 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs font-medium leading-relaxed focus:outline-none focus:border-blue-500 border border-slate-300 dark:border-slate-700 transition-all"
                         />
                       </div>
 
@@ -492,10 +492,10 @@ export function TeacherCreateQuizStudioView({
                         {/* Option A */}
                         <div
                           onClick={() => setQ1CorrectOption('A')}
-                          className={`flex items-center gap-3 p-2.5 rounded-lg transition-all group cursor-pointer ${
+                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
                             q1CorrectOption === 'A'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <button
@@ -516,10 +516,10 @@ export function TeacherCreateQuizStudioView({
                           <input
                             type="text"
                             defaultValue="Link State Request (LSR)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none"
+                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
                           />
                           {q1CorrectOption === 'A' && (
-                            <span className="px-2 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
+                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
                               ĐÁP ÁN CHÍNH XÁC
                             </span>
                           )}
@@ -528,10 +528,10 @@ export function TeacherCreateQuizStudioView({
                         {/* Option B (Default Correct) */}
                         <div
                           onClick={() => setQ1CorrectOption('B')}
-                          className={`flex items-center gap-3 p-2.5 rounded-lg transition-all group cursor-pointer ${
+                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
                             q1CorrectOption === 'B'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <button
@@ -552,11 +552,11 @@ export function TeacherCreateQuizStudioView({
                           <input
                             type="text"
                             defaultValue="Hello Packet"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs font-semibold focus:outline-none"
+                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs font-semibold focus:outline-none rounded-none"
                           />
                           {q1CorrectOption === 'B' && (
                             <div className="flex items-center gap-1.5">
-                              <span className="px-2 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20] shadow-2xs">
+                              <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
                                 ĐÁP ÁN CHÍNH XÁC
                               </span>
                             </div>
@@ -566,10 +566,10 @@ export function TeacherCreateQuizStudioView({
                         {/* Option C */}
                         <div
                           onClick={() => setQ1CorrectOption('C')}
-                          className={`flex items-center gap-3 p-2.5 rounded-lg transition-all group cursor-pointer ${
+                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
                             q1CorrectOption === 'C'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <button
@@ -590,10 +590,10 @@ export function TeacherCreateQuizStudioView({
                           <input
                             type="text"
                             defaultValue="Database Description (DBD)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none"
+                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
                           />
                           {q1CorrectOption === 'C' && (
-                            <span className="px-2 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
+                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
                               ĐÁP ÁN CHÍNH XÁC
                             </span>
                           )}
@@ -602,10 +602,10 @@ export function TeacherCreateQuizStudioView({
                         {/* Option D */}
                         <div
                           onClick={() => setQ1CorrectOption('D')}
-                          className={`flex items-center gap-3 p-2.5 rounded-lg transition-all group cursor-pointer ${
+                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
                             q1CorrectOption === 'D'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <button
@@ -626,10 +626,10 @@ export function TeacherCreateQuizStudioView({
                           <input
                             type="text"
                             defaultValue="Link State Acknowledgment (LSAck)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none"
+                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
                           />
                           {q1CorrectOption === 'D' && (
-                            <span className="px-2 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
+                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
                               ĐÁP ÁN CHÍNH XÁC
                             </span>
                           )}
@@ -637,7 +637,7 @@ export function TeacherCreateQuizStudioView({
                       </div>
 
                       {/* Socratic Explanation & Pedagogical Note Drawer */}
-                      <div className="bg-[#f0f4f8] dark:bg-[#131314] rounded-lg p-3.5 flex flex-col gap-1.5 border border-slate-200/60 dark:border-[#282A2C]">
+                      <div className="bg-[#f0f4f8] dark:bg-[#131314] rounded-none p-3.5 flex flex-col gap-1.5 border border-slate-300 dark:border-slate-700">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
                             <span className="material-symbols-outlined text-[18px]">psychology</span>
@@ -686,14 +686,14 @@ export function TeacherCreateQuizStudioView({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                      <div className="flex items-center gap-1.5 bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-none">
                         <span className="text-xs text-slate-500 font-medium">Điểm:</span>
                         <input
                           type="number"
                           step="0.5"
                           value={q2Points}
                           onChange={(e) => setQ2Points(e.target.value)}
-                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none"
+                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none rounded-none"
                         />
                       </div>
                       <div className="flex items-center gap-1 text-slate-500">
@@ -903,10 +903,10 @@ export function TeacherCreateQuizStudioView({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div
                           onClick={() => setQ2CorrectOption('A')}
-                          className={`flex items-center gap-2.5 p-3 rounded-lg transition-all cursor-pointer ${
+                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
                             q2CorrectOption === 'A'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <span
@@ -930,10 +930,10 @@ export function TeacherCreateQuizStudioView({
 
                         <div
                           onClick={() => setQ2CorrectOption('B')}
-                          className={`flex items-center gap-2.5 p-3 rounded-lg transition-all cursor-pointer ${
+                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
                             q2CorrectOption === 'B'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <span
@@ -957,10 +957,10 @@ export function TeacherCreateQuizStudioView({
 
                         <div
                           onClick={() => setQ2CorrectOption('C')}
-                          className={`flex items-center gap-2.5 p-3 rounded-lg transition-all cursor-pointer ${
+                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
                             q2CorrectOption === 'C'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <span
@@ -982,10 +982,10 @@ export function TeacherCreateQuizStudioView({
 
                         <div
                           onClick={() => setQ2CorrectOption('D')}
-                          className={`flex items-center gap-2.5 p-3 rounded-lg transition-all cursor-pointer ${
+                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
                             q2CorrectOption === 'D'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500'
-                              : 'bg-[#f0f4f8] dark:bg-[#131314] hover:bg-slate-100 dark:hover:bg-[#282A2C]'
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
                           }`}
                         >
                           <span
@@ -1061,7 +1061,7 @@ export function TeacherCreateQuizStudioView({
                     </label>
                     <div
                       onClick={() => showToast('Đổi nguồn học liệu tri thức')}
-                      className="p-2.5 rounded-lg bg-white dark:bg-[#131314] border border-slate-200 dark:border-[#282A2C] flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#282A2C] cursor-pointer transition-colors"
+                      className="p-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#282A2C] cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="material-symbols-outlined text-red-500 text-[20px]">
@@ -1090,7 +1090,7 @@ export function TeacherCreateQuizStudioView({
                     </div>
 
                     {/* Stacked Progress Bar */}
-                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-none overflow-hidden flex border border-slate-300 dark:border-slate-700">
                       <div
                         className="bg-blue-300 dark:bg-blue-600 h-full"
                         style={{ width: '30%' }}
@@ -1128,11 +1128,11 @@ export function TeacherCreateQuizStudioView({
                   <button
                     type="button"
                     onClick={() => showToast('AI đang sinh nhanh 10 câu hỏi chuẩn hóa...')}
-                    className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
                     <span>Sinh nhanh 10 câu hỏi bằng AI</span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/20 font-mono text-[10px]">
+                    <span className="px-1.5 py-0.5 rounded-none bg-white/20 font-mono text-[10px]">
                       ~3s
                     </span>
                   </button>
@@ -1157,7 +1157,7 @@ export function TeacherCreateQuizStudioView({
                         type="number"
                         value={durationMinutes}
                         onChange={(e) => setDurationMinutes(e.target.value)}
-                        className="h-9 w-20 px-3 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-sm font-bold text-center border border-slate-200 dark:border-[#282A2C] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-9 w-20 px-3 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-sm font-bold text-center border border-slate-300 dark:border-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                       <span className="text-xs text-slate-500 font-medium">
                         phút (Đồng hồ đếm ngược)
@@ -1169,7 +1169,7 @@ export function TeacherCreateQuizStudioView({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-slate-500">Thời gian mở đề</label>
-                      <div className="h-9 px-2.5 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] border border-slate-200 dark:border-[#282A2C] flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
+                      <div className="h-9 px-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
                         <span className="truncate">08:00 - 24/11</span>
                         <span className="material-symbols-outlined text-[16px] text-slate-400">
                           calendar_today
@@ -1179,7 +1179,7 @@ export function TeacherCreateQuizStudioView({
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-slate-500">Hạn chót nộp bài</label>
-                      <div className="h-9 px-2.5 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] border border-slate-200 dark:border-[#282A2C] flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
+                      <div className="h-9 px-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
                         <span className="truncate">23:59 - 28/11</span>
                         <span className="material-symbols-outlined text-[16px] text-slate-400">
                           event_busy
@@ -1198,7 +1198,7 @@ export function TeacherCreateQuizStudioView({
                         <select
                           value={attempts}
                           onChange={(e) => setAttempts(e.target.value)}
-                          className="w-full h-9 px-2.5 pr-7 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-200 dark:border-[#282A2C] appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          className="w-full h-9 px-2.5 pr-7 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                         >
                           <option>1 lần duy nhất</option>
                           <option>2 lần thử</option>
@@ -1218,7 +1218,7 @@ export function TeacherCreateQuizStudioView({
                         <select
                           value={scoringStrategy}
                           onChange={(e) => setScoringStrategy(e.target.value)}
-                          className="w-full h-9 px-2.5 pr-7 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-200 dark:border-[#282A2C] appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          className="w-full h-9 px-2.5 pr-7 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                         >
                           <option>Lấy điểm cao nhất</option>
                           <option>Lần nộp cuối cùng</option>
