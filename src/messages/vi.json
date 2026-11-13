@@ -1439,5 +1439,110 @@
     "errors": {
       "loadFailed": "Không thể tải danh sách bài tập & quiz"
     }
+  },
+  "timetable": {
+    "backToOverview": "Trở về Tổng quan giảng dạy",
+    "termPill": "Học kỳ 1 • 2024-2025",
+    "instructorBadge": "Giảng viên: {name}",
+    "weeklyTitle": "Thời khóa biểu tuần",
+    "weekBadge": "Tuần {week}",
+    "weeklySubtitle": "Học kỳ 1 (2024-2025) • {range} • {faculty}",
+    "todayBtn": "Hôm nay",
+    "prevWeek": "Tuần trước",
+    "nextWeek": "Tuần kế tiếp",
+    "weekRangeDisplay": "Tuần {week}: {range}",
+    "currentWeekStatusToast": "Đang ở Tuần {week} (Tuần hiện tại)",
+    "navigatedWeekToast": "Đã chuyển sang Tuần {week}",
+    "exportScheduleBtn": "Xuất lịch (.ics/PDF)",
+    "swapRoomBtn": "Đăng ký dạy bù / đổi phòng",
+    "filters": {
+      "all": "Tất cả các lớp ({count})",
+      "theory": "Lý thuyết",
+      "lab": "Thực hành / Lab",
+      "exam": "Có ca thi / Kiểm tra"
+    },
+    "kpis": {
+      "totalSessionsTitle": "Tổng ca dạy tuần này",
+      "totalSessionsValue": "{sessions} Ca",
+      "totalSessionsSub": "({periods} Tiết)",
+      "labRoomsTitle": "Phòng Lab thực hành",
+      "labRoomsValue": "{count} Buổi",
+      "labRoomsSub": "• 100% Máy sẵn sàng",
+      "peakHourTitle": "Giờ cao điểm",
+      "peakHourValue": "Thứ 4",
+      "peakHourSub": "• 3 ca liên tiếp",
+      "syncStatusTitle": "Trạng thái đồng bộ",
+      "syncStatusValue": "Google Calendar & Đào tạo",
+      "syncStatusSub": "Vừa đồng bộ 5 phút trước"
+    },
+    "days": {
+      "monday": "Thứ 2",
+      "tuesday": "Thứ 3",
+      "wednesday": "Thứ 4",
+      "thursday": "Thứ 5",
+      "friday": "Thứ 6",
+      "saturday": "Thứ 7",
+      "sunday": "Chủ nhật",
+      "today": "Hôm nay",
+      "sessionCount": "{count} ca",
+      "dayOff": "Nghỉ",
+      "noSessionsTitle": "Không có ca dạy",
+      "noSessionsDesc": "Thời gian nghỉ ngơi, nghiên cứu học thuật & soạn giáo án tuần sau"
+    },
+    "session": {
+      "studentsCount": "{count} SV",
+      "completed": "Đã dạy xong",
+      "viewDetail": "Xem chi tiết →",
+      "viewMeetingLink": "Xem link họp →",
+      "trackLeaderboard": "Theo dõi bảng điểm →",
+      "takeAttendanceNow": "Điểm danh ngay",
+      "takeAttendance": "Điểm danh"
+    },
+    "legend": {
+      "title": "Chú thích:",
+      "theory": "Lý thuyết thông thường",
+      "lab": "Thực hành Lab máy",
+      "exam": "Có kiểm tra / Mock Contest",
+      "today": "Ca hiện tại / Hôm nay",
+      "downloadWeeklyMaterials": "Tải tài liệu tuần",
+      "scrollToTop": "Lên đầu trang",
+      "downloadingToast": "Đang chuẩn bị gói tài liệu học tập & giáo trình tuần..."
+    },
+    "modal": {
+      "detailTitle": "Chi tiết ca học (Lesson Session)",
+      "timeLabel": "Thời gian học",
+      "roomLabel": "Phòng học",
+      "enrolledStudents": "Sĩ số sinh viên đăng ký:",
+      "studentsUnit": "{count} sinh viên",
+      "notesTitle": "Ghi chú buổi dạy & Nội dung bài học:",
+      "closeBtn": "Đóng",
+      "openQrAttendance": "Mở QR Điểm danh trực tiếp"
+    },
+    "swapModal": {
+      "title": "Đăng ký Dạy bù / Đổi phòng học",
+      "sessionLabel": "Chọn ca học cần điều chỉnh",
+      "requestType": "Hình thức đăng ký",
+      "makeup": "Dạy bù",
+      "swap": "Đổi phòng học",
+      "proposedDate": "Ngày đề xuất",
+      "proposedTime": "Khung giờ đề xuất",
+      "proposedRoom": "Phòng học mong muốn",
+      "reason": "Lý do điều chỉnh",
+      "reasonPlaceholder": "Nhập lý do gửi Phòng Đào tạo (VD: Trùng lịch bảo vệ đề tài, phòng máy cần bảo trì...)",
+      "cancel": "Hủy bỏ",
+      "submit": "Gửi yêu cầu phê duyệt",
+      "successToast": "Đã gửi yêu cầu đăng ký dạy bù / đổi phòng tới Phòng Đào tạo"
+    },
+    "exportModal": {
+      "title": "Xuất thời khóa biểu giảng dạy",
+      "description": "Lựa chọn định dạng để đồng bộ với ứng dụng lịch cá nhân hoặc in ấn:",
+      "icsOption": "Định dạng iCalendar (.ics)",
+      "icsDesc": "Đồng bộ tự động với Google Calendar, Apple Calendar, Outlook",
+      "pdfOption": "Định dạng tài liệu in (.pdf)",
+      "pdfDesc": "Tải bản in chất lượng cao A4 ngang cho tuần hiện tại",
+      "downloadBtn": "Tải về",
+      "cancel": "Đóng",
+      "exportingToast": "Đang tải xuống tệp thời khóa biểu..."
+    }
   }
 }

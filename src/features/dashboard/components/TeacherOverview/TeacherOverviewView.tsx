@@ -10,6 +10,7 @@ import {
   TeacherAttendanceModal,
   TodaySessionItem,
 } from './TeacherAttendanceModal';
+import { TeacherWeeklyTimetableView } from '@/features/timetable';
 
 interface TeacherOverviewViewProps {
   classNameTitle?: string;
@@ -59,6 +60,7 @@ export function TeacherOverviewView({
   const [sessions, setSessions] = useState<TodaySessionItem[]>(INITIAL_TEACHER_SESSIONS);
   const [selectedSessionForAttendance, setSelectedSessionForAttendance] =
     useState<TodaySessionItem | null>(null);
+  const [isViewingWeeklyTimetable, setIsViewingWeeklyTimetable] = useState(false);
 
   // Sync sessions status from localStorage on mount
   useEffect(() => {
@@ -125,14 +127,23 @@ export function TeacherOverviewView({
     }
   };
 
+  if (isViewingWeeklyTimetable) {
+    return (
+      <div className="w-full max-w-7xl mx-auto pb-16 animate-in fade-in duration-300">
+        <TeacherWeeklyTimetableView
+          userFullName={instructorName}
+          onBack={() => setIsViewingWeeklyTimetable(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pb-16 animate-in fade-in duration-300">
       {/* 1. Page Header with Title, Term Pills & Quick Actions */}
       <TeacherHeroHeader
         instructorName={instructorName}
-        onOpenTimetable={() => {
-          // opens or scrolls to timetable
-        }}
+        onOpenTimetable={() => setIsViewingWeeklyTimetable(true)}
         onCreateAnnouncement={() => {
           // opens announcement creator
         }}
@@ -150,9 +161,7 @@ export function TeacherOverviewView({
             onTakeAttendance={(session) =>
               setSelectedSessionForAttendance(session)
             }
-            onViewWeeklyTimetable={() => {
-              // Tích hợp mở giao diện thời khóa biểu theo tuần của giảng viên
-            }}
+            onViewWeeklyTimetable={() => setIsViewingWeeklyTimetable(true)}
           />
         </div>
 

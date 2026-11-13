@@ -139,7 +139,12 @@ export function TeacherTodaySessionsCard({
         </span>
         <Link
           href="/timetable"
-          onClick={onViewWeeklyTimetable}
+          onClick={(e) => {
+            if (onViewWeeklyTimetable) {
+              e.preventDefault();
+              onViewWeeklyTimetable();
+            }
+          }}
           className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium border-none shadow-none ring-0 outline-none bg-transparent cursor-pointer p-0 font-sans flex items-center gap-1.5 transition-colors"
         >
           <span>{t('viewWeeklyScheduleLink')}</span>
