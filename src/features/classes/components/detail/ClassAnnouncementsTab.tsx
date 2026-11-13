@@ -1,22 +1,53 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import type { ClassAnnouncement } from '../../schemas/class-detail.schema';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { ClassAnnouncement } from '@/features/classes/schemas/class-detail.schema';
+import {
+  saveLocalAnnouncement,
+  getLocalAnnouncements,
+} from '@/features/classes/services/class-detail.service';
 
 interface ClassAnnouncementsTabProps {
+  classId?: string;
   announcements?: ClassAnnouncement[];
   currentRole?: 'owner' | 'teacher';
+  onPublishAnnouncement?: (announcement: ClassAnnouncement) => void;
   onPostClick?: () => void;
   onToast?: (message: string) => void;
 }
 
 export function ClassAnnouncementsTab({
+  classId,
   announcements: initialAnnouncements = [],
   currentRole = 'owner',
+  onPublishAnnouncement,
   onPostClick,
   onToast,
 }: ClassAnnouncementsTabProps) {
   const [announcements, setAnnouncements] = useState<ClassAnnouncement[]>(initialAnnouncements);
+
+  // Sync state when initialAnnouncements prop updates from server/query
+  useEffect(() => {
+    if (initialAnnouncements && initialAnnouncements.length > 0) {
+      setAnnouncements(initialAnnouncements);
+    }
+  }, [initialAnnouncements]);
+
+  // Sync locally stored announcements on mount (persists across F5/refresh)
+  useEffect(() => {
+    if (!classId) return;
+    const localItems = getLocalAnnouncements(classId);
+    if (localItems.length > 0) {
+      setAnnouncements((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const newOnes = localItems.filter((a) => !existingIds.has(a.id));
+        if (newOnes.length > 0) {
+          return [...newOnes, ...prev];
+        }
+        return prev;
+      });
+    }
+  }, [classId]);
 
   // Filter states
   const [feedFilter, setFeedFilter] = useState<'all' | 'pinned' | 'attachment'>('all');
@@ -111,7 +142,13 @@ export function ClassAnnouncementsTab({
         : undefined,
     };
 
+    // Save to localStorage for persistence across page refresh
+    if (classId) {
+      saveLocalAnnouncement(classId, created);
+    }
+
     setAnnouncements((prev) => [created, ...prev]);
+    onPublishAnnouncement?.(created);
     setNewTitle('');
     setNewContent('');
     setHasAttachment(false);

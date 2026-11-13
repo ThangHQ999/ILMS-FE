@@ -658,6 +658,31 @@ export const MOCK_MATERIALS: ClassMaterial[] = [
   },
 ];
 
+const ANNOUNCEMENT_STORAGE_KEY = (classId: string) => `ilms_announcements_${classId}`;
+
+export function getLocalAnnouncements(classId: string): ClassAnnouncement[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY(classId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalAnnouncement(classId: string, item: ClassAnnouncement): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalAnnouncements(classId);
+    const updated = [item, ...existing.filter((x) => x.id !== item.id)];
+    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY(classId), JSON.stringify(updated));
+  } catch {
+    // quota exceeded or storage disabled
+  }
+}
+
 /**
  * Fetch full class detail bundle with graceful API connect & fallback.
  */
@@ -697,6 +722,14 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     }
   } catch {
     // Fallback to mock announcements
+  }
+
+  // Merge locally persisted announcements (offline/mock persistence)
+  const localAnnouncements = getLocalAnnouncements(classId);
+  if (localAnnouncements.length > 0) {
+    const existingIds = new Set(announcements.map((a) => a.id));
+    const newItems = localAnnouncements.filter((a) => !existingIds.has(a.id));
+    announcements = [...newItems, ...announcements];
   }
 
   try {
@@ -762,7 +795,29 @@ export async function postClassAnnouncement(
   try {
     await api.post<ApiResponse<unknown>>(`/classes/class/${classId}/Announcements`, payload);
   } catch {
-    // Local simulation fallback
+    // Local simulation fallback: ensure persisted in localStorage for offline/mock mode
+    const existing = getLocalAnnouncements(classId);
+    const alreadySaved = existing.some(
+      (a) => a.title === payload.title && a.content === payload.content
+    );
+    if (!alreadySaved) {
+      saveLocalAnnouncement(classId, {
+        id: `ann-${Date.now()}`,
+        title: payload.title,
+        content: payload.content,
+        authorName: 'TS. Lê Hoàng Nam',
+        authorRole: 'Giảng viên Chủ nhiệm',
+        authorInitials: 'LN',
+        authorColor: 'bg-primary text-on-primary',
+        createdAt: 'Vừa xong',
+        isPinned: false,
+        tag: 'Thông báo chung',
+        readCount: 1,
+        totalStudents: 42,
+        readPercent: 2,
+        commentsCount: 0,
+      });
+    }
   }
 }
 

@@ -305,8 +305,15 @@ export function ClassDetailPageView({
 
             {activeTab === 'announcements' && (
               <ClassAnnouncementsTab
+                classId={classId}
                 announcements={announcements}
                 currentRole={currentRole}
+                onPublishAnnouncement={(ann) => {
+                  postAnnouncementMutation.mutate({
+                    title: ann.title,
+                    content: ann.content,
+                  });
+                }}
                 onPostClick={() => showToast('Mở khung soạn thông báo mới cho lớp')}
                 onToast={showToast}
               />
