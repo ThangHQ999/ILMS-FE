@@ -23,7 +23,6 @@ export function DashboardSidebar({
 
   const isOverviewActive = pathname === '/dashboard';
   const isClassesActive = pathname.startsWith('/classes');
-  const isSessionsActive = pathname.startsWith('/lesson-sessions') || pathname.includes('/sessions');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
   const isMaterialsActive = pathname.startsWith('/materials');
@@ -43,13 +42,6 @@ export function DashboardSidebar({
       icon: 'school',
       label: isTeacher ? 'Quản lý Lớp học' : 'Khóa học của tôi',
       active: isClassesActive,
-      show: true,
-    },
-    {
-      href: '/lesson-sessions',
-      icon: 'calendar_view_week',
-      label: isTeacher ? 'Ca học & Điểm danh' : 'Lịch học của tôi',
-      active: isSessionsActive,
       show: true,
     },
     {
