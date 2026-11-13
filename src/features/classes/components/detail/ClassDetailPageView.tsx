@@ -308,6 +308,7 @@ export function ClassDetailPageView({
                 announcements={announcements}
                 currentRole={currentRole}
                 onPostClick={() => showToast('Mở khung soạn thông báo mới cho lớp')}
+                onToast={showToast}
               />
             )}
 
