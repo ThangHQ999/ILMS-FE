@@ -244,7 +244,7 @@ export function CreateSubjectModal({
             <div className="grid grid-cols-3 gap-3">
               {[
                 { val: 'PUBLIC', label: 'Công khai', icon: 'public' },
-                { val: 'PRIVATE', label: 'Lớp học', icon: 'groups' },
+                { val: 'PRIVATE', label: 'Riêng tư', icon: 'lock' },
                 { val: 'DRAFT', label: 'Bản nháp', icon: 'edit_note' },
               ].map((opt) => (
                 <button
@@ -335,3 +335,4 @@ export function CreateSubjectModal({
     </div>
   );
 }
+
