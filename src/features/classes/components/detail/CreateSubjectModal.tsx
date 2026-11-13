@@ -267,14 +267,14 @@ export function CreateSubjectModal({
           {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="sub-desc">
-              Mô tả đề cương môn học
+              Mô tả môn học
             </label>
             <textarea
               id="sub-desc"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Nội dung tóm tắt học phần, chuẩn đầu ra và các yêu cầu tiên quyết..."
+              placeholder="Nội dung tóm tắt môn học, chuẩn đầu ra và các yêu cầu tiên quyết..."
               className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all resize-none leading-relaxed"
             />
           </div>
