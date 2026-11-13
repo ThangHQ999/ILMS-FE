@@ -31,6 +31,11 @@ export function DashboardSidebar({
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isSettingsActive = pathname.startsWith('/settings');
 
+  // Shared Design System Classes (consistent across Student & Teacher)
+  const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
+  const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
+  const badgePill = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA]';
+
   // ==========================================
   // 1. TEACHER SIDEBAR CONFIGURATION
   // ==========================================
@@ -69,11 +74,7 @@ export function DashboardSidebar({
           icon: 'library_books',
           label: 'Kho học liệu & Bóc tách AI',
           active: isMaterialsActive,
-          badge: (
-            <span className="px-1.5 py-0.5 rounded bg-secondary/15 text-secondary dark:bg-[#0842A0]/40 dark:text-[#A8C7FA] font-mono text-[10px] font-bold">
-              AI
-            </span>
-          ),
+          badge: <span className={`${badgePill} font-mono`}>AI</span>,
         },
         {
           href: '/knowledge-graph',
@@ -110,8 +111,8 @@ export function DashboardSidebar({
           label: 'Giám sát phòng thi',
           active: pathname.includes('proctoring'),
           badge: (
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FCE8E6] dark:bg-[#3C1919] text-[#C5221F] dark:text-[#F28B82] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C5221F] dark:bg-[#F28B82] animate-pulse" />
               Live
             </span>
           ),
@@ -121,11 +122,7 @@ export function DashboardSidebar({
           icon: 'gavel',
           label: 'Khiếu nại & Chấm lại',
           active: pathname.includes('appeals'),
-          badge: (
-            <span className="w-5 h-5 rounded-full bg-secondary/15 text-secondary dark:bg-[#0842A0]/50 dark:text-[#A8C7FA] font-bold text-[11px] flex items-center justify-center">
-              3
-            </span>
-          ),
+          badge: <span className={badgePill}>3</span>,
         },
       ],
     },
@@ -154,9 +151,9 @@ export function DashboardSidebar({
   // ==========================================
   if (isTeacher) {
     if (isFocus) {
-      // 80px Focus mode for Teacher
+      // 80px Compact Sidebar for Focus Mode (Teacher)
       return (
-        <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-r border-[#E1E5EA] dark:border-[#282A2C] z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+        <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
           <div className="flex flex-col items-center gap-6">
             <Link
               href="/dashboard"
@@ -180,10 +177,8 @@ export function DashboardSidebar({
                   key={item.href + item.label}
                   href={item.href}
                   prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
-                    item.active
-                      ? 'bg-secondary text-white font-medium shadow-sm'
-                      : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                    item.active ? activeClass : inactiveClass
                   }`}
                   title={item.label}
                 >
@@ -199,10 +194,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
-                isSettingsActive
-                  ? 'bg-secondary text-white font-medium shadow-sm'
-                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                isSettingsActive ? activeClass : inactiveClass
               }`}
               title={t('navSettings')}
             >
@@ -213,18 +206,18 @@ export function DashboardSidebar({
       );
     }
 
-    // Standard / Collapsible Sidebar for Teacher
+    // Standard / Collapsible Sidebar for Teacher (Matches Student Design)
     return (
       <aside
         className={`fixed left-0 top-0 h-full ${
           isCollapsed ? 'w-20' : 'w-72'
-        } bg-white dark:bg-[#1E1F20] border-r border-[#E1E5EA] dark:border-[#282A2C] flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_8px_rgba(0,0,0,0.04)] dark:shadow-none`}
+        } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
       >
         {/* Collapse/Expand Floating Button on the border */}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
-            className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border border-[#E1E5EA] dark:border-[#383A3C] shadow-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
+            className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border-none shadow-none flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
             title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
             type="button"
             aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
@@ -235,13 +228,9 @@ export function DashboardSidebar({
           </button>
         )}
 
-        <div className="flex flex-col min-h-0 flex-1">
-          {/* Header */}
-          <div
-            className={`h-16 flex items-center bg-white dark:bg-[#1E1F20] border-b border-[#E1E5EA] dark:border-[#282A2C] transition-all ${
-              isCollapsed ? 'justify-center px-0' : 'px-4'
-            }`}
-          >
+        <div className="flex flex-col flex-1 min-h-0">
+          {/* Brand Header */}
+          <div className={`h-14 flex items-center mb-3 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
             <Link
               href="/dashboard"
               prefetch={true}
@@ -272,31 +261,25 @@ export function DashboardSidebar({
           </div>
 
           {/* Navigation Scroll Area */}
-          <div
-            className={`flex-1 overflow-y-auto ${
-              isCollapsed ? 'px-2 py-3' : 'px-4 py-3'
-            } flex flex-col gap-4 scrollbar-none`}
-          >
+          <nav className={`flex-1 flex flex-col gap-1 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
             {teacherSections.map((section) => (
               <div key={section.title} className="flex flex-col gap-1">
                 {!isCollapsed && (
-                  <div className="px-2 py-1 font-semibold text-[11px] uppercase tracking-wider text-[#747775] dark:text-[#8E918F]">
-                    {section.title}
+                  <div className="px-3 py-1 mb-1 mt-2.5 first:mt-0">
+                    <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
+                      {section.title}
+                    </span>
                   </div>
                 )}
-                <nav className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
                   {section.items.map((item) => {
-                    const activeClass = 'bg-secondary text-white font-semibold shadow-sm';
-                    const inactiveClass =
-                      'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] transition-all';
-
                     if (isCollapsed) {
                       return (
                         <Link
                           key={item.href + item.label}
                           href={item.href}
                           prefetch={item.href.startsWith('/')}
-                          className={`flex items-center justify-center w-11 h-11 rounded-lg ${
+                          className={`flex items-center justify-center w-12 h-12 rounded-full ${
                             item.active ? activeClass : inactiveClass
                           }`}
                           title={item.label}
@@ -317,65 +300,83 @@ export function DashboardSidebar({
                         key={item.href + item.label}
                         href={item.href}
                         prefetch={item.href.startsWith('/')}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+                        className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${
                           item.active ? activeClass : inactiveClass
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span
-                            className={`material-symbols-outlined text-[20px] ${
-                              !item.active && item.iconColor ? item.iconColor : ''
-                            }`}
-                          >
-                            {item.icon}
-                          </span>
-                          <span className="truncate">{item.label}</span>
-                        </div>
+                        <span
+                          className={`material-symbols-outlined text-[20px] ${
+                            !item.active && item.iconColor ? item.iconColor : ''
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="flex-1 truncate">{item.label}</span>
                         {item.badge}
                       </Link>
                     );
                   })}
-                </nav>
+                </div>
               </div>
             ))}
-          </div>
+
+            <div className="my-1 border-none" />
+
+            {/* Trợ giúp & Hướng dẫn */}
+            {isCollapsed ? (
+              <Link
+                href="/settings"
+                prefetch={true}
+                className={`flex items-center justify-center w-12 h-12 rounded-full ${inactiveClass}`}
+                title="Trợ giúp & Hướng dẫn"
+              >
+                <span className="material-symbols-outlined text-[20px]">help_outline</span>
+              </Link>
+            ) : (
+              <Link
+                href="/settings"
+                prefetch={true}
+                className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${inactiveClass}`}
+              >
+                <span className="material-symbols-outlined text-[20px]">help_outline</span>
+                <span>Trợ giúp & Hướng dẫn</span>
+              </Link>
+            )}
+
+            {/* Cài đặt tài khoản */}
+            {isCollapsed ? (
+              <Link
+                href="/settings"
+                prefetch={true}
+                className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                  isSettingsActive ? activeClass : inactiveClass
+                }`}
+                title={t('navSettings')}
+              >
+                <span className="material-symbols-outlined text-[20px]">settings</span>
+              </Link>
+            ) : (
+              <Link
+                href="/settings"
+                prefetch={true}
+                className={`flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium ${
+                  isSettingsActive ? activeClass : inactiveClass
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">settings</span>
+                <span>{t('navSettings')}</span>
+              </Link>
+            )}
+          </nav>
         </div>
 
-        {/* Bottom Footer */}
-        <div className="p-3 bg-white dark:bg-[#1E1F20] border-t border-[#E1E5EA] dark:border-[#282A2C] flex flex-col gap-1">
-          <nav className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
-            <Link
-              href="/settings"
-              className={`flex items-center ${
-                isCollapsed ? 'justify-center w-11 h-11' : 'gap-2.5 px-3 py-1.5'
-              } rounded-lg text-xs font-medium text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] transition-all`}
-              title="Trợ giúp & Hướng dẫn"
-            >
-              <span className="material-symbols-outlined text-[18px]">help_outline</span>
-              {!isCollapsed && <span>Trợ giúp & Hướng dẫn</span>}
-            </Link>
-            <Link
-              href="/settings"
-              className={`flex items-center ${
-                isCollapsed ? 'justify-center w-11 h-11' : 'gap-2.5 px-3 py-1.5'
-              } rounded-lg text-xs font-medium ${
-                isSettingsActive
-                  ? 'bg-secondary text-white font-medium shadow-sm'
-                  : 'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]'
-              } transition-all`}
-              title={t('navSettings')}
-            >
-              <span className="material-symbols-outlined text-[18px]">settings</span>
-              {!isCollapsed && <span>Cài đặt tài khoản</span>}
-            </Link>
-          </nav>
-          {!isCollapsed && (
-            <div className="pt-2 px-2 flex items-center justify-between text-[11px] text-[#747775] dark:text-[#8E918F] border-t border-[#E1E5EA]/60 dark:border-[#282A2C]/60 mt-1">
-              <span>Học kỳ II - 2024</span>
-              <span className="font-mono">v2.5</span>
-            </div>
-          )}
-        </div>
+        {/* Footer Info */}
+        {!isCollapsed && (
+          <div className="px-3 pt-2 text-[11px] text-[#747775] dark:text-[#8E918F] flex items-center justify-between border-t border-[#E1E5EA]/40 dark:border-[#282A2C] mt-2">
+            <span>Học kỳ II - 2024</span>
+            <span className="font-mono">v2.5</span>
+          </div>
+        )}
       </aside>
     );
   }
@@ -465,9 +466,7 @@ export function DashboardSidebar({
                 href={item.href}
                 prefetch={item.href.startsWith('/')}
                 className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                  item.active
-                    ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                    : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+                  item.active ? activeClass : inactiveClass
                 }`}
                 title={item.label}
               >
@@ -482,9 +481,7 @@ export function DashboardSidebar({
             href="/settings"
             prefetch={true}
             className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-              isSettingsActive
-                ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+              isSettingsActive ? activeClass : inactiveClass
             }`}
             title={t('navSettings')}
           >
@@ -561,9 +558,6 @@ export function DashboardSidebar({
         {/* Nav Links */}
         <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
           {studentNavItems.map((item) => {
-            const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
-            const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
-
             if (isCollapsed) {
               return (
                 <Link
@@ -608,9 +602,7 @@ export function DashboardSidebar({
               href="/settings"
               prefetch={true}
               className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                isSettingsActive
-                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
+                isSettingsActive ? activeClass : inactiveClass
               }`}
               title={t('navSettings')}
             >
@@ -621,9 +613,7 @@ export function DashboardSidebar({
               href="/settings"
               prefetch={true}
               className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
-                isSettingsActive
-                  ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium'
-                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors'
+                isSettingsActive ? activeClass : inactiveClass
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
