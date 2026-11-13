@@ -362,3 +362,4 @@ export function CourseSyllabusTab({
     </div>
   );
 }
+

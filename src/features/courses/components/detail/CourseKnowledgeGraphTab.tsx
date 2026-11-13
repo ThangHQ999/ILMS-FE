@@ -213,3 +213,4 @@ export function CourseKnowledgeGraphTab({ courseName }: CourseKnowledgeGraphTabP
     </div>
   );
 }
+

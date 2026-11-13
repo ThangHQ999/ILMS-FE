@@ -40,3 +40,4 @@ NEXT: Cho phép người dùng xem trước và yêu cầu chỉnh sửa/bổ su
 - Chuẩn MD3 & Gemini Aesthetic: Tonal surfaces không viền cứng, bo góc `rounded-3xl` và các nút bấm / chip dạng `rounded-full`.
 - Hỗ trợ đầy đủ Dark / Light theme.
 - Đa ngôn ngữ đối xứng 100% giữa `vi.json` và `en.json`.
+

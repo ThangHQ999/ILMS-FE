@@ -248,3 +248,4 @@ export const MOCK_COURSE_DETAILS: Record<string, CourseDetail> = {
     hasAiTutor: true,
   },
 };
+

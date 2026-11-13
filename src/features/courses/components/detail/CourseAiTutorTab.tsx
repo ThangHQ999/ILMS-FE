@@ -182,3 +182,4 @@ export function CourseAiTutorTab({ courseName }: CourseAiTutorTabProps) {
     </div>
   );
 }
+

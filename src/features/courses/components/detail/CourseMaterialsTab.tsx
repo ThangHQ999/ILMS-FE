@@ -193,3 +193,4 @@ export function CourseMaterialsTab({ courseName, onShowToast }: CourseMaterialsT
     </div>
   );
 }
+

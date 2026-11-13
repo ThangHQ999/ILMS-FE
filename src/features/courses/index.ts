@@ -8,3 +8,4 @@ export { CourseSyllabusTab } from './components/detail/CourseSyllabusTab';
 export { CourseMaterialsTab } from './components/detail/CourseMaterialsTab';
 export { CourseKnowledgeGraphTab } from './components/detail/CourseKnowledgeGraphTab';
 export { CourseAiTutorTab } from './components/detail/CourseAiTutorTab';
+

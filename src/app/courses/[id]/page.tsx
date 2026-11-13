@@ -27,3 +27,4 @@ export default function CourseDetailPage({ params }: PageProps) {
 
   return <CourseDetailPageView courseId={id} userFullName={userFullName} />;
 }
+
