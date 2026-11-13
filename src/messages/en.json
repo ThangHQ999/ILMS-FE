@@ -1543,6 +1543,18 @@
       "downloadBtn": "Download",
       "cancel": "Close",
       "exportingToast": "Downloading timetable file..."
+    },
+    "studentsModal": {
+      "title": "Class Student Roster",
+      "searchPlaceholder": "Search by name or student ID...",
+      "studentCount": "Total: {count} students",
+      "colIndex": "No.",
+      "colCode": "Student ID",
+      "colName": "Full Name",
+      "colEmail": "Student Email",
+      "colClass": "Course Section",
+      "emptySearch": "No students found matching your search",
+      "close": "Close"
     }
   }
 }

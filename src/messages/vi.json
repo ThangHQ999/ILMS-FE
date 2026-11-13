@@ -1543,6 +1543,18 @@
       "downloadBtn": "Tải về",
       "cancel": "Đóng",
       "exportingToast": "Đang tải xuống tệp thời khóa biểu..."
+    },
+    "studentsModal": {
+      "title": "Danh sách sinh viên",
+      "searchPlaceholder": "Tìm kiếm sinh viên theo tên hoặc mã số...",
+      "studentCount": "Sĩ số: {count} sinh viên",
+      "colIndex": "STT",
+      "colCode": "Mã sinh viên",
+      "colName": "Họ và tên",
+      "colEmail": "Email sinh viên",
+      "colClass": "Lớp học phần",
+      "emptySearch": "Không tìm thấy sinh viên phù hợp",
+      "close": "Đóng"
     }
   }
 }

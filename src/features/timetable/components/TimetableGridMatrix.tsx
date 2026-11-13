@@ -8,13 +8,11 @@ import { ACADEMIC_SHIFTS } from '../constants';
 interface TimetableGridMatrixProps {
   days: DaySchedule[];
   onSelectSession: (session: TimetableSession) => void;
-  onTakeAttendance?: (session: TimetableSession) => void;
 }
 
 export function TimetableGridMatrix({
   days,
   onSelectSession,
-  onTakeAttendance,
 }: TimetableGridMatrixProps) {
   const tDays = useTranslations('timetable.days');
 
@@ -23,7 +21,6 @@ export function TimetableGridMatrix({
     return dayOfWeek === 0 ? 8 : dayOfWeek + 1;
   };
 
-  // Flatten all filtered sessions across all 7 days
   const allSessions: TimetableSession[] = days.flatMap((d) => d.sessions);
 
   return (
@@ -33,7 +30,7 @@ export function TimetableGridMatrix({
           className="grid min-w-[960px] w-full"
           style={{
             gridTemplateColumns: '88px repeat(7, minmax(124px, 1fr))',
-            gridTemplateRows: '56px repeat(12, 68px)',
+            gridTemplateRows: '56px repeat(12, 74px)',
           }}
         >
           {/* ========================================================= */}
@@ -97,7 +94,7 @@ export function TimetableGridMatrix({
           {/* 2. BACKGROUND MATRIX CELLS (Rows 2 to 13)                 */}
           {/* ========================================================= */}
           {ACADEMIC_SHIFTS.map((shiftInfo) => {
-            const rowNumber = shiftInfo.shift + 1; // Shifts 1..12 correspond to Grid Rows 2..13
+            const rowNumber = shiftInfo.shift + 1;
 
             return (
               <React.Fragment key={`row-shift-${shiftInfo.shift}`}>
@@ -134,21 +131,12 @@ export function TimetableGridMatrix({
           })}
 
           {/* ========================================================= */}
-          {/* 3. CLASS BLOCKS (SESSION CARDS SPANNING MULTIPLE SHIFTS)  */}
+          {/* 3. CLASS BLOCKS (UNIFIED ANTI-RAINBOW TONAL SCHEME)       */}
           {/* ========================================================= */}
           {allSessions.map((session) => {
             const col = getColIndex(session.dayOfWeek);
             const rowStart = (session.startShift || 1) + 1;
             const rowEnd = (session.endShift || 3) + 2;
-            const isToday = session.dayOfWeek === 3; // Wednesday in mock data is today
-
-            const cardTonalClass =
-              session.sessionType === 'lab'
-                ? 'bg-[#C4EED0] text-[#072711] dark:bg-[#0f5223] dark:text-[#C4EED0]'
-                : session.sessionType === 'exam'
-                ? 'bg-[#FEEFC3] text-[#7A4100] dark:bg-[#433100] dark:text-[#FFD579]'
-                : 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]';
-
             const timeStr = `${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`;
 
             return (
@@ -167,30 +155,28 @@ export function TimetableGridMatrix({
                   gridColumn: col,
                   gridRow: `${rowStart} / ${rowEnd}`,
                 }}
-                className={`z-10 rounded-xl p-3 border-none shadow-sm dark:shadow-none m-1 hover:brightness-95 transition-all cursor-pointer flex flex-col justify-between overflow-hidden select-none text-left ${cardTonalClass}`}
+                className="z-10 rounded-xl p-3 border-none shadow-none m-1 cursor-pointer transition-all hover:brightness-95 select-none text-left bg-[#EAF1FF] text-[#041E49] dark:bg-[#162B4D]/60 dark:text-[#A8C7FA]"
               >
-                {/* Top Section: Subject Name & Room */}
-                <div className="flex flex-col gap-1 min-w-0">
-                  {/* Line 1: Subject Name */}
-                  <h4 className="font-semibold text-sm leading-tight line-clamp-2 font-sans">
+                <div className="flex flex-col h-full font-sans">
+                  {/* 1. TOP: Time & Shift (Muted, small) */}
+                  <div className="text-[11px] font-medium opacity-75 mb-1.5 flex items-center gap-1.5">
+                    <span>Tiết {session.startShift}-{session.endShift}</span>
+                    <span className="w-1 h-1 rounded-full bg-current opacity-50" />
+                    <span>{timeStr}</span>
+                  </div>
+
+                  {/* 2. MIDDLE: Subject Title (Bold, readable) */}
+                  <h4 className="text-sm font-semibold leading-snug line-clamp-2">
                     {session.className}
                   </h4>
 
-                  {/* Line 2: Room */}
-                  <div className="text-xs opacity-85 flex items-center gap-1 font-sans">
-                    <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
+                  {/* 3. BOTTOM: Room (Muted, with icon) */}
+                  <div className="text-xs font-medium opacity-80 mt-auto pt-2 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[14px] shrink-0 opacity-80">
+                      location_on
+                    </span>
                     <span className="truncate">{session.roomName}</span>
                   </div>
-                </div>
-
-                {/* Bottom Section: Shifts & Time, plus Today attendance pill */}
-                <div className="mt-2 pt-1 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs opacity-90 font-sans">
-                  <span className="font-medium">
-                    Tiết {session.startShift}-{session.endShift}
-                  </span>
-                  <span className="font-mono text-[11px] opacity-80">
-                    {timeStr}
-                  </span>
                 </div>
               </div>
             );

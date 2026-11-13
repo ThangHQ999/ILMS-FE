@@ -1,19 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useWeeklyTimetable } from '../hooks/useWeeklyTimetable';
 import { TimetableHeaderControls } from './TimetableHeaderControls';
 import { TimetableGridMatrix } from './TimetableGridMatrix';
-import { TimetableSessionDetailModal } from './TimetableSessionDetailModal';
+import { TimetableClassStudentsModal } from './TimetableClassStudentsModal';
 import { TimetableSwapRoomModal } from './TimetableSwapRoomModal';
 import { TimetableExportModal } from './TimetableExportModal';
-import {
-  TeacherAttendanceModal,
-  TodaySessionItem,
-} from '@/features/dashboard/components/TeacherOverview/TeacherAttendanceModal';
-import { TimetableSession } from '../types';
 
 interface TeacherWeeklyTimetableViewProps {
   userFullName?: string;
@@ -46,28 +41,12 @@ export function TeacherWeeklyTimetableView({
     showToast,
   } = useWeeklyTimetable();
 
-  // Quick Attendance Modal State
-  const [attendanceSession, setAttendanceSession] = useState<TodaySessionItem | null>(null);
-
   const handleBack = () => {
     if (onBack) {
       onBack();
     } else {
       router.push('/dashboard');
     }
-  };
-
-  const handleTriggerAttendance = (session: TimetableSession) => {
-    setAttendanceSession({
-      id: session.lessonSessionId,
-      timeSlot: `${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-      subjectTitle: session.className,
-      subjectCode: session.classId,
-      roomName: session.roomName,
-      studentsCount: session.studentsCount,
-      classId: session.classId,
-      status: session.status,
-    });
   };
 
   const handleExport = (format: 'ics' | 'pdf') => {
@@ -130,17 +109,16 @@ export function TeacherWeeklyTimetableView({
       <TimetableGridMatrix
         days={timetableData.days}
         onSelectSession={openSessionDetail}
-        onTakeAttendance={handleTriggerAttendance}
       />
 
-      {/* 4. Modals */}
-      <TimetableSessionDetailModal
+      {/* 4. Class Students Roster Modal (Shown when clicking any class block) */}
+      <TimetableClassStudentsModal
         isOpen={isDetailModalOpen}
         session={selectedSession}
         onClose={closeSessionDetail}
-        onTriggerAttendance={handleTriggerAttendance}
       />
 
+      {/* 5. Swap Room & Make-up Modal */}
       <TimetableSwapRoomModal
         isOpen={isSwapRoomModalOpen}
         sessions={timetableData.days.flatMap((d) => d.sessions)}
@@ -148,17 +126,11 @@ export function TeacherWeeklyTimetableView({
         onSubmitSuccess={(msg) => showToast(msg)}
       />
 
+      {/* 6. Export Schedule Modal */}
       <TimetableExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={handleExport}
-      />
-
-      {/* Integrated Attendance Modal */}
-      <TeacherAttendanceModal
-        isOpen={Boolean(attendanceSession)}
-        session={attendanceSession}
-        onClose={() => setAttendanceSession(null)}
       />
 
       {/* Floating Toast Notification */}

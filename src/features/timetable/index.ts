@@ -7,6 +7,7 @@ export * from './components/TeacherWeeklyTimetableView';
 export * from './components/TimetablePageView';
 export * from './components/TimetableHeaderControls';
 export * from './components/TimetableGridMatrix';
+export * from './components/TimetableClassStudentsModal';
 export * from './components/TimetableDayColumn';
 export * from './components/TimetableSessionCard';
 export * from './components/TimetableSessionDetailModal';
