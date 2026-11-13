@@ -157,13 +157,22 @@ export function DashboardSidebar({
       // 80px Focus mode for Teacher
       return (
         <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-r border-[#E1E5EA] dark:border-[#282A2C] z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div className="flex flex-col items-center gap-5">
+          <div className="flex flex-col items-center gap-6">
             <Link
               href="/dashboard"
-              className="flex items-center justify-center h-10 w-10 rounded-lg bg-secondary text-white font-bold shadow-sm text-base focus:outline-none hover:opacity-90 transition-opacity"
-              title="ILMS EduTech"
+              className="flex items-center justify-center h-12 w-12 rounded-full focus:outline-none hover:opacity-90 transition-opacity"
+              title="ILMS"
             >
-              E
+              <img
+                src="/logo-dark.png"
+                alt="ILMS Logo"
+                className="h-8 w-auto object-contain hidden dark:block"
+              />
+              <img
+                src="/logo-light.png"
+                alt="ILMS Logo"
+                className="h-8 w-auto object-contain block dark:hidden"
+              />
             </Link>
             <nav className="flex flex-col items-center gap-1.5 w-full px-2">
               {teacherSections.flatMap((s) => s.items).map((item) => (
@@ -230,26 +239,36 @@ export function DashboardSidebar({
           {/* Header */}
           <div
             className={`h-16 flex items-center bg-white dark:bg-[#1E1F20] border-b border-[#E1E5EA] dark:border-[#282A2C] transition-all ${
-              isCollapsed ? 'justify-center px-0' : 'px-5 gap-3'
+              isCollapsed ? 'justify-center px-0' : 'px-4'
             }`}
           >
             <Link
               href="/dashboard"
-              className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-white font-bold shadow-sm text-base shrink-0 focus:outline-none hover:opacity-90 transition-opacity"
-              title="ILMS EduTech"
+              prefetch={true}
+              className="flex items-center focus:outline-none hover:opacity-90 transition-opacity"
+              title="ILMS"
             >
-              E
+              {isCollapsed ? (
+                <img
+                  src="/logo-short.png"
+                  alt="ILMS Logo"
+                  className="h-8 w-auto object-contain transition-transform hover:scale-105"
+                />
+              ) : (
+                <>
+                  <img
+                    src="/logo-dark.png"
+                    alt="ILMS Logo"
+                    className="h-8 w-auto object-contain hidden dark:block"
+                  />
+                  <img
+                    src="/logo-light.png"
+                    alt="ILMS Logo"
+                    className="h-8 w-auto object-contain block dark:hidden"
+                  />
+                </>
+              )}
             </Link>
-            {!isCollapsed && (
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-sm tracking-tight text-foreground truncate">
-                  ILMS EduTech
-                </span>
-                <span className="text-[11px] text-muted-foreground truncate">
-                  Innovations Platform
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Navigation Scroll Area */}
