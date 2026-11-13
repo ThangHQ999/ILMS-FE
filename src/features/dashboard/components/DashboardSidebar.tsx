@@ -31,7 +31,340 @@ export function DashboardSidebar({
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isSettingsActive = pathname.startsWith('/settings');
 
-  const navItems = [
+  // ==========================================
+  // 1. TEACHER SIDEBAR CONFIGURATION
+  // ==========================================
+  interface TeacherNavItem {
+    href: string;
+    icon: string;
+    label: string;
+    active: boolean;
+    badge?: React.ReactNode;
+    iconColor?: string;
+  }
+
+  interface TeacherNavSection {
+    title: string;
+    items: TeacherNavItem[];
+  }
+
+  const teacherSections: TeacherNavSection[] = [
+    {
+      title: 'QUẢN TRỊ ĐÀO TẠO',
+      items: [
+        {
+          href: '/dashboard',
+          icon: 'dashboard',
+          label: 'Tổng quan',
+          active: isOverviewActive,
+        },
+        {
+          href: '/classes',
+          icon: 'school',
+          label: 'Lớp học phụ trách',
+          active: isClassesActive && !isAssignmentsActive,
+        },
+        {
+          href: '/materials',
+          icon: 'library_books',
+          label: 'Kho học liệu & Bóc tách AI',
+          active: isMaterialsActive,
+          badge: (
+            <span className="px-1.5 py-0.5 rounded bg-secondary/15 text-secondary dark:bg-[#0842A0]/40 dark:text-[#A8C7FA] font-mono text-[10px] font-bold">
+              AI
+            </span>
+          ),
+        },
+        {
+          href: '/knowledge-graph',
+          icon: 'account_tree',
+          label: 'Đồ thị tri thức môn học',
+          active: isGraphActive,
+        },
+        {
+          href: '/competency',
+          icon: 'analytics',
+          label: 'Bảng điểm & Ma trận PLO',
+          active: isRadarActive,
+        },
+      ],
+    },
+    {
+      title: 'KHẢO THÍ & BÀI THI',
+      items: [
+        {
+          href: '/assignments',
+          icon: 'help_center',
+          label: 'Ngân hàng câu hỏi',
+          active: pathname.includes('tab=bank'),
+        },
+        {
+          href: '/assignments',
+          icon: 'fact_check',
+          label: 'Quản lý Đề thi & Quiz',
+          active: isAssignmentsActive && !pathname.includes('tab=bank'),
+        },
+        {
+          href: '/assignments',
+          icon: 'visibility',
+          label: 'Giám sát phòng thi',
+          active: pathname.includes('proctoring'),
+          badge: (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 text-[10px] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              Live
+            </span>
+          ),
+        },
+        {
+          href: '/assignments',
+          icon: 'gavel',
+          label: 'Khiếu nại & Chấm lại',
+          active: pathname.includes('appeals'),
+          badge: (
+            <span className="w-5 h-5 rounded-full bg-secondary/15 text-secondary dark:bg-[#0842A0]/50 dark:text-[#A8C7FA] font-bold text-[11px] flex items-center justify-center">
+              3
+            </span>
+          ),
+        },
+      ],
+    },
+    {
+      title: 'TƯƠNG TÁC & HỖ TRỢ',
+      items: [
+        {
+          href: '/classes',
+          icon: 'forum',
+          label: 'Thảo luận & Tương tác',
+          active: pathname.startsWith('/discussions'),
+        },
+        {
+          href: '/ai-tutor',
+          icon: 'smart_toy',
+          label: 'Trợ lý AI Giảng dạy',
+          active: isAiTutorActive,
+          iconColor: 'text-purple-600 dark:text-purple-400',
+        },
+      ],
+    },
+  ];
+
+  // ==========================================
+  // 2. TEACHER SIDEBAR RENDERING
+  // ==========================================
+  if (isTeacher) {
+    if (isFocus) {
+      // 80px Focus mode for Teacher
+      return (
+        <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-r border-[#E1E5EA] dark:border-[#282A2C] z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+          <div className="flex flex-col items-center gap-5">
+            <Link
+              href="/dashboard"
+              className="flex items-center justify-center h-10 w-10 rounded-lg bg-secondary text-white font-bold shadow-sm text-base focus:outline-none hover:opacity-90 transition-opacity"
+              title="ILMS EduTech"
+            >
+              E
+            </Link>
+            <nav className="flex flex-col items-center gap-1.5 w-full px-2">
+              {teacherSections.flatMap((s) => s.items).map((item) => (
+                <Link
+                  key={item.href + item.label}
+                  href={item.href}
+                  prefetch={item.href.startsWith('/')}
+                  className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
+                    item.active
+                      ? 'bg-secondary text-white font-medium shadow-sm'
+                      : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+                  }`}
+                  title={item.label}
+                >
+                  <span className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''}`}>
+                    {item.icon}
+                  </span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5 w-full px-2">
+            <Link
+              href="/settings"
+              prefetch={true}
+              className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
+                isSettingsActive
+                  ? 'bg-secondary text-white font-medium shadow-sm'
+                  : 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3]'
+              }`}
+              title={t('navSettings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
+          </div>
+        </aside>
+      );
+    }
+
+    // Standard / Collapsible Sidebar for Teacher
+    return (
+      <aside
+        className={`fixed left-0 top-0 h-full ${
+          isCollapsed ? 'w-20' : 'w-72'
+        } bg-white dark:bg-[#1E1F20] border-r border-[#E1E5EA] dark:border-[#282A2C] flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_8px_rgba(0,0,0,0.04)] dark:shadow-none`}
+      >
+        {/* Collapse/Expand Floating Button on the border */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border border-[#E1E5EA] dark:border-[#383A3C] shadow-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
+            title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+            type="button"
+            aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+          >
+            <span className="material-symbols-outlined text-[15px] text-[#444746] group-hover:text-black dark:text-[#C4C7C5] dark:group-hover:text-white transition-colors">
+              {isCollapsed ? 'chevron_right' : 'chevron_left'}
+            </span>
+          </button>
+        )}
+
+        <div className="flex flex-col min-h-0 flex-1">
+          {/* Header */}
+          <div
+            className={`h-16 flex items-center bg-white dark:bg-[#1E1F20] border-b border-[#E1E5EA] dark:border-[#282A2C] transition-all ${
+              isCollapsed ? 'justify-center px-0' : 'px-5 gap-3'
+            }`}
+          >
+            <Link
+              href="/dashboard"
+              className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-white font-bold shadow-sm text-base shrink-0 focus:outline-none hover:opacity-90 transition-opacity"
+              title="ILMS EduTech"
+            >
+              E
+            </Link>
+            {!isCollapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-sm tracking-tight text-foreground truncate">
+                  ILMS EduTech
+                </span>
+                <span className="text-[11px] text-muted-foreground truncate">
+                  Innovations Platform
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Scroll Area */}
+          <div
+            className={`flex-1 overflow-y-auto ${
+              isCollapsed ? 'px-2 py-3' : 'px-4 py-3'
+            } flex flex-col gap-4 scrollbar-none`}
+          >
+            {teacherSections.map((section) => (
+              <div key={section.title} className="flex flex-col gap-1">
+                {!isCollapsed && (
+                  <div className="px-2 py-1 font-semibold text-[11px] uppercase tracking-wider text-[#747775] dark:text-[#8E918F]">
+                    {section.title}
+                  </div>
+                )}
+                <nav className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
+                  {section.items.map((item) => {
+                    const activeClass = 'bg-secondary text-white font-semibold shadow-sm';
+                    const inactiveClass =
+                      'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] transition-all';
+
+                    if (isCollapsed) {
+                      return (
+                        <Link
+                          key={item.href + item.label}
+                          href={item.href}
+                          prefetch={item.href.startsWith('/')}
+                          className={`flex items-center justify-center w-11 h-11 rounded-lg ${
+                            item.active ? activeClass : inactiveClass
+                          }`}
+                          title={item.label}
+                        >
+                          <span
+                            className={`material-symbols-outlined text-[20px] ${
+                              !item.active && item.iconColor ? item.iconColor : ''
+                            }`}
+                          >
+                            {item.icon}
+                          </span>
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={item.href + item.label}
+                        href={item.href}
+                        prefetch={item.href.startsWith('/')}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+                          item.active ? activeClass : inactiveClass
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className={`material-symbols-outlined text-[20px] ${
+                              !item.active && item.iconColor ? item.iconColor : ''
+                            }`}
+                          >
+                            {item.icon}
+                          </span>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        {item.badge}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Footer */}
+        <div className="p-3 bg-white dark:bg-[#1E1F20] border-t border-[#E1E5EA] dark:border-[#282A2C] flex flex-col gap-1">
+          <nav className={`flex flex-col gap-1 ${isCollapsed ? 'items-center' : ''}`}>
+            <Link
+              href="/settings"
+              className={`flex items-center ${
+                isCollapsed ? 'justify-center w-11 h-11' : 'gap-2.5 px-3 py-1.5'
+              } rounded-lg text-xs font-medium text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3] transition-all`}
+              title="Trợ giúp & Hướng dẫn"
+            >
+              <span className="material-symbols-outlined text-[18px]">help_outline</span>
+              {!isCollapsed && <span>Trợ giúp & Hướng dẫn</span>}
+            </Link>
+            <Link
+              href="/settings"
+              className={`flex items-center ${
+                isCollapsed ? 'justify-center w-11 h-11' : 'gap-2.5 px-3 py-1.5'
+              } rounded-lg text-xs font-medium ${
+                isSettingsActive
+                  ? 'bg-secondary text-white font-medium shadow-sm'
+                  : 'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#E9EEF6] dark:hover:bg-[#282A2C] hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]'
+              } transition-all`}
+              title={t('navSettings')}
+            >
+              <span className="material-symbols-outlined text-[18px]">settings</span>
+              {!isCollapsed && <span>Cài đặt tài khoản</span>}
+            </Link>
+          </nav>
+          {!isCollapsed && (
+            <div className="pt-2 px-2 flex items-center justify-between text-[11px] text-[#747775] dark:text-[#8E918F] border-t border-[#E1E5EA]/60 dark:border-[#282A2C]/60 mt-1">
+              <span>Học kỳ II - 2024</span>
+              <span className="font-mono">v2.5</span>
+            </div>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // ==========================================
+  // 3. STUDENT SIDEBAR (PRESERVED ORIGINAL)
+  // ==========================================
+  const studentNavItems = [
     {
       href: '/dashboard',
       icon: 'grid_view',
@@ -42,23 +375,16 @@ export function DashboardSidebar({
     {
       href: '/classes',
       icon: 'school',
-      label: isTeacher ? 'Quản lý Lớp học' : 'Khóa học của tôi',
+      label: 'Khóa học của tôi',
       active: isClassesActive,
       show: true,
     },
     {
       href: '/lesson-sessions',
       icon: 'calendar_view_week',
-      label: isTeacher ? 'Ca học & Điểm danh' : 'Lịch học của tôi',
+      label: 'Lịch học của tôi',
       active: isSessionsActive,
       show: true,
-    },
-    {
-      href: '/materials',
-      icon: 'upload_file',
-      label: 'Xử lý học liệu',
-      active: isMaterialsActive,
-      show: isTeacher,
     },
     {
       href: '/knowledge-graph',
@@ -70,7 +396,7 @@ export function DashboardSidebar({
     {
       href: '/competency',
       icon: 'radar',
-      label: isTeacher ? 'Năng lực lớp học' : 'Năng lực cá nhân',
+      label: 'Năng lực cá nhân',
       active: isRadarActive,
       show: true,
     },
@@ -93,7 +419,7 @@ export function DashboardSidebar({
   ].filter((item) => item.show);
 
   if (isFocus) {
-    // 80px Compact Sidebar for Focus Mode
+    // 80px Compact Sidebar for Focus Mode (Student)
     return (
       <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
         <div className="flex flex-col items-center gap-6">
@@ -114,7 +440,7 @@ export function DashboardSidebar({
             />
           </Link>
           <nav className="flex flex-col items-center gap-1.5 w-full px-2">
-            {navItems.map((item) => (
+            {studentNavItems.map((item) => (
               <Link
                 key={item.href + item.label}
                 href={item.href}
@@ -150,7 +476,7 @@ export function DashboardSidebar({
     );
   }
 
-  // Sidebar for Analytics Mode (Expandable / Collapsible between 288px (w-72) and 80px (w-20))
+  // Sidebar for Analytics Mode (Student)
   return (
     <aside
       className={`fixed left-0 top-0 h-full ${
@@ -215,7 +541,7 @@ export function DashboardSidebar({
 
         {/* Nav Links */}
         <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
-          {navItems.map((item) => {
+          {studentNavItems.map((item) => {
             const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
             const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
 
