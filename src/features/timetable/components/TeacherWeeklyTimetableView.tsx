@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useWeeklyTimetable } from '../hooks/useWeeklyTimetable';
 import { TimetableHeaderControls } from './TimetableHeaderControls';
-import { TimetableDayColumn } from './TimetableDayColumn';
+import { TimetableGridMatrix } from './TimetableGridMatrix';
 import { TimetableSessionDetailModal } from './TimetableSessionDetailModal';
 import { TimetableSwapRoomModal } from './TimetableSwapRoomModal';
 import { TimetableExportModal } from './TimetableExportModal';
@@ -126,19 +126,12 @@ export function TeacherWeeklyTimetableView({
         onOpenSwapRoomModal={() => setIsSwapRoomModalOpen(true)}
       />
 
-      {/* 3. Weekly Grid View (Monday to Sunday - 7 Columns sitting directly on canvas) */}
-      <div className="w-full overflow-x-auto pb-4 scrollbar-none">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3.5 min-w-[1000px] lg:min-w-0">
-          {timetableData.days.map((day) => (
-            <TimetableDayColumn
-              key={day.dayOfWeek}
-              day={day}
-              onSelectSession={openSessionDetail}
-              onTakeAttendance={handleTriggerAttendance}
-            />
-          ))}
-        </div>
-      </div>
+      {/* 3. 2D Academic Schedule Grid Matrix (Time/Shifts on Y-axis, Days on X-axis) */}
+      <TimetableGridMatrix
+        days={timetableData.days}
+        onSelectSession={openSessionDetail}
+        onTakeAttendance={handleTriggerAttendance}
+      />
 
       {/* 4. Modals */}
       <TimetableSessionDetailModal

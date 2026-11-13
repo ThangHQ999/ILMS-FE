@@ -18,6 +18,8 @@ export const timetableSessionSchema = z.object({
   actionType: z.enum(['attendance_now', 'attendance', 'detail', 'meet', 'contest']).optional(),
   meetingUrl: z.string().optional(),
   dayOfWeek: z.number().int().min(0).max(6), // 1: Mon, ..., 6: Sat, 0: Sun
+  startShift: z.number().int().min(1).max(12).default(1),
+  endShift: z.number().int().min(1).max(12).default(3),
 });
 
 export const timetableKpisSchema = z.object({
@@ -41,4 +43,3 @@ export const swapRoomRequestSchema = z.object({
 export type TimetableSession = z.infer<typeof timetableSessionSchema>;
 export type TimetableKpis = z.infer<typeof timetableKpisSchema>;
 export type SwapRoomFormValues = z.infer<typeof swapRoomRequestSchema>;
-

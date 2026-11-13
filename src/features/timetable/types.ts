@@ -8,6 +8,11 @@ export type { TimetableSession, TimetableKpis, SwapRoomFormValues };
 
 export type TimetableFilterType = 'all' | 'theory' | 'lab' | 'exam';
 
+export interface ShiftInfo {
+  shift: number;
+  timeRange: string;
+}
+
 export interface DaySchedule {
   dayOfWeek: number; // 1: Mon, ..., 6: Sat, 0: Sun
   dayNameKey: string; // 'monday', 'tuesday', etc.
@@ -26,4 +31,3 @@ export interface WeeklyTimetableData {
   kpis: TimetableKpis;
   days: DaySchedule[];
 }
-
