@@ -455,15 +455,54 @@ export function ClassListPageView({
               </div>
             </div>
           ) : (
-            <ClassCardGrid
-              items={items}
-              workspaceMode={workspaceMode}
-              viewMode={viewMode}
-              onArchiveClick={(item) => setArchiveTarget(item)}
-              onRestoreClick={(item) => restoreClass(item.id)}
-              copiedCode={copiedCode}
-              onCopyCode={handleCopyCode}
-            />
+            <div className="space-y-4">
+              {/* Khung chữ: Các lớp học hiện đang mở */}
+              <div className="rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-900 shadow-2xs">
+                    <span className="material-symbols-outlined text-[24px]">school</span>
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                        Các lớp học hiện đang mở
+                      </h2>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>
+                          {workspaceMode === 'student'
+                            ? `${displayedCount} lớp đang theo học`
+                            : `${displayedCount} lớp đang giảng dạy`}
+                        </span>
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {workspaceMode === 'student'
+                        ? 'Danh sách các lớp học phần bạn đã tham gia trong học kỳ 1 (2024 - 2025). Chọn lớp để vào không gian học tập.'
+                        : 'Danh sách các lớp học phần đang hoạt động do bạn phụ trách hoặc đồng giảng dạy.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+                    event_available
+                  </span>
+                  <span>Học kỳ 1 (2024–2025)</span>
+                </div>
+              </div>
+
+              {/* Class Card Grid */}
+              <ClassCardGrid
+                items={items}
+                workspaceMode={workspaceMode}
+                viewMode={viewMode}
+                onArchiveClick={(item) => setArchiveTarget(item)}
+                onRestoreClick={(item) => restoreClass(item.id)}
+                copiedCode={copiedCode}
+                onCopyCode={handleCopyCode}
+              />
+            </div>
           )}
 
           {/* 4. Pagination */}
