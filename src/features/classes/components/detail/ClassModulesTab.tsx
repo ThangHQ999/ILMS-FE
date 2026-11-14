@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ClassModulesTabProps {
   currentRole: 'student' | 'teacher' | 'owner';
@@ -15,6 +16,7 @@ export function ClassModulesTab({
   onViewSubjects,
   subjectsCount,
 }: ClassModulesTabProps) {
+  const router = useRouter();
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({
     'mod-1': false,
     'mod-2': false,
@@ -275,8 +277,11 @@ export function ClassModulesTab({
               </div>
 
               <div
-                onClick={() => onToast('Đang phát video Bài 3.2: Cơ chế bắt tay 3 bước TCP')}
-                className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/60 flex items-center justify-between cursor-pointer border-2 border-blue-500 shadow-xs"
+                onClick={() => {
+                  onToast('Đang mở không gian học tập chi tiết: Bài 3.2...');
+                  router.push('/courses/course-cs-202/lessons/les-3-2');
+                }}
+                className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/60 flex items-center justify-between cursor-pointer border-[3px] border-blue-500 shadow-xs hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-blue-600 text-[22px]">

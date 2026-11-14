@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
@@ -24,6 +25,7 @@ export function CourseDetailPageView({
   courseId,
   userFullName = 'TS. Lê Hoàng Nam',
 }: CourseDetailPageViewProps) {
+  const router = useRouter();
   const t = useTranslations('courses.detail');
 
   // Layout shell states
@@ -92,6 +94,7 @@ export function CourseDetailPageView({
 
   const handleSelectLesson = (lesson: Lesson, chapter: Chapter) => {
     showToast(`Đang mở bài học: "${lesson.title}" (${chapter.title})`);
+    router.push(`/courses/${courseId}/lessons/${lesson.id}`);
   };
 
   // Find target chapter title for lesson modal
