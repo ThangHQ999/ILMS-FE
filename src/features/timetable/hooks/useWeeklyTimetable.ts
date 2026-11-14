@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   TimetableSession,
@@ -8,7 +8,10 @@ import {
   WeeklyTimetableData,
   DaySchedule,
 } from '../types';
-import { MOCK_WEEKLY_TIMETABLE_DATA } from '../constants';
+import {
+  fetchMockTimetable,
+  getWeekStartDate,
+} from '../services/timetable.service';
 
 export function useWeeklyTimetable() {
   const t = useTranslations('timetable');
@@ -20,12 +23,25 @@ export function useWeeklyTimetable() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Dynamic raw timetable data initialized for currentWeek
+  const [rawTimetable, setRawTimetable] = useState<WeeklyTimetableData>(() => {
+    const initialStartDate = getWeekStartDate(9);
+    return fetchMockTimetable(initialStartDate, 9);
+  });
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
     }, 2800);
   }, []);
+
+  // Update schedule data whenever currentWeek changes
+  useEffect(() => {
+    const weekStartDate = getWeekStartDate(currentWeek);
+    const updatedTimetable = fetchMockTimetable(weekStartDate, currentWeek);
+    setRawTimetable(updatedTimetable);
+  }, [currentWeek]);
 
   const navigateWeek = useCallback(
     (delta: number) => {
@@ -52,9 +68,9 @@ export function useWeeklyTimetable() {
     setIsDetailModalOpen(false);
   }, []);
 
-  // Filter sessions according to filterType
+  // Filter sessions according to filterType based on current week's rawTimetable
   const filteredDays = useMemo<DaySchedule[]>(() => {
-    return MOCK_WEEKLY_TIMETABLE_DATA.days.map((day) => {
+    return rawTimetable.days.map((day) => {
       const filtered = day.sessions.filter((sess) => {
         if (filterType === 'all') return true;
         if (filterType === 'lab') return sess.sessionType === 'lab';
@@ -67,15 +83,15 @@ export function useWeeklyTimetable() {
         sessions: filtered,
       };
     });
-  }, [filterType]);
+  }, [rawTimetable.days, filterType]);
 
   const timetableData: WeeklyTimetableData = useMemo(() => {
     return {
-      ...MOCK_WEEKLY_TIMETABLE_DATA,
+      ...rawTimetable,
       weekNumber: currentWeek,
       days: filteredDays,
     };
-  }, [currentWeek, filteredDays]);
+  }, [rawTimetable, currentWeek, filteredDays]);
 
   return {
     currentWeek,
@@ -96,4 +112,3 @@ export function useWeeklyTimetable() {
     showToast,
   };
 }
-

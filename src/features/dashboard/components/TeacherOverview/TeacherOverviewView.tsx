@@ -10,6 +10,7 @@ import {
   TeacherAttendanceModal,
   TodaySessionItem,
 } from './TeacherAttendanceModal';
+import { useTeacherTodaySessions } from '@/features/lesson-sessions';
 import { TeacherWeeklyTimetableView } from '@/features/timetable';
 
 interface TeacherOverviewViewProps {
@@ -57,12 +58,20 @@ const INITIAL_TEACHER_SESSIONS: TodaySessionItem[] = [
 export function TeacherOverviewView({
   instructorName = 'TS. Nguyễn Văn An',
 }: TeacherOverviewViewProps) {
+  const { data: serverSessions } = useTeacherTodaySessions();
   const [sessions, setSessions] = useState<TodaySessionItem[]>(INITIAL_TEACHER_SESSIONS);
   const [selectedSessionForAttendance, setSelectedSessionForAttendance] =
     useState<TodaySessionItem | null>(null);
   const [isViewingWeeklyTimetable, setIsViewingWeeklyTimetable] = useState(false);
 
-  // Sync sessions status from localStorage on mount
+  // Sync sessions when server data is loaded or changes
+  useEffect(() => {
+    if (serverSessions && serverSessions.length > 0) {
+      setSessions(serverSessions);
+    }
+  }, [serverSessions]);
+
+  // Sync sessions status from localStorage on mount (for offline/demo persistence)
   useEffect(() => {
     setSessions((prev) =>
       prev.map((sess) => {
