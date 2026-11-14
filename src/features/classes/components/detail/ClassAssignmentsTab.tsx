@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import type {
   GradebookStudent,
   GradebookAiAnalysis,
@@ -115,9 +116,20 @@ export function ClassAssignmentsTab({
           </button>
         </div>
 
-        <div className="text-xs text-slate-500 dark:text-slate-400 hidden sm:flex items-center gap-2 font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>Hệ thống Đánh giá Chuẩn đầu ra tự động</span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/assignments"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors cursor-pointer border border-blue-200 dark:border-blue-900"
+            title="Mở toàn màn hình Ma trận Phân bổ Đề thi & Bài tập Lớp - Môn (N : N)"
+          >
+            <span className="material-symbols-outlined text-[17px]">table_chart</span>
+            <span>Ma trận Lớp - Môn (N:N)</span>
+            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+          </Link>
+          <div className="text-xs text-slate-500 dark:text-slate-400 hidden lg:flex items-center gap-2 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Đánh giá Chuẩn đầu ra tự động</span>
+          </div>
         </div>
       </div>
 

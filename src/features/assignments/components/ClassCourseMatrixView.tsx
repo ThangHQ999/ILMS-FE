@@ -1506,3 +1506,4 @@ export function ClassCourseMatrixView({
     </div>
   );
 }
+
