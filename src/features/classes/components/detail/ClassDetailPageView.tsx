@@ -295,11 +295,12 @@ export function ClassDetailPageView({
                 students={gradebookStudents}
                 aiAnalysis={gradebookAi}
                 onSendAiSuggestion={() =>
-                  showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 3 học viên cần hỗ trợ!')
+                  showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 2 học viên cần hỗ trợ!')
                 }
                 onInterveneClick={(s) =>
                   showToast(`Mở khung hỗ trợ cá nhân hóa cho học viên: ${s.name}`)
                 }
+                onToast={showToast}
               />
             )}
 
