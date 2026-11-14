@@ -6,6 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { TeacherCreateQuizStudioView } from './TeacherCreateQuizStudioView';
+import {
+  useQuizzes,
+  useQuizStats,
+  useDeleteQuiz,
+  useGenerateQuizAi,
+  useQuizComplaints,
+  useResolveComplaint,
+  useProctorSessions,
+} from '../../hooks/useQuizzes';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -52,6 +61,15 @@ export function TeacherExamManagementView({
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Data from Spring Boot Quiz API (Section 10 api-spec.md) with resilient fallback
+  const { data: apiQuizzes } = useQuizzes({ classId: 'cs-202' });
+  const { data: apiStats } = useQuizStats('cs-202');
+  const deleteQuizMutation = useDeleteQuiz();
+  const generateAiMutation = useGenerateQuizAi();
+  const { data: complaintsData } = useQuizComplaints('cs-202');
+  const resolveComplaintMutation = useResolveComplaint('cs-202');
+  const { data: proctorSessions } = useProctorSessions('quiz-04');
 
   // Filters & State
   const [activeCategory, setActiveCategory] = useState<'all' | 'quiz' | 'exam' | 'live' | 'completed' | 'draft'>('quiz');
@@ -173,15 +191,46 @@ export function TeacherExamManagementView({
     },
   ];
 
+  // Merge API Quizzes with Base Mock Items
+  const mergedExams = useMemo(() => {
+    if (!apiQuizzes || apiQuizzes.length === 0) return allExams;
+    const existingIds = new Set(allExams.map((e) => e.id));
+    const extraExams: ExamItem[] = apiQuizzes
+      .filter((q) => !existingIds.has(q.id))
+      .map((q) => ({
+        id: q.id,
+        code: q.code,
+        type: q.type,
+        status: (q.status === 'live' ? 'live' : q.status === 'completed' ? 'completed' : q.status === 'draft' ? 'draft' : 'upcoming') as ExamItem['status'],
+        statusBadge: q.badgeLabel,
+        statusBadgeColor: q.status === 'live'
+          ? 'bg-red-500 text-white'
+          : q.status === 'draft'
+          ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+          : 'bg-blue-600 text-white',
+        classTag: q.className,
+        title: q.title,
+        duration: `${q.durationMinutes} phút`,
+        questionCount: q.questionCount,
+        tags: [q.attemptsInfo, q.securityInfo],
+        submittedCount: q.submittedCount,
+        totalStudents: q.totalStudents,
+        timeLeft: q.remainingTime,
+        avgScore: q.avgScore,
+        ploRate: q.ploRate,
+      }));
+    return [...extraExams, ...allExams];
+  }, [apiQuizzes, allExams]);
+
   // Filtering Logic
   const filteredExams = useMemo(() => {
-    return allExams.filter((exam) => {
+    return mergedExams.filter((exam) => {
       // Category filter
       if (activeCategory === 'quiz' && exam.type !== 'quiz') return false;
       if (activeCategory === 'exam' && exam.type !== 'exam') return false;
       if (activeCategory === 'live' && exam.status !== 'live') return false;
       if (activeCategory === 'completed' && exam.status !== 'completed') return false;
-      if (activeCategory === 'draft' && exam.type !== 'draft') return false;
+      if (activeCategory === 'draft' && exam.type !== 'draft' && exam.status !== 'draft') return false;
 
       // Search query
       if (searchQuery.trim()) {
@@ -193,7 +242,7 @@ export function TeacherExamManagementView({
 
       return true;
     });
-  }, [allExams, activeCategory, searchQuery]);
+  }, [mergedExams, activeCategory, searchQuery]);
 
   if (viewMode === 'create') {
     return (
@@ -303,11 +352,32 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  onClick={() => showToast('Bắt đầu khởi tạo Exam Blueprint tự động từ Ma trận chuẩn đầu ra Bloom')}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                  disabled={generateAiMutation.isPending}
+                  onClick={() => {
+                    showToast('Đang gọi AI Blueprint bóc tách ma trận câu hỏi...');
+                    generateAiMutation.mutate(
+                      {
+                        classId: 'cs-202',
+                        prompt: 'Bóc tách đề thi Tầng Mạng & Giao thức IP theo chuẩn Bloom 1-4',
+                        questionCount: 20,
+                      },
+                      {
+                        onSuccess: (data) => {
+                          showToast(`Đã sinh thành công đề thi AI Blueprint: ${data.title}!`);
+                        },
+                      }
+                    );
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                  <span>Tạo đề bằng AI (Exam Blueprint)</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    {generateAiMutation.isPending ? 'sync' : 'auto_awesome'}
+                  </span>
+                  <span>
+                    {generateAiMutation.isPending
+                      ? 'Đang sinh đề AI...'
+                      : 'Tạo đề bằng AI (Exam Blueprint)'}
+                  </span>
                 </button>
 
                 <button
@@ -331,7 +401,9 @@ export function TeacherExamManagementView({
                     TỔNG SỐ BÀI THI
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">14</span>
+                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">
+                      {apiStats?.totalCount ?? 14}
+                    </span>
                     <span className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Đề</span>
                   </div>
                 </div>
@@ -341,7 +413,9 @@ export function TeacherExamManagementView({
               </div>
               <div className="mt-4 pt-3 flex flex-col gap-1 border-t border-slate-100 dark:border-[#282A2C]">
                 <div className="flex items-center justify-between text-xs text-[#44474d] dark:text-[#8E918F]">
-                  <span>9 Quiz trắc nghiệm • 3 Giữa/Cuối kỳ • 2 Củng cố</span>
+                  <span>
+                    {apiStats?.quizCount ?? 9} Quiz trắc nghiệm • {apiStats?.examCount ?? 3} Giữa/Cuối kỳ • 2 Củng cố
+                  </span>
                 </div>
               </div>
             </div>
@@ -361,7 +435,9 @@ export function TeacherExamManagementView({
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl text-red-600 dark:text-red-400 font-bold">01</span>
+                    <span className="text-3xl text-red-600 dark:text-red-400 font-bold">
+                      {apiStats?.liveCount ? `0${apiStats.liveCount}` : '01'}
+                    </span>
                     <span className="text-xs text-[#44474d] dark:text-[#8E918F]">Phòng thi đang mở</span>
                   </div>
                 </div>
@@ -372,14 +448,19 @@ export function TeacherExamManagementView({
               <div className="mt-4 pt-3 flex items-center justify-between border-t border-slate-100 dark:border-[#282A2C] text-xs">
                 <div className="flex items-center gap-1.5 text-[#171c1f] dark:text-white font-medium">
                   <span className="font-semibold text-red-600 dark:text-red-400">Quiz 04:</span>
-                  <span className="text-[#44474d] dark:text-[#8E918F]">54/60 SV đang làm</span>
+                  <span className="text-[#44474d] dark:text-[#8E918F]">
+                    {apiStats?.liveSubmittedStudents ?? 54}/{apiStats?.liveTotalStudents ?? 60} SV đang làm
+                  </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => showToast('Mở màn hình Camera & Tab Proctoring Giám sát phòng thi Quiz 04')}
+                  onClick={() => {
+                    const onlineCount = proctorSessions?.filter((s) => s.status === 'ONLINE').length || 54;
+                    showToast(`Phòng thi Quiz 04: ${onlineCount} sinh viên đang kết nối trực tuyến`);
+                  }}
                   className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                 >
-                  Giám sát trực tiếp →
+                  Giám sát trực tiếp ({proctorSessions?.length || 3} camera) →
                 </button>
               </div>
             </div>
@@ -392,10 +473,13 @@ export function TeacherExamManagementView({
                     ĐIỂM TB TOÀN KHÓA
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">7.82</span>
+                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">
+                      {apiStats?.avgScore ?? 7.82}
+                    </span>
                     <span className="text-xs text-[#75777e]">/10</span>
                     <span className="inline-flex items-center text-xs text-emerald-600 dark:text-emerald-400 font-semibold ml-1">
-                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span>+0.4
+                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span>+
+                      {apiStats?.avgScoreDiff ?? 0.4}
                     </span>
                   </div>
                 </div>
@@ -404,7 +488,7 @@ export function TeacherExamManagementView({
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between text-xs text-[#44474d] dark:text-[#8E918F] border-t border-slate-100 dark:border-[#282A2C]">
-                <span>84.5% sinh viên đạt chuẩn PLO</span>
+                <span>{apiStats?.ploPassRate ?? 84.5}% sinh viên đạt chuẩn PLO</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
                   Đạt chuẩn
                 </span>
@@ -419,7 +503,9 @@ export function TeacherExamManagementView({
                     KHIẾU NẠI &amp; CHẤM LẠI
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">03</span>
+                    <span className="text-3xl text-[#171c1f] dark:text-white font-bold">
+                      {apiStats?.complaintsCount ? `0${apiStats.complaintsCount}` : '03'}
+                    </span>
                     <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-[11px] font-semibold">
                       Cần xử lý &lt; 24h
                     </span>
@@ -430,13 +516,20 @@ export function TeacherExamManagementView({
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between text-xs border-t border-slate-100 dark:border-[#282A2C]">
-                <span className="text-[#44474d] dark:text-[#8E918F]">2 câu Quiz 02 • 1 câu Giữa kỳ</span>
+                <span className="text-[#44474d] dark:text-[#8E918F]">
+                  {complaintsData?.[0]?.studentName
+                    ? `${complaintsData.length} đơn chờ thẩm định`
+                    : '2 câu Quiz 02 • 1 câu Giữa kỳ'}
+                </span>
                 <button
                   type="button"
-                  onClick={() => showToast('Mở hàng đợi thẩm định 3 phiếu khiếu nại chấm lại')}
+                  onClick={() => {
+                    const count = complaintsData?.length || 3;
+                    showToast(`Mở hàng đợi thẩm định ${count} phiếu khiếu nại chấm lại`);
+                  }}
                   className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                 >
-                  Xử lý ngay →
+                  Xử lý ngay ({complaintsData?.length || 3}) →
                 </button>
               </div>
             </div>

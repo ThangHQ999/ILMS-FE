@@ -11,6 +11,22 @@ export const assignmentKeys = {
   classHubInfo: (classId: string) => [...assignmentKeys.all, 'class-hub-info', classId] as const,
 };
 
+export const quizKeys = {
+  all: ['quizzes'] as const,
+  lists: () => [...quizKeys.all, 'list'] as const,
+  list: (classId?: string, params?: Record<string, unknown>) =>
+    [...quizKeys.lists(), classId, params] as const,
+  details: () => [...quizKeys.all, 'detail'] as const,
+  detail: (id: string) => [...quizKeys.details(), id] as const,
+  play: (id: string) => [...quizKeys.all, 'play', id] as const,
+  stats: (classId?: string) => [...quizKeys.all, 'stats', classId] as const,
+  questionBank: (params?: Record<string, unknown>) =>
+    [...quizKeys.all, 'question-bank', params] as const,
+  proctor: (quizId: string) => [...quizKeys.all, 'proctor', quizId] as const,
+  complaints: (quizId: string) => [...quizKeys.all, 'complaints', quizId] as const,
+  analytics: (quizId: string) => [...quizKeys.all, 'analytics', quizId] as const,
+};
+
 export const CHAPTER_OPTIONS = [
   { value: 'ALL', labelKey: 'assignments.filters.allChapters' },
   { value: 'CH1', labelKey: 'assignments.filters.ch1' },

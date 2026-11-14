@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Suspense } from 'react';
 import { Outfit, Plus_Jakarta_Sans, Roboto_Mono, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -87,7 +88,9 @@ export default async function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
-        <script
+        <Script
+          id="ilms-theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

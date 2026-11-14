@@ -1,11 +1,13 @@
 export * from './types';
 export * from './constants';
 export * from './services/assignment.service';
+export * from './services/quiz.service';
 export * from './hooks/useAssignments';
 export * from './hooks/useGradeProgress';
 export * from './hooks/useAiRecommendation';
 export * from './hooks/useStudentPerformance';
 export * from './hooks/useClassHubInfo';
+export * from './hooks/useQuizzes';
 export { AssignmentsTabView } from './components/AssignmentsTabView';
 export { ClassHubHeader } from './components/ClassHubHeader';
 export { AssignmentFilterToolbar } from './components/AssignmentFilterToolbar';
