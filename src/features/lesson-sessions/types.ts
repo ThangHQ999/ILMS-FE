@@ -63,3 +63,15 @@ export interface ConflictDetails {
   shifts: string;
 }
 
+export interface TodaySessionItem {
+  id: string;
+  timeSlot: string;
+  subjectTitle: string;
+  subjectCode: string;
+  roomName: string;
+  studentsCount: number;
+  classId: string;
+  attendedCount?: number;
+  status?: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED';
+}
+
