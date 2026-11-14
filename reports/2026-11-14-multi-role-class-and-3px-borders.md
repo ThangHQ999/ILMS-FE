@@ -41,3 +41,4 @@
 ## Kiểm tra chất lượng (Verification)
 - `npx tsc --noEmit`: PASS (0 errors).
 - `npm run build`: PASS (Next.js 16.4.6 Turbopack build thành công 25/25 routes tĩnh & động).
+

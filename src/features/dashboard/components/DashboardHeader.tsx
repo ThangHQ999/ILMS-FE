@@ -35,15 +35,18 @@ const routeMap: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   if (!pathname) return 'Không gian học tập';
 
+  // Strip locale prefix if present (e.g. /vi/... or /en/...)
+  const cleanPath = pathname.replace(/^\/(?:vi|en)(?=\/|$)/, '') || '/dashboard';
+
   // 1. Exact match
-  if (routeMap[pathname]) {
-    return routeMap[pathname];
+  if (routeMap[cleanPath]) {
+    return routeMap[cleanPath];
   }
 
   // 2. Prefix match (longest matching route first)
   const matchedKey = Object.keys(routeMap)
     .sort((a, b) => b.length - a.length)
-    .find((key) => pathname.startsWith(key));
+    .find((key) => cleanPath.startsWith(key));
 
   if (matchedKey) {
     return routeMap[matchedKey];

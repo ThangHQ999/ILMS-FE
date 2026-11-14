@@ -5,9 +5,16 @@ import React, { useState } from 'react';
 interface ClassModulesTabProps {
   currentRole: 'student' | 'teacher' | 'owner';
   onToast: (msg: string) => void;
+  onViewSubjects?: () => void;
+  subjectsCount?: number;
 }
 
-export function ClassModulesTab({ currentRole, onToast }: ClassModulesTabProps) {
+export function ClassModulesTab({
+  currentRole,
+  onToast,
+  onViewSubjects,
+  subjectsCount,
+}: ClassModulesTabProps) {
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({
     'mod-1': false,
     'mod-2': false,
@@ -46,35 +53,47 @@ export function ClassModulesTab({ currentRole, onToast }: ClassModulesTabProps) 
         </div>
 
         {/* Teacher Module Controls */}
-        {(currentRole === 'teacher' || currentRole === 'owner') && (
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          {onViewSubjects && (
             <button
               type="button"
-              onClick={() => onToast('Kích hoạt chế độ kéo thả sắp xếp thứ tự module')}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              onClick={onViewSubjects}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
-              <span>Sắp xếp lại thứ tự</span>
+              <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">menu_book</span>
+              <span>Môn học liên kết ({subjectsCount || 4})</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setIsAddModuleOpen(true)}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:shadow transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              <span>+ Thêm Module mới</span>
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Student Progress Filter */}
-        {currentRole === 'student' && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span>
-              Tiến độ chương: <strong className="text-blue-600 dark:text-blue-400 font-bold">2/4 Đã hoàn tất</strong>
-            </span>
-          </div>
-        )}
+          {(currentRole === 'teacher' || currentRole === 'owner') && (
+            <>
+              <button
+                type="button"
+                onClick={() => onToast('Kích hoạt chế độ kéo thả sắp xếp thứ tự module')}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+                <span>Sắp xếp lại thứ tự</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAddModuleOpen(true)}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:shadow transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                <span>+ Thêm Module mới</span>
+              </button>
+            </>
+          )}
+
+          {currentRole === 'student' && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span>
+                Tiến độ chương: <strong className="text-blue-600 dark:text-blue-400 font-bold">2/4 Đã hoàn tất</strong>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Module List Tree */}

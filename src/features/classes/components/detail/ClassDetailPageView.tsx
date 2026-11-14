@@ -368,13 +368,24 @@ export function ClassDetailPageView({
               <ClassModulesTab
                 currentRole={currentRole}
                 onToast={showToast}
+                onViewSubjects={() => setActiveTab('subjects')}
+                subjectsCount={courses.length}
               />
             )}
 
-            {activeTab === 'assignments' && (
+            {(activeTab === 'assignments' || activeTab === 'gradebook') && (
               <ClassAssignmentsTab
                 currentRole={currentRole}
                 onToast={showToast}
+                gradebookStudents={gradebookStudents}
+                gradebookAi={gradebookAi}
+                onSendAiSuggestion={() =>
+                  showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 2 học viên cần hỗ trợ!')
+                }
+                onInterveneClick={(s) =>
+                  showToast(`Mở khung hỗ trợ cá nhân hóa cho học viên: ${s.name}`)
+                }
+                initialSubTab={activeTab === 'gradebook' ? 'gradebook' : 'assignments'}
               />
             )}
 
@@ -385,20 +396,6 @@ export function ClassDetailPageView({
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
-                onToast={showToast}
-              />
-            )}
-
-            {activeTab === 'gradebook' && (
-              <ClassGradebookTab
-                students={gradebookStudents}
-                aiAnalysis={gradebookAi}
-                onSendAiSuggestion={() =>
-                  showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 2 học viên cần hỗ trợ!')
-                }
-                onInterveneClick={(s) =>
-                  showToast(`Mở khung hỗ trợ cá nhân hóa cho học viên: ${s.name}`)
-                }
                 onToast={showToast}
               />
             )}
