@@ -26,7 +26,6 @@ export function DashboardSidebar({
 
   const isOverviewActive = pathname === '/dashboard';
   const isClassesActive = pathname.startsWith('/classes');
-  const isSessionsActive = pathname.startsWith('/lesson-sessions') || pathname.includes('/sessions');
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isRadarActive = pathname.startsWith('/competency');
   const isAssignmentsActive = pathname.startsWith('/assignments') || (pathname.startsWith('/classes') && (pathname.includes('assignments') || pathname.includes('cs-202')));
@@ -180,9 +179,8 @@ export function DashboardSidebar({
                   key={item.href + item.label}
                   href={item.href}
                   prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                    item.active ? activeClass : inactiveClass
-                  }`}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
+                    }`}
                   title={item.label}
                 >
                   <span className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''}`}>
@@ -205,9 +203,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                isSettingsActive ? activeClass : inactiveClass
-              }`}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
+                }`}
               title={t('navSettings')}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
@@ -220,9 +217,8 @@ export function DashboardSidebar({
     // Standard / Collapsible Sidebar for Teacher (Matches Student Design)
     return (
       <aside
-        className={`fixed left-0 top-0 h-full ${
-          isCollapsed ? 'w-20' : 'w-72'
-        } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
+        className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-72'
+          } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
       >
         {/* Collapse/Expand Floating Button on the border */}
         {onToggleCollapse && (
@@ -290,15 +286,13 @@ export function DashboardSidebar({
                           key={item.href + item.label}
                           href={item.href}
                           prefetch={item.href.startsWith('/')}
-                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                            item.active ? activeClass : inactiveClass
-                          }`}
+                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
+                            }`}
                           title={item.label}
                         >
                           <span
-                            className={`material-symbols-outlined text-[20px] ${
-                              !item.active && item.iconColor ? item.iconColor : ''
-                            }`}
+                            className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''
+                              }`}
                           >
                             {item.icon}
                           </span>
@@ -311,14 +305,12 @@ export function DashboardSidebar({
                         key={item.href + item.label}
                         href={item.href}
                         prefetch={item.href.startsWith('/')}
-                        className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${
-                          item.active ? activeClass : inactiveClass
-                        }`}
+                        className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${item.active ? activeClass : inactiveClass
+                          }`}
                       >
                         <span
-                          className={`material-symbols-outlined text-[20px] ${
-                            !item.active && item.iconColor ? item.iconColor : ''
-                          }`}
+                          className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''
+                            }`}
                         >
                           {item.icon}
                         </span>
@@ -361,9 +353,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                isSettingsActive ? activeClass : inactiveClass
-              }`}
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
+                }`}
               title={t('navSettings')}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
@@ -372,9 +363,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${
-                isSettingsActive ? activeClass : inactiveClass
-              }`}
+              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${isSettingsActive ? activeClass : inactiveClass
+                }`}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
               <span className="flex-1 truncate">{t('navSettings')}</span>
@@ -412,11 +402,11 @@ export function DashboardSidebar({
       show: true,
     },
     {
-      href: '/lesson-sessions',
-      icon: 'calendar_view_week',
-      label: 'Lịch học của tôi',
-      active: isSessionsActive,
-      show: true,
+      href: '/materials',
+      icon: 'upload_file',
+      label: 'Xử lý học liệu',
+      active: isMaterialsActive,
+      show: isTeacher,
     },
     {
       href: '/knowledge-graph',
@@ -477,9 +467,8 @@ export function DashboardSidebar({
                 key={item.href + item.label}
                 href={item.href}
                 prefetch={item.href.startsWith('/')}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                  item.active ? activeClass : inactiveClass
-                }`}
+                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
+                  }`}
                 title={item.label}
               >
                 <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
@@ -492,9 +481,8 @@ export function DashboardSidebar({
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-              isSettingsActive ? activeClass : inactiveClass
-            }`}
+            className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
+              }`}
             title={t('navSettings')}
           >
             <span className="material-symbols-outlined text-[20px]">settings</span>
@@ -507,9 +495,8 @@ export function DashboardSidebar({
   // Sidebar for Analytics Mode (Student)
   return (
     <aside
-      className={`fixed left-0 top-0 h-full ${
-        isCollapsed ? 'w-20' : 'w-72'
-      } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
+      className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-72'
+        } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
     >
       {/* Collapse/Expand Floating Button on the border */}
       {onToggleCollapse && (
@@ -576,9 +563,8 @@ export function DashboardSidebar({
                   key={item.href + item.label}
                   href={item.href}
                   prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                    item.active ? activeClass : inactiveClass
-                  }`}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${item.active ? activeClass : inactiveClass
+                    }`}
                   title={item.label}
                 >
                   <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
@@ -591,9 +577,8 @@ export function DashboardSidebar({
                 key={item.href + item.label}
                 href={item.href}
                 prefetch={item.href.startsWith('/')}
-                className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
-                  item.active ? activeClass : inactiveClass
-                }`}
+                className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${item.active ? activeClass : inactiveClass
+                  }`}
               >
                 <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                 <span className="flex-1 truncate">{item.label}</span>
@@ -613,9 +598,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                isSettingsActive ? activeClass : inactiveClass
-              }`}
+              className={`flex items-center justify-center w-12 h-12 rounded-full ${isSettingsActive ? activeClass : inactiveClass
+                }`}
               title={t('navSettings')}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
@@ -624,9 +608,8 @@ export function DashboardSidebar({
             <Link
               href="/settings"
               prefetch={true}
-              className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${
-                isSettingsActive ? activeClass : inactiveClass
-              }`}
+              className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${isSettingsActive ? activeClass : inactiveClass
+                }`}
             >
               <span className="material-symbols-outlined text-[20px]">settings</span>
               <span>{t('navSettings')}</span>
