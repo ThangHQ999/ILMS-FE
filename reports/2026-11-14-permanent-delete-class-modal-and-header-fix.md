@@ -62,3 +62,4 @@ DOCS: updated TASKS.md
 DEPLOYMENT: not applicable
 NEXT: Kiểm tra trải nghiệm thực tế trên trình duyệt ở tab Cài đặt lớp học (Vùng nguy hiểm).
 ```
+

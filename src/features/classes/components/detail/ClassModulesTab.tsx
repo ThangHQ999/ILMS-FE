@@ -1,7 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo } from 'react';
+import { StudioCommandBar } from './modules/StudioCommandBar';
+import { ActiveWeekBanner } from './modules/ActiveWeekBanner';
+import { ModuleAccordionItem, type ModuleData } from './modules/ModuleAccordionItem';
+import { AdaptiveLearningFlowCard } from './modules/AdaptiveLearningFlowCard';
+import { AiSyllabusCopilotCard } from './modules/AiSyllabusCopilotCard';
+import { SyllabusAuditChecklistCard } from './modules/SyllabusAuditChecklistCard';
+import {
+  AddChapterModal,
+  AddLessonModal,
+  BatchUploadModal,
+} from './modules/ClassModuleModals';
 
 interface ClassModulesTabProps {
   currentRole: 'student' | 'teacher' | 'owner';
@@ -10,396 +20,430 @@ interface ClassModulesTabProps {
   subjectsCount?: number;
 }
 
+const INITIAL_MODULES: ModuleData[] = [
+  {
+    id: 'mod-1',
+    order: 1,
+    title: 'Tổng quan Mạng máy tính & Mô hình Phân tầng (OSI & TCP/IP)',
+    weeks: 'Tuần 1 - 3',
+    statusBadge: 'Đã xuất bản (4/4 bài)',
+    statusType: 'published',
+    lessons: [
+      {
+        id: 'les-1-1',
+        code: '1.1',
+        title: 'Khái niệm Mạng máy tính, Topo mạng và Băng thông',
+        type: 'video',
+        meta: 'Video • 42 phút',
+        stats: '48/48 SV hoàn thành (100%)',
+        status: 'published',
+      },
+      {
+        id: 'les-1-2',
+        code: '1.2',
+        title: 'Phân tích 7 tầng mô hình OSI và 4 tầng TCP/IP',
+        type: 'slide',
+        meta: 'Slide PDF • 38 trang',
+        stats: '47/48 SV xem',
+        status: 'published',
+      },
+      {
+        id: 'les-1-3',
+        code: '1.3',
+        title: 'Thực hành Lệnh chẩn đoán mạng (ping, traceroute, nslookup, netstat)',
+        type: 'lab',
+        meta: 'Interactive Lab Terminal • 45 phút',
+        stats: '46/48 SV nộp log',
+        status: 'published',
+      },
+      {
+        id: 'quiz-1',
+        code: 'Quiz 01',
+        title: 'Kiểm tra nhanh Kiến trúc & Nguyên lý Mạng',
+        type: 'quiz',
+        meta: 'Trắc nghiệm 15 câu • Điểm TB: 8.4/10',
+        stats: '48/48 đã hoàn thành',
+        status: 'closed',
+      },
+    ],
+  },
+  {
+    id: 'mod-2',
+    order: 2,
+    title: 'Tầng Ứng dụng (Application Layer: HTTP, DNS, SMTP, P2P)',
+    weeks: 'Tuần 4 - 6',
+    statusBadge: 'Đã xuất bản (4 bài • 1 Lab Socket C++)',
+    statusType: 'published',
+    lessons: [
+      {
+        id: 'les-2-1',
+        code: '2.1',
+        title: 'Giao thức HTTP 1.1 / HTTP/2 và Hệ thống phân giải tên miền DNS',
+        type: 'video',
+        meta: 'Video bài giảng • 45 phút',
+        stats: '48 SV đã xem',
+        status: 'published',
+      },
+      {
+        id: 'les-2-2',
+        code: 'Lab 02',
+        title: 'Lập trình Socket TCP / UDP Client-Server bằng C++',
+        type: 'lab',
+        meta: 'Thực hành Code Runner • 90 phút',
+        stats: '44/48 bài nộp',
+        status: 'published',
+        submissionsCount: 44,
+      },
+    ],
+  },
+  {
+    id: 'mod-3',
+    order: 3,
+    title: 'Tầng Giao vận (Transport Layer - TCP & UDP Protocol Suite)',
+    weeks: 'Tuần 7 - 9 (Tuần này)',
+    statusBadge: 'Active Focus',
+    statusType: 'active_focus',
+    isActiveFocus: true,
+    lessons: [
+      {
+        id: 'les-3-1',
+        code: '3.1',
+        title: 'Dịch vụ Tầng Giao vận, Ghép kênh & Phân kênh (Multiplexing / Demultiplexing)',
+        type: 'video',
+        meta: 'Video • 32 phút',
+        stats: '45/48 SV đã xem (93.7%)',
+        status: 'published',
+      },
+      {
+        id: 'les-3-2',
+        code: '3.2',
+        title: 'Cơ chế Truyền tin cậy RDT & Quá trình Bắt tay 3 bước TCP (3-way Handshake)',
+        type: 'simulation',
+        meta: 'Mô phỏng tương tác',
+        stats: '42/48 SV đã học',
+        status: 'published',
+        alert: '6 SV cần hỗ trợ',
+      },
+      {
+        id: 'les-3-3',
+        code: '3.3',
+        title: 'Cơ chế Điều khiển Luồng (Flow Control) & Tránh Tắc nghẽn (TCP Reno, Cubic)',
+        type: 'slide',
+        meta: 'Cập nhật 2 giờ trước bởi TS. Nam',
+        stats: 'Học sinh chưa thể nhìn thấy',
+        status: 'draft',
+        isDraft: true,
+      },
+      {
+        id: 'les-3-4',
+        code: '3.4',
+        title: 'Wireshark Lab: Bắt và Phân tích gói tin TCP 3-Way Handshake, Window Size',
+        type: 'lab',
+        meta: 'Hạn nộp: Chủ Nhật, 20/10 • 23:59',
+        stats: '31/48 SV đã nộp file pcapng',
+        status: 'published',
+        submissionsCount: 31,
+      },
+      {
+        id: 'quiz-3',
+        code: 'Quiz 03',
+        title: 'Đánh giá Năng lực Tầng Giao vận (20 câu trắc nghiệm khách quan)',
+        type: 'quiz',
+        meta: 'Thời gian: 25 phút',
+        stats: 'Khóa có điều kiện',
+        status: 'conditional_lock',
+        prerequisite: 'Phải nộp Lab 3.4 & Điểm >= 5.0',
+      },
+    ],
+  },
+  {
+    id: 'mod-4',
+    order: 4,
+    title: 'Tầng Mạng & Giao thức Định tuyến (Network Layer: IPv4/IPv6, OSPF, BGP)',
+    weeks: 'Dự kiến Tuần 10 - 12',
+    statusBadge: 'Lên lịch: 28/10/2024 (4 bài nháp)',
+    statusType: 'scheduled',
+    lessons: [
+      {
+        id: 'les-4-1',
+        code: '4.1',
+        title: 'Cấu trúc gói tin IPv4/IPv6 và Kỹ thuật chia mạng con CIDR / VLSM',
+        type: 'slide',
+        meta: 'Slide PDF • 45 trang',
+        stats: 'Chưa xuất bản',
+        status: 'draft',
+        isDraft: true,
+      },
+    ],
+  },
+  {
+    id: 'mod-5',
+    order: 5,
+    title: 'Tầng Liên kết Dữ liệu & Mạng cục bộ (Data Link Layer & LANs, CSMA/CD, ARP)',
+    weeks: 'Dự kiến Tuần 13 - 15',
+    statusBadge: 'Khóa',
+    statusType: 'locked',
+    isLocked: true,
+    lessons: [],
+  },
+];
+
 export function ClassModulesTab({
   currentRole,
   onToast,
   onViewSubjects,
   subjectsCount,
 }: ClassModulesTabProps) {
-  const router = useRouter();
+  const [isEditMode, setIsEditMode] = useState(currentRole !== 'student');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [modules, setModules] = useState<ModuleData[]>(INITIAL_MODULES);
+
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({
-    'mod-1': false,
+    'mod-1': true,
     'mod-2': false,
     'mod-3': true,
     'mod-4': false,
+    'mod-5': false,
   });
 
-  const [isAddModuleOpen, setIsAddModuleOpen] = useState(false);
-  const [newModuleName, setNewModuleName] = useState('');
+  // Modal states
+  const [isAddChapterOpen, setIsAddChapterOpen] = useState(false);
+  const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
+  const [targetModuleId, setTargetModuleId] = useState<string>('mod-3');
+  const [isBatchUploadOpen, setIsBatchUploadOpen] = useState(false);
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleCreateModule = () => {
-    if (!newModuleName.trim()) {
-      onToast('Vui lòng nhập tên chương / module mới!');
-      return;
-    }
-    onToast(`Đã thêm thành công chương mới: "${newModuleName}"`);
-    setNewModuleName('');
-    setIsAddModuleOpen(false);
+  // Counts
+  const counts = useMemo(() => {
+    let all = 0;
+    let published = 0;
+    let draft = 0;
+    modules.forEach((m) => {
+      m.lessons.forEach((l) => {
+        all++;
+        if (l.isDraft || l.status === 'draft') draft++;
+        else published++;
+      });
+    });
+    return { all, published, draft };
+  }, [modules]);
+
+  // Filtered Modules
+  const filteredModules = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return modules
+      .map((mod) => {
+        let matchingLessons = mod.lessons;
+
+        if (statusFilter === 'published') {
+          matchingLessons = matchingLessons.filter((l) => !l.isDraft && l.status !== 'draft');
+        } else if (statusFilter === 'draft') {
+          matchingLessons = matchingLessons.filter((l) => l.isDraft || l.status === 'draft');
+        }
+
+        if (q) {
+          matchingLessons = matchingLessons.filter(
+            (l) =>
+              l.title.toLowerCase().includes(q) ||
+              l.code?.toLowerCase().includes(q) ||
+              l.meta.toLowerCase().includes(q)
+          );
+        }
+
+        const isModMatch = !q || mod.title.toLowerCase().includes(q) || matchingLessons.length > 0;
+        if (!isModMatch && q) return null;
+
+        return {
+          ...mod,
+          lessons: matchingLessons,
+        };
+      })
+      .filter((m): m is ModuleData => m !== null);
+  }, [modules, searchQuery, statusFilter]);
+
+  // Handlers
+  const handlePublishLesson = (lessonId: string) => {
+    setModules((prev) =>
+      prev.map((m) => ({
+        ...m,
+        lessons: m.lessons.map((l) =>
+          l.id === lessonId
+            ? { ...l, isDraft: false, status: 'published', meta: 'Đã xuất bản bởi TS. Nam' }
+            : l
+        ),
+      }))
+    );
+    onToast('Đã xuất bản bài học thành công cho sinh viên xem!');
+  };
+
+  const handleOpenEarly = (moduleId: string) => {
+    setModules((prev) =>
+      prev.map((m) =>
+        m.id === moduleId
+          ? { ...m, statusType: 'published', statusBadge: 'Đã mở sớm theo yêu cầu GV' }
+          : m
+      )
+    );
+    setExpandedModules((prev) => ({ ...prev, [moduleId]: true }));
+    onToast('Đã mở khóa chương sớm thành công cho sinh viên!');
+  };
+
+  const handleCreateChapter = (title: string, weeks: string) => {
+    const newMod: ModuleData = {
+      id: `mod-${Date.now()}`,
+      order: modules.length + 1,
+      title,
+      weeks,
+      statusBadge: 'Mới tạo',
+      statusType: 'published',
+      lessons: [],
+    };
+    setModules((prev) => [...prev, newMod]);
+    setExpandedModules((prev) => ({ ...prev, [newMod.id]: true }));
+    onToast(`Đã thêm thành công: Chương ${newMod.order}: ${title}`);
+  };
+
+  const handleCreateLesson = (title: string, type: string, duration: string) => {
+    setModules((prev) =>
+      prev.map((m) => {
+        if (m.id === targetModuleId) {
+          const newLesson: (typeof m.lessons)[number] = {
+            id: `les-${Date.now()}`,
+            code: `${m.order}.${m.lessons.length + 1}`,
+            title,
+            type: type as any,
+            meta: `${type.toUpperCase()} • ${duration}`,
+            stats: 'Mới tạo • 0 lượt xem',
+            status: 'published',
+          };
+          return { ...m, lessons: [...m.lessons, newLesson] };
+        }
+        return m;
+      })
+    );
+    onToast(`Đã thêm bài học "${title}" vào Chương!`);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Module Top Actions */}
-      <div className="flex items-center justify-between flex-wrap gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-sm">
-        <div>
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-            Đề cương & Nội dung bài giảng
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Lộ trình 5 chương kiến trúc mạng theo chuẩn ACM/IEEE Computing Curricula.
-          </p>
+      {/* 1. Studio Command Bar */}
+      <StudioCommandBar
+        isEditMode={isEditMode}
+        onToggleEditMode={() => {
+          setIsEditMode(!isEditMode);
+          onToast(
+            !isEditMode
+              ? 'Đã BẬT Chế độ Chỉnh sửa Giáo trình'
+              : 'Đã TẮT Chế độ Chỉnh sửa (Góc nhìn Học viên)'
+          );
+        }}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        counts={counts}
+        onStudentViewClick={() => {
+          setIsEditMode(false);
+          onToast('Chuyển sang góc nhìn học viên xem trước.');
+        }}
+        onBatchUploadClick={() => setIsBatchUploadOpen(true)}
+        onAddLessonClick={() => {
+          setTargetModuleId('mod-3');
+          setIsAddLessonOpen(true);
+        }}
+        onAddChapterClick={() => setIsAddChapterOpen(true)}
+      />
+
+      {/* 2. Workspace 2-Column Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* Left Column: 8 Columns - Syllabus Tree & Modules */}
+        <div className="xl:col-span-8 flex flex-col gap-5">
+          <ActiveWeekBanner />
+
+          {filteredModules.map((mod) => (
+            <ModuleAccordionItem
+              key={mod.id}
+              module={mod}
+              isExpanded={!!expandedModules[mod.id]}
+              isEditMode={isEditMode}
+              onToggle={() => toggleModule(mod.id)}
+              onAddLessonClick={(mId) => {
+                setTargetModuleId(mId);
+                setIsAddLessonOpen(true);
+              }}
+              onEditModuleClick={(mId) =>
+                onToast(`Mở cấu hình chỉnh sửa Chương ${mId}`)
+              }
+              onPublishLesson={handlePublishLesson}
+              onGradeLesson={(lId) =>
+                onToast(`Đang chuyển tới trang Chấm điểm cho bài ${lId}...`)
+              }
+              onLessonStatsClick={(lId) =>
+                onToast(`Mở phân tích thống kê học viên chi tiết bài ${lId}`)
+              }
+              onQuickAdd={(mId, type) => {
+                setTargetModuleId(mId);
+                handleCreateLesson(
+                  `Bài học bổ sung ${type.toUpperCase()}`,
+                  type,
+                  '30 phút'
+                );
+              }}
+              onOpenEarlyClick={handleOpenEarly}
+            />
+          ))}
         </div>
 
-        {/* Teacher Module Controls */}
-        <div className="flex items-center gap-3">
-          {onViewSubjects && (
-            <button
-              type="button"
-              onClick={onViewSubjects}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">menu_book</span>
-              <span>Môn học liên kết ({subjectsCount || 4})</span>
-            </button>
-          )}
+        {/* Right Column: 4 Columns - Tools & Copilot */}
+        <div className="xl:col-span-4 flex flex-col gap-5">
+          <AdaptiveLearningFlowCard
+            onSendAutoReminder={() =>
+              onToast(
+                'Đã tự động gửi email nhắc nhở & tin nhắn chatbot AI tới 6 học viên cần hỗ trợ!'
+              )
+            }
+          />
 
-          {(currentRole === 'teacher' || currentRole === 'owner') && (
-            <>
-              <button
-                type="button"
-                onClick={() => onToast('Kích hoạt chế độ kéo thả sắp xếp thứ tự module')}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
-                <span>Sắp xếp lại thứ tự</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAddModuleOpen(true)}
-                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:shadow transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                <span>+ Thêm Module mới</span>
-              </button>
-            </>
-          )}
+          <AiSyllabusCopilotCard
+            onExtractPdfClick={() => setIsBatchUploadOpen(true)}
+            onViewKnowledgeGraphClick={() =>
+              onToast('Đang kết nối Đồ thị tri thức môn học CS-202 (34 Nodes)...')
+            }
+          />
 
-          {currentRole === 'student' && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>
-                Tiến độ chương: <strong className="text-blue-600 dark:text-blue-400 font-bold">2/4 Đã hoàn tất</strong>
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Module List Tree */}
-      <div className="flex flex-col gap-5">
-        {/* Module 1: Completed */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden border-[3px] border-slate-300 dark:border-slate-700 transition-all">
-          <div
-            onClick={() => toggleModule('mod-1')}
-            className="p-5 bg-slate-50/80 dark:bg-slate-800/80 flex items-center justify-between cursor-pointer select-none"
-          >
-            <div className="flex items-center gap-4">
-              <span className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">check</span>
-              </span>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  Chương 1 • Đã hoàn thành 100%
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  Tổng quan Kiến trúc Mạng & Mô hình OSI / TCP/IP
-                </h3>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 hidden sm:inline">
-                4 bài học • 1 bài trắc nghiệm
-              </span>
-              <span className="material-symbols-outlined text-slate-400">
-                {expandedModules['mod-1'] ? 'expand_less' : 'expand_more'}
-              </span>
-            </div>
-          </div>
-
-          {expandedModules['mod-1'] && (
-            <div className="p-5 flex flex-col gap-2.5 text-xs sm:text-sm border-t border-slate-200 dark:border-slate-800">
-              <div
-                onClick={() => onToast('Mở nội dung bài 1.1: Lịch sử Internet & Packet Switching')}
-                className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">
-                    check_circle
-                  </span>
-                  <span>Bài 1.1: Lịch sử Internet & Khái niệm chuyển mạch gói (Packet Switching)</span>
-                </div>
-                <span className="text-xs text-slate-400">Video 25 phút</span>
-              </div>
-
-              <div
-                onClick={() => onToast('Mở tài liệu slide so sánh OSI vs TCP/IP')}
-                className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">
-                    check_circle
-                  </span>
-                  <span>Bài 1.2: So sánh chi tiết mô hình 7 tầng OSI và 4 tầng TCP/IP</span>
-                </div>
-                <span className="text-xs text-slate-400">Slide 42 trang</span>
-              </div>
-
-              <div
-                onClick={() => onToast('Xem kết quả Trắc nghiệm Chương 1: 10/10 điểm')}
-                className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">quiz</span>
-                  <span>Trắc nghiệm ôn tập Chương 1 (Điểm: 10/10)</span>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
-                  100%
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Module 2: Completed */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden border-[3px] border-slate-300 dark:border-slate-700 transition-all">
-          <div
-            onClick={() => toggleModule('mod-2')}
-            className="p-5 bg-slate-50/80 dark:bg-slate-800/80 flex items-center justify-between cursor-pointer select-none"
-          >
-            <div className="flex items-center gap-4">
-              <span className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">check</span>
-              </span>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  Chương 2 • Đã hoàn thành 100%
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  Tầng Ứng dụng: HTTP/3, DNS & Lập trình Socket Mạng
-                </h3>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 hidden sm:inline">
-                3 bài học • 1 bài Lab Wireshark
-              </span>
-              <span className="material-symbols-outlined text-slate-400">
-                {expandedModules['mod-2'] ? 'expand_less' : 'expand_more'}
-              </span>
-            </div>
-          </div>
-
-          {expandedModules['mod-2'] && (
-            <div className="p-5 flex flex-col gap-2.5 text-xs sm:text-sm border-t border-slate-200 dark:border-slate-800">
-              <div
-                onClick={() => onToast('Mở bài 2.1: Giao thức HTTP/1.1, HTTP/2 và HTTP/3 QUIC')}
-                className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">
-                    check_circle
-                  </span>
-                  <span>Bài 2.1: Giao thức HTTP/1.1, HTTP/2 và HTTP/3 (QUIC Protocol)</span>
-                </div>
-                <span className="text-xs text-slate-400">Video 30 phút</span>
-              </div>
-              <div
-                onClick={() => onToast('Mở bài 2.2: Hệ thống phân giải tên miền DNS & Root Servers')}
-                className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">
-                    check_circle
-                  </span>
-                  <span>Bài 2.2: Hệ thống phân giải tên miền DNS & Phân tích DNS Hierarchy</span>
-                </div>
-                <span className="text-xs text-slate-400">Slide 35 trang</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Module 3: In Progress (Active) */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden border-[3px] border-blue-400 dark:border-blue-600 transition-all">
-          <div
-            onClick={() => toggleModule('mod-3')}
-            className="p-5 bg-blue-50/60 dark:bg-blue-950/40 flex items-center justify-between cursor-pointer select-none"
-          >
-            <div className="flex items-center gap-4">
-              <span className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold text-xs">
-                60%
-              </span>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                  Chương 3 • Đang học
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  Tầng Giao vận: Kiểm soát luồng & Tránh tắc nghẽn TCP vs UDP
-                </h3>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 hidden sm:inline">
-                Đang diễn ra
-              </span>
-              <span className="material-symbols-outlined text-blue-600">
-                {expandedModules['mod-3'] ? 'expand_less' : 'expand_more'}
-              </span>
-            </div>
-          </div>
-
-          {expandedModules['mod-3'] && (
-            <div className="p-5 flex flex-col gap-2.5 text-xs sm:text-sm border-t border-blue-200 dark:border-blue-900">
-              <div
-                onClick={() => onToast('Bài 3.1: Dịch vụ định vị cổng đã hoàn tất!')}
-                className="p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">
-                    check_circle
-                  </span>
-                  <span>Bài 3.1: Dịch vụ định vị cổng (Port Multiplexing) & Cấu trúc UDP Datagram</span>
-                </div>
-                <span className="text-xs text-slate-400">Đã học xong</span>
-              </div>
-
-              <div
-                onClick={() => {
-                  onToast('Đang mở không gian học tập chi tiết: Bài 3.2...');
-                  router.push('/courses/course-cs-202/lessons/les-3-2');
-                }}
-                className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/60 flex items-center justify-between cursor-pointer border-[3px] border-blue-500 shadow-xs hover:shadow-md transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-blue-600 text-[22px]">
-                    play_circle
-                  </span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">
-                    Bài 3.2: Cơ chế bắt tay 3 bước (TCP 3-Way Handshake) & Sliding Window
-                  </span>
-                </div>
-                <span className="px-3 py-1 rounded-lg bg-blue-600 text-white font-bold text-xs">
-                  Tiếp tục học &rarr;
-                </span>
-              </div>
-
-              <div
-                onClick={() => onToast('Mở tài liệu Bài 3.3: Thuật toán kiểm soát tắc nghẽn')}
-                className="p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-slate-400 text-[20px]">
-                    radio_button_unchecked
-                  </span>
-                  <span>Bài 3.3: Thuật toán kiểm soát tắc nghẽn TCP Reno & TCP CUBIC</span>
-                </div>
-                <span className="text-xs text-slate-400">Chưa học</span>
-              </div>
-
-              <div
-                onClick={() => onToast('Quiz 03 sẽ được mở vào Thứ Tư lúc 19:30')}
-                className="p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer border border-amber-200 dark:border-amber-900"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-amber-600 text-[20px]">
-                    assignment
-                  </span>
-                  <span className="font-medium">
-                    Quiz 03: Kiểm tra trắc nghiệm kiểm soát luồng giao vận
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                  Mở vào Thứ 4 tới
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Module 4: Locked */}
-        <div className="rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden border-[3px] border-slate-300 dark:border-slate-700 opacity-60">
-          <div className="p-5 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">lock</span>
-              </span>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Chương 4 • Bị khóa
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                  Tầng Mạng: Định tuyến tĩnh, Thuật toán Dijkstra, OSPF & BGP
-                </h3>
-              </div>
-            </div>
-            <div className="text-xs text-slate-500">Điều kiện: Hoàn tất Quiz Chương 3</div>
-          </div>
+          <SyllabusAuditChecklistCard
+            onExportReportClick={() =>
+              onToast('Đang tạo và tải xuống Báo cáo Giáo trình PDF (94/100)...')
+            }
+          />
         </div>
       </div>
 
-      {/* Modal Add Module */}
-      {isAddModuleOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
-                Thêm Module / Chương học mới
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsAddModuleOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
+      {/* Modals with 3px border */}
+      <AddChapterModal
+        isOpen={isAddChapterOpen}
+        onClose={() => setIsAddChapterOpen(false)}
+        onSubmit={handleCreateChapter}
+      />
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold block mb-1">Tên chương / Module:</label>
-                <input
-                  type="text"
-                  value={newModuleName}
-                  onChange={(e) => setNewModuleName(e.target.value)}
-                  placeholder="Ví dụ: Chương 5: Tầng Liên kết dữ liệu (Data Link Layer)..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 outline-none"
-                />
-              </div>
-            </div>
+      <AddLessonModal
+        isOpen={isAddLessonOpen}
+        onClose={() => setIsAddLessonOpen(false)}
+        onSubmit={handleCreateLesson}
+      />
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsAddModuleOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 cursor-pointer"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateModule}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-              >
-                Thêm chương
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BatchUploadModal
+        isOpen={isBatchUploadOpen}
+        onClose={() => setIsBatchUploadOpen(false)}
+        onUpload={(cnt) => {
+          setIsBatchUploadOpen(false);
+          onToast(`Đã tiếp nhận ${cnt} tệp học liệu vào Hàng đợi AI Ingestion!`);
+        }}
+      />
     </div>
   );
 }
-
