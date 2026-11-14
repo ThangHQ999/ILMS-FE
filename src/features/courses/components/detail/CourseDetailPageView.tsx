@@ -117,7 +117,6 @@ export function CourseDetailPageView({
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
-        workspaceMode="faculty"
       />
 
       {/* Main Body */}

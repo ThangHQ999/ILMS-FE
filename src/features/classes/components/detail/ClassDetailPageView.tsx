@@ -41,7 +41,7 @@ export function ClassDetailPageView({
   const router = useRouter();
   const t = useTranslations('classes.detail');
 
-  // Global user role hook
+  // Global user role hook (real-time reactive across app)
   const { activeRole, switchRole } = useUserRole();
 
   // Shell Layout State
@@ -50,18 +50,20 @@ export function ClassDetailPageView({
 
   // Class detail state: synchronize with global activeRole
   const [activeTab, setActiveTab] = useState('stream');
-  const [currentRole, setCurrentRole] = useState<'student' | 'teacher' | 'owner'>(
-    activeRole === 'STUDENT' ? 'student' : 'teacher'
-  );
+  const [localTeacherRole, setLocalTeacherRole] = useState<'teacher' | 'owner'>('teacher');
 
-  // Synchronize currentRole whenever activeRole from top header or user menu changes
+  // Compute effectiveRole synchronously during render:
+  // When activeRole is STUDENT, effectiveRole is GUARANTEED to be 'student' (zero lag / no F5)
+  // When activeRole is TEACHER, effectiveRole is localTeacherRole ('teacher' or 'owner')
+  const effectiveRole: 'student' | 'teacher' | 'owner' =
+    activeRole === 'STUDENT' ? 'student' : localTeacherRole;
+
+  // If switched to student while on teacher-only settings tab, redirect to stream tab
   useEffect(() => {
-    if (activeRole === 'STUDENT') {
-      setCurrentRole('student');
-    } else if (currentRole === 'student') {
-      setCurrentRole('teacher');
+    if (activeRole === 'STUDENT' && activeTab === 'settings') {
+      setActiveTab('stream');
     }
-  }, [activeRole]);
+  }, [activeRole, activeTab]);
 
   // Socratic AI Tutor popover state
   const [isAiPopoverOpen, setIsAiPopoverOpen] = useState(false);
@@ -147,11 +149,14 @@ export function ClassDetailPageView({
   };
 
   const handleRoleChange = (newRole: 'student' | 'teacher' | 'owner') => {
-    setCurrentRole(newRole);
-    // Đồng bộ với RoleSwitcher toàn cục trên DashboardHeader
-    switchRole(newRole === 'student' ? 'STUDENT' : 'TEACHER');
-    if (newRole === 'student' && activeTab === 'settings') {
-      setActiveTab('stream');
+    if (newRole === 'student') {
+      switchRole('STUDENT');
+      if (activeTab === 'settings') {
+        setActiveTab('stream');
+      }
+    } else {
+      setLocalTeacherRole(newRole);
+      switchRole('TEACHER');
     }
     showToast(
       newRole === 'owner'
@@ -262,8 +267,8 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => handleRoleChange('student')}
-              className={`px-2.5 py-0.5 rounded-full transition-all ${
-                currentRole === 'student'
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                effectiveRole === 'student'
                   ? 'font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
                   : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -273,8 +278,8 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => handleRoleChange('teacher')}
-              className={`px-2.5 py-0.5 rounded-full transition-all ${
-                currentRole === 'teacher'
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                effectiveRole === 'teacher'
                   ? 'font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -284,8 +289,8 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => handleRoleChange('owner')}
-              className={`px-2.5 py-0.5 rounded-full transition-all ${
-                currentRole === 'owner'
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                effectiveRole === 'owner'
                   ? 'font-bold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs'
                   : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -332,7 +337,7 @@ export function ClassDetailPageView({
                   type="button"
                   onClick={() => handleRoleChange('student')}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    currentRole === 'student'
+                    effectiveRole === 'student'
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
@@ -344,7 +349,7 @@ export function ClassDetailPageView({
                   type="button"
                   onClick={() => handleRoleChange('teacher')}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    currentRole === 'teacher'
+                    effectiveRole === 'teacher'
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
@@ -356,7 +361,7 @@ export function ClassDetailPageView({
                   type="button"
                   onClick={() => handleRoleChange('owner')}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    currentRole === 'owner'
+                    effectiveRole === 'owner'
                       ? 'bg-amber-600 text-white shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
@@ -370,7 +375,7 @@ export function ClassDetailPageView({
             {/* Banner Section */}
             <ClassDetailBanner
               classInfo={classInfo}
-              currentRole={currentRole}
+              currentRole={effectiveRole}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               subjectsCount={courses.length}
@@ -386,7 +391,7 @@ export function ClassDetailPageView({
             {activeTab === 'stream' && (
               <ClassStreamTab
                 classInfo={classInfo}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onNavigateTab={setActiveTab}
                 onToast={showToast}
               />
@@ -394,7 +399,7 @@ export function ClassDetailPageView({
 
             {activeTab === 'modules' && (
               <ClassModulesTab
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onToast={showToast}
                 onViewSubjects={() => setActiveTab('subjects')}
                 subjectsCount={courses.length}
@@ -403,7 +408,7 @@ export function ClassDetailPageView({
 
             {(activeTab === 'assignments' || activeTab === 'gradebook') && (
               <ClassAssignmentsTab
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onToast={showToast}
                 gradebookStudents={gradebookStudents}
                 gradebookAi={gradebookAi}
@@ -420,7 +425,7 @@ export function ClassDetailPageView({
             {activeTab === 'people' && (
               <ClassMembersTab
                 members={members}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
@@ -431,7 +436,7 @@ export function ClassDetailPageView({
             {activeTab === 'subjects' && (
               <ClassSubjectsTab
                 courses={courses}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onAddExistingClick={() => setIsAddSubjectOpen(true)}
                 onCreateNewClick={() => setIsCreateSubjectOpen(true)}
                 onRemoveClick={(c) => setRemoveTarget(c)}
@@ -442,7 +447,7 @@ export function ClassDetailPageView({
               />
             )}
 
-            {activeTab === 'settings' && currentRole !== 'student' && (
+            {activeTab === 'settings' && effectiveRole !== 'student' && (
               <ClassSettingsTab
                 classInfo={classInfo}
                 onSaveClassInfo={() => showToast('Đã lưu cấu hình lớp thành công!')}
@@ -459,7 +464,7 @@ export function ClassDetailPageView({
               <ClassAnnouncementsTab
                 classId={classId}
                 announcements={announcements}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onPublishAnnouncement={(ann) => {
                   postAnnouncementMutation.mutate({
                     title: ann.title,
@@ -474,7 +479,7 @@ export function ClassDetailPageView({
             {activeTab === 'members' && (
               <ClassMembersTab
                 members={members}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
@@ -515,7 +520,7 @@ export function ClassDetailPageView({
             {activeTab === 'materials' && (
               <ClassMaterialsTab
                 materials={materials}
-                currentRole={currentRole}
+                currentRole={effectiveRole}
                 onToast={showToast}
               />
             )}

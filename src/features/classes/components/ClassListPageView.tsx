@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { ClassHeroSection } from './ClassHeroSection';
@@ -50,8 +51,9 @@ export function ClassListPageView({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Workspace Role Mode: Default to 'faculty' (Chế độ Giảng dạy như yêu cầu hiện tại)
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceRoleMode>('faculty');
+  // Workspace Role Mode: Synchronized with app-wide global role
+  const { isTeacher, switchRole } = useUserRole();
+  const workspaceMode: WorkspaceRoleMode = isTeacher ? 'faculty' : 'student';
 
   // Filters & View State (in Faculty mode, default view is list / 1-column bento)
   const [filters, setFilters] = useState<ClassFilters>({
@@ -139,13 +141,11 @@ export function ClassListPageView({
   );
 
   const handleToggleWorkspace = useCallback(() => {
-    setWorkspaceMode((prev) => {
-      const next = prev === 'faculty' ? 'student' : 'faculty';
-      setViewMode(next === 'faculty' ? 'list' : 'grid');
-      showToast(next === 'faculty' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
-      return next;
-    });
-  }, [showToast]);
+    const nextRole = isTeacher ? 'STUDENT' : 'TEACHER';
+    switchRole(nextRole);
+    setViewMode(nextRole === 'TEACHER' ? 'list' : 'grid');
+    showToast(nextRole === 'TEACHER' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
+  }, [isTeacher, switchRole, showToast]);
 
   const handleViewModeChange = useCallback((mode: ClassViewMode) => {
     setViewMode(mode);
@@ -286,7 +286,10 @@ export function ClassListPageView({
           {/* Hero Section */}
           <ClassHeroSection
             workspaceMode={workspaceMode}
-            onToggleWorkspaceMode={setWorkspaceMode}
+            onToggleWorkspaceMode={(mode) => {
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
+              setViewMode(mode === 'faculty' ? 'list' : 'grid');
+            }}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
             onExportClick={() => {
@@ -310,7 +313,7 @@ export function ClassListPageView({
           <ClassFilterToolbar
             workspaceMode={workspaceMode}
             onWorkspaceModeChange={(mode) => {
-              setWorkspaceMode(mode);
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
               setViewMode(mode === 'faculty' ? 'list' : 'grid');
             }}
             filters={filters}

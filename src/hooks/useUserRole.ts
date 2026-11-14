@@ -1,11 +1,111 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useCallback, useSyncExternalStore } from 'react';
 import { useCurrentUser } from '@/features/auth';
 import { useClasses } from '@/features/classes/hooks/useClasses';
 import { ActiveRole, ROLES } from '@/constants/roles';
 
 const STORAGE_KEY = 'ilms_active_role_override';
+const ROLE_CHANGE_EVENT = 'ilms_role_changed';
+
+// ============================================================================
+// GLOBAL REACTIVE ROLE STORE
+// Provides synchronous, app-wide reactive state updates across all components
+// without requiring page reload (F5) or polling.
+// ============================================================================
+
+type StoreListener = () => void;
+const listeners = new Set<StoreListener>();
+
+let memoryOverride: ActiveRole | null = null;
+let isStoreInitialized = false;
+
+function initStore() {
+  if (typeof window === 'undefined' || isStoreInitialized) return;
+
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY) as ActiveRole | null;
+    if (stored === 'TEACHER' || stored === 'STUDENT') {
+      memoryOverride = stored;
+    }
+  } catch {
+    // ignore local storage errors
+  }
+
+  // Cross-tab synchronization via storage event
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      const val = e.newValue as ActiveRole | null;
+      memoryOverride = val === 'TEACHER' || val === 'STUDENT' ? val : null;
+      notifyAll();
+    }
+  });
+
+  // In-tab synchronization via CustomEvent
+  window.addEventListener(ROLE_CHANGE_EVENT, (e: Event) => {
+    const custom = e as CustomEvent<ActiveRole | null>;
+    if (memoryOverride !== custom.detail) {
+      memoryOverride = custom.detail;
+      notifyAll();
+    }
+  });
+
+  isStoreInitialized = true;
+}
+
+function notifyAll() {
+  listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      // ignore
+    }
+  });
+}
+
+export const globalRoleStore = {
+  getSnapshot(): ActiveRole | null {
+    if (typeof window === 'undefined') return null;
+    if (!isStoreInitialized) initStore();
+    return memoryOverride;
+  },
+  getServerSnapshot(): ActiveRole | null {
+    return null;
+  },
+  subscribe(listener: StoreListener) {
+    if (typeof window !== 'undefined' && !isStoreInitialized) initStore();
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  },
+  set(role: ActiveRole) {
+    if (typeof window !== 'undefined' && !isStoreInitialized) initStore();
+    memoryOverride = role;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY, role);
+        window.dispatchEvent(new CustomEvent(ROLE_CHANGE_EVENT, { detail: role }));
+      } catch {
+        // ignore
+      }
+    }
+    notifyAll();
+  },
+  reset() {
+    if (typeof window !== 'undefined' && !isStoreInitialized) initStore();
+    memoryOverride = null;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        window.dispatchEvent(new CustomEvent(ROLE_CHANGE_EVENT, { detail: null }));
+      } catch {
+        // ignore
+      }
+    }
+    notifyAll();
+  },
+};
 
 export interface UserRoleResult {
   user: ReturnType<typeof useCurrentUser>['data'];
@@ -62,50 +162,25 @@ export function useUserRole(): UserRoleResult {
     return 'STUDENT';
   }, [user, classesData]);
 
-  // 2. Trạng thái Role hiện tại (hỗ trợ chuyển đổi góc nhìn để test/demo)
-  const [activeRole, setActiveRole] = useState<ActiveRole>(detectedRole);
-  const [isOverridden, setIsOverridden] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as ActiveRole | null;
-      if (stored === 'TEACHER' || stored === 'STUDENT') {
-        setActiveRole(stored);
-        setIsOverridden(stored !== detectedRole);
-      } else {
-        setActiveRole(detectedRole);
-        setIsOverridden(false);
-      }
-    } catch {
-      setActiveRole(detectedRole);
-      setIsOverridden(false);
-    }
-  }, [detectedRole]);
-
-  // 3. Hàm chuyển đổi vai trò thủ công (Dành cho Giảng viên muốn xem giao diện SV hoặc khi test UI)
-  const switchRole = useCallback(
-    (role: ActiveRole) => {
-      setActiveRole(role);
-      setIsOverridden(role !== detectedRole);
-      try {
-        localStorage.setItem(STORAGE_KEY, role);
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [detectedRole]
+  // 2. Trạng thái Role toàn cục: Đồng bộ thời gian thực qua useSyncExternalStore
+  const override = useSyncExternalStore(
+    globalRoleStore.subscribe,
+    globalRoleStore.getSnapshot,
+    globalRoleStore.getServerSnapshot
   );
+
+  const activeRole: ActiveRole = override || detectedRole;
+  const isOverridden = !!override && override !== detectedRole;
+
+  // 3. Hàm chuyển đổi vai trò thủ công (Thay đổi ngay lập tức toàn bộ app không cần F5)
+  const switchRole = useCallback((role: ActiveRole) => {
+    globalRoleStore.set(role);
+  }, []);
 
   // 4. Hàm khôi phục về vai trò gốc tự phát hiện
   const resetRole = useCallback(() => {
-    setActiveRole(detectedRole);
-    setIsOverridden(false);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-  }, [detectedRole]);
+    globalRoleStore.reset();
+  }, []);
 
   const isTeacher = activeRole === 'TEACHER';
   const isStudent = activeRole === 'STUDENT';

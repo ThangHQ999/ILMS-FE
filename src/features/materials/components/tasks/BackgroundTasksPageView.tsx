@@ -141,7 +141,6 @@ export function BackgroundTasksPageView() {
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        workspaceMode="faculty"
       />
 
       {/* Header Navigation */}
@@ -150,7 +149,6 @@ export function BackgroundTasksPageView() {
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleMode={() => setIsFocusMode(!isFocusMode)}
         userFullName="TS. Nguyễn Văn An"
-        workspaceMode="faculty"
       />
 
       {/* Main Content Area */}
