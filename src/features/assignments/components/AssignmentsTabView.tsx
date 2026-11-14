@@ -13,6 +13,7 @@ import { AssignmentUpcomingCluster } from './AssignmentUpcomingCluster';
 import { GradeWeightsPanel } from './GradeWeightsPanel';
 import { SocraticAiMentorPanel } from './SocraticAiMentorPanel';
 import { PersonalPerformancePanel } from './PersonalPerformancePanel';
+import { ClassCourseMatrixView } from './ClassCourseMatrixView';
 import { useAssignments } from '../hooks/useAssignments';
 import { useGradeProgress } from '../hooks/useGradeProgress';
 import { useAiRecommendation } from '../hooks/useAiRecommendation';
@@ -35,6 +36,9 @@ export function AssignmentsTabView({
   // Shell Layout States
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // View Mode: 'matrix' (Ma trận Lớp - Môn N:N) or 'cards' (Dạng thẻ bài tập)
+  const [viewMode, setViewMode] = useState<'cards' | 'matrix'>('matrix');
 
   // Filter States
   const [filters, setFilters] = useState<AssignmentFilters>({
@@ -156,89 +160,137 @@ export function AssignmentsTabView({
 
         {/* 3. Main Workspace Content */}
         <main className="w-full flex-1 pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="flex flex-col w-full">
-            {/* Course Hub Header Banner */}
-            {hubInfo && <ClassHubHeader info={hubInfo} />}
-
-            {/* Search & Filter Toolbar */}
-            <AssignmentFilterToolbar filters={filters} onFilterChange={handleFilterUpdate} />
-
-            {/* Main 2-Column Split */}
-            {isLoading ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
-                  <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
-                </div>
-                <div className="lg:col-span-5 space-y-4">
-                  <div className="h-64 rounded-2xl bg-muted/50 animate-pulse border border-border" />
-                  <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
-                </div>
-              </div>
-            ) : isError ? (
-              <div className="my-8 p-10 rounded-2xl bg-card border border-border text-center space-y-3">
-                <span className="material-symbols-outlined text-[32px] text-destructive">
-                  error_outline
-                </span>
-                <p className="text-sm font-semibold text-foreground">
-                  {t('errors.loadFailed')}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="px-5 py-2 rounded-xl bg-secondary text-secondary-foreground text-xs font-semibold cursor-pointer"
-                >
-                  {t('actions.retry')}
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* LEFT COLUMN: Clusters (7 cols) */}
-                <div className="lg:col-span-7 flex flex-col gap-8">
-                  {/* Cluster 1: Active & Upcoming Due */}
-                  <AssignmentActiveCluster
-                    items={activeItems}
-                    onTakeQuiz={handleTakeQuiz}
-                    onSubmitLab={handleSubmitLab}
-                    onViewClassScores={(id) => alert(`Bảng điểm lớp cho bài ${id}`)}
-                    onGradeSubmissions={(id) => alert(`Chấm bài tập ${id}`)}
-                  />
-
-                  {/* Cluster 2: Completed & Graded */}
-                  <AssignmentCompletedCluster
-                    items={completedItems}
-                    onExportReport={handleExportReport}
-                    onReviewQuiz={(id) => alert(`Xem lại đề và giải thích chi tiết ${id}`)}
-                    onPracticeMistakes={(id) => alert(`Luyện lại các câu làm sai của bài ${id}`)}
-                    onViewSubmission={(id) => alert(`Xem phản hồi bài nộp ${id}`)}
-                  />
-
-                  {/* Cluster 3: Upcoming in Next Sprint */}
-                  <AssignmentUpcomingCluster
-                    items={upcomingItems}
-                    onViewOutline={(id) => alert(`Xem đề cương chi tiết bài ${id}`)}
-                  />
+          {viewMode === 'matrix' ? (
+            <ClassCourseMatrixView
+              activeView="matrix"
+              onSwitchView={setViewMode}
+            />
+          ) : (
+            <div className="flex flex-col w-full">
+              {/* Top View Mode Switcher Bar */}
+              <div className="w-full bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border border-slate-200 dark:border-slate-800 mb-6 rounded-2xl">
+                <div className="flex items-center gap-2 min-w-0 text-xs">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
+                  <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Không gian khảo thí & Đánh giá năng lực
+                  </span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    Học kỳ 2024.2 (Chính quy)
+                  </span>
                 </div>
 
-                {/* RIGHT COLUMN: Grade weights & AI Mentor (5 cols, bao trọn 'Tất cả độ khó') */}
-                <div className="lg:col-span-5 flex flex-col gap-6">
-                  {/* Panel 1: Grade Weights & Progress */}
-                  <GradeWeightsPanel gradeProgress={gradeProgress} />
-
-                  {/* Panel 2: Socratic AI Mentor */}
-                  <SocraticAiMentorPanel
-                    recommendation={aiRecommendation}
-                    onTakeAdaptiveQuiz={() =>
-                      alert('Bắt đầu bài tập luyện tập 5 câu củng cố TCP Tahoe vs Reno')
-                    }
-                  />
-
-                  {/* Panel 3: Personal Performance */}
-                  <PersonalPerformancePanel performance={performance} />
+                <div className="flex items-center bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('cards')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">grid_view</span>
+                    <span>Dạng thẻ bài tập</span>
+                    <span className="px-1.5 py-0.2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] rounded-full font-bold">
+                      ACTIVE
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('matrix')}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <span
+                      className="material-symbols-outlined text-[16px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      table_chart
+                    </span>
+                    <span>Ma trận Lớp - Môn (N : N)</span>
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Course Hub Header Banner */}
+              {hubInfo && <ClassHubHeader info={hubInfo} />}
+
+              {/* Search & Filter Toolbar */}
+              <AssignmentFilterToolbar filters={filters} onFilterChange={handleFilterUpdate} />
+
+              {/* Main 2-Column Split */}
+              {isLoading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
+                    <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
+                  </div>
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="h-64 rounded-2xl bg-muted/50 animate-pulse border border-border" />
+                    <div className="h-44 rounded-2xl bg-muted/50 animate-pulse border border-border" />
+                  </div>
+                </div>
+              ) : isError ? (
+                <div className="my-8 p-10 rounded-2xl bg-card border border-border text-center space-y-3">
+                  <span className="material-symbols-outlined text-[32px] text-destructive">
+                    error_outline
+                  </span>
+                  <p className="text-sm font-semibold text-foreground">
+                    {t('errors.loadFailed')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="px-5 py-2 rounded-xl bg-secondary text-secondary-foreground text-xs font-semibold cursor-pointer"
+                  >
+                    {t('actions.retry')}
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* LEFT COLUMN: Clusters (7 cols) */}
+                  <div className="lg:col-span-7 flex flex-col gap-8">
+                    {/* Cluster 1: Active & Upcoming Due */}
+                    <AssignmentActiveCluster
+                      items={activeItems}
+                      onTakeQuiz={handleTakeQuiz}
+                      onSubmitLab={handleSubmitLab}
+                      onViewClassScores={(id) => alert(`Bảng điểm lớp cho bài ${id}`)}
+                      onGradeSubmissions={(id) => alert(`Chấm bài tập ${id}`)}
+                    />
+
+                    {/* Cluster 2: Completed & Graded */}
+                    <AssignmentCompletedCluster
+                      items={completedItems}
+                      onExportReport={handleExportReport}
+                      onReviewQuiz={(id) => alert(`Xem lại đề và giải thích chi tiết ${id}`)}
+                      onPracticeMistakes={(id) => alert(`Luyện lại các câu làm sai của bài ${id}`)}
+                      onViewSubmission={(id) => alert(`Xem phản hồi bài nộp ${id}`)}
+                    />
+
+                    {/* Cluster 3: Upcoming in Next Sprint */}
+                    <AssignmentUpcomingCluster
+                      items={upcomingItems}
+                      onViewOutline={(id) => alert(`Xem đề cương chi tiết bài ${id}`)}
+                    />
+                  </div>
+
+                  {/* RIGHT COLUMN: Grade weights & AI Mentor */}
+                  <div className="lg:col-span-5 flex flex-col gap-6">
+                    {/* Panel 1: Grade Weights & Progress */}
+                    <GradeWeightsPanel gradeProgress={gradeProgress} />
+
+                    {/* Panel 2: Socratic AI Mentor */}
+                    <SocraticAiMentorPanel
+                      recommendation={aiRecommendation}
+                      onTakeAdaptiveQuiz={() =>
+                        alert('Bắt đầu bài tập luyện tập 5 câu củng cố TCP Tahoe vs Reno')
+                      }
+                    />
+
+                    {/* Panel 3: Personal Performance */}
+                    <PersonalPerformancePanel performance={performance} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </div>
