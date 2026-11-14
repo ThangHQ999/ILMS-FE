@@ -1521,5 +1521,122 @@
       "aiTutorPlaceholder": "Ask a question or request AI explanation of course concepts...",
       "aiSend": "Send Question"
     }
+  },
+  "timetable": {
+    "backToOverview": "Back to Teaching Overview",
+    "termPill": "Semester 1 • 2024-2025",
+    "instructorBadge": "Instructor: {name}",
+    "weeklyTitle": "Weekly Timetable",
+    "weekBadge": "Week {week}",
+    "weeklySubtitle": "Semester 1 (2024-2025) • {range} • {faculty}",
+    "todayBtn": "Today",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "weekRangeDisplay": "Week {week}: {range}",
+    "currentWeekStatusToast": "Viewing Week {week} (Current Week)",
+    "navigatedWeekToast": "Switched to Week {week}",
+    "exportScheduleBtn": "Export Schedule (.ics/PDF)",
+    "swapRoomBtn": "Request Make-up / Swap Room",
+    "filters": {
+      "all": "All Classes ({count})",
+      "theory": "Theory",
+      "lab": "Lab / Practical",
+      "exam": "Exams / Quizzes"
+    },
+    "kpis": {
+      "totalSessionsTitle": "Total Sessions This Week",
+      "totalSessionsValue": "{sessions} Sessions",
+      "totalSessionsSub": "({periods} Periods)",
+      "labRoomsTitle": "Practical Lab Sessions",
+      "labRoomsValue": "{count} Sessions",
+      "labRoomsSub": "• 100% Machines Ready",
+      "peakHourTitle": "Peak Teaching Day",
+      "peakHourValue": "Wednesday",
+      "peakHourSub": "• 3 consecutive sessions",
+      "syncStatusTitle": "Sync Status",
+      "syncStatusValue": "Google Calendar & Academic Portal",
+      "syncStatusSub": "Synced 5 minutes ago"
+    },
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "today": "Today",
+      "sessionCount": "{count} sessions",
+      "dayOff": "Off",
+      "noSessionsTitle": "No Teaching Sessions",
+      "noSessionsDesc": "Rest time, academic research & lesson prep for next week"
+    },
+    "session": {
+      "studentsCount": "{count} Students",
+      "completed": "Completed",
+      "viewDetail": "View details →",
+      "viewMeetingLink": "Join meeting link →",
+      "trackLeaderboard": "Track leaderboard →",
+      "takeAttendanceNow": "Take attendance now",
+      "takeAttendance": "Take attendance"
+    },
+    "legend": {
+      "title": "Legend:",
+      "theory": "Standard Theory Lecture",
+      "lab": "Practical Computer Lab",
+      "exam": "Quiz / Mock Contest",
+      "today": "Current Session / Today",
+      "downloadWeeklyMaterials": "Download Weekly Materials",
+      "scrollToTop": "Back to top",
+      "downloadingToast": "Preparing weekly curriculum & material bundle..."
+    },
+    "modal": {
+      "detailTitle": "Lesson Session Details",
+      "timeLabel": "Session Time",
+      "roomLabel": "Classroom / Lab",
+      "enrolledStudents": "Enrolled Students:",
+      "studentsUnit": "{count} students",
+      "notesTitle": "Lesson Notes & Lecture Agenda:",
+      "closeBtn": "Close",
+      "openQrAttendance": "Open Direct QR Attendance"
+    },
+    "swapModal": {
+      "title": "Request Make-up / Classroom Swap",
+      "sessionLabel": "Select session to adjust",
+      "requestType": "Request Type",
+      "makeup": "Make-up Class",
+      "swap": "Swap Classroom",
+      "proposedDate": "Proposed Date",
+      "proposedTime": "Proposed Time Slot",
+      "proposedRoom": "Preferred Room",
+      "reason": "Adjustment Reason",
+      "reasonPlaceholder": "Enter reason to submit to Academic Office (e.g. Schedule clash, room maintenance...)",
+      "cancel": "Cancel",
+      "submit": "Submit for Approval",
+      "successToast": "Successfully submitted request to Academic Office"
+    },
+    "exportModal": {
+      "title": "Export Teaching Timetable",
+      "description": "Choose a format to sync with personal calendars or print:",
+      "icsOption": "iCalendar Format (.ics)",
+      "icsDesc": "Auto-sync with Google Calendar, Apple Calendar, Outlook",
+      "pdfOption": "Printable PDF (.pdf)",
+      "pdfDesc": "Download high quality horizontal A4 print for current week",
+      "downloadBtn": "Download",
+      "cancel": "Close",
+      "exportingToast": "Downloading timetable file..."
+    },
+    "studentsModal": {
+      "title": "Class Student Roster",
+      "searchPlaceholder": "Search by name or student ID...",
+      "studentCount": "Total: {count} students",
+      "colIndex": "No.",
+      "colCode": "Student ID",
+      "colName": "Full Name",
+      "colEmail": "Student Email",
+      "colClass": "Course Section",
+      "emptySearch": "No students found matching your search",
+      "close": "Close"
+    }
   }
 }
