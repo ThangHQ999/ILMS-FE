@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ClassItem } from '../../schemas/class.schema';
+import { PermanentDeleteClassModal } from './PermanentDeleteClassModal';
 
 interface ClassSettingsTabProps {
   classInfo: ClassItem;
   onSaveClassInfo: (updates: { title: string; description: string }) => void;
   onRegenerateCode: () => void;
   onOpenArchiveModal: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 type SectionId =
@@ -33,7 +36,11 @@ export function ClassSettingsTab({
   onSaveClassInfo,
   onRegenerateCode,
   onOpenArchiveModal,
+  onDeleteSuccess,
 }: ClassSettingsTabProps) {
+  const router = useRouter();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   // Navigation & Scroll-spy State
   const [activeSection, setActiveSection] = useState<SectionId>('section-general');
   const isClickScrollingRef = useRef(false);
@@ -1227,23 +1234,33 @@ export function ClassSettingsTab({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      const confirmation = window.prompt(
-                        `Hành động này không thể đảo ngược! Vui lòng nhập đúng cụm từ: ${systemCode} để xác nhận xóa:`
-                      );
-                      if (confirmation === systemCode) {
-                        showToast('Đã gửi yêu cầu xóa lớp lên Hội đồng Đào tạo.');
-                      } else if (confirmation !== null) {
-                        showToast('Mã xác nhận không khớp.');
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold whitespace-nowrap transition-colors self-start sm:self-auto shrink-0 cursor-pointer shadow-sm"
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold whitespace-nowrap transition-colors self-start sm:self-auto shrink-0 cursor-pointer shadow-sm flex items-center gap-1.5"
                   >
-                    Xóa vĩnh viễn lớp
+                    <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                    <span>Xóa vĩnh viễn lớp</span>
                   </button>
                 </div>
               </div>
             </section>
+
+            {/* Modal xác nhận xóa vĩnh viễn kết nối API DELETE /api/v1/classes/{id} */}
+            <PermanentDeleteClassModal
+              isOpen={isDeleteModalOpen}
+              classId={classInfo.id}
+              classNameTitle={classInfo.title || classInfo.name}
+              systemCode={systemCode}
+              onClose={() => setIsDeleteModalOpen(false)}
+              onSuccess={() => {
+                setIsDeleteModalOpen(false);
+                showToast('Lớp học đã được xóa vĩnh viễn thành công!');
+                if (onDeleteSuccess) {
+                  onDeleteSuccess();
+                } else {
+                  router.push('/classes');
+                }
+              }}
+            />
 
             {/* ---------------------------------------------------- */}
             {/* THANH NÚT LƯU CỐ ĐỊNH (STICKY BOTTOM ACTION BAR)     */}

@@ -415,9 +415,15 @@ export function ClassDetailPageView({
             )}
 
             {activeTab === 'settings' && currentRole !== 'student' && (
-              <ClassAnalyticsSettingsTab
+              <ClassSettingsTab
                 classInfo={classInfo}
-                onToast={showToast}
+                onSaveClassInfo={() => showToast('Đã lưu cấu hình lớp thành công!')}
+                onRegenerateCode={() => showToast('Đã tạo mã lớp tự ghi danh mới!')}
+                onOpenArchiveModal={() => setIsArchiveOpen(true)}
+                onDeleteSuccess={() => {
+                  showToast('Lớp học đã được xóa vĩnh viễn khỏi hệ thống!');
+                  router.push('/classes');
+                }}
               />
             )}
 

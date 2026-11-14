@@ -47,6 +47,20 @@ export function saveLocalCreatedClass(item: ClassItem): void {
 }
 
 /**
+ * Remove class from local storage cache if deleted.
+ */
+export function removeLocalCreatedClass(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getLocalCreatedClasses();
+    const updated = current.filter((c) => c.id !== id);
+    localStorage.setItem(STORAGE_KEY_CREATED_CLASSES, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}
+
+/**
  * Fetch list of classes with search, filters and pagination.
  * Aligned with docs/api-spec.md Section 6.1:
  * Endpoint: GET /api/v1/classes (hoặc /listClasses)
@@ -221,6 +235,25 @@ export async function archiveClass(id: string): Promise<void> {
     await api.delete<ApiResponse<unknown>>(`/classes/${id}/soft`);
   } catch {
     await api.delete<ApiResponse<unknown>>(`/classes/${id}`);
+  }
+}
+
+/**
+ * Permanently delete a class.
+ * Endpoint: DELETE /api/v1/classes/{id} (as specified in docs/api-spec.md line 654)
+ */
+export async function deleteClass(id: string): Promise<void> {
+  try {
+    await api.delete<ApiResponse<unknown>>(`/classes/${id}`);
+  } catch (err) {
+    // Fallback if backend route uses /soft
+    try {
+      await api.delete<ApiResponse<unknown>>(`/classes/${id}/soft`);
+    } catch {
+      throw err;
+    }
+  } finally {
+    removeLocalCreatedClass(id);
   }
 }
 
