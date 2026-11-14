@@ -43,7 +43,7 @@ export function CompetencyAnalyticsView({
   onSwitchToFocus,
 }: CompetencyAnalyticsViewProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<MainTabType>('profile');
+  const [activeTab, setActiveTab] = useState<MainTabType>('tree');
 
   // Benchmark toggle states
   const [showClassAvg, setShowClassAvg] = useState(true);
@@ -86,21 +86,23 @@ export function CompetencyAnalyticsView({
         />
 
         <main className="w-full min-h-screen pt-16">
-          {/* Header & Benchmark Dock */}
-          <CompetencyHeaderDock
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onSwitchToFocus={onSwitchToFocus}
-            showClassAvg={showClassAvg}
-            onToggleClassAvg={setShowClassAvg}
-            showPloTarget={showPloTarget}
-            onTogglePloTarget={setShowPloTarget}
-            showPersonalTarget={showPersonalTarget}
-            onTogglePersonalTarget={setShowPersonalTarget}
-          />
+          {/* Header & Benchmark Dock - Only rendered for Profile and Heatmap views to keep Tree Map clean */}
+          {activeTab !== 'tree' && (
+            <CompetencyHeaderDock
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onSwitchToFocus={onSwitchToFocus}
+              showClassAvg={showClassAvg}
+              onToggleClassAvg={setShowClassAvg}
+              showPloTarget={showPloTarget}
+              onTogglePloTarget={setShowPloTarget}
+              showPersonalTarget={showPersonalTarget}
+              onTogglePersonalTarget={setShowPersonalTarget}
+            />
+          )}
 
           {/* Dynamic Content Body based on tab */}
-          <div className="p-6 lg:p-10">
+          <div className={activeTab === 'tree' ? 'p-4 sm:p-6 lg:p-8' : 'p-6 lg:p-10'}>
             {activeTab === 'profile' && (
               <StudentProfileTab
                 radarData={radarData}
@@ -123,6 +125,8 @@ export function CompetencyAnalyticsView({
                 onSwitchToFocus={onSwitchToFocus}
                 onOpenRadarView={() => setActiveTab('profile')}
                 onOpenHeatmap={() => setActiveTab('heatmap')}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
               />
             )}
 

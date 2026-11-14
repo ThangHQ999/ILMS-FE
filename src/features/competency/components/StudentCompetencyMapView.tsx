@@ -9,6 +9,8 @@ export interface StudentCompetencyMapViewProps {
   onSwitchToFocus?: () => void;
   onOpenRadarView?: () => void;
   onOpenHeatmap?: () => void;
+  activeTab?: 'profile' | 'tree' | 'heatmap';
+  onTabChange?: (tab: 'profile' | 'tree' | 'heatmap') => void;
 }
 
 export interface MapSkillNode {
@@ -35,6 +37,8 @@ export function StudentCompetencyMapView({
   onSwitchToFocus,
   onOpenRadarView,
   onOpenHeatmap,
+  activeTab = 'tree',
+  onTabChange,
 }: StudentCompetencyMapViewProps) {
   const router = useRouter();
 
@@ -641,16 +645,57 @@ export function StudentCompetencyMapView({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 ml-auto text-xs font-mono text-slate-500">
-              <span>Tỷ lệ xem: {zoomLevel}%</span>
-              <button
-                type="button"
-                onClick={() => setZoomLevel((prev) => (prev === 100 ? 120 : prev === 120 ? 80 : 100))}
-                className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer"
-                title="Thay đổi tỷ lệ thu phóng cây kỹ năng"
-              >
-                <span className="material-symbols-outlined text-[18px]">fit_screen</span>
-              </button>
+            <div className="flex items-center gap-3 ml-auto">
+              {/* Optional View Mode Switcher */}
+              {onTabChange && (
+                <div className="hidden sm:flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => onTabChange('tree')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTab === 'tree'
+                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Bản đồ v2.5
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onTabChange('profile')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTab === 'profile'
+                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Radar PLO
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onTabChange('heatmap')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      activeTab === 'heatmap'
+                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Nhiệt toàn lớp
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+                <span>Tỷ lệ: {zoomLevel}%</span>
+                <button
+                  type="button"
+                  onClick={() => setZoomLevel((prev) => (prev === 100 ? 120 : prev === 120 ? 80 : 100))}
+                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer"
+                  title="Thay đổi tỷ lệ thu phóng cây kỹ năng"
+                >
+                  <span className="material-symbols-outlined text-[18px]">fit_screen</span>
+                </button>
+              </div>
             </div>
           </div>
 
