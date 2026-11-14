@@ -15,6 +15,7 @@ import {
 import { CompetencyHeaderDock, MainTabType } from './CompetencyHeaderDock';
 import { StudentProfileTab } from './StudentProfileTab';
 import { SkillTreeTab } from './SkillTreeTab';
+import { StudentCompetencyMapView } from '../StudentCompetencyMapView';
 import { ClassHeatmapTab } from './ClassHeatmapTab';
 import { SocraticAICoach } from '@/features/dashboard';
 
@@ -116,10 +117,12 @@ export function CompetencyAnalyticsView({
             )}
 
             {activeTab === 'tree' && (
-              <SkillTreeTab
-                stages={skillTreeStages}
-                onOpenAICoach={handleOpenAICoachWithTopic}
+              <StudentCompetencyMapView
+                userFullName={userFullName}
+                onToast={() => {}}
                 onSwitchToFocus={onSwitchToFocus}
+                onOpenRadarView={() => setActiveTab('profile')}
+                onOpenHeatmap={() => setActiveTab('heatmap')}
               />
             )}
 

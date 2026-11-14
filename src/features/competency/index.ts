@@ -6,3 +6,4 @@ export * from './hooks/useCompetencyMode';
 export { CompetencyPageView } from './components/CompetencyPageView';
 export { CompetencyAnalyticsView } from './components/analytics/CompetencyAnalyticsView';
 export { CompetencyFocusView } from './components/focus/CompetencyFocusView';
+export { StudentCompetencyMapView } from './components/StudentCompetencyMapView';

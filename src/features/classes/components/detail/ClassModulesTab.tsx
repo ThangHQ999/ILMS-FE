@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useUserRole } from '@/hooks/useUserRole';
 import { StudioCommandBar } from './modules/StudioCommandBar';
 import { ActiveWeekBanner } from './modules/ActiveWeekBanner';
 import { ModuleAccordionItem, type ModuleData } from './modules/ModuleAccordionItem';
@@ -195,6 +196,8 @@ export function ClassModulesTab({
   onViewSubjects,
   subjectsCount,
 }: ClassModulesTabProps) {
+  const { activeRole } = useUserRole();
+  const isStudent = currentRole === 'student' || activeRole === 'STUDENT';
   const [isTeacherPreview, setIsTeacherPreview] = useState(false);
   const [isEditMode, setIsEditMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,12 +276,12 @@ export function ClassModulesTab({
   }, [modules, searchQuery, statusFilter]);
 
   // If role is student or teacher activated student preview, render StudentModulesView
-  if (currentRole === 'student' || isTeacherPreview) {
+  if (isStudent || isTeacherPreview) {
     return (
       <StudentModulesView
         onToast={onToast}
         onNavigateTab={onViewSubjects}
-        isPreview={currentRole !== 'student' && isTeacherPreview}
+        isPreview={!isStudent && isTeacherPreview}
         onExitPreview={() => setIsTeacherPreview(false)}
       />
     );
