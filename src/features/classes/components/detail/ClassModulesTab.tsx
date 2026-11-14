@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { StudioCommandBar } from './modules/StudioCommandBar';
 import { ActiveWeekBanner } from './modules/ActiveWeekBanner';
 import { ModuleAccordionItem, type ModuleData } from './modules/ModuleAccordionItem';
 import { AdaptiveLearningFlowCard } from './modules/AdaptiveLearningFlowCard';
 import { AiSyllabusCopilotCard } from './modules/AiSyllabusCopilotCard';
 import { SyllabusAuditChecklistCard } from './modules/SyllabusAuditChecklistCard';
+import { StudentModulesView } from './modules/StudentModulesView';
 import {
   AddChapterModal,
   AddLessonModal,
@@ -194,10 +195,28 @@ export function ClassModulesTab({
   onViewSubjects,
   subjectsCount,
 }: ClassModulesTabProps) {
-  const [isEditMode, setIsEditMode] = useState(currentRole !== 'student');
+  const [isTeacherPreview, setIsTeacherPreview] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [modules, setModules] = useState<ModuleData[]>(INITIAL_MODULES);
+
+  // Reset teacher preview when parent role changes
+  useEffect(() => {
+    setIsTeacherPreview(false);
+  }, [currentRole]);
+
+  // If role is student or teacher activated student preview, render StudentModulesView
+  if (currentRole === 'student' || isTeacherPreview) {
+    return (
+      <StudentModulesView
+        onToast={onToast}
+        onNavigateTab={onViewSubjects}
+        isPreview={currentRole !== 'student' && isTeacherPreview}
+        onExitPreview={() => setIsTeacherPreview(false)}
+      />
+    );
+  }
 
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({
     'mod-1': true,
@@ -347,8 +366,8 @@ export function ClassModulesTab({
         onStatusFilterChange={setStatusFilter}
         counts={counts}
         onStudentViewClick={() => {
-          setIsEditMode(false);
-          onToast('Chuyển sang góc nhìn học viên xem trước.');
+          setIsTeacherPreview(true);
+          onToast('Đang chuyển sang Góc nhìn Học viên xem trước...');
         }}
         onBatchUploadClick={() => setIsBatchUploadOpen(true)}
         onAddLessonClick={() => {

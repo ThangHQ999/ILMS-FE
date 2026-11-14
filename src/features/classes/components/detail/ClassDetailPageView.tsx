@@ -244,14 +244,14 @@ export function ClassDetailPageView({
             </span>
             <button
               type="button"
-              onClick={() => handleRoleChange('owner')}
+              onClick={() => handleRoleChange('student')}
               className={`px-2.5 py-0.5 rounded-full transition-all ${
-                currentRole === 'owner'
-                  ? 'font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                currentRole === 'student'
+                  ? 'font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
                   : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {t('roleOwner')}
+              Học viên
             </button>
             <button
               type="button"
@@ -262,7 +262,18 @@ export function ClassDetailPageView({
                   : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {t('roleTeacher')}
+              Giảng viên
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleChange('owner')}
+              className={`px-2.5 py-0.5 rounded-full transition-all ${
+                currentRole === 'owner'
+                  ? 'font-bold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              Chủ lớp
             </button>
           </div>
         </div>

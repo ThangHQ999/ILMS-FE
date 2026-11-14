@@ -68,3 +68,4 @@ export function SyllabusAuditChecklistCard({
     </div>
   );
 }
+
