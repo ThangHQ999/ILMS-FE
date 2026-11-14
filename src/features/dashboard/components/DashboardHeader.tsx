@@ -126,7 +126,7 @@ export function DashboardHeader({
       } right-0 h-16 bg-white/85 dark:bg-[#131314] backdrop-blur-xl px-8 flex items-center justify-between border-none shadow-none z-40 transition-all duration-300`}
     >
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+      <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
         <Link
           href="/dashboard"
           prefetch={true}
@@ -135,7 +135,7 @@ export function DashboardHeader({
           <span className="material-symbols-outlined text-[20px]">home</span>
         </Link>
         <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0">/</span>
-        <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap truncate max-w-[150px] sm:max-w-xs md:max-w-sm">
+        <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0">
           {currentPageName}
         </span>
       </div>

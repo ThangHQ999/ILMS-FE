@@ -5,7 +5,7 @@ import type { ClassMember } from '../../schemas/class-detail.schema';
 
 interface ClassMembersTabProps {
   members?: ClassMember[];
-  currentRole?: 'owner' | 'teacher';
+  currentRole?: 'owner' | 'teacher' | 'student';
   onApproveMember?: (member: ClassMember) => void;
   onRejectMember?: (member: ClassMember) => void;
   onInviteClick?: () => void;
@@ -119,7 +119,7 @@ export function ClassMembersTab({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* 1. CLASS CAPACITY & ENROLLMENT HERO STATS */}
-      <div className="relative w-full rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+      <div className="relative w-full rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         {/* Architectural subtle trace */}
         <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-blue-100/40 dark:bg-blue-950/20 blur-3xl pointer-events-none" />
         <div className="absolute right-40 bottom-0 w-48 h-48 rounded-full bg-slate-100/60 dark:bg-slate-800/20 blur-2xl pointer-events-none" />
@@ -207,7 +207,7 @@ export function ClassMembersTab({
       </div>
 
       {/* 2. FILTER & BATCH ACTION TOOLBAR */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
         {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-2.5 flex-1">
           {/* Search bar */}
@@ -303,7 +303,7 @@ export function ClassMembersTab({
       </div>
 
       {/* 3. ENTERPRISE DATA TABLE */}
-      <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col">
+      <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -708,7 +708,7 @@ export function ClassMembersTab({
       {/* 4. CLASS ANALYTICS SUMMARY CARDS (Bento style bottom section) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Chuẩn đầu ra PLO */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex items-center gap-4">
           <div className="w-13 h-13 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200/60 dark:border-blue-900/60 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
             <span className="material-symbols-outlined text-[28px]">verified_user</span>
           </div>
@@ -731,7 +731,7 @@ export function ClassMembersTab({
         </div>
 
         {/* Card 2: Chuyên cần trung bình */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex items-center gap-4">
           <div className="w-13 h-13 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
             <span className="material-symbols-outlined text-[28px]">co_present</span>
           </div>
@@ -754,7 +754,7 @@ export function ClassMembersTab({
         </div>
 
         {/* Card 3: Khuyến nghị AI giảng dạy */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-white dark:from-slate-900 to-indigo-50/50 dark:to-indigo-950/20 border border-indigo-100/80 dark:border-indigo-900/60 shadow-xs flex items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-white dark:from-slate-900 to-indigo-50/50 dark:to-indigo-950/20 border-[3px] border-indigo-200 dark:border-indigo-800 shadow-xs flex items-center justify-between gap-4">
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
               <span className="material-symbols-outlined text-[19px]">smart_toy</span>
@@ -784,7 +784,7 @@ export function ClassMembersTab({
       {/* 5. MODAL HỒ SƠ HỌC VIÊN CHI TIẾT */}
       {selectedStudentForProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 space-y-5 shadow-2xl animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 max-w-lg w-full p-6 space-y-5 shadow-2xl animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 {selectedStudentForProfile.avatarUrl ? (

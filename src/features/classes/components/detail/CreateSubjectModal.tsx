@@ -127,7 +127,7 @@ export function CreateSubjectModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div
-        className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-[#1E1F20] rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-subject-title"

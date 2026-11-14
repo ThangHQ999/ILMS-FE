@@ -83,7 +83,7 @@ export function CourseKnowledgeGraphTab({ courseName }: CourseKnowledgeGraphTabP
   return (
     <div className="flex flex-col gap-6">
       {/* Top Banner */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -111,7 +111,7 @@ export function CourseKnowledgeGraphTab({ courseName }: CourseKnowledgeGraphTabP
       {/* Graph Visual Explorer Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Interactive Concept Map Visual */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col">
+        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-blue-600">bubble_chart</span>
@@ -156,7 +156,7 @@ export function CourseKnowledgeGraphTab({ courseName }: CourseKnowledgeGraphTabP
         </div>
 
         {/* Right Inspector Card */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between gap-6">
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col justify-between gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">

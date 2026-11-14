@@ -215,7 +215,7 @@ export function CourseSyllabusTab({
 
       {/* KHUNG NỘI DUNG CÁC CHƯƠNG */}
       {filteredChapters.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-12 text-center shadow-sm">
+        <div className="bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 rounded-2xl p-12 text-center shadow-sm">
           <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#0059bb] dark:text-blue-400 flex items-center justify-center mx-auto mb-4">
             <span className="material-symbols-outlined text-[32px]">menu_book</span>
           </div>
@@ -247,13 +247,13 @@ export function CourseSyllabusTab({
             return (
               <div
                 key={ch.id}
-                className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col gap-6"
+                className="bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col gap-6"
               >
                 {/* Header Chương */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     {/* Circle Chapter Index */}
-                    <div className="w-12 h-12 rounded-full bg-[#d6e3ff] text-[#0d1c32] dark:bg-blue-950 dark:text-blue-200 flex items-center justify-center text-lg shrink-0 font-bold border-2 border-[#b9c7e4] dark:border-blue-800">
+                    <div className="w-12 h-12 rounded-full bg-[#d6e3ff] text-[#0d1c32] dark:bg-blue-950 dark:text-blue-200 flex items-center justify-center text-lg shrink-0 font-bold border-[3px] border-[#b9c7e4] dark:border-blue-800">
                       {ch.orderIndex || chIdx + 1}
                     </div>
 
@@ -312,7 +312,7 @@ export function CourseSyllabusTab({
                         return (
                           <div
                             key={les.id}
-                            className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-[#0059bb] dark:hover:border-blue-500 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all group shadow-sm"
+                            className="bg-white dark:bg-slate-900 border-[3px] border-slate-200 dark:border-slate-800 hover:border-[#0059bb] dark:hover:border-blue-500 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all group shadow-sm"
                           >
                             <div className="flex items-start md:items-center gap-4 min-w-0 flex-1">
                               {/* Type Icon Box */}
@@ -359,7 +359,7 @@ export function CourseSyllabusTab({
                               <button
                                 type="button"
                                 onClick={() => onSelectLesson(les, ch)}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-700 hover:border-[#0059bb] dark:hover:border-blue-500 transition-colors text-xs font-semibold cursor-pointer active:scale-95"
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-[3px] border-slate-300 dark:border-slate-700 hover:border-[#0059bb] dark:hover:border-blue-500 transition-colors text-xs font-semibold cursor-pointer active:scale-95"
                               >
                                 <span>
                                   {les.status === 'COMPLETED' ? t('actionPreview') : t('actionLearn')}

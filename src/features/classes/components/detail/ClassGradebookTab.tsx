@@ -115,11 +115,11 @@ export function ClassGradebookTab({
     <div className="space-y-6">
       {/* =========================================================================
           1. BENTO GRID: TOP ANALYTICS & AI EXAM ASSISTANT
-          All cards styled with thick borders: border-2 border-slate-300 dark:border-slate-700
+          All cards styled with thick borders: border-[3px] border-slate-300 dark:border-slate-700
           ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         {/* Card 1: Điểm trung bình lớp CS-202 */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Điểm trung bình (CS-202)
@@ -154,7 +154,7 @@ export function ClassGradebookTab({
         </div>
 
         {/* Card 2: Tỷ lệ đạt chuẩn đầu ra PLO */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Tỷ lệ đạt chuẩn PLO
@@ -192,7 +192,7 @@ export function ClassGradebookTab({
         </div>
 
         {/* Card 3: Phân loại học lực */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Phân loại học lực
@@ -249,7 +249,7 @@ export function ClassGradebookTab({
         </div>
 
         {/* Card 4: Trợ lý AI Khảo thí & Cảnh báo Sớm (High-Tech Alert Card) */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-sm border-2 border-blue-500/80 dark:border-blue-500 flex flex-col justify-between gap-3 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-sm border-[3px] border-blue-500/80 dark:border-blue-500 flex flex-col justify-between gap-3 relative overflow-hidden">
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="flex items-center justify-between">
@@ -283,9 +283,9 @@ export function ClassGradebookTab({
 
       {/* =========================================================================
           2. CONTROL & FILTER BAR (GRADEBOOK CONTROL BAR)
-          With thick border: border-2 border-slate-300 dark:border-slate-700
+          With thick border: border-[3px] border-slate-300 dark:border-slate-700
           ========================================================================= */}
-      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm flex flex-col gap-4">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col gap-4">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
           {/* Search & Course Selector */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
@@ -463,9 +463,9 @@ export function ClassGradebookTab({
 
       {/* =========================================================================
           3. COMPREHENSIVE GRADEBOOK TABLE & PLO COMPETENCY MATRIX
-          With thick border: border-2 border-slate-300 dark:border-slate-700
+          With thick border: border-[3px] border-slate-300 dark:border-slate-700
           ========================================================================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
         {/* Table Header Toolbar */}
         <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between gap-4 flex-wrap border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -1020,11 +1020,11 @@ export function ClassGradebookTab({
 
       {/* =========================================================================
           4. BOTTOM SECTION: PLO COMPETENCY DEEP-DIVE & AI PEDAGOGICAL RECOMMENDATIONS
-          Both cards have thick borders: border-2 border-slate-300 dark:border-slate-700 / border-2 border-blue-400
+          Both cards have thick borders: border-[3px] border-slate-300 dark:border-slate-700 / border-[3px] border-blue-400
           ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: 5 PLOs Radar/Bar Distribution Analytics (7 Cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-5">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col justify-between gap-5">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -1072,7 +1072,7 @@ export function ClassGradebookTab({
             </div>
 
             {/* PLO-03 (Chỉ tiêu thấp nhất cần can thiệp) - Highlighted in red alert box */}
-            <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border-2 border-rose-300 dark:border-rose-900">
+            <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border-[3px] border-rose-300 dark:border-rose-900">
               <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[17px]">error</span>
@@ -1134,7 +1134,7 @@ export function ClassGradebookTab({
         </div>
 
         {/* Right: AI Pedagogical Intervention & Remedial Quiz Generator (5 Cols) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-2xl border-2 border-blue-400 dark:border-blue-600/70 shadow-sm flex flex-col justify-between gap-5">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-2xl border-[3px] border-blue-400 dark:border-blue-600/70 shadow-sm flex flex-col justify-between gap-5">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
@@ -1223,7 +1223,7 @@ export function ClassGradebookTab({
       {/* Weight Configuration Modal */}
       {isWeightModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-5">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600 text-xl">
@@ -1368,7 +1368,7 @@ export function ClassGradebookTab({
       {/* Custom Quiz Modal */}
       {isCustomQuizModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-4">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600 text-xl">
@@ -1464,7 +1464,7 @@ export function ClassGradebookTab({
       {/* Student Profile Quick View Modal */}
       {selectedStudentForProfile && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-2 border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-4">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xl p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div

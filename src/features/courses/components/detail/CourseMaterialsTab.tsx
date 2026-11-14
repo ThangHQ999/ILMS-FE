@@ -90,7 +90,7 @@ export function CourseMaterialsTab({ courseName, onShowToast }: CourseMaterialsT
   return (
     <div className="flex flex-col gap-6">
       {/* Top Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
         <div>
           <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
             {t('materialsTitle')}
@@ -132,7 +132,7 @@ export function CourseMaterialsTab({ courseName, onShowToast }: CourseMaterialsT
           return (
             <div
               key={mat.id}
-              className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
+              className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
             >
               <div className="flex items-start gap-3.5">
                 <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${icon.color} group-hover:scale-105 transition-transform`}>

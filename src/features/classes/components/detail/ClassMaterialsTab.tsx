@@ -8,7 +8,7 @@ import { UploadMaterialModal } from './UploadMaterialModal';
 
 interface ClassMaterialsTabProps {
   materials?: ClassMaterial[];
-  currentRole?: 'owner' | 'teacher';
+  currentRole?: 'owner' | 'teacher' | 'student';
   onToast?: (message: string) => void;
 }
 
@@ -392,7 +392,7 @@ export function ClassMaterialsTab({
       </div>
 
       {/* 4. AI ASSISTANT & KNOWLEDGE GRAPH BANNER */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
@@ -485,7 +485,7 @@ export function ClassMaterialsTab({
       {/* 5. DATA VIEW: TABLE OR GRID */}
       {viewMode === 'list' ? (
         /* TABLE VIEW */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse min-w-[900px]">
               <thead className="bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/70 dark:border-slate-800 select-none">
@@ -828,7 +828,7 @@ export function ClassMaterialsTab({
             return (
               <div
                 key={mat.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
@@ -914,7 +914,7 @@ export function ClassMaterialsTab({
       {/* MODAL 1: UPLOAD MATERIAL */}
       {isUploadOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -939,7 +939,7 @@ export function ClassMaterialsTab({
             </div>
 
             {/* Dropzone */}
-            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-blue-500 hover:bg-blue-50/20 dark:hover:bg-blue-950/20 transition-all cursor-pointer">
+            <div className="border-[3px] border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-blue-500 hover:bg-blue-50/20 dark:hover:bg-blue-950/20 transition-all cursor-pointer">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-2xl">cloud_upload</span>
               </div>
@@ -1025,7 +1025,7 @@ export function ClassMaterialsTab({
       {/* MODAL 2: AI SCAN MODAL */}
       {isAiScanOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -1109,7 +1109,7 @@ export function ClassMaterialsTab({
       {/* MODAL 3: AUTO-QUIZ GENERATOR */}
       {isAutoQuizOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -1214,7 +1214,7 @@ export function ClassMaterialsTab({
       {/* MODAL 4: KNOWLEDGE GRAPH PREVIEW */}
       {isGraphOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -1267,7 +1267,7 @@ export function ClassMaterialsTab({
                   <span className="text-[10px] text-blue-300 font-normal">Tiên quyết</span>
                 </div>
 
-                <div className="px-4 py-2.5 rounded-2xl bg-purple-900/90 border-2 border-purple-400 text-purple-100 text-xs font-extrabold text-center shadow-xl animate-pulse">
+                <div className="px-4 py-2.5 rounded-2xl bg-purple-900/90 border-[3px] border-purple-400 text-purple-100 text-xs font-extrabold text-center shadow-xl animate-pulse">
                   <div>Segment Tree</div>
                   <span className="text-[10px] text-purple-300 font-normal">Đang học • 18 nodes</span>
                 </div>

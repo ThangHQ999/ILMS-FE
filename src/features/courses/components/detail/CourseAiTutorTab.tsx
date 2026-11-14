@@ -70,7 +70,7 @@ export function CourseAiTutorTab({ courseName }: CourseAiTutorTabProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col h-[650px] overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col h-[650px] overflow-hidden">
       {/* Header */}
       <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">

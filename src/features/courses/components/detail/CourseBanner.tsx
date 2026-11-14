@@ -35,7 +35,7 @@ export function CourseBanner({
   const hoursCountDisplay = totalHours || 36;
 
   return (
-    <div className="bg-[#39359e] rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between gap-6">
+    <div className="bg-[#39359e] rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between gap-6 border-[3px] border-[#4f4ca8]">
       {/* Background Decoration */}
       <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
 
@@ -107,19 +107,19 @@ export function CourseBanner({
 
           {/* New row: Tổng số chương, Tổng số bài học, Thời lượng */}
           <div className="flex flex-wrap items-center gap-3 w-full pt-3 border-t border-white/20">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-[3px] border-white/20 text-white text-xs shadow-sm">
               <span className="material-symbols-outlined text-[18px] text-emerald-300">folder</span>
               <span>
                 Tổng số: <strong className="text-white font-bold ml-0.5">{chaptersCountDisplay} Chương</strong>
               </span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-[3px] border-white/20 text-white text-xs shadow-sm">
               <span className="material-symbols-outlined text-[18px] text-emerald-300">list_alt</span>
               <span>
                 Tổng số: <strong className="text-white font-bold ml-0.5">{lessonsCountDisplay} Bài học</strong>
               </span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-2 border-white/20 text-white text-xs shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 border-[3px] border-white/20 text-white text-xs shadow-sm">
               <span className="material-symbols-outlined text-[18px] text-emerald-300">schedule</span>
               <span>
                 Thời lượng: <strong className="text-white font-bold ml-0.5">{hoursCountDisplay} Giờ học</strong>
@@ -134,7 +134,7 @@ export function CourseBanner({
         <button
           type="button"
           onClick={onOpenAddLesson}
-          className="flex items-center justify-center gap-2 bg-white text-[#39359e] font-bold px-4 py-2.5 rounded-xl border-2 border-white/40 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
+          className="flex items-center justify-center gap-2 bg-white text-[#39359e] font-bold px-4 py-2.5 rounded-xl border-[3px] border-white/40 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
           <span>{t('btnAddLesson')}</span>
@@ -143,7 +143,7 @@ export function CourseBanner({
         <button
           type="button"
           onClick={onOpenAddChapter}
-          className="flex items-center justify-center gap-2 bg-white/10 border-2 border-white/40 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer text-xs sm:text-sm active:scale-95"
+          className="flex items-center justify-center gap-2 bg-white/10 border-[3px] border-white/40 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer text-xs sm:text-sm active:scale-95"
         >
           <span className="material-symbols-outlined text-[20px]">playlist_add</span>
           <span>{t('btnAddChapter')}</span>
@@ -152,7 +152,7 @@ export function CourseBanner({
         <button
           type="button"
           onClick={() => onSelectTab('aiTutor')}
-          className="flex items-center justify-center gap-2 bg-amber-400 text-amber-950 font-bold px-4 py-2.5 rounded-xl border-2 border-amber-300 hover:bg-amber-300 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
+          className="flex items-center justify-center gap-2 bg-amber-400 text-amber-950 font-bold px-4 py-2.5 rounded-xl border-[3px] border-amber-300 hover:bg-amber-300 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
         >
           <span className="material-symbols-outlined text-[20px]">smart_toy</span>
           <span>{t('btnOpenAiTutor')}</span>

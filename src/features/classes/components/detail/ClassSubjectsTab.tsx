@@ -9,7 +9,7 @@ import { MOCK_TEMPLATES } from '../../services/class-detail.service';
 interface ClassSubjectsTabProps {
   courses: ClassCourse[];
   templates?: CourseTemplate[];
-  currentRole: 'owner' | 'teacher';
+  currentRole: 'owner' | 'teacher' | 'student';
   onAddExistingClick: () => void;
   onCreateNewClick: () => void;
   onRemoveClick: (course: ClassCourse) => void;
@@ -144,7 +144,7 @@ export function ClassSubjectsTab({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* 1. TOOLBAR: Filters, Search, Views & Primary Action */}
-      <section className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <section className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5 flex-1">
           {/* Search Input */}
           <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 px-3.5 py-2 rounded-xl w-full sm:w-72 border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-blue-600/25 focus-within:border-blue-600 transition-all">
@@ -269,7 +269,7 @@ export function ClassSubjectsTab({
 
       {/* 2. COURSES CONTAINER (Bento Grid or List Display) */}
       {filteredCourses.length === 0 ? (
-        <div className="py-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-3">
+        <div className="py-12 text-center bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-6 space-y-3">
           <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
             <span className="material-symbols-outlined text-2xl">search_off</span>
           </div>
@@ -301,7 +301,7 @@ export function ClassSubjectsTab({
             return (
               <article
                 key={c.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between overflow-hidden group"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 border-[3px] border-slate-300 dark:border-slate-700 flex flex-col justify-between overflow-hidden group"
               >
                 <div>
                   {/* Top Gradient Banner */}
@@ -561,7 +561,7 @@ export function ClassSubjectsTab({
             return (
               <div
                 key={c.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all border-[3px] border-slate-300 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
@@ -659,7 +659,7 @@ export function ClassSubjectsTab({
       )}
 
       {/* 3. SECTION: SHARED COURSE TEMPLATES (Kho Mẫu Học Liệu Dùng Chung) */}
-      <section className="mt-8 flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <section className="mt-8 flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
@@ -690,7 +690,7 @@ export function ClassSubjectsTab({
           {templates.map((tpl) => (
             <div
               key={tpl.id}
-              className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100/70 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 transition-all flex flex-col justify-between gap-4 group"
+              className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100/70 dark:hover:bg-slate-800 border-[3px] border-slate-300 dark:border-slate-700 transition-all flex flex-col justify-between gap-4 group"
             >
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-2">
@@ -736,7 +736,7 @@ export function ClassSubjectsTab({
       {/* MODAL 1: VIEW ALL 28 TEMPLATES */}
       {isAllTemplatesOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-3xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-3xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -841,7 +841,7 @@ export function ClassSubjectsTab({
       {/* MODAL 2: AI ENTITY EXTRACTION SIMULATION */}
       {extractingCourse && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp text-center">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp text-center">
             <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto shadow-md">
               <span className="material-symbols-outlined text-3xl animate-spin">
                 sync

@@ -6,7 +6,7 @@ import type { ClassItem } from '../../schemas/class.schema';
 
 interface ClassDetailBannerProps {
   classInfo: ClassItem;
-  currentRole: 'owner' | 'teacher';
+  currentRole: 'student' | 'teacher' | 'owner';
   activeTab: string;
   onTabChange: (tab: string) => void;
   subjectsCount: number;
@@ -35,19 +35,19 @@ export function ClassDetailBanner({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const tabs = [
-    { id: 'overview', label: t('tabOverview'), icon: 'grid_view' },
-    { id: 'subjects', label: t('tabSubjects'), icon: 'library_books', badge: subjectsCount },
-    { id: 'announcements', label: t('tabAnnouncements'), icon: 'campaign' },
-    { id: 'members', label: t('tabMembers'), icon: 'school', badge: classInfo.enrolledCount || 42 },
-    { id: 'gradebook', label: t('tabGradebook'), icon: 'fact_check', badge: 'Kỳ 1' },
-    { id: 'materials', label: t('tabMaterials'), icon: 'folder', badge: 38 },
-    ...(currentRole === 'owner'
-      ? [{ id: 'settings', label: t('tabSettings'), icon: 'tune' }]
+    { id: 'stream', label: 'Tổng quan & Bảng tin', icon: 'forum' },
+    { id: 'modules', label: 'Chương trình học', icon: 'account_tree' },
+    { id: 'assignments', label: 'Bài tập & Đánh giá', icon: 'assignment', badge: '2' },
+    { id: 'people', label: 'Thành viên', icon: 'groups', badge: classInfo.enrolledCount || 48 },
+    { id: 'gradebook', label: 'Bảng điểm & PLO', icon: 'fact_check', badge: 'Kỳ 1' },
+    { id: 'subjects', label: 'Môn học khác', icon: 'library_books', badge: subjectsCount },
+    ...(currentRole !== 'student'
+      ? [{ id: 'settings', label: 'Cài đặt & Thống kê', icon: 'analytics', badge: 'GV' }]
       : []),
   ];
 
   return (
-    <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
+    <section className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm overflow-hidden transition-all">
       {/* Decorative Top Pattern Banner */}
       <div className="h-32 sm:h-36 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 relative overflow-hidden p-6 flex flex-col justify-end">
         {/* Geometric Ambient Graphics */}
@@ -71,11 +71,28 @@ export function ClassDetailBanner({
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {t('statusActive')}
             </span>
-            <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase bg-blue-500/20 text-sky-200 border border-sky-400/30 backdrop-blur-md flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">shield_person</span>
-              {t('myRole')}{' '}
-              <span className="font-bold">
-                {currentRole === 'owner' ? t('roleOwner') : t('roleTeacher')}
+            <span
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase backdrop-blur-md flex items-center gap-1.5 border ${
+                currentRole === 'owner'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+                  : currentRole === 'teacher'
+                  ? 'bg-blue-500/20 text-sky-200 border-sky-400/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">
+                {currentRole === 'owner'
+                  ? 'verified'
+                  : currentRole === 'teacher'
+                  ? 'co_present'
+                  : 'school'}
+              </span>
+              <span>
+                {currentRole === 'owner'
+                  ? 'Chủ sở hữu'
+                  : currentRole === 'teacher'
+                  ? 'Giảng viên phụ trách'
+                  : 'Học viên chính thức'}
               </span>
             </span>
           </div>

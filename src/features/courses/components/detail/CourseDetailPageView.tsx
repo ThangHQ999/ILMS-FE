@@ -124,11 +124,12 @@ export function CourseDetailPageView({
             ? 'pl-20'
             : isSidebarCollapsed
             ? 'md:pl-20'
-            : 'md:pl-64'
+            : 'md:pl-72'
         }`}
       >
         <DashboardHeader
           isFocus={isFocusMode}
+          isSidebarCollapsed={isSidebarCollapsed}
           onToggleMode={() => setIsFocusMode((prev) => !prev)}
           userFullName={userFullName}
           title="Không gian môn học"
@@ -143,7 +144,7 @@ export function CourseDetailPageView({
               <div className="h-48 rounded-3xl bg-slate-200 dark:bg-slate-800" />
             </div>
           ) : isError || !course ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200/80 dark:border-slate-800 my-8">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border-[3px] border-slate-300 dark:border-slate-700 my-8">
               <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-600 flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-[32px]">error</span>
               </div>
@@ -195,7 +196,7 @@ export function CourseDetailPageView({
                 <button
                   type="button"
                   onClick={() => setActiveTab('syllabus')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold border-2 transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold border-[3px] transition-all cursor-pointer ${
                     activeTab === 'syllabus'
                       ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 font-semibold'
@@ -217,7 +218,7 @@ export function CourseDetailPageView({
                 <button
                   type="button"
                   onClick={() => setActiveTab('materials')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
                     activeTab === 'materials'
                       ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
@@ -230,7 +231,7 @@ export function CourseDetailPageView({
                 <button
                   type="button"
                   onClick={() => setActiveTab('knowledgeGraph')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
                     activeTab === 'knowledgeGraph'
                       ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
@@ -243,7 +244,7 @@ export function CourseDetailPageView({
                 <button
                   type="button"
                   onClick={() => setActiveTab('aiTutor')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-2 transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
                     activeTab === 'aiTutor'
                       ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
