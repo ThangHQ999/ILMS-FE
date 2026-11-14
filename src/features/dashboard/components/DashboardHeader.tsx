@@ -32,6 +32,7 @@ export function DashboardHeader({
   const isGraph = pathname.startsWith('/knowledge-graph');
   const isCompetency = pathname.startsWith('/competency');
   const isAssignments = pathname.startsWith('/assignments');
+  const isCreateQuiz = pathname.startsWith('/assignments/create') || pathname.startsWith('/assignments/create-quiz');
 
   const currentUserName =
     userFullName || (workspaceMode === 'student' ? 'Trần Nhật Minh' : 'TS. Lê Hoàng Nam');
@@ -85,19 +86,36 @@ export function DashboardHeader({
         <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-slate-600">
           chevron_right
         </span>
-        <span className="text-slate-900 dark:text-white font-semibold tracking-tight truncate">
-          {isAssignments
-            ? 'Quản lý Đề thi & Quiz'
-            : isClasses
-            ? workspaceMode === 'student'
-              ? 'Lớp học đang tham gia'
-              : 'Các lớp học'
-            : isCompetency
-            ? 'Bản đồ năng lực'
-            : isGraph
-            ? 'Đồ thị tri thức'
-            : 'Tổng quan'}
-        </span>
+        {isCreateQuiz ? (
+          <>
+            <Link
+              href="/assignments"
+              className="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-medium transition-colors"
+            >
+              Quản lý Đề thi &amp; Quiz
+            </Link>
+            <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-slate-600">
+              chevron_right
+            </span>
+            <span className="text-slate-900 dark:text-white font-semibold tracking-tight truncate">
+              Tạo Quiz mới
+            </span>
+          </>
+        ) : (
+          <span className="text-slate-900 dark:text-white font-semibold tracking-tight truncate">
+            {isAssignments
+              ? 'Quản lý Đề thi & Quiz'
+              : isClasses
+              ? workspaceMode === 'student'
+                ? 'Lớp học đang tham gia'
+                : 'Các lớp học'
+              : isCompetency
+              ? 'Bản đồ năng lực'
+              : isGraph
+              ? 'Đồ thị tri thức'
+              : 'Tổng quan'}
+          </span>
+        )}
       </nav>
 
       {/* Right: Search bar & Utilities */}

@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 
 interface TeacherCreateQuizStudioViewProps {
-  onBack: () => void;
+  onBack?: () => void;
   userFullName?: string;
   onPublishSuccess?: () => void;
 }
@@ -15,10 +16,31 @@ export function TeacherCreateQuizStudioView({
   userFullName = 'TS. Lê Hoàng Nam',
   onPublishSuccess,
 }: TeacherCreateQuizStudioViewProps) {
+  const router = useRouter();
+
   // App Shell State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push('/assignments');
+    }
+  };
+
+  const handlePublish = () => {
+    showToast('Xuất bản Quiz CS202-QZ-04 thành công cho cả lớp!');
+    setTimeout(() => {
+      if (onPublishSuccess) {
+        onPublishSuccess();
+      } else {
+        router.push('/assignments');
+      }
+    }, 1200);
+  };
 
   // Form State
   const [quizTitle, setQuizTitle] = useState(
@@ -106,7 +128,7 @@ export function TeacherCreateQuizStudioView({
               <div className="flex items-center gap-3 min-w-0">
                 <button
                   type="button"
-                  onClick={onBack}
+                  onClick={handleBack}
                   className="flex items-center gap-1.5 text-slate-600 dark:text-[#8E918F] hover:text-blue-600 dark:hover:text-blue-400 font-semibold text-xs transition-colors px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#282A2C] cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -139,12 +161,7 @@ export function TeacherCreateQuizStudioView({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    showToast('Xuất bản Quiz CS202-QZ-04 thành công cho cả lớp!');
-                    if (onPublishSuccess) {
-                      setTimeout(onPublishSuccess, 1200);
-                    }
-                  }}
+                  onClick={handlePublish}
                   className="px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">rocket_launch</span>

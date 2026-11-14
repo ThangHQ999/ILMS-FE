@@ -312,7 +312,7 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  onClick={() => setViewMode('create')}
+                  onClick={() => router.push('/assignments/create')}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[18px]">add</span>
