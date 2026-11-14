@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { useClassDetail } from '../../hooks/useClassDetail';
@@ -40,13 +41,27 @@ export function ClassDetailPageView({
   const router = useRouter();
   const t = useTranslations('classes.detail');
 
+  // Global user role hook
+  const { activeRole, switchRole } = useUserRole();
+
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Class detail state
+  // Class detail state: synchronize with global activeRole
   const [activeTab, setActiveTab] = useState('stream');
-  const [currentRole, setCurrentRole] = useState<'student' | 'teacher' | 'owner'>('teacher');
+  const [currentRole, setCurrentRole] = useState<'student' | 'teacher' | 'owner'>(
+    activeRole === 'STUDENT' ? 'student' : 'teacher'
+  );
+
+  // Synchronize currentRole whenever activeRole from top header or user menu changes
+  useEffect(() => {
+    if (activeRole === 'STUDENT') {
+      setCurrentRole('student');
+    } else if (currentRole === 'student') {
+      setCurrentRole('teacher');
+    }
+  }, [activeRole]);
 
   // Socratic AI Tutor popover state
   const [isAiPopoverOpen, setIsAiPopoverOpen] = useState(false);
@@ -133,6 +148,8 @@ export function ClassDetailPageView({
 
   const handleRoleChange = (newRole: 'student' | 'teacher' | 'owner') => {
     setCurrentRole(newRole);
+    // Đồng bộ với RoleSwitcher toàn cục trên DashboardHeader
+    switchRole(newRole === 'student' ? 'STUDENT' : 'TEACHER');
     if (newRole === 'student' && activeTab === 'settings') {
       setActiveTab('stream');
     }

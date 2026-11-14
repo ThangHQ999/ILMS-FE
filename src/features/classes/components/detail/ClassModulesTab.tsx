@@ -201,23 +201,6 @@ export function ClassModulesTab({
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [modules, setModules] = useState<ModuleData[]>(INITIAL_MODULES);
 
-  // Reset teacher preview when parent role changes
-  useEffect(() => {
-    setIsTeacherPreview(false);
-  }, [currentRole]);
-
-  // If role is student or teacher activated student preview, render StudentModulesView
-  if (currentRole === 'student' || isTeacherPreview) {
-    return (
-      <StudentModulesView
-        onToast={onToast}
-        onNavigateTab={onViewSubjects}
-        isPreview={currentRole !== 'student' && isTeacherPreview}
-        onExitPreview={() => setIsTeacherPreview(false)}
-      />
-    );
-  }
-
   const [expandedModules, setExpandedModules] = useState<{ [key: string]: boolean }>({
     'mod-1': true,
     'mod-2': false,
@@ -231,6 +214,11 @@ export function ClassModulesTab({
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
   const [targetModuleId, setTargetModuleId] = useState<string>('mod-3');
   const [isBatchUploadOpen, setIsBatchUploadOpen] = useState(false);
+
+  // Reset teacher preview when parent role changes
+  useEffect(() => {
+    setIsTeacherPreview(false);
+  }, [currentRole]);
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -283,6 +271,18 @@ export function ClassModulesTab({
       })
       .filter((m): m is ModuleData => m !== null);
   }, [modules, searchQuery, statusFilter]);
+
+  // If role is student or teacher activated student preview, render StudentModulesView
+  if (currentRole === 'student' || isTeacherPreview) {
+    return (
+      <StudentModulesView
+        onToast={onToast}
+        onNavigateTab={onViewSubjects}
+        isPreview={currentRole !== 'student' && isTeacherPreview}
+        onExitPreview={() => setIsTeacherPreview(false)}
+      />
+    );
+  }
 
   // Handlers
   const handlePublishLesson = (lessonId: string) => {

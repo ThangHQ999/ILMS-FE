@@ -299,23 +299,25 @@ export function ModuleAccordionItem({
                     </span>
                   )}
 
-                  <div className="flex items-center gap-0.5">
-                    <button
-                      type="button"
-                      onClick={() => onLessonStatsClick(lesson.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      title="Thống kê học viên"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">query_stats</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      title="Chỉnh sửa nội dung"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">edit</span>
-                    </button>
-                  </div>
+                  {isEditMode && (
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => onLessonStatsClick(lesson.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Thống kê học viên"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">query_stats</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Chỉnh sửa nội dung"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
