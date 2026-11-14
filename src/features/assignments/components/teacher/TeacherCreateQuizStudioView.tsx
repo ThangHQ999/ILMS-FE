@@ -1,10 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
+import { useClasses } from '@/features/classes/hooks/useClasses';
+import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
+import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
+import type { ClassItem } from '@/features/classes/schemas/class.schema';
 import { createQuiz } from '../../services/quiz.service';
 import { quizKeys } from '../../constants';
 
@@ -12,15 +16,60 @@ interface TeacherCreateQuizStudioViewProps {
   onBack?: () => void;
   userFullName?: string;
   onPublishSuccess?: () => void;
+  initialClassId?: string;
+  initialClassName?: string;
+  teacherClasses?: ClassItem[];
 }
 
 export function TeacherCreateQuizStudioView({
   onBack,
   userFullName = 'TS. Lê Hoàng Nam',
   onPublishSuccess,
+  initialClassId,
+  initialClassName,
+  teacherClasses: propTeacherClasses,
 }: TeacherCreateQuizStudioViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+
+  const { data: classesData } = useClasses();
+
+  // Load teacher classes
+  const availableClasses: ClassItem[] = useMemo(() => {
+    if (propTeacherClasses && propTeacherClasses.length > 0) return propTeacherClasses;
+    const baseList =
+      classesData?.items && classesData.items.length > 0
+        ? classesData.items
+        : [...DEFAULT_FACULTY_CLASSES];
+
+    const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
+    const baseIds = new Set(baseList.map((c) => String(c.id)));
+    const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
+    const newCreated = localCreated.filter(
+      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
+    );
+
+    const merged = [...newCreated, ...baseList];
+    const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
+    return teachingOnly.length > 0 ? teachingOnly : merged;
+  }, [propTeacherClasses, classesData]);
+
+  const [targetClassId, setTargetClassId] = useState<string>(() => {
+    return initialClassId || searchParams.get('classId') || '';
+  });
+
+  const activeClass = useMemo(() => {
+    if (targetClassId) {
+      const found = availableClasses.find(
+        (c) => String(c.id) === targetClassId || c.name === targetClassId
+      );
+      if (found) return found;
+    }
+    return availableClasses[0];
+  }, [availableClasses, targetClassId]);
+
+  const activeClassId = activeClass ? String(activeClass.id) : (targetClassId || 'cs-202');
 
   // App Shell State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -42,7 +91,7 @@ export function TeacherCreateQuizStudioView({
       showToast('Đang kết nối API và tạo Quiz mới...');
       
       const created = await createQuiz({
-        classId: 'cs-202',
+        classId: activeClassId,
         title: quizTitle,
         description: selectedModule,
         status: 'PUBLISHED',
@@ -68,6 +117,8 @@ export function TeacherCreateQuizStudioView({
 
       showToast(`Xuất bản thành công: ${created.title}!`);
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
+      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
       setTimeout(() => {
         if (onPublishSuccess) {
@@ -95,7 +146,7 @@ export function TeacherCreateQuizStudioView({
     try {
       showToast('Đang lưu bản nháp đề thi...');
       await createQuiz({
-        classId: 'cs-202',
+        classId: activeClassId,
         title: quizTitle,
         description: selectedModule,
         status: 'DRAFT',
@@ -108,10 +159,14 @@ export function TeacherCreateQuizStudioView({
         endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
+      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
       showToast('Đã lưu bản nháp thành công vào hệ thống!');
     } catch {
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
+      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
       showToast('Đã lưu bản nháp thành công vào hệ thống!');
     }
@@ -287,7 +342,35 @@ export function TeacherCreateQuizStudioView({
                   </div>
 
                   {/* Course Module & Output standard Matrix */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">school</span>
+                        <span>Lớp học mục tiêu</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={activeClassId}
+                          onChange={(e) => setTargetClassId(e.target.value)}
+                          className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer truncate"
+                        >
+                          {availableClasses.map((c) => {
+                            const code = c.name || c.classCode || c.id;
+                            const title = c.title || '';
+                            const label = title && title !== code ? `${code}: ${title}` : (code || title);
+                            return (
+                              <option key={c.id} value={String(c.id)}>
+                                {label}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-3 top-2.5 text-[20px] text-slate-400 pointer-events-none">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
+
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
                         Chương / Module liên kết

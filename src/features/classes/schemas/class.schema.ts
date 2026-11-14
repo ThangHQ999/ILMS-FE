@@ -52,6 +52,8 @@ export const classItemSchema = z.object({
   id: z.union([z.string(), z.number()]).transform((v) => String(v)),
   name: z.string().nullish().transform((v) => v ?? ''),
   title: z.string().nullish().transform((v) => v ?? ''),
+  code: z.string().nullish(),
+  classCode: z.string().nullish(),
   description: z.string().nullish().transform((v) => v ?? ''),
   academicYear: z.string().nullish().transform((v) => (v && v.trim() ? v : '2026-2027')),
   semester: z.string().nullish().transform((v) => (v && v.trim() ? v : 'Học kỳ 1 (2026-2027)')),

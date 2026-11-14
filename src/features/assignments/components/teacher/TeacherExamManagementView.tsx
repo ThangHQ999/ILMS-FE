@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { TeacherCreateQuizStudioView } from './TeacherCreateQuizStudioView';
+import { useClasses } from '@/features/classes/hooks/useClasses';
+import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
+import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
+import type { ClassItem } from '@/features/classes/schemas/class.schema';
 import {
   useQuizzes,
   useQuizStats,
@@ -18,6 +22,15 @@ import {
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
+}
+
+interface ClassDropdownOption {
+  id: string;
+  code: string;
+  title: string;
+  label: string;
+  semester?: string;
+  major?: string;
 }
 
 interface ExamItem {
@@ -62,13 +75,100 @@ export function TeacherExamManagementView({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Data from Spring Boot Quiz API (Section 10 api-spec.md) with resilient fallback
-  const { data: apiQuizzes } = useQuizzes({ classId: 'cs-202' });
-  const { data: apiStats } = useQuizStats('cs-202');
+  // 1. Data from "Lớp học của tôi" (/classes) - Classes managed by teacher
+  const { data: classesData, isLoading: isClassesLoading } = useClasses();
+
+  const teacherClasses: ClassItem[] = useMemo(() => {
+    const baseList =
+      classesData?.items && classesData.items.length > 0
+        ? classesData.items
+        : [...DEFAULT_FACULTY_CLASSES];
+
+    const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
+    const baseIds = new Set(baseList.map((c) => String(c.id)));
+    const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
+    const newCreated = localCreated.filter(
+      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
+    );
+
+    const merged = [...newCreated, ...baseList];
+    const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
+    return teachingOnly.length > 0 ? teachingOnly : merged;
+  }, [classesData]);
+
+  // Formatted dropdown options matching teacher's assigned classes
+  const classDropdownOptions: ClassDropdownOption[] = useMemo(() => {
+    return teacherClasses.map((cls) => {
+      const code = cls.name || cls.classCode || cls.code || String(cls.id);
+      const title = cls.title || cls.description || '';
+      let label = code;
+      if (title && title !== code) {
+        if (!code.includes(':') && !title.includes(':')) {
+          label = `${code}: ${title}`;
+        } else {
+          label = title.includes(code) ? title : `${code}: ${title}`;
+        }
+      }
+      return {
+        id: String(cls.id),
+        code,
+        title,
+        label,
+        semester: cls.semester || undefined,
+        major: cls.major || undefined,
+      };
+    });
+  }, [teacherClasses]);
+
+  // State: selected class ID (initial from searchParams or first teacher class)
+  const [selectedClassId, setSelectedClassId] = useState<string>(() => {
+    return searchParams.get('classId') || '';
+  });
+
+  const currentClassOption = useMemo<ClassDropdownOption>(() => {
+    if (selectedClassId) {
+      const found = classDropdownOptions.find(
+        (c) => c.id === selectedClassId || c.code === selectedClassId
+      );
+      if (found) return found;
+    }
+    return (
+      classDropdownOptions[0] || {
+        id: 'cs-202',
+        code: 'CS-202',
+        title: 'Mạng máy tính & Truyền thông',
+        label: 'CS-202: Mạng máy tính & Truyền thông',
+        major: 'Khoa Công nghệ Thông tin',
+        semester: 'Học kỳ II - 2024',
+      }
+    );
+  }, [classDropdownOptions, selectedClassId]);
+
+  const [isCourseDropdownOpen, setIsCourseDropdownOpen] = useState(false);
+  const courseDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (courseDropdownRef.current && !courseDropdownRef.current.contains(event.target as Node)) {
+        setIsCourseDropdownOpen(false);
+      }
+    }
+    if (isCourseDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCourseDropdownOpen]);
+
+  // Data from Spring Boot Quiz API connected to selected class
+  const { data: apiQuizzes, isLoading: isQuizzesLoading } = useQuizzes({ classId: currentClassOption.id });
+  const { data: apiStats } = useQuizStats(currentClassOption.id);
   const deleteQuizMutation = useDeleteQuiz();
   const generateAiMutation = useGenerateQuizAi();
-  const { data: complaintsData } = useQuizComplaints('cs-202');
-  const resolveComplaintMutation = useResolveComplaint('cs-202');
+  const { data: complaintsData } = useQuizComplaints(currentClassOption.id);
+  const resolveComplaintMutation = useResolveComplaint(currentClassOption.id);
   const { data: proctorSessions } = useProctorSessions('quiz-04');
 
   // Filters & State
@@ -77,8 +177,6 @@ export function TeacherExamManagementView({
   const [selectedChapter, setSelectedChapter] = useState('Chương 4: Tầng Mạng');
   const [selectedBloom, setSelectedBloom] = useState('ALL');
   const [selectedSort, setSelectedSort] = useState('RECENT');
-  const [selectedCourse, setSelectedCourse] = useState('CS-202: Mạng máy tính & Truyền thông');
-  const [isCourseDropdownOpen, setIsCourseDropdownOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Live Timer Countdown simulation
@@ -103,24 +201,18 @@ export function TeacherExamManagementView({
     }, 3000);
   };
 
-  const courseList = [
-    'CS-202: Mạng máy tính & Truyền thông',
-    'INT-1340: Cấu trúc dữ liệu & Giải thuật',
-    'CS-301: Hệ quản trị Cơ sở dữ liệu',
-    'SE-214: Nhập môn Công nghệ Phần mềm',
-  ];
-
   // Base Exam Data
-  const allExams: ExamItem[] = [
+  const classTagText = `Lớp: ${currentClassOption.code}`;
+  const allExams: ExamItem[] = useMemo(() => [
     {
-      id: 'quiz-04',
-      code: 'QUIZ-CS202-04',
+      id: `quiz-04-${currentClassOption.id}`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-04`,
       type: 'quiz',
       status: 'live',
       statusBadge: '⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
       statusBadgeColor: 'bg-red-500 text-white',
-      classTag: 'Lớp: CS202.CLC01',
-      title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
+      classTag: classTagText,
+      title: `Quiz 04: Đánh giá Năng lực Tầng Mạng (${currentClassOption.code})`,
       duration: '30 phút làm bài',
       questionCount: 20,
       tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
@@ -130,29 +222,29 @@ export function TeacherExamManagementView({
       progressPercent: 90,
     },
     {
-      id: 'mid-2024',
-      code: 'MID-CS202-2024',
+      id: `mid-2024-${currentClassOption.id}`,
+      code: `MID-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'EXAM'}-2024`,
       type: 'exam',
       status: 'upcoming',
       statusBadge: '📝 ĐỀ THI CHÍNH KHÓA • BẢO MẬT CAO',
       statusBadgeColor: 'bg-blue-600 text-white',
       securityBadge: 'Safe Exam Browser',
-      classTag: 'Khóa 2022 - CNTT',
-      title: 'Kiểm tra Giữa kỳ: Toàn diện 4 Tầng Giao thức Mạng',
+      classTag: currentClassOption.title || classTagText,
+      title: `Kiểm tra Giữa kỳ: Đánh giá Năng lực Tổng hợp (${currentClassOption.code})`,
       examDate: 'Thứ 6, 25/10 - 08:00 AM',
       duration: '45 phút',
       questionCount: 35,
       tags: ['Trộn 4 mã đề'],
     },
     {
-      id: 'quiz-03',
-      code: 'QUIZ-CS202-03',
+      id: `quiz-03-${currentClassOption.id}`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-03`,
       type: 'quiz',
       status: 'completed',
       statusBadge: '⚡ QUIZ TRẮC NGHIỆM • ĐÃ HOÀN THÀNH',
       statusBadgeColor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
-      classTag: 'Lớp: CS202.CLC01',
-      title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
+      classTag: classTagText,
+      title: `Quiz 03: Chuyên đề Thực hành & Bài tập Lớn (${currentClassOption.code})`,
       duration: '30 phút',
       questionCount: 20,
       tags: ['58/58 SV nộp (100%)'],
@@ -161,14 +253,14 @@ export function TeacherExamManagementView({
       discriminationIndex: 0.74,
     },
     {
-      id: 'quiz-02',
-      code: 'QUIZ-CS202-02',
+      id: `quiz-02-${currentClassOption.id}`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-02`,
       type: 'quiz',
       status: 'complaints',
       statusBadge: '⚡ QUIZ TRẮC NGHIỆM • CÓ 2 KHIẾU NẠI ĐANG CHỜ',
       statusBadgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
       classTag: 'Điểm TB: 8.1/10',
-      title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
+      title: `Quiz 02: Khảo sát Kiến thức Định kỳ (${currentClassOption.code})`,
       duration: '35 phút',
       questionCount: 25,
       tags: [],
@@ -176,20 +268,21 @@ export function TeacherExamManagementView({
       complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time',
     },
     {
-      id: 'quiz-05-draft',
-      code: 'AI-DRAFT-APP',
+      id: `quiz-05-draft-${currentClassOption.id}`,
+      code: `AI-DRAFT-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'APP'}`,
       type: 'draft',
       status: 'draft',
       statusBadge: '✨ AI GENERATED DRAFT • 20 CÂU TỰ ĐỘNG BÓC TÁCH',
       statusBadgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-      classTag: 'Sinh từ tài liệu: Chapter5_Application_Layer.pdf',
-      title: 'Quiz 05: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
+      classTag: `Sinh từ tài liệu: ${currentClassOption.title || currentClassOption.code}`,
+      title: `Quiz 05: Đề thi sinh tự động AI (${currentClassOption.code})`,
       duration: '25 phút',
       questionCount: 20,
-      tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
+      tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích'],
       draftMode: 'Đang ở chế độ nháp riêng tư',
     },
-  ];
+  ], [currentClassOption, classTagText, formattedTimeLeft]);
+
 
   // Merge API Quizzes with Base Mock Items
   const mergedExams = useMemo(() => {
@@ -250,6 +343,9 @@ export function TeacherExamManagementView({
         onBack={() => setViewMode('list')}
         userFullName={userFullName}
         onPublishSuccess={() => setViewMode('list')}
+        initialClassId={currentClassOption.id}
+        initialClassName={currentClassOption.label}
+        teacherClasses={teacherClasses}
       />
     );
   }
@@ -293,7 +389,7 @@ export function TeacherExamManagementView({
                     Quản lý Đề thi &amp; Quiz trắc nghiệm
                   </h1>
                   {/* Course Selector Dropdown */}
-                  <div className="relative">
+                  <div className="relative" ref={courseDropdownRef}>
                     <button
                       type="button"
                       onClick={() => setIsCourseDropdownOpen(!isCourseDropdownOpen)}
@@ -302,30 +398,35 @@ export function TeacherExamManagementView({
                       <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
                         menu_book
                       </span>
-                      <span className="truncate max-w-[220px]">{selectedCourse}</span>
+                      <span className="truncate max-w-[240px]">{currentClassOption.label}</span>
                       <span className="material-symbols-outlined text-slate-400 text-[18px]">
                         expand_more
                       </span>
                     </button>
 
                     {isCourseDropdownOpen && (
-                      <div className="absolute left-0 mt-1 w-72 bg-white dark:bg-[#1E1F20] rounded-xl shadow-lg border border-slate-200 dark:border-[#282A2C] py-1.5 z-50">
-                        {courseList.map((course) => (
+                      <div className="absolute left-0 mt-1 w-80 max-h-80 overflow-y-auto bg-white dark:bg-[#1E1F20] rounded-xl shadow-lg border border-slate-200 dark:border-[#282A2C] py-1.5 z-50">
+                        {classDropdownOptions.map((opt) => (
                           <button
-                            key={course}
+                            key={opt.id}
                             onClick={() => {
-                              setSelectedCourse(course);
+                              setSelectedClassId(opt.id);
                               setIsCourseDropdownOpen(false);
-                              showToast(`Đã chuyển sang môn học: ${course}`);
+                              showToast(`Đã chuyển sang lớp học: ${opt.label}`);
                             }}
-                            className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors flex items-center gap-2 ${
-                              selectedCourse === course
+                            className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors flex items-center gap-2.5 ${
+                              currentClassOption.id === opt.id
                                 ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/30'
                                 : 'text-slate-700 dark:text-slate-300'
                             }`}
                           >
-                            <span className="material-symbols-outlined text-[16px]">school</span>
-                            <span className="truncate">{course}</span>
+                            <span className="material-symbols-outlined text-[16px] text-blue-500 shrink-0">school</span>
+                            <span className="truncate flex-1">{opt.label}</span>
+                            {currentClassOption.id === opt.id && (
+                              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 shrink-0">
+                                check
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -333,7 +434,7 @@ export function TeacherExamManagementView({
                   </div>
                 </div>
                 <span className="text-xs text-[#75777e] dark:text-[#8E918F] mt-1">
-                  Khoa Công nghệ Thông tin • Học kỳ II - 2024
+                  {currentClassOption.major || 'Khoa Công nghệ Thông tin'} • {currentClassOption.semester || 'Học kỳ II - 2024'}
                 </span>
               </div>
 
@@ -357,8 +458,8 @@ export function TeacherExamManagementView({
                     showToast('Đang gọi AI Blueprint bóc tách ma trận câu hỏi...');
                     generateAiMutation.mutate(
                       {
-                        classId: 'cs-202',
-                        prompt: 'Bóc tách đề thi Tầng Mạng & Giao thức IP theo chuẩn Bloom 1-4',
+                        classId: currentClassOption.id,
+                        prompt: `Bóc tách đề thi ma trận môn ${currentClassOption.title || currentClassOption.code} theo chuẩn Bloom 1-4`,
                         questionCount: 20,
                       },
                       {
@@ -382,7 +483,7 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  onClick={() => router.push('/assignments/create')}
+                  onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[18px]">add</span>

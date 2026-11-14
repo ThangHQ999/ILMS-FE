@@ -353,7 +353,7 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
       '/quizzes',
       {
         params: {
-          classId: params.classId || 'cs-202',
+          classId: params.classId || undefined,
           status: params.status,
           page: params.page ?? 0,
           size: params.size ?? 20,
@@ -405,10 +405,14 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
   }
 
   // Kết hợp danh sách đề thi đã tạo từ LocalStorage lên đầu bảng
+  const filteredLocal = params.classId
+    ? localList.filter((item) => !item.classId || item.classId === params.classId)
+    : localList;
+
   const baseList = serverItems.length > 0 ? serverItems : MOCK_QUIZZES;
-  const localIds = new Set(localList.map((item) => item.id));
+  const localIds = new Set(filteredLocal.map((item) => item.id));
   const filteredBase = baseList.filter((item) => !localIds.has(item.id));
-  return [...localList, ...filteredBase];
+  return [...filteredLocal, ...filteredBase];
 }
 
 /**
@@ -497,11 +501,15 @@ export async function createQuiz(payload: QuizRequestDTO): Promise<QuizResponseD
   }
 
   // Đồng bộ hóa ngay lập tức vào LocalStorage để xuất hiện ngay trong danh sách giao diện
+  const targetClassLabel = payload.description?.startsWith('Lớp:')
+    ? payload.description
+    : `Lớp: ${payload.classId}`;
+
   const newQuizItem: QuizItem = {
     id: createdResult.id,
     code: `QUIZ-${createdResult.id.slice(0, 6).toUpperCase()}`,
-    className: 'Lớp: CS202.CLC01',
-    classId: payload.classId || 'cs-202',
+    className: targetClassLabel,
+    classId: payload.classId,
     title: createdResult.title,
     type: 'quiz',
     status: payload.status === 'DRAFT' ? 'draft' : 'live',
