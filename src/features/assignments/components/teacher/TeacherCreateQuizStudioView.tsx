@@ -568,7 +568,7 @@ export function TeacherCreateQuizStudioView({
     if (onBack) {
       onBack();
     } else {
-      router.push('/assignments');
+      router.push(`/assignments?classId=${encodeURIComponent(activeClassId)}`);
     }
   };
 
@@ -675,7 +675,7 @@ export function TeacherCreateQuizStudioView({
         if (onPublishSuccess) {
           onPublishSuccess();
         } else {
-          router.push('/assignments');
+          router.push(`/assignments?classId=${encodeURIComponent(activeClassId)}`);
         }
       }, 1000);
     } catch (error) {
@@ -685,7 +685,7 @@ export function TeacherCreateQuizStudioView({
         if (onPublishSuccess) {
           onPublishSuccess();
         } else {
-          router.push('/assignments');
+          router.push(`/assignments?classId=${encodeURIComponent(activeClassId)}`);
         }
       }, 1000);
     } finally {

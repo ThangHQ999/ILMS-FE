@@ -470,13 +470,20 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
 
   // Kết hợp danh sách đề thi đã tạo từ LocalStorage lên đầu bảng
   const filteredLocal = params.classId
-    ? localList.filter((item) => !item.classId || item.classId === params.classId)
+    ? localList.filter((item) => {
+        if (!item.classId) return true;
+        const pId = String(params.classId).toLowerCase().trim();
+        const iId = String(item.classId).toLowerCase().trim();
+        return iId === pId || pId.includes(iId) || iId.includes(pId);
+      })
     : localList;
 
+  const effectiveLocal = filteredLocal.length > 0 ? filteredLocal : localList;
+
   const baseList = serverItems.length > 0 ? serverItems : MOCK_QUIZZES;
-  const localIds = new Set(filteredLocal.map((item) => item.id));
+  const localIds = new Set(effectiveLocal.map((item) => item.id));
   const filteredBase = baseList.filter((item) => !localIds.has(item.id));
-  return [...filteredLocal, ...filteredBase];
+  return [...effectiveLocal, ...filteredBase];
 }
 
 /**
