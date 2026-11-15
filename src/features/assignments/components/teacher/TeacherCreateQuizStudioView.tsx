@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
@@ -216,6 +216,39 @@ export function TeacherCreateQuizStudioView({
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().slice(0, 16);
   });
+
+  const [lastSavedTime, setLastSavedTime] = useState<string>('14:20');
+
+  // Khôi phục bản nháp tự động từ LocalStorage nếu có
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const targetQuizId = searchParams.get('quizId');
+    const storageKey = targetQuizId
+      ? `ilms_quiz_draft_${targetQuizId}`
+      : `ilms_quiz_draft_${activeClassId}`;
+
+    const rawDraft = localStorage.getItem(storageKey);
+    if (rawDraft) {
+      try {
+        const parsed = JSON.parse(rawDraft);
+        if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
+        if (parsed.selectedModule) setSelectedModule(parsed.selectedModule);
+        if (parsed.ploTags) setPloTags(parsed.ploTags);
+        if (parsed.instructions) setInstructions(parsed.instructions);
+        if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+          setQuestions(parsed.questions);
+        }
+        if (parsed.durationMinutes) setDurationMinutes(parsed.durationMinutes);
+        if (parsed.attempts) setAttempts(parsed.attempts);
+        if (parsed.scoringStrategy) setScoringStrategy(parsed.scoringStrategy);
+        if (parsed.startTime) setStartTime(parsed.startTime);
+        if (parsed.endTime) setEndTime(parsed.endTime);
+        if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
+      } catch (err) {
+        console.warn('Could not parse saved draft:', err);
+      }
+    }
+  }, [activeClassId, searchParams]);
 
   const previewLifecycle = useMemo(() => {
     return determineQuizLifecycle({
@@ -770,6 +803,32 @@ export function TeacherCreateQuizStudioView({
         }
       }
 
+      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      setLastSavedTime(nowStr);
+
+      const draftPayload = {
+        quizId: created.id,
+        quizTitle,
+        selectedModule,
+        ploTags,
+        instructions,
+        questions,
+        durationMinutes,
+        attempts,
+        scoringStrategy,
+        shuffleQuestions,
+        shuffleAnswers,
+        fullscreenLock,
+        startTime: startIso,
+        endTime: endIso,
+        savedAt: nowStr,
+      };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`ilms_quiz_draft_${created.id}`, JSON.stringify(draftPayload));
+        localStorage.setItem(`ilms_quiz_draft_${activeClassId}`, JSON.stringify(draftPayload));
+      }
+
       saveLocalQuiz({
         id: created.id,
         code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
@@ -872,7 +931,7 @@ export function TeacherCreateQuizStudioView({
                   </h1>
                   <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Đã tự lưu nháp lúc 14:20</span>
+                    <span>Đã tự lưu nháp lúc {lastSavedTime}</span>
                   </div>
                 </div>
               </div>

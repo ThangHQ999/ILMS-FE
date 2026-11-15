@@ -918,7 +918,7 @@ export function TeacherExamManagementView({
                             </span>
                           </div>
                           <h3
-                            onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                            onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}&quizId=${encodeURIComponent(exam.id)}`)}
                             className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
@@ -936,7 +936,7 @@ export function TeacherExamManagementView({
                       <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
-                          onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                          onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}&quizId=${encodeURIComponent(exam.id)}`)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px] text-purple-600 dark:text-purple-400">fact_check</span>
