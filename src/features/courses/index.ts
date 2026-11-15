@@ -16,4 +16,7 @@ export { LessonAcademicDocument } from './components/learning/LessonAcademicDocu
 export { LessonSocraticAiSidebar } from './components/learning/LessonSocraticAiSidebar';
 export { LessonBottomWorkspaceBar } from './components/learning/LessonBottomWorkspaceBar';
 export { LessonNotesDrawer } from './components/learning/LessonNotesDrawer';
+export { CurriculumAuthoringModal } from './components/detail/CurriculumAuthoringModal';
+export { CreateChapterModal } from './components/detail/CreateChapterModal';
+export { CreateLessonModal } from './components/detail/CreateLessonModal';
 

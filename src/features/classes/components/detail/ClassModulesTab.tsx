@@ -454,6 +454,7 @@ export function ClassModulesTab({
 
       <AddLessonModal
         isOpen={isAddLessonOpen}
+        moduleTitle={modules.find((m) => m.id === targetModuleId)?.title || 'Chương 02 - Cây tìm kiếm nhị phân'}
         onClose={() => setIsAddLessonOpen(false)}
         onSubmit={handleCreateLesson}
       />

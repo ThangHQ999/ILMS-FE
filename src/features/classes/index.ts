@@ -23,3 +23,5 @@ export * from './services/class-detail.service';
 export * from './components/ClassListPageView';
 export * from './components/JoinClassModal';
 export * from './components/detail/ClassDetailPageView';
+export * from './components/detail/StudentDetailDrawer';
+export * from './components/detail/InviteMemberModal';
