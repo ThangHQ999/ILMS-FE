@@ -7,6 +7,7 @@ import {
   createQuiz,
   updateQuiz,
   deleteQuiz,
+  createQuestion,
   publishQuiz,
   unpublishQuiz,
   addQuestionToQuiz,
@@ -27,7 +28,9 @@ import type {
   QuizItem,
   QuizStatsSummary,
   QuizRequestDTO,
+  QuestionRequestDTO,
   QuestionResponseDTO,
+  AddQuizQuestionRequestDTO,
   BatchQuizQuestionRequestDTO,
   QuizGenerateAiRequestDTO,
   ProctorSessionDTO,
@@ -113,6 +116,29 @@ export function useUnpublishQuiz() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
+    },
+  });
+}
+
+export function useCreateQuestion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: QuestionRequestDTO) => createQuestion(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: quizKeys.all });
+    },
+  });
+}
+
+export function useAddQuestionToQuiz(quizId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: AddQuizQuestionRequestDTO) => addQuestionToQuiz(quizId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: quizKeys.detail(quizId) });
+      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
     },
   });
 }

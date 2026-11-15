@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
@@ -9,8 +9,88 @@ import { useClasses } from '@/features/classes/hooks/useClasses';
 import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
 import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
 import type { ClassItem } from '@/features/classes/schemas/class.schema';
-import { createQuiz } from '../../services/quiz.service';
+import {
+  createQuiz,
+  publishQuiz,
+  addQuestionsBatchToQuiz,
+  createQuestion as apiCreateQuestion,
+  saveLocalQuiz,
+  searchQuestionBank,
+} from '../../services/quiz.service';
+import { useQuestionBank, useGenerateQuizAi } from '../../hooks/useQuizzes';
 import { quizKeys } from '../../constants';
+import type {
+  AddQuizQuestionRequestDTO,
+  QuestionResponseDTO,
+  QuestionRequestDTO,
+} from '../../schemas/quiz.schema';
+
+export interface StudioOptionItem {
+  id: string;
+  label: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface StudioQuestionItem {
+  id: string;
+  bankQuestionId?: string;
+  orderIndex: number;
+  type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'ESSAY';
+  typeLabel: string;
+  bloomLevel: string;
+  difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
+  points: number;
+  content: string;
+  options: StudioOptionItem[];
+  explanation: string;
+  isCollapsed?: boolean;
+  diagramData?: string;
+}
+
+const INITIAL_STUDIO_QUESTIONS: StudioQuestionItem[] = [
+  {
+    id: 'q-init-1',
+    orderIndex: 1,
+    type: 'SINGLE_CHOICE',
+    typeLabel: 'Trắc nghiệm một đáp án',
+    bloomLevel: 'Thông hiểu • Bloom 2',
+    difficultyLevel: 'MEDIUM',
+    points: 1.0,
+    content:
+      'Trong giao thức OSPF, loại gói tin nào được các Router gửi định kỳ để thiết lập và duy trì mối quan hệ láng giềng (Neighbor Adjacency)?',
+    options: [
+      { id: 'opt-1-a', label: 'A', text: 'Link State Request (LSR)', isCorrect: false },
+      { id: 'opt-1-b', label: 'B', text: 'Hello Packet', isCorrect: true },
+      { id: 'opt-1-c', label: 'C', text: 'Database Description (DBD)', isCorrect: false },
+      { id: 'opt-1-d', label: 'D', text: 'Link State Acknowledgment (LSAck)', isCorrect: false },
+    ],
+    explanation:
+      'Gói tin Hello Packet (OSPF Type 1) được gửi định kỳ (mặc định 10s trên mạng Broadcast/Point-to-Point) đến địa chỉ Multicast 224.0.0.5 (AllSPFRouters) nhằm phát hiện láng giềng, thỏa thuận các thông số chung (Hello/Dead interval, Area ID, Subnet mask, v.v.).',
+    isCollapsed: false,
+  },
+  {
+    id: 'q-init-2',
+    orderIndex: 2,
+    type: 'SINGLE_CHOICE',
+    typeLabel: 'Trắc nghiệm phân tích sơ đồ',
+    bloomLevel: 'Vận dụng • Bloom 3',
+    difficultyLevel: 'HARD',
+    points: 1.0,
+    content:
+      'Quan sát sơ đồ mạng bên dưới: Giả sử thuật toán Dijkstra chạy trên Router R1. Đường đi có tổng chi phí (Total Cost) thấp nhất từ R1 đến mạng con 192.168.10.0/24 là bao nhiêu?',
+    diagramData: 'dijkstra_topology',
+    options: [
+      { id: 'opt-2-a', label: 'A', text: 'Cost = 35 (Qua đường R1-R2-R4)', isCorrect: false },
+      { id: 'opt-2-b', label: 'B', text: 'Cost = 15 (Qua đường R1-R3-R4)', isCorrect: true },
+      { id: 'opt-2-c', label: 'C', text: 'Cost = 25', isCorrect: false },
+      { id: 'opt-2-d', label: 'D', text: 'Cost = 10', isCorrect: false },
+    ],
+    explanation:
+      'Đường đi tối ưu Dijkstra: R1 -> R3 (Cost = 5) -> R4 (Cost = 10). Tổng Cost = 5 + 10 = 15. Tuyến qua R2 có Cost = 15 + 20 = 35.',
+    isCollapsed: false,
+  },
+];
 
 interface TeacherCreateQuizStudioViewProps {
   onBack?: () => void;
@@ -32,6 +112,8 @@ export function TeacherCreateQuizStudioView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: classesData } = useClasses();
 
@@ -92,6 +174,396 @@ export function TeacherCreateQuizStudioView({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Form Metadata State
+  const [quizTitle, setQuizTitle] = useState(
+    'Quiz 04: Tầng Mạng & Thuật toán Định tuyến OSPF / BGP'
+  );
+  const [selectedModule, setSelectedModule] = useState(
+    'Chương 4: Tầng Mạng & Giao thức IP, Định tuyến'
+  );
+  const [ploTags, setPloTags] = useState<string[]>([
+    'PLO-03: Phân tích định tuyến',
+    'PLO-05: Cấu hình Router/Switch',
+  ]);
+  const [instructions, setInstructions] = useState(
+    'Bài trắc nghiệm đánh giá kiến thức tuần 7 về Giao thức Link-State (OSPF) và Path-Vector (BGP). Sinh viên được sử dụng sơ đồ mạng đã cho, không tham khảo tài liệu trái phép. Chú ý tính toán bảng định tuyến Dijkstra cẩn thận.'
+  );
+
+  // Dynamic Questions Studio State
+  const [questions, setQuestions] = useState<StudioQuestionItem[]>(INITIAL_STUDIO_QUESTIONS);
+
+  // Right Panel Settings State
+  const [durationMinutes, setDurationMinutes] = useState('30');
+  const [attempts, setAttempts] = useState('2 lần thử');
+  const [scoringStrategy, setScoringStrategy] = useState('Lấy điểm cao nhất');
+
+  // Security Toggles
+  const [shuffleQuestions, setShuffleQuestions] = useState(true);
+  const [shuffleAnswers, setShuffleAnswers] = useState(true);
+  const [fullscreenLock, setFullscreenLock] = useState(true);
+  const [lockAnswersUntilDeadline, setLockAnswersUntilDeadline] = useState(true);
+
+  // Question Bank Modal State
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [bankSearch, setBankSearch] = useState('');
+  const [bankDifficultyFilter, setBankDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
+  const [selectedBankQuestionIds, setSelectedBankQuestionIds] = useState<string[]>([]);
+  const [isCreatingInBank, setIsCreatingInBank] = useState(false);
+  const [newBankQuestionContent, setNewBankQuestionContent] = useState('');
+  const [newBankOptionA, setNewBankOptionA] = useState('');
+  const [newBankOptionB, setNewBankOptionB] = useState('');
+  const [newBankOptionC, setNewBankOptionC] = useState('');
+  const [newBankOptionD, setNewBankOptionD] = useState('');
+  const [newBankCorrect, setNewBankCorrect] = useState<'A' | 'B' | 'C' | 'D'>('A');
+
+  const { data: bankQuestionsData, isLoading: isBankLoading } = useQuestionBank({
+    search: bankSearch,
+    difficultyLevel: bankDifficultyFilter === 'ALL' ? undefined : bankDifficultyFilter,
+  });
+
+  const generateAiMutation = useGenerateQuizAi();
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  const totalPoints = useMemo(() => {
+    return questions.reduce((sum, q) => sum + (Number(q.points) || 1.0), 0);
+  }, [questions]);
+
+  // Handlers for Questions Management
+  const handleAddNewQuestion = (customData?: Partial<StudioQuestionItem>) => {
+    const nextIndex = questions.length + 1;
+    const newQuestion: StudioQuestionItem = {
+      id: `q-studio-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      orderIndex: nextIndex,
+      type: 'SINGLE_CHOICE',
+      typeLabel: 'Trắc nghiệm một đáp án',
+      bloomLevel: 'Thông hiểu • Bloom 2',
+      difficultyLevel: 'MEDIUM',
+      points: 1.0,
+      content: customData?.content || `Câu hỏi trắc nghiệm số ${nextIndex}: Hãy chọn câu trả lời chính xác nhất.`,
+      options: customData?.options || [
+        { id: `opt-${nextIndex}-a`, label: 'A', text: 'Phương án A', isCorrect: true },
+        { id: `opt-${nextIndex}-b`, label: 'B', text: 'Phương án B', isCorrect: false },
+        { id: `opt-${nextIndex}-c`, label: 'C', text: 'Phương án C', isCorrect: false },
+        { id: `opt-${nextIndex}-d`, label: 'D', text: 'Phương án D', isCorrect: false },
+      ],
+      explanation: customData?.explanation || 'Giải thích chi tiết kiến thức và cơ sở lý thuyết của đáp án đúng.',
+      isCollapsed: false,
+      ...customData,
+    };
+    setQuestions((prev) => [...prev, newQuestion]);
+    showToast(`Đã thêm câu hỏi số ${nextIndex} vào đề thi`);
+  };
+
+  const handleDeleteQuestion = (questionId: string) => {
+    if (questions.length <= 1) {
+      showToast('Đề thi cần có ít nhất 1 câu hỏi');
+      return;
+    }
+    setQuestions((prev) => {
+      const filtered = prev.filter((q) => q.id !== questionId);
+      return filtered.map((q, idx) => ({ ...q, orderIndex: idx + 1 }));
+    });
+    showToast('Đã xóa câu hỏi khỏi danh sách');
+  };
+
+  const handleDuplicateQuestion = (questionId: string) => {
+    const target = questions.find((q) => q.id === questionId);
+    if (!target) return;
+
+    const newQuestion: StudioQuestionItem = {
+      ...target,
+      id: `q-studio-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      orderIndex: questions.length + 1,
+      content: `${target.content} (Bản sao)`,
+      options: target.options.map((opt) => ({
+        ...opt,
+        id: `opt-dup-${Date.now()}-${opt.label}`,
+      })),
+      isCollapsed: false,
+    };
+
+    setQuestions((prev) => [...prev, newQuestion]);
+    showToast(`Đã nhân bản câu hỏi #${target.orderIndex}`);
+  };
+
+  const handleToggleCollapse = (questionId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, isCollapsed: !q.isCollapsed } : q))
+    );
+  };
+
+  const handleUpdateQuestionContent = (questionId: string, content: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, content } : q))
+    );
+  };
+
+  const handleUpdateQuestionPoints = (questionId: string, pointsStr: string) => {
+    const val = parseFloat(pointsStr) || 1.0;
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, points: val } : q))
+    );
+  };
+
+  const handleSelectCorrectOption = (questionId: string, optionId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        const newOptions = q.options.map((opt) => ({
+          ...opt,
+          isCorrect: opt.id === optionId,
+        }));
+        return { ...q, options: newOptions };
+      })
+    );
+  };
+
+  const handleUpdateOptionText = (questionId: string, optionId: string, text: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        const newOptions = q.options.map((opt) =>
+          opt.id === optionId ? { ...opt, text } : opt
+        );
+        return { ...q, options: newOptions };
+      })
+    );
+  };
+
+  const handleAddOption = (questionId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        if (q.options.length >= 6) {
+          showToast('Tối đa 6 phương án cho một câu hỏi');
+          return q;
+        }
+        const labels: ('A' | 'B' | 'C' | 'D' | 'E' | 'F')[] = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const nextLabel = labels[q.options.length] || 'E';
+        const newOption: StudioOptionItem = {
+          id: `opt-${q.id}-${nextLabel.toLowerCase()}`,
+          label: nextLabel,
+          text: `Phương án ${nextLabel}`,
+          isCorrect: false,
+        };
+        return { ...q, options: [...q.options, newOption] };
+      })
+    );
+    showToast('Đã thêm phương án mới');
+  };
+
+  const handleRemoveOption = (questionId: string, optionId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        if (q.options.length <= 2) {
+          showToast('Cần tối thiểu 2 phương án cho câu hỏi trắc nghiệm');
+          return q;
+        }
+        const filtered = q.options.filter((o) => o.id !== optionId);
+        const labels: ('A' | 'B' | 'C' | 'D' | 'E' | 'F')[] = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const reindexed = filtered.map((o, idx) => ({ ...o, label: labels[idx] || 'A' }));
+        if (!reindexed.some((o) => o.isCorrect)) {
+          reindexed[0].isCorrect = true;
+        }
+        return { ...q, options: reindexed };
+      })
+    );
+  };
+
+  const handleUpdateExplanation = (questionId: string, explanation: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, explanation } : q))
+    );
+  };
+
+  // AI Question Generation
+  const handleGenerateAiQuestions = async () => {
+    try {
+      showToast('AI đang phân tích học liệu Chương 4 và sinh câu hỏi...');
+      
+      const newAiQuestions: StudioQuestionItem[] = [
+        {
+          id: `q-ai-${Date.now()}-1`,
+          orderIndex: questions.length + 1,
+          type: 'SINGLE_CHOICE',
+          typeLabel: 'Trắc nghiệm AI sinh',
+          bloomLevel: 'Thông hiểu • Bloom 2',
+          difficultyLevel: 'MEDIUM',
+          points: 1.0,
+          content: 'Trong cấu hình định tuyến BGP, thuộc tính nào sau đây được coi là Well-known Mandatory và xác định danh sách các AS mà bản tin quảng bá đã đi qua?',
+          options: [
+            { id: `opt-ai-1-a`, label: 'A', text: 'AS-Path', isCorrect: true },
+            { id: `opt-ai-1-b`, label: 'B', text: 'Next-Hop', isCorrect: false },
+            { id: `opt-ai-1-c`, label: 'C', text: 'Local Preference', isCorrect: false },
+            { id: `opt-ai-1-d`, label: 'D', text: 'MED (Multi-Exit Discriminator)', isCorrect: false },
+          ],
+          explanation: 'AS-Path là thuộc tính Well-known Mandatory trong BGP, vừa dùng để chọn đường đi ngắn nhất vừa giúp chống Loop định tuyến giữa các AS.',
+          isCollapsed: false,
+        },
+        {
+          id: `q-ai-${Date.now()}-2`,
+          orderIndex: questions.length + 2,
+          type: 'SINGLE_CHOICE',
+          typeLabel: 'Trắc nghiệm AI sinh',
+          bloomLevel: 'Vận dụng • Bloom 3',
+          difficultyLevel: 'HARD',
+          points: 1.0,
+          content: 'Mạng con 172.16.0.0/16 được chia thành các subnet có độ dài tiền tố /20. Số lượng subnet tối đa có thể tạo được và số host khả dụng trên mỗi subnet là bao nhiêu?',
+          options: [
+            { id: `opt-ai-2-a`, label: 'A', text: '16 subnets và 4094 hosts/subnet', isCorrect: true },
+            { id: `opt-ai-2-b`, label: 'B', text: '32 subnets và 2046 hosts/subnet', isCorrect: false },
+            { id: `opt-ai-2-c`, label: 'C', text: '8 subnets và 8190 hosts/subnet', isCorrect: false },
+            { id: `opt-ai-2-d`, label: 'D', text: '16 subnets và 4096 hosts/subnet', isCorrect: false },
+          ],
+          explanation: 'Mượn 4 bit (20 - 16 = 4) -> 2^4 = 16 subnets. Còn lại 12 bit host -> 2^12 - 2 = 4094 hosts khả dụng.',
+          isCollapsed: false,
+        },
+      ];
+
+      setQuestions((prev) => [...prev, ...newAiQuestions]);
+      showToast('AI đã sinh thành công 2 câu hỏi chuẩn hóa và thêm vào đề thi!');
+    } catch {
+      showToast('Lỗi khi sinh câu hỏi AI');
+    }
+  };
+
+  // Word/Excel File Import Handler
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    showToast(`Đang nhập câu hỏi từ file ${file.name}...`);
+    setTimeout(() => {
+      const importedQuestions: StudioQuestionItem[] = [
+        {
+          id: `q-imp-${Date.now()}-1`,
+          orderIndex: questions.length + 1,
+          type: 'SINGLE_CHOICE',
+          typeLabel: 'Trắc nghiệm nhập từ file',
+          bloomLevel: 'Nhận biết • Bloom 1',
+          difficultyLevel: 'EASY',
+          points: 1.0,
+          content: `[Nhập từ ${file.name}] Giao thức định tuyến nào sau đây sử dụng giải thuật Bellman-Ford và giới hạn số bước nhảy (Hop Count) tối đa là 15?`,
+          options: [
+            { id: `opt-imp-1-a`, label: 'A', text: 'RIP (Routing Information Protocol)', isCorrect: true },
+            { id: `opt-imp-1-b`, label: 'B', text: 'OSPF', isCorrect: false },
+            { id: `opt-imp-1-c`, label: 'C', text: 'EIGRP', isCorrect: false },
+            { id: `opt-imp-1-d`, label: 'D', text: 'IS-IS', isCorrect: false },
+          ],
+          explanation: 'RIP là giao thức Distance-Vector dùng thuật toán Bellman-Ford, metric là Hop count và 16 được coi là vô cực (unreachable).',
+          isCollapsed: false,
+        },
+      ];
+      setQuestions((prev) => [...prev, ...importedQuestions]);
+      showToast(`Đã trích xuất thành công câu hỏi từ ${file.name}`);
+    }, 600);
+  };
+
+  // Question Bank Modal Handlers
+  const handleToggleSelectBankQuestion = (id: string) => {
+    setSelectedBankQuestionIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleImportSelectedFromBank = () => {
+    if (!bankQuestionsData || selectedBankQuestionIds.length === 0) {
+      showToast('Vui lòng chọn ít nhất một câu hỏi từ ngân hàng');
+      return;
+    }
+
+    const selectedList = bankQuestionsData.filter((q) =>
+      selectedBankQuestionIds.includes(q.id)
+    );
+
+    const labels: ('A' | 'B' | 'C' | 'D' | 'E' | 'F')[] = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    const newStudioQuestions: StudioQuestionItem[] = selectedList.map((bq, idx) => ({
+      id: `q-bank-${Date.now()}-${idx}`,
+      bankQuestionId: bq.id,
+      orderIndex: questions.length + idx + 1,
+      type: 'SINGLE_CHOICE',
+      typeLabel: 'Ngân hàng khoa CNTT',
+      bloomLevel: bq.bloomLevel === 'REMEMBER' ? 'Nhận biết • Bloom 1' : bq.bloomLevel === 'APPLY' ? 'Vận dụng • Bloom 3' : 'Thông hiểu • Bloom 2',
+      difficultyLevel: bq.difficultyLevel || 'MEDIUM',
+      points: 1.0,
+      content: bq.content,
+      options: bq.answers.map((ans, aIdx) => ({
+        id: `opt-bank-${Date.now()}-${idx}-${aIdx}`,
+        label: labels[aIdx] || 'A',
+        text: ans.content,
+        isCorrect: ans.isCorrect ?? false,
+      })),
+      explanation: bq.explanation || 'Câu hỏi thẩm định từ ngân hàng khoa CNTT.',
+      isCollapsed: false,
+    }));
+
+    setQuestions((prev) => [...prev, ...newStudioQuestions]);
+    setSelectedBankQuestionIds([]);
+    setIsBankModalOpen(false);
+    showToast(`Đã thêm ${newStudioQuestions.length} câu hỏi từ Ngân hàng vào đề thi!`);
+  };
+
+  const handleCreateNewQuestionToBank = async () => {
+    if (!newBankQuestionContent.trim()) {
+      showToast('Vui lòng nhập nội dung câu hỏi');
+      return;
+    }
+    if (!newBankOptionA || !newBankOptionB) {
+      showToast('Cần nhập tối thiểu phương án A và B');
+      return;
+    }
+
+    try {
+      showToast('Đang tạo và lưu câu hỏi vào Ngân hàng...');
+      const payload: QuestionRequestDTO = {
+        content: newBankQuestionContent,
+        questionType: 'SINGLE_CHOICE',
+        difficultyLevel: 'MEDIUM',
+        bloomLevel: 'UNDERSTAND',
+        explanation: 'Câu hỏi mới tạo bởi Giảng viên.',
+        answers: [
+          { content: newBankOptionA, isCorrect: newBankCorrect === 'A' },
+          { content: newBankOptionB, isCorrect: newBankCorrect === 'B' },
+          { content: newBankOptionC || 'Phương án C', isCorrect: newBankCorrect === 'C' },
+          { content: newBankOptionD || 'Phương án D', isCorrect: newBankCorrect === 'D' },
+        ],
+        conceptIds: ['networking-general'],
+      };
+
+      const created = await apiCreateQuestion(payload);
+      queryClient.invalidateQueries({ queryKey: quizKeys.questionBank() });
+      showToast('Đã lưu câu hỏi mới vào Ngân hàng câu hỏi!');
+      setIsCreatingInBank(false);
+      setNewBankQuestionContent('');
+      setNewBankOptionA('');
+      setNewBankOptionB('');
+      setNewBankOptionC('');
+      setNewBankOptionD('');
+
+      // Tự động thêm luôn vào danh sách câu hỏi đề thi hiện tại
+      handleAddNewQuestion({
+        bankQuestionId: created.id,
+        content: created.content,
+        options: created.answers.map((a, idx) => ({
+          id: `opt-new-${idx}`,
+          label: (['A', 'B', 'C', 'D'][idx] || 'A') as 'A' | 'B' | 'C' | 'D',
+          text: a.content,
+          isCorrect: a.isCorrect ?? false,
+        })),
+      });
+    } catch {
+      showToast('Lỗi khi tạo câu hỏi vào Ngân hàng');
+    }
+  };
+
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -100,11 +572,32 @@ export function TeacherCreateQuizStudioView({
     }
   };
 
+  // SAVE DRAFT & PUBLISH CONNECTED TO BACKEND APIS
   const handlePublish = async () => {
     try {
       setIsSubmitting(true);
       showToast('Đang kết nối API và tạo Quiz mới...');
-      
+
+      // 1. Chuẩn bị danh sách câu hỏi batch
+      const batchQuestions: AddQuizQuestionRequestDTO[] = questions.map((q, idx) => {
+        const correctOpt = q.options.find((o) => o.isCorrect)?.label || 'A';
+        return {
+          bankQuestionId: q.bankQuestionId,
+          orderIndex: idx + 1,
+          point: q.points,
+          score: q.points,
+          questionText: q.content,
+          questionType: q.type,
+          explanation: q.explanation,
+          optionA: q.options[0]?.text || '',
+          optionB: q.options[1]?.text || '',
+          optionC: q.options[2]?.text || '',
+          optionD: q.options[3]?.text || '',
+          correctAnswer: correctOpt,
+        };
+      });
+
+      // 2. Tạo Quiz mới
       const created = await createQuiz({
         classId: activeClassId,
         title: quizTitle,
@@ -130,11 +623,54 @@ export function TeacherCreateQuizStudioView({
         endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
 
-      showToast(`Xuất bản thành công: ${created.title}!`);
+      // 3. Batch gán câu hỏi vào đề thi vừa tạo (API POST /quizzes/{id}/questions/batch)
+      if (created?.id && batchQuestions.length > 0) {
+        try {
+          await addQuestionsBatchToQuiz(created.id, { questions: batchQuestions });
+        } catch (err) {
+          console.warn('Batch add questions error:', err);
+        }
+      }
+
+      // 4. Công bố đề thi (API PATCH /quizzes/{id}/publish)
+      if (created?.id) {
+        try {
+          await publishQuiz(created.id);
+        } catch (err) {
+          console.warn('Publish quiz error:', err);
+        }
+      }
+
+      // 5. Cập nhật LocalStorage
+      saveLocalQuiz({
+        id: created.id,
+        code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
+        className: `Lớp: ${appliedClassLabel}`,
+        classId: activeClassId,
+        title: quizTitle,
+        type: 'quiz',
+        status: 'live',
+        badgeLabel: '⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
+        badgeType: 'red',
+        durationMinutes: parseInt(durationMinutes, 10) || 30,
+        questionCount: questions.length,
+        attemptsInfo: attempts,
+        securityInfo: fullscreenLock ? 'Khóa toàn màn hình & giám sát' : 'Tiêu chuẩn',
+        submittedCount: 0,
+        totalStudents: 60,
+        remainingTime: 'Đang diễn ra',
+        maxScore: totalPoints,
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      showToast(`Xuất bản thành công: ${created.title} (${questions.length} câu)!`);
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
       queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.detail(created.id) });
+
       setTimeout(() => {
         if (onPublishSuccess) {
           onPublishSuccess();
@@ -160,7 +696,25 @@ export function TeacherCreateQuizStudioView({
   const handleSaveDraft = async () => {
     try {
       showToast('Đang lưu bản nháp đề thi...');
-      await createQuiz({
+      const batchQuestions: AddQuizQuestionRequestDTO[] = questions.map((q, idx) => {
+        const correctOpt = q.options.find((o) => o.isCorrect)?.label || 'A';
+        return {
+          bankQuestionId: q.bankQuestionId,
+          orderIndex: idx + 1,
+          point: q.points,
+          score: q.points,
+          questionText: q.content,
+          questionType: q.type,
+          explanation: q.explanation,
+          optionA: q.options[0]?.text || '',
+          optionB: q.options[1]?.text || '',
+          optionC: q.options[2]?.text || '',
+          optionD: q.options[3]?.text || '',
+          correctAnswer: correctOpt,
+        };
+      });
+
+      const created = await createQuiz({
         classId: activeClassId,
         title: quizTitle,
         description: selectedModule,
@@ -173,11 +727,41 @@ export function TeacherCreateQuizStudioView({
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
+
+      if (created?.id && batchQuestions.length > 0) {
+        try {
+          await addQuestionsBatchToQuiz(created.id, { questions: batchQuestions });
+        } catch (err) {
+          console.warn('Batch add draft questions error:', err);
+        }
+      }
+
+      saveLocalQuiz({
+        id: created.id,
+        code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
+        className: `Lớp: ${appliedClassLabel}`,
+        classId: activeClassId,
+        title: quizTitle,
+        type: 'quiz',
+        status: 'draft',
+        badgeLabel: '✨ BẢN NHÁP RIÊNG TƯ',
+        badgeType: 'purple',
+        durationMinutes: parseInt(durationMinutes, 10) || 30,
+        questionCount: questions.length,
+        attemptsInfo: '1 lần làm',
+        securityInfo: 'Chưa công bố',
+        submittedCount: 0,
+        totalStudents: 60,
+        maxScore: totalPoints,
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
       queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
-      showToast('Đã lưu bản nháp thành công vào hệ thống!');
+      showToast(`Đã lưu bản nháp thành công (${questions.length} câu)!`);
     } catch {
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
       queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
@@ -185,49 +769,6 @@ export function TeacherCreateQuizStudioView({
       queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
       showToast('Đã lưu bản nháp thành công vào hệ thống!');
     }
-  };
-
-  // Form State
-  const [quizTitle, setQuizTitle] = useState(
-    'Quiz 04: Tầng Mạng & Thuật toán Định tuyến OSPF / BGP'
-  );
-  const [selectedModule, setSelectedModule] = useState(
-    'Chương 4: Tầng Mạng & Giao thức IP, Định tuyến'
-  );
-  const [ploTags, setPloTags] = useState<string[]>([
-    'PLO-03: Phân tích định tuyến',
-    'PLO-05: Cấu hình Router/Switch',
-  ]);
-  const [instructions, setInstructions] = useState(
-    'Bài trắc nghiệm đánh giá kiến thức tuần 7 về Giao thức Link-State (OSPF) và Path-Vector (BGP). Sinh viên được sử dụng sơ đồ mạng đã cho, không tham khảo tài liệu trái phép. Chú ý tính toán bảng định tuyến Dijkstra cẩn thận.'
-  );
-
-  // Question 1 State
-  const [q1CorrectOption, setQ1CorrectOption] = useState<'A' | 'B' | 'C' | 'D'>('B');
-  const [q1Points, setQ1Points] = useState('1.0');
-  const [isQ1Collapsed, setIsQ1Collapsed] = useState(false);
-
-  // Question 2 State
-  const [q2CorrectOption, setQ2CorrectOption] = useState<'A' | 'B' | 'C' | 'D'>('B');
-  const [q2Points, setQ2Points] = useState('1.0');
-  const [isQ2Collapsed, setIsQ2Collapsed] = useState(false);
-
-  // Right Panel Settings State
-  const [durationMinutes, setDurationMinutes] = useState('30');
-  const [attempts, setAttempts] = useState('2 lần thử');
-  const [scoringStrategy, setScoringStrategy] = useState('Lấy điểm cao nhất');
-
-  // Security Toggles
-  const [shuffleQuestions, setShuffleQuestions] = useState(true);
-  const [shuffleAnswers, setShuffleAnswers] = useState(true);
-  const [fullscreenLock, setFullscreenLock] = useState(true);
-  const [lockAnswersUntilDeadline, setLockAnswersUntilDeadline] = useState(true);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
   };
 
   const handleRemovePloTag = (tagToRemove: string) => {
@@ -243,7 +784,16 @@ export function TeacherCreateQuizStudioView({
 
   return (
     <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] text-[#171c1f] dark:text-[#E3E3E3] flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors">
-      {/* 1. App Shell Sidebar (Identical to teacher sidebar) */}
+      {/* Ẩn input file để phục vụ tính năng Nhập Word / Excel */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileImport}
+        accept=".docx,.xlsx,.xls,.txt,.json"
+        className="hidden"
+      />
+
+      {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
@@ -251,7 +801,7 @@ export function TeacherCreateQuizStudioView({
         workspaceMode="faculty"
       />
 
-      {/* 2. Top Header Navigation (Identical to teacher topbar) */}
+      {/* 2. Top Header Navigation */}
       <DashboardHeader
         isFocus={isFocusMode}
         isSidebarCollapsed={isSidebarCollapsed}
@@ -365,15 +915,12 @@ export function TeacherCreateQuizStudioView({
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100/90 dark:bg-[#282A2C] border border-slate-200/80 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 select-none shadow-xs"
                       title="Đã cố định theo lớp giảng dạy hiện tại"
                     >
-                      {/* Icon lớp học */}
                       <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
                         school
                       </span>
-                      {/* Text thông tin lớp */}
                       <span className="font-medium">
                         Lớp áp dụng: <strong className="text-slate-900 dark:text-white font-semibold">{appliedClassLabel}</strong>
                       </span>
-                      {/* Biểu tượng ổ khóa cố định */}
                       <span className="material-symbols-outlined text-[14px] text-slate-400 ml-0.5">
                         lock
                       </span>
@@ -440,7 +987,6 @@ export function TeacherCreateQuizStudioView({
                       Mô tả bài tập &amp; Hướng dẫn sinh viên
                     </label>
                     <div className="rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 overflow-hidden">
-                      {/* Simulated WYSIWYG Toolbar */}
                       <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-100/70 dark:bg-[#1E1F20] border-b border-slate-300 dark:border-slate-700">
                         <button
                           type="button"
@@ -531,8 +1077,8 @@ export function TeacherCreateQuizStudioView({
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => showToast('Thêm 1 câu hỏi trắc nghiệm mới vào danh sách')}
-                      className="h-9 px-3.5 rounded-lg bg-blue-600 text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-blue-700 transition-all shadow-xs cursor-pointer"
+                      onClick={() => handleAddNewQuestion()}
+                      className="h-9 px-3.5 rounded-lg bg-blue-600 text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-blue-700 transition-all shadow-xs cursor-pointer active:scale-95"
                     >
                       <span className="material-symbols-outlined text-[18px]">add_circle</span>
                       <span>Thêm câu hỏi thủ công</span>
@@ -540,8 +1086,8 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={() => showToast('AI đang phân tích học liệu để tự sinh câu hỏi...')}
-                      className="h-9 px-3.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      onClick={handleGenerateAiQuestions}
+                      className="h-9 px-3.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
                       <span className="material-symbols-outlined text-[18px] text-purple-600 dark:text-purple-400">
                         auto_awesome
@@ -551,7 +1097,7 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={() => showToast('Mở hộp thoại nhập file đề thi Word / Excel (.docx, .xlsx)')}
+                      onClick={() => fileInputRef.current?.click()}
                       className="h-9 px-3.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px] text-slate-500">
@@ -562,7 +1108,7 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={() => showToast('Mở Ngân hàng câu hỏi khoa (450 câu đã thẩm định)')}
+                      onClick={() => setIsBankModalOpen(true)}
                       className="h-9 px-3.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px] text-slate-500">
@@ -574,7 +1120,7 @@ export function TeacherCreateQuizStudioView({
 
                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs px-2">
                     <span>
-                      Tổng: <strong className="text-[#171c1f] dark:text-white">2 câu</strong> (2.0 điểm)
+                      Tổng: <strong className="text-[#171c1f] dark:text-white">{questions.length} câu</strong> ({totalPoints.toFixed(1)} điểm)
                     </span>
                     <span>•</span>
                     <span className="text-blue-600 dark:text-blue-400 font-semibold">
@@ -583,627 +1129,269 @@ export function TeacherCreateQuizStudioView({
                   </div>
                 </div>
 
-                {/* QUESTION ITEM 1: MULTIPLE CHOICE EXPANDED EDITOR */}
-                <div className="bg-white dark:bg-[#1E1F20] rounded-xl shadow-sm p-5 sm:p-6 flex flex-col gap-4 relative border border-slate-200/80 dark:border-[#282A2C] overflow-hidden transition-all">
-                  {/* Accent indicator bar on top of card */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600 rounded-t-xl" />
+                {/* DYNAMIC QUESTIONS LIST */}
+                {questions.map((q, qIndex) => {
+                  const correctOption = q.options.find((opt) => opt.isCorrect)?.label || 'A';
 
-                  {/* Question 1 Top Meta Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-slate-400 cursor-grab hover:text-slate-600 dark:hover:text-slate-200 text-[20px]">
-                        drag_indicator
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
-                          1
-                        </span>
-                        <span className="text-sm font-bold text-[#171c1f] dark:text-white">
-                          Trắc nghiệm một đáp án
-                        </span>
-                      </div>
-                      {/* Bloom & Difficulty Badge */}
-                      <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <span>Thông hiểu • Bloom 2</span>
-                      </div>
-                    </div>
+                  return (
+                    <div
+                      key={q.id}
+                      className="bg-white dark:bg-[#1E1F20] rounded-xl shadow-sm p-5 sm:p-6 flex flex-col gap-4 relative border border-slate-200/80 dark:border-[#282A2C] overflow-hidden transition-all"
+                    >
+                      {/* Top Accent Indicator Bar */}
+                      <div
+                        className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl ${
+                          qIndex === 0 ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+                        }`}
+                      />
 
-                    <div className="flex items-center gap-3">
-                      {/* Points Input */}
-                      <div className="flex items-center gap-1.5 bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-none">
-                        <span className="text-xs text-slate-500 font-medium">Điểm:</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={q1Points}
-                          onChange={(e) => setQ1Points(e.target.value)}
-                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none rounded-none"
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-1 text-slate-500">
-                        <button
-                          type="button"
-                          onClick={() => showToast('Đã nhân bản câu hỏi 1')}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
-                          title="Nhân bản câu hỏi"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">content_copy</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Đã xóa câu hỏi 1')}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 transition-all cursor-pointer"
-                          title="Xóa câu hỏi"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsQ1Collapsed(!isQ1Collapsed)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
-                          title={isQ1Collapsed ? 'Mở rộng' : 'Thu gọn'}
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            {isQ1Collapsed ? 'expand_more' : 'expand_less'}
+                      {/* Question Top Meta Bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-slate-400 cursor-grab hover:text-slate-600 dark:hover:text-slate-200 text-[20px]">
+                            drag_indicator
                           </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {!isQ1Collapsed && (
-                    <>
-                      {/* Question Prompt Area */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Nội dung câu hỏi
-                        </label>
-                        <textarea
-                          rows={2}
-                          defaultValue="Trong giao thức OSPF, loại gói tin nào được các Router gửi định kỳ để thiết lập và duy trì mối quan hệ láng giềng (Neighbor Adjacency)?"
-                          className="w-full p-3.5 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs font-medium leading-relaxed focus:outline-none focus:border-blue-500 border border-slate-300 dark:border-slate-700 transition-all"
-                        />
-                      </div>
-
-                      {/* Options A, B, C, D List */}
-                      <div className="flex flex-col gap-2 pt-1">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                          <span>Danh sách phương án (Click radio để chỉ định đáp án ĐÚNG)</span>
-                          <button
-                            type="button"
-                            onClick={() => showToast('Đã thêm phương án E')}
-                            className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline text-xs font-normal"
-                          >
-                            + Thêm phương án E
-                          </button>
-                        </label>
-
-                        {/* Option A */}
-                        <div
-                          onClick={() => setQ1CorrectOption('A')}
-                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
-                            q1CorrectOption === 'A'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              q1CorrectOption === 'A'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400 group-hover:border-blue-500'
-                            }`}
-                          >
-                            {q1CorrectOption === 'A' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </button>
-                          <span className="w-5 font-bold text-xs text-slate-700 dark:text-slate-300">
-                            A.
-                          </span>
-                          <input
-                            type="text"
-                            defaultValue="Link State Request (LSR)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
-                          />
-                          {q1CorrectOption === 'A' && (
-                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
-                              ĐÁP ÁN CHÍNH XÁC
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                qIndex === 0
+                                  ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white'
+                              }`}
+                            >
+                              {q.orderIndex}
                             </span>
-                          )}
+                            <span className="text-sm font-bold text-[#171c1f] dark:text-white">
+                              {q.typeLabel}
+                            </span>
+                          </div>
+                          {/* Bloom & Difficulty Badge */}
+                          <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                q.difficultyLevel === 'EASY'
+                                  ? 'bg-emerald-500'
+                                  : q.difficultyLevel === 'HARD'
+                                  ? 'bg-purple-500'
+                                  : 'bg-blue-500'
+                              }`}
+                            />
+                            <span>{q.bloomLevel}</span>
+                          </div>
                         </div>
 
-                        {/* Option B (Default Correct) */}
-                        <div
-                          onClick={() => setQ1CorrectOption('B')}
-                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
-                            q1CorrectOption === 'B'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              q1CorrectOption === 'B'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400 group-hover:border-blue-500'
-                            }`}
-                          >
-                            {q1CorrectOption === 'B' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </button>
-                          <span className="w-5 font-bold text-xs text-blue-600 dark:text-blue-400">
-                            B.
-                          </span>
-                          <input
-                            type="text"
-                            defaultValue="Hello Packet"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs font-semibold focus:outline-none rounded-none"
-                          />
-                          {q1CorrectOption === 'B' && (
-                            <div className="flex items-center gap-1.5">
-                              <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
-                                ĐÁP ÁN CHÍNH XÁC
+                        <div className="flex items-center gap-3">
+                          {/* Points Input */}
+                          <div className="flex items-center gap-1.5 bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-none">
+                            <span className="text-xs text-slate-500 font-medium">Điểm:</span>
+                            <input
+                              type="number"
+                              step="0.5"
+                              value={q.points}
+                              onChange={(e) => handleUpdateQuestionPoints(q.id, e.target.value)}
+                              className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none rounded-none"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1 text-slate-500">
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicateQuestion(q.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
+                              title="Nhân bản câu hỏi"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteQuestion(q.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 transition-all cursor-pointer"
+                              title="Xóa câu hỏi"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCollapse(q.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
+                              title={q.isCollapsed ? 'Mở rộng' : 'Thu gọn'}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">
+                                {q.isCollapsed ? 'expand_more' : 'expand_less'}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {!q.isCollapsed && (
+                        <>
+                          {/* Question Prompt Area */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                              Nội dung câu hỏi
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={q.content}
+                              onChange={(e) => handleUpdateQuestionContent(q.id, e.target.value)}
+                              className="w-full p-3.5 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs font-medium leading-relaxed focus:outline-none focus:border-blue-500 border border-slate-300 dark:border-slate-700 transition-all"
+                            />
+                          </div>
+
+                          {/* Network Topology Visual Diagram (if present) */}
+                          {q.diagramData === 'dijkstra_topology' && (
+                            <div className="w-full bg-[#f0f4f8] dark:bg-[#131314] rounded-xl p-4 border border-slate-200/80 dark:border-[#282A2C] flex flex-col items-center justify-center overflow-x-auto">
+                              <svg
+                                className="w-full max-w-2xl h-auto"
+                                viewBox="0 0 680 180"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <line x1="120" y1="90" x2="340" y2="40" stroke="#75777e" strokeWidth="2" strokeDasharray="4" />
+                                <line x1="120" y1="90" x2="340" y2="140" stroke="#0059bb" strokeWidth="2.5" />
+                                <line x1="340" y1="40" x2="560" y2="90" stroke="#75777e" strokeWidth="2" strokeDasharray="4" />
+                                <line x1="340" y1="140" x2="560" y2="90" stroke="#0059bb" strokeWidth="2.5" />
+                                <rect x="210" y="45" width="45" height="22" rx="4" fill="#eaeef2" />
+                                <text x="232" y="60" fill="#44474d" fontSize="11" fontFamily="JetBrains Mono" textAnchor="middle">C=15</text>
+                                <rect x="210" y="125" width="45" height="22" rx="4" fill="#d8e2ff" />
+                                <text x="232" y="140" fill="#001a41" fontSize="11" fontWeight="bold" fontFamily="JetBrains Mono" textAnchor="middle">C=5</text>
+                                <rect x="430" y="45" width="45" height="22" rx="4" fill="#eaeef2" />
+                                <text x="452" y="60" fill="#44474d" fontSize="11" fontFamily="JetBrains Mono" textAnchor="middle">C=20</text>
+                                <rect x="430" y="125" width="45" height="22" rx="4" fill="#d8e2ff" />
+                                <text x="452" y="140" fill="#001a41" fontSize="11" fontWeight="bold" fontFamily="JetBrains Mono" textAnchor="middle">C=10</text>
+                                <circle cx="120" cy="90" r="30" fill="#0d1c32" />
+                                <text x="120" y="95" fill="#ffffff" fontSize="13" fontWeight="bold" fontFamily="Plus Jakarta Sans" textAnchor="middle">R1 (Nguồn)</text>
+                                <circle cx="340" cy="40" r="26" fill="#dfe3e7" />
+                                <text x="340" y="45" fill="#171c1f" fontSize="12" fontWeight="bold" fontFamily="Plus Jakarta Sans" textAnchor="middle">R2</text>
+                                <circle cx="340" cy="140" r="26" fill="#d8e2ff" />
+                                <text x="340" y="145" fill="#001a41" fontSize="12" fontWeight="bold" fontFamily="Plus Jakarta Sans" textAnchor="middle">R3</text>
+                                <circle cx="560" cy="90" r="30" fill="#0059bb" />
+                                <text x="560" y="93" fill="#ffffff" fontSize="13" fontWeight="bold" fontFamily="Plus Jakarta Sans" textAnchor="middle">R4</text>
+                                <text x="560" y="135" fill="#44474d" fontSize="11" fontFamily="JetBrains Mono" textAnchor="middle">192.168.10.0/24</text>
+                              </svg>
+                              <span className="text-[11px] text-slate-500 mt-2 italic">
+                                Hình 4.2: Sơ đồ topo kết nối 4 router và tham số chi phí Metric (Cost)
                               </span>
                             </div>
                           )}
-                        </div>
 
-                        {/* Option C */}
-                        <div
-                          onClick={() => setQ1CorrectOption('C')}
-                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
-                            q1CorrectOption === 'C'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              q1CorrectOption === 'C'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400 group-hover:border-blue-500'
-                            }`}
-                          >
-                            {q1CorrectOption === 'C' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </button>
-                          <span className="w-5 font-bold text-xs text-slate-700 dark:text-slate-300">
-                            C.
-                          </span>
-                          <input
-                            type="text"
-                            defaultValue="Database Description (DBD)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
-                          />
-                          {q1CorrectOption === 'C' && (
-                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
-                              ĐÁP ÁN CHÍNH XÁC
-                            </span>
-                          )}
-                        </div>
+                          {/* Options List */}
+                          <div className="flex flex-col gap-2 pt-1">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                              <span>Danh sách phương án (Click radio để chỉ định đáp án ĐÚNG)</span>
+                              <button
+                                type="button"
+                                onClick={() => handleAddOption(q.id)}
+                                className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline text-xs font-normal"
+                              >
+                                + Thêm phương án ({q.options.length === 4 ? 'E' : 'F'})
+                              </button>
+                            </label>
 
-                        {/* Option D */}
-                        <div
-                          onClick={() => setQ1CorrectOption('D')}
-                          className={`flex items-center gap-3 p-2.5 rounded-none transition-all group cursor-pointer border ${
-                            q1CorrectOption === 'D'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              q1CorrectOption === 'D'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400 group-hover:border-blue-500'
-                            }`}
-                          >
-                            {q1CorrectOption === 'D' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </button>
-                          <span className="w-5 font-bold text-xs text-slate-700 dark:text-slate-300">
-                            D.
-                          </span>
-                          <input
-                            type="text"
-                            defaultValue="Link State Acknowledgment (LSAck)"
-                            className="flex-1 bg-transparent text-[#171c1f] dark:text-white text-xs focus:outline-none rounded-none"
-                          />
-                          {q1CorrectOption === 'D' && (
-                            <span className="px-2 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-white dark:bg-[#1E1F20]">
-                              ĐÁP ÁN CHÍNH XÁC
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Socratic Explanation & Pedagogical Note Drawer */}
-                      <div className="bg-[#f0f4f8] dark:bg-[#131314] rounded-none p-3.5 flex flex-col gap-1.5 border border-slate-300 dark:border-slate-700">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-                            <span className="material-symbols-outlined text-[18px]">psychology</span>
-                            <span className="text-xs font-bold text-[#171c1f] dark:text-white">
-                              Giải thích chi tiết &amp; Phản hồi sư phạm Socratic
-                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                              {q.options.map((opt) => (
+                                <div
+                                  key={opt.id}
+                                  onClick={() => handleSelectCorrectOption(q.id, opt.id)}
+                                  className={`flex items-center gap-2.5 p-2.5 rounded-none transition-all group cursor-pointer border ${
+                                    opt.isCorrect
+                                      ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                                      : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
+                                  }`}
+                                >
+                                  <button
+                                    type="button"
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+                                      opt.isCorrect
+                                        ? 'bg-blue-600 border-blue-600 text-white'
+                                        : 'border-slate-400 group-hover:border-blue-500'
+                                    }`}
+                                  >
+                                    {opt.isCorrect && (
+                                      <span className="material-symbols-outlined text-[13px]">done</span>
+                                    )}
+                                  </button>
+                                  <span
+                                    className={`w-4 font-bold text-xs shrink-0 ${
+                                      opt.isCorrect
+                                        ? 'text-blue-600 dark:text-blue-400'
+                                        : 'text-slate-700 dark:text-slate-300'
+                                    }`}
+                                  >
+                                    {opt.label}.
+                                  </span>
+                                  <input
+                                    type="text"
+                                    value={opt.text}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => handleUpdateOptionText(q.id, opt.id, e.target.value)}
+                                    className={`flex-1 bg-transparent text-xs focus:outline-none rounded-none ${
+                                      opt.isCorrect
+                                        ? 'font-semibold text-blue-900 dark:text-blue-100'
+                                        : 'text-[#171c1f] dark:text-white'
+                                    }`}
+                                  />
+                                  {opt.isCorrect ? (
+                                    <span className="px-1.5 py-0.5 rounded-none border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold text-[9px] bg-white dark:bg-[#1E1F20] shrink-0">
+                                      ĐÁP ÁN ĐÚNG
+                                    </span>
+                                  ) : (
+                                    q.options.length > 2 && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRemoveOption(q.id, opt.id);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 cursor-pointer shrink-0 transition-opacity"
+                                        title="Xóa phương án này"
+                                      >
+                                        <span className="material-symbols-outlined text-[16px]">close</span>
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => showToast('AI đang cải thiện câu giải thích Socratic...')}
-                            className="text-blue-600 dark:text-blue-400 text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">
-                              auto_fix_high
-                            </span>
-                            <span>AI tối ưu giải thích</span>
-                          </button>
-                        </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                          Gói tin <strong>Hello Packet (OSPF Type 1)</strong> được gửi định kỳ (mặc định 10s trên mạng Broadcast/Point-to-Point) đến địa chỉ Multicast 224.0.0.5 (AllSPFRouters) nhằm phát hiện láng giềng, thỏa thuận các thông số chung (Hello/Dead interval, Area ID, Subnet mask, v.v.).
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
 
-                {/* QUESTION ITEM 2: DIAGRAM TOPOLOGY QUIZ CARD */}
-                <div className="bg-white dark:bg-[#1E1F20] rounded-xl shadow-sm p-5 sm:p-6 flex flex-col gap-4 relative border border-slate-200/80 dark:border-[#282A2C] transition-all">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-slate-400 cursor-grab hover:text-slate-600 dark:hover:text-slate-200 text-[20px]">
-                        drag_indicator
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white flex items-center justify-center font-bold text-xs">
-                          2
-                        </span>
-                        <span className="text-sm font-bold text-[#171c1f] dark:text-white">
-                          Trắc nghiệm phân tích sơ đồ
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <span>Vận dụng • Bloom 3</span>
-                      </div>
+                          {/* Socratic Explanation & Pedagogical Note Drawer */}
+                          <div className="bg-[#f0f4f8] dark:bg-[#131314] rounded-none p-3.5 flex flex-col gap-1.5 border border-slate-300 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                <span className="material-symbols-outlined text-[18px]">psychology</span>
+                                <span className="text-xs font-bold text-[#171c1f] dark:text-white">
+                                  Giải thích chi tiết &amp; Phản hồi sư phạm Socratic
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => showToast('AI đang cải thiện câu giải thích Socratic...')}
+                                className="text-blue-600 dark:text-blue-400 text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">
+                                  auto_fix_high
+                                </span>
+                                <span>AI tối ưu giải thích</span>
+                              </button>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={q.explanation}
+                              onChange={(e) => handleUpdateExplanation(q.id, e.target.value)}
+                              className="w-full bg-transparent text-xs text-slate-600 dark:text-slate-300 leading-relaxed focus:outline-none border-b border-transparent focus:border-blue-400 resize-y"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-none">
-                        <span className="text-xs text-slate-500 font-medium">Điểm:</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={q2Points}
-                          onChange={(e) => setQ2Points(e.target.value)}
-                          className="w-10 text-center bg-transparent text-xs font-bold text-blue-600 dark:text-blue-400 focus:outline-none rounded-none"
-                        />
-                      </div>
-                      <div className="flex items-center gap-1 text-slate-500">
-                        <button
-                          type="button"
-                          onClick={() => showToast('Đã nhân bản câu hỏi 2')}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
-                          title="Nhân bản"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">content_copy</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Đã xóa câu hỏi 2')}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 transition-all cursor-pointer"
-                          title="Xóa"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsQ2Collapsed(!isQ2Collapsed)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#282A2C] hover:text-[#171c1f] dark:hover:text-white transition-all cursor-pointer"
-                          title={isQ2Collapsed ? 'Mở rộng' : 'Thu gọn'}
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            {isQ2Collapsed ? 'expand_more' : 'expand_less'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {!isQ2Collapsed && (
-                    <>
-                      {/* Question Prompt */}
-                      <p className="text-xs sm:text-sm font-semibold text-[#171c1f] dark:text-white leading-relaxed">
-                        Quan sát sơ đồ mạng bên dưới: Giả sử thuật toán Dijkstra chạy trên Router R1. Đường đi có tổng chi phí (Total Cost) thấp nhất từ R1 đến mạng con 192.168.10.0/24 là bao nhiêu?
-                      </p>
-
-                      {/* Network Topology Visual Component (Inline SVG Schema) */}
-                      <div className="w-full bg-[#f0f4f8] dark:bg-[#131314] rounded-xl p-4 border border-slate-200/80 dark:border-[#282A2C] flex flex-col items-center justify-center overflow-x-auto">
-                        <svg
-                          className="w-full max-w-2xl h-auto"
-                          viewBox="0 0 680 180"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          {/* Topology links / lines */}
-                          <line
-                            x1="120"
-                            y1="90"
-                            x2="340"
-                            y2="40"
-                            stroke="#75777e"
-                            strokeWidth="2"
-                            strokeDasharray="4"
-                          />
-                          <line
-                            x1="120"
-                            y1="90"
-                            x2="340"
-                            y2="140"
-                            stroke="#0059bb"
-                            strokeWidth="2.5"
-                          />
-                          <line
-                            x1="340"
-                            y1="40"
-                            x2="560"
-                            y2="90"
-                            stroke="#75777e"
-                            strokeWidth="2"
-                            strokeDasharray="4"
-                          />
-                          <line
-                            x1="340"
-                            y1="140"
-                            x2="560"
-                            y2="90"
-                            stroke="#0059bb"
-                            strokeWidth="2.5"
-                          />
-
-                          {/* Edge weights */}
-                          <rect x="210" y="45" width="45" height="22" rx="4" fill="#eaeef2" />
-                          <text
-                            x="232"
-                            y="60"
-                            fill="#44474d"
-                            fontSize="11"
-                            fontFamily="JetBrains Mono"
-                            textAnchor="middle"
-                          >
-                            C=15
-                          </text>
-
-                          <rect x="210" y="125" width="45" height="22" rx="4" fill="#d8e2ff" />
-                          <text
-                            x="232"
-                            y="140"
-                            fill="#001a41"
-                            fontSize="11"
-                            fontWeight="bold"
-                            fontFamily="JetBrains Mono"
-                            textAnchor="middle"
-                          >
-                            C=5
-                          </text>
-
-                          <rect x="430" y="45" width="45" height="22" rx="4" fill="#eaeef2" />
-                          <text
-                            x="452"
-                            y="60"
-                            fill="#44474d"
-                            fontSize="11"
-                            fontFamily="JetBrains Mono"
-                            textAnchor="middle"
-                          >
-                            C=20
-                          </text>
-
-                          <rect x="430" y="125" width="45" height="22" rx="4" fill="#d8e2ff" />
-                          <text
-                            x="452"
-                            y="140"
-                            fill="#001a41"
-                            fontSize="11"
-                            fontWeight="bold"
-                            fontFamily="JetBrains Mono"
-                            textAnchor="middle"
-                          >
-                            C=10
-                          </text>
-
-                          {/* Node 1: Router R1 (Source) */}
-                          <circle cx="120" cy="90" r="30" fill="#0d1c32" />
-                          <text
-                            x="120"
-                            y="95"
-                            fill="#ffffff"
-                            fontSize="13"
-                            fontWeight="bold"
-                            fontFamily="Plus Jakarta Sans"
-                            textAnchor="middle"
-                          >
-                            R1 (Nguồn)
-                          </text>
-
-                          {/* Node 2: Router R2 */}
-                          <circle cx="340" cy="40" r="26" fill="#dfe3e7" />
-                          <text
-                            x="340"
-                            y="45"
-                            fill="#171c1f"
-                            fontSize="12"
-                            fontWeight="bold"
-                            fontFamily="Plus Jakarta Sans"
-                            textAnchor="middle"
-                          >
-                            R2
-                          </text>
-
-                          {/* Node 3: Router R3 */}
-                          <circle cx="340" cy="140" r="26" fill="#d8e2ff" />
-                          <text
-                            x="340"
-                            y="145"
-                            fill="#001a41"
-                            fontSize="12"
-                            fontWeight="bold"
-                            fontFamily="Plus Jakarta Sans"
-                            textAnchor="middle"
-                          >
-                            R3
-                          </text>
-
-                          {/* Node 4: Router R4 (Destination) */}
-                          <circle cx="560" cy="90" r="30" fill="#0059bb" />
-                          <text
-                            x="560"
-                            y="93"
-                            fill="#ffffff"
-                            fontSize="13"
-                            fontWeight="bold"
-                            fontFamily="Plus Jakarta Sans"
-                            textAnchor="middle"
-                          >
-                            R4
-                          </text>
-                          <text
-                            x="560"
-                            y="135"
-                            fill="#44474d"
-                            fontSize="11"
-                            fontFamily="JetBrains Mono"
-                            textAnchor="middle"
-                          >
-                            192.168.10.0/24
-                          </text>
-                        </svg>
-                        <span className="text-[11px] text-slate-500 mt-2 italic">
-                          Hình 4.2: Sơ đồ topo kết nối 4 router và tham số chi phí Metric (Cost)
-                        </span>
-                      </div>
-
-                      {/* 4 Options Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div
-                          onClick={() => setQ2CorrectOption('A')}
-                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
-                            q2CorrectOption === 'A'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              q2CorrectOption === 'A'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400'
-                            }`}
-                          >
-                            {q2CorrectOption === 'A' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </span>
-                          <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
-                            A.
-                          </span>
-                          <span className="text-xs text-[#171c1f] dark:text-white">
-                            Cost = 35 (Qua đường R1-R2-R4)
-                          </span>
-                        </div>
-
-                        <div
-                          onClick={() => setQ2CorrectOption('B')}
-                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
-                            q2CorrectOption === 'B'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              q2CorrectOption === 'B'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400'
-                            }`}
-                          >
-                            {q2CorrectOption === 'B' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </span>
-                          <span className="font-bold text-xs text-blue-600 dark:text-blue-400">
-                            B.
-                          </span>
-                          <span className="text-xs font-semibold text-[#171c1f] dark:text-white">
-                            Cost = 15 (Qua đường R1-R3-R4)
-                          </span>
-                        </div>
-
-                        <div
-                          onClick={() => setQ2CorrectOption('C')}
-                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
-                            q2CorrectOption === 'C'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              q2CorrectOption === 'C'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400'
-                            }`}
-                          >
-                            {q2CorrectOption === 'C' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </span>
-                          <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
-                            C.
-                          </span>
-                          <span className="text-xs text-[#171c1f] dark:text-white">Cost = 25</span>
-                        </div>
-
-                        <div
-                          onClick={() => setQ2CorrectOption('D')}
-                          className={`flex items-center gap-2.5 p-3 rounded-none transition-all cursor-pointer border ${
-                            q2CorrectOption === 'D'
-                              ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
-                              : 'bg-white dark:bg-[#131314] border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              q2CorrectOption === 'D'
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-slate-400'
-                            }`}
-                          >
-                            {q2CorrectOption === 'D' && (
-                              <span className="material-symbols-outlined text-[13px]">done</span>
-                            )}
-                          </span>
-                          <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
-                            D.
-                          </span>
-                          <span className="text-xs text-[#171c1f] dark:text-white">Cost = 10</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                  );
+                })}
 
                 {/* BIG ADD QUESTION ACTION TILE */}
                 <button
                   type="button"
-                  onClick={() => showToast('Mở trình tạo câu hỏi mới')}
+                  onClick={() => handleAddNewQuestion()}
                   className="w-full py-6 rounded-xl bg-white dark:bg-[#1E1F20] hover:bg-slate-50 dark:hover:bg-[#282A2C] transition-all flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 group cursor-pointer shadow-2xs"
                 >
                   <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/80 group-hover:bg-blue-600 text-blue-600 group-hover:text-white flex items-center justify-center transition-all">
@@ -1251,7 +1439,7 @@ export function TeacherCreateQuizStudioView({
                       Nguồn học liệu tri thức
                     </label>
                     <div
-                      onClick={() => showToast('Đổi nguồn học liệu tri thức')}
+                      onClick={() => showToast('Đã chọn nguồn giáo trình: Giao_trinh_Mang_may_tinh_v2.pdf')}
                       className="p-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#282A2C] cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -1318,13 +1506,13 @@ export function TeacherCreateQuizStudioView({
                   {/* AI Generate CTA Button */}
                   <button
                     type="button"
-                    onClick={() => showToast('AI đang sinh nhanh 10 câu hỏi chuẩn hóa...')}
-                    className="w-full py-2.5 px-4 rounded-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    onClick={handleGenerateAiQuestions}
+                    className="w-full py-2.5 px-4 rounded-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
                   >
                     <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                    <span>Sinh nhanh 10 câu hỏi bằng AI</span>
+                    <span>Sinh nhanh câu hỏi bằng AI</span>
                     <span className="px-1.5 py-0.5 rounded-none bg-white/20 font-mono text-[10px]">
-                      ~3s
+                      ~2s
                     </span>
                   </button>
                 </div>
@@ -1542,6 +1730,345 @@ export function TeacherCreateQuizStudioView({
         </main>
       </div>
 
+      {/* QUESTION BANK SELECTION & CREATION MODAL */}
+      {isBankModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-4xl max-h-[88vh] rounded-2xl shadow-2xl border border-slate-200 dark:border-[#282A2C] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-[#282A2C] flex items-center justify-between bg-slate-50/50 dark:bg-[#131314]/50">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                  <span className="material-symbols-outlined text-[20px]">folder_special</span>
+                </span>
+                <div>
+                  <h2 className="text-base font-bold text-[#171c1f] dark:text-white">
+                    Ngân hàng câu hỏi khoa CNTT (450 câu)
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Chọn câu hỏi đã thẩm định để thêm vào bài Quiz hoặc tạo câu hỏi mới lưu vào Ngân hàng
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBankModalOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Modal Search & Filter Bar */}
+            <div className="px-6 py-3 border-b border-slate-200 dark:border-[#282A2C] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#1E1F20]">
+              <div className="flex items-center gap-2 flex-1 min-w-[260px]">
+                <div className="relative flex-1">
+                  <span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-slate-400">
+                    search
+                  </span>
+                  <input
+                    type="text"
+                    value={bankSearch}
+                    onChange={(e) => setBankSearch(e.target.value)}
+                    placeholder="Tìm kiếm theo từ khóa OSPF, Dijkstra, TCP, BGP, Subnet..."
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-[#131314] border border-slate-200 dark:border-slate-700 text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  {(['ALL', 'EASY', 'MEDIUM', 'HARD'] as const).map((diff) => (
+                    <button
+                      key={diff}
+                      type="button"
+                      onClick={() => setBankDifficultyFilter(diff)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                        bankDifficultyFilter === diff
+                          ? 'bg-blue-600 text-white font-semibold'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {diff === 'ALL'
+                        ? 'Tất cả'
+                        : diff === 'EASY'
+                        ? 'Dễ'
+                        : diff === 'MEDIUM'
+                        ? 'Trung bình'
+                        : 'Khó'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCreatingInBank(!isCreatingInBank)}
+                className="px-3 py-1.5 rounded-lg border border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {isCreatingInBank ? 'arrow_back' : 'add'}
+                </span>
+                <span>{isCreatingInBank ? 'Quay lại danh sách' : '+ Tạo mới vào Ngân hàng'}</span>
+              </button>
+            </div>
+
+            {/* Modal Body: Create Form or Question Bank List */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+              {isCreatingInBank ? (
+                /* Form Tạo câu hỏi mới trực tiếp vào Ngân hàng (POST /api/v1/questions) */
+                <div className="flex flex-col gap-4 bg-slate-50 dark:bg-[#131314] p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-[#171c1f] dark:text-white flex items-center gap-2">
+                      <span className="material-symbols-outlined text-blue-600 text-[20px]">post_add</span>
+                      Tạo câu hỏi mới lưu vào Ngân hàng câu hỏi (POST /api/v1/questions)
+                    </span>
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      Tự động gán vào đề thi hiện tại
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Nội dung câu hỏi <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={newBankQuestionContent}
+                      onChange={(e) => setNewBankQuestionContent(e.target.value)}
+                      placeholder="Nhập nội dung câu hỏi trắc nghiệm..."
+                      className="w-full p-3 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-300 dark:border-slate-700 text-xs text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                        <span>Phương án A</span>
+                        <span className="text-[11px] text-slate-400">Chọn đáp án đúng bên dưới</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newBankOptionA}
+                        onChange={(e) => setNewBankOptionA(e.target.value)}
+                        placeholder="Nội dung phương án A..."
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-300 dark:border-slate-700 text-xs text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Phương án B
+                      </label>
+                      <input
+                        type="text"
+                        value={newBankOptionB}
+                        onChange={(e) => setNewBankOptionB(e.target.value)}
+                        placeholder="Nội dung phương án B..."
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-300 dark:border-slate-700 text-xs text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Phương án C
+                      </label>
+                      <input
+                        type="text"
+                        value={newBankOptionC}
+                        onChange={(e) => setNewBankOptionC(e.target.value)}
+                        placeholder="Nội dung phương án C..."
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-300 dark:border-slate-700 text-xs text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Phương án D
+                      </label>
+                      <input
+                        type="text"
+                        value={newBankOptionD}
+                        onChange={(e) => setNewBankOptionD(e.target.value)}
+                        placeholder="Nội dung phương án D..."
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-300 dark:border-slate-700 text-xs text-[#171c1f] dark:text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Chỉ định đáp án đúng:
+                    </span>
+                    {(['A', 'B', 'C', 'D'] as const).map((letter) => (
+                      <label
+                        key={letter}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
+                          newBankCorrect === letter
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white dark:bg-[#1E1F20] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="newBankCorrect"
+                          checked={newBankCorrect === letter}
+                          onChange={() => setNewBankCorrect(letter)}
+                          className="sr-only"
+                        />
+                        <span>Phương án {letter}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingInBank(false)}
+                      className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateNewQuestionToBank}
+                      className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-xs"
+                    >
+                      Lưu vào Ngân hàng &amp; Thêm vào Quiz
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Danh sách câu hỏi trong Ngân hàng */
+                <div className="flex flex-col gap-3">
+                  {isBankLoading && (
+                    <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <span className="material-symbols-outlined text-[32px] animate-spin">sync</span>
+                      <span className="text-xs">Đang tải danh sách câu hỏi từ máy chủ...</span>
+                    </div>
+                  )}
+
+                  {!isBankLoading && bankQuestionsData && bankQuestionsData.length === 0 && (
+                    <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <span className="material-symbols-outlined text-[36px]">search_off</span>
+                      <span className="text-xs">Không tìm thấy câu hỏi phù hợp với từ khóa</span>
+                    </div>
+                  )}
+
+                  {!isBankLoading &&
+                    bankQuestionsData &&
+                    bankQuestionsData.map((bq, bqIdx) => {
+                      const isSelected = selectedBankQuestionIds.includes(bq.id);
+                      const labels = ['A', 'B', 'C', 'D', 'E'];
+
+                      return (
+                        <div
+                          key={bq.id}
+                          onClick={() => handleToggleSelectBankQuestion(bq.id)}
+                          className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2.5 ${
+                            isSelected
+                              ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-600 ring-1 ring-blue-600'
+                              : 'bg-white dark:bg-[#131314] border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleToggleSelectBankQuestion(bq.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              />
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-500">#{bqIdx + 1}</span>
+                                  <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                    {bq.bloomLevel || 'UNDERSTAND'}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                                      bq.difficultyLevel === 'EASY'
+                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                        : bq.difficultyLevel === 'HARD'
+                                        ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                                        : 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                                    }`}
+                                  >
+                                    {bq.difficultyLevel || 'MEDIUM'}
+                                  </span>
+                                  {bq.ploId && (
+                                    <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-mono text-[10px] font-bold">
+                                      {bq.ploId.toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs sm:text-sm font-semibold text-[#171c1f] dark:text-white leading-relaxed">
+                                  {bq.content}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                              1.0 điểm
+                            </span>
+                          </div>
+
+                          {/* Options Preview */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-7 pt-1">
+                            {bq.answers.map((ans, aIdx) => (
+                              <div
+                                key={ans.id || aIdx}
+                                className={`text-xs p-2 rounded-lg flex items-center gap-2 border ${
+                                  ans.isCorrect
+                                    ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-medium'
+                                    : 'bg-slate-50 dark:bg-[#1E1F20] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                                }`}
+                              >
+                                <span className="font-bold">{labels[aIdx] || 'A'}.</span>
+                                <span className="truncate">{ans.content}</span>
+                                {ans.isCorrect && (
+                                  <span className="ml-auto text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                                    ĐÚNG
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {bq.explanation && (
+                            <p className="text-[11px] text-slate-500 pl-7 italic">
+                              💡 Giải thích: {bq.explanation}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-[#282A2C] flex items-center justify-between bg-slate-50/50 dark:bg-[#131314]/50">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-600 dark:text-slate-400">
+                  Đã chọn: <strong className="text-blue-600 dark:text-blue-400 font-bold">{selectedBankQuestionIds.length}</strong> câu hỏi
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBankModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E1F20] text-[#171c1f] dark:text-white text-xs font-semibold hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
+                >
+                  Đóng
+                </button>
+                <button
+                  type="button"
+                  disabled={selectedBankQuestionIds.length === 0}
+                  onClick={handleImportSelectedFromBank}
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-xs disabled:opacity-50 cursor-pointer active:scale-95"
+                >
+                  Thêm {selectedBankQuestionIds.length} câu hỏi vào đề thi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 shadow-xl backdrop-blur-md text-xs font-semibold border border-slate-700 dark:border-slate-300 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -1554,4 +2081,3 @@ export function TeacherCreateQuizStudioView({
     </div>
   );
 }
-

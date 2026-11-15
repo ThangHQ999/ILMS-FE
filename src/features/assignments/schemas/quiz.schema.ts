@@ -165,9 +165,19 @@ export type QuizResponseDTO = z.infer<typeof quizResponseSchema>;
  * Endpoint: POST /api/v1/quizzes/{id}/questions
  */
 export const addQuizQuestionSchema = z.object({
-  questionId: z.string().min(1, 'Mã câu hỏi không được để trống'),
-  point: z.number().positive().default(1.0),
+  questionId: z.string().optional(),
+  bankQuestionId: z.string().optional(),
+  point: z.number().optional().default(1.0),
+  score: z.number().optional(),
   orderIndex: z.number().int().min(0).default(0),
+  questionText: z.string().optional(),
+  questionType: z.string().optional(),
+  explanation: z.string().optional(),
+  optionA: z.string().optional(),
+  optionB: z.string().optional(),
+  optionC: z.string().optional(),
+  optionD: z.string().optional(),
+  correctAnswer: z.string().optional(),
 });
 
 export type AddQuizQuestionRequestDTO = z.infer<typeof addQuizQuestionSchema>;
