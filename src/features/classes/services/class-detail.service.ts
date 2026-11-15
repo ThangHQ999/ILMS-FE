@@ -804,68 +804,87 @@ export function saveLocalClassCourse(classId: string, item: ClassCourse): void {
  * Fetch full class detail bundle with graceful API connect & fallback.
  */
 export async function getClassDetailData(classId: string): Promise<ClassDetailData> {
-  let classInfo: ClassItem = { ...MOCK_CLASS_INFO, id: classId };
+  const cleanId = decodeURIComponent(classId || '').trim();
+  let classInfo: ClassItem = { ...MOCK_CLASS_INFO, id: cleanId };
   let courses: ClassCourse[] = MOCK_COURSES;
   let announcements: ClassAnnouncement[] = MOCK_ANNOUNCEMENTS;
   let members: ClassMember[] = MOCK_MEMBERS;
   let materials: ClassMaterial[] = MOCK_MATERIALS;
 
   try {
-    const fetched = await getClassById(classId);
+    const fetched = await getClassById(cleanId);
     if (fetched && fetched.id) {
-      classInfo = fetched;
+      classInfo = {
+        ...fetched,
+        title: fetched.title || fetched.name || cleanId,
+        name: fetched.name || cleanId,
+      };
     }
   } catch {
-    // Backend endpoint not active or mock ID, use mock class info
+    classInfo = {
+      ...MOCK_CLASS_INFO,
+      id: cleanId,
+      name: cleanId,
+      title: cleanId,
+    };
   }
 
-  try {
-    const { data: coursesRes } = await api.get<ApiResponse<ClassCourse[]>>(
-      `/classes/${classId}/courses`
-    );
-    if (coursesRes?.data && Array.isArray(coursesRes.data) && coursesRes.data.length > 0) {
-      courses = coursesRes.data;
+  // If this is a local/offline created class, return immediately without network latency/timeout
+  const isLocalGenerated = cleanId.startsWith('class-');
+
+  if (!isLocalGenerated) {
+    try {
+      const { data: coursesRes } = await api.get<ApiResponse<ClassCourse[]>>(
+        `/classes/${cleanId}/courses`
+      );
+      if (coursesRes?.data && Array.isArray(coursesRes.data) && coursesRes.data.length > 0) {
+        courses = coursesRes.data;
+      }
+    } catch {
+      // Fallback to mock courses
     }
-  } catch {
-    // Fallback to mock courses
   }
 
   // Merge locally created courses for this class (offline/refresh persistence)
-  const localSubjects = getLocalClassCourses(classId);
+  const localSubjects = getLocalClassCourses(cleanId);
   if (localSubjects.length > 0) {
     const existingCourseIds = new Set(courses.map((c) => c.id));
     const newCourses = localSubjects.filter((c) => !existingCourseIds.has(c.id));
     courses = [...newCourses, ...courses];
   }
 
-  try {
-    const { data: annRes } = await api.get<ApiResponse<ClassAnnouncement[]>>(
-      `/classes/class/${classId}/Announcements`
-    );
-    if (annRes?.data && Array.isArray(annRes.data) && annRes.data.length > 0) {
-      announcements = annRes.data;
+  if (!isLocalGenerated) {
+    try {
+      const { data: annRes } = await api.get<ApiResponse<ClassAnnouncement[]>>(
+        `/classes/class/${cleanId}/Announcements`
+      );
+      if (annRes?.data && Array.isArray(annRes.data) && annRes.data.length > 0) {
+        announcements = annRes.data;
+      }
+    } catch {
+      // Fallback to mock announcements
     }
-  } catch {
-    // Fallback to mock announcements
   }
 
   // Merge locally persisted announcements (offline/mock persistence)
-  const localAnnouncements = getLocalAnnouncements(classId);
+  const localAnnouncements = getLocalAnnouncements(cleanId);
   if (localAnnouncements.length > 0) {
     const existingIds = new Set(announcements.map((a) => a.id));
     const newItems = localAnnouncements.filter((a) => !existingIds.has(a.id));
     announcements = [...newItems, ...announcements];
   }
 
-  try {
-    const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
-      `/classes/${classId}/members`
-    );
-    if (memRes?.data && Array.isArray(memRes.data) && memRes.data.length > 0) {
-      members = memRes.data;
+  if (!isLocalGenerated) {
+    try {
+      const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
+        `/classes/${cleanId}/members`
+      );
+      if (memRes?.data && Array.isArray(memRes.data) && memRes.data.length > 0) {
+        members = memRes.data;
+      }
+    } catch {
+      // Fallback to mock members
     }
-  } catch {
-    // Fallback to mock members
   }
 
   return {

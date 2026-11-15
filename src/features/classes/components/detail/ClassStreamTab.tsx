@@ -7,6 +7,7 @@ interface ClassStreamTabProps {
   classInfo: ClassItem;
   currentRole: 'student' | 'teacher' | 'owner';
   onNavigateTab: (tab: string) => void;
+  onOpenCreateAnnouncement?: () => void;
   onToast: (msg: string) => void;
 }
 
@@ -14,6 +15,7 @@ export function ClassStreamTab({
   classInfo,
   currentRole,
   onNavigateTab,
+  onOpenCreateAnnouncement,
   onToast,
 }: ClassStreamTabProps) {
   const [quickPostTitle, setQuickPostTitle] = useState('');
@@ -138,13 +140,25 @@ export function ClassStreamTab({
         <div className="flex flex-col gap-5">
           {/* Instructor Quick Actions Bar */}
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">edit_note</span>
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                </div>
+                <h2 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                  Đăng bảng tin nhanh cho lớp {classInfo.name}
+                </h2>
               </div>
-              <h2 className="font-bold text-base text-slate-900 dark:text-slate-100">
-                Đăng bảng tin nhanh cho lớp {classInfo.name}
-              </h2>
+              {onOpenCreateAnnouncement && (
+                <button
+                  type="button"
+                  onClick={onOpenCreateAnnouncement}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/80 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold transition-colors cursor-pointer border border-blue-200 dark:border-blue-900 shadow-2xs"
+                >
+                  <span className="material-symbols-outlined text-[16px]">campaign</span>
+                  <span>Soạn thông báo đầy đủ</span>
+                </button>
+              )}
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-800/80 rounded-xl p-3.5 mb-3 border border-slate-200 dark:border-slate-700">

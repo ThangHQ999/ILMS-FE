@@ -10,6 +10,7 @@ import { ClassKpiStatsBar } from './ClassKpiStatsBar';
 import { ClassFilterToolbar } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
 import { ClassListView } from './ClassListView';
+import { StudentClassListView } from './StudentClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -492,16 +493,24 @@ export function ClassListPageView({
                 </div>
               </div>
 
-              {/* Class Card Grid */}
-              <ClassCardGrid
-                items={items}
-                workspaceMode={workspaceMode}
-                viewMode={viewMode}
-                onArchiveClick={(item) => setArchiveTarget(item)}
-                onRestoreClick={(item) => restoreClass(item.id)}
-                copiedCode={copiedCode}
-                onCopyCode={handleCopyCode}
-              />
+              {/* Class Presentation (Student List View vs Grid / Faculty) */}
+              {workspaceMode === 'student' && viewMode === 'list' ? (
+                <StudentClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
+              ) : (
+                <ClassCardGrid
+                  items={items}
+                  workspaceMode={workspaceMode}
+                  viewMode={viewMode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
+                  onRestoreClick={(item) => restoreClass(item.id)}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
+              )}
             </div>
           )}
 

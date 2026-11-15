@@ -210,16 +210,26 @@ export function ClassAnnouncementsTab({
             <button
               type="button"
               onClick={() => {
-                document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' });
+                if (onPostClick) {
+                  onPostClick();
+                } else {
+                  document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[19px]">add_circle</span>
+              <span className="material-symbols-outlined text-[19px]">campaign</span>
               <span>+ Tạo thông báo mới</span>
             </button>
             <button
               type="button"
-              onClick={() => notify('Đã mở hộp thoại lên lịch phát tin tự động')}
+              onClick={() => {
+                if (onPostClick) {
+                  onPostClick();
+                } else {
+                  notify('Đã mở hộp thoại lên lịch phát tin tự động');
+                }
+              }}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs backdrop-blur-md transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[19px]">schedule_send</span>
