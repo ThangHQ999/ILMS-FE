@@ -782,3 +782,4 @@ export function CurriculumAuthoringModal({
     </div>
   );
 }
+
