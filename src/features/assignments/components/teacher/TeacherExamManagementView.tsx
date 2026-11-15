@@ -20,6 +20,7 @@ import {
   useResolveComplaint,
   useProctorSessions,
 } from '../../hooks/useQuizzes';
+import { determineQuizLifecycle } from '../../services/quiz.service';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -230,18 +231,18 @@ export function TeacherExamManagementView({
     }, 3000);
   };
 
-  // Base Exam Data
+  // Base Exam Data matching 5 Lifecycle States
   const classTagText = `Lớp: ${currentClassOption.code}`;
   const allExams: ExamItem[] = useMemo(() => [
     {
       id: `quiz-04-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-04`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-04`,
       type: 'quiz',
       status: 'live',
-      statusBadge: '⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
-      statusBadgeColor: 'bg-red-500 text-white',
+      statusBadge: 'Đang trực tuyến • Live',
+      statusBadgeColor: 'bg-rose-500 text-white',
       classTag: classTagText,
-      title: `Quiz 04: Đánh giá Năng lực Tầng Mạng (${currentClassOption.code})`,
+      title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
       duration: '30 phút làm bài',
       questionCount: 20,
       tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
@@ -251,96 +252,119 @@ export function TeacherExamManagementView({
       progressPercent: 90,
     },
     {
-      id: `mid-2024-${currentClassOption.id}`,
-      code: `MID-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'EXAM'}-2024`,
-      type: 'exam',
+      id: `quiz-05-${currentClassOption.id}`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-05`,
+      type: 'quiz',
       status: 'upcoming',
-      statusBadge: '📝 ĐỀ THI CHÍNH KHÓA • BẢO MẬT CAO',
+      statusBadge: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
       statusBadgeColor: 'bg-blue-600 text-white',
       securityBadge: 'Safe Exam Browser',
-      classTag: currentClassOption.title || classTagText,
-      title: `Kiểm tra Giữa kỳ: Đánh giá Năng lực Tổng hợp (${currentClassOption.code})`,
-      examDate: 'Thứ 6, 25/10 - 08:00 AM',
+      classTag: classTagText,
+      title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
+      examDate: 'Hôm nay: 14:00 - 14:45',
       duration: '45 phút',
-      questionCount: 35,
-      tags: ['Trộn 4 mã đề'],
+      questionCount: 25,
+      totalStudents: 60,
+      tags: ['Safe Exam Browser'],
     },
     {
       id: `quiz-03-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-03`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-03`,
       type: 'quiz',
       status: 'completed',
-      statusBadge: '⚡ QUIZ TRẮC NGHIỆM • ĐÃ HOÀN THÀNH',
-      statusBadgeColor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
+      statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+      statusBadgeColor: 'bg-emerald-600 text-white',
       classTag: classTagText,
-      title: `Quiz 03: Chuyên đề Thực hành & Bài tập Lớn (${currentClassOption.code})`,
+      title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
       duration: '30 phút',
       questionCount: 20,
       tags: ['58/58 SV nộp (100%)'],
+      submittedCount: 58,
+      totalStudents: 58,
       avgScore: 8.2,
       ploRate: 88,
       discriminationIndex: 0.74,
     },
     {
       id: `quiz-02-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'QUIZ'}-02`,
+      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-02`,
       type: 'quiz',
       status: 'complaints',
-      statusBadge: '⚡ QUIZ TRẮC NGHIỆM • CÓ 2 KHIẾU NẠI ĐANG CHỜ',
-      statusBadgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
-      classTag: 'Điểm TB: 8.1/10',
-      title: `Quiz 02: Khảo sát Kiến thức Định kỳ (${currentClassOption.code})`,
+      statusBadge: 'Có 2 khiếu nại cần xử lý',
+      statusBadgeColor: 'bg-rose-600 text-white',
+      classTag: classTagText,
+      title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
       duration: '35 phút',
       questionCount: 25,
       tags: [],
+      submittedCount: 56,
+      totalStudents: 60,
+      avgScore: 8.1,
       complaintCount: 2,
-      complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time',
+      complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
     },
     {
-      id: `quiz-05-draft-${currentClassOption.id}`,
-      code: `AI-DRAFT-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'APP'}`,
+      id: `quiz-06-draft-${currentClassOption.id}`,
+      code: 'AI-DRAFT-APP',
       type: 'draft',
       status: 'draft',
-      statusBadge: '✨ AI GENERATED DRAFT • 20 CÂU TỰ ĐỘNG BÓC TÁCH',
-      statusBadgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-      classTag: `Sinh từ tài liệu: ${currentClassOption.title || currentClassOption.code}`,
-      title: `Quiz 05: Đề thi sinh tự động AI (${currentClassOption.code})`,
+      statusBadge: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
+      statusBadgeColor: 'bg-purple-600 text-white',
+      classTag: classTagText,
+      title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
+      sourceDoc: 'Sinh từ tài liệu: Chapter5_Application_Layer.pdf',
       duration: '25 phút',
       questionCount: 20,
-      tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích'],
+      tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
       draftMode: 'Đang ở chế độ nháp riêng tư',
     },
   ], [currentClassOption, classTagText, formattedTimeLeft]);
 
 
-  // Merge API Quizzes with Base Mock Items
+  // Merge API Quizzes with Base Mock Items and Dynamically Calculate Lifecycle
   const mergedExams = useMemo(() => {
     if (!apiQuizzes || apiQuizzes.length === 0) return allExams;
     const existingIds = new Set(allExams.map((e) => e.id));
     const extraExams: ExamItem[] = apiQuizzes
       .filter((q) => !existingIds.has(q.id))
-      .map((q) => ({
-        id: q.id,
-        code: q.code,
-        type: q.type,
-        status: (q.status === 'live' ? 'live' : q.status === 'completed' ? 'completed' : q.status === 'draft' ? 'draft' : 'upcoming') as ExamItem['status'],
-        statusBadge: q.badgeLabel,
-        statusBadgeColor: q.status === 'live'
-          ? 'bg-red-500 text-white'
-          : q.status === 'draft'
-          ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
-          : 'bg-blue-600 text-white',
-        classTag: q.className,
-        title: q.title,
-        duration: `${q.durationMinutes} phút`,
-        questionCount: q.questionCount,
-        tags: [q.attemptsInfo, q.securityInfo],
-        submittedCount: q.submittedCount,
-        totalStudents: q.totalStudents,
-        timeLeft: q.remainingTime,
-        avgScore: q.avgScore,
-        ploRate: q.ploRate,
-      }));
+      .map((q) => {
+        const lifecycle = determineQuizLifecycle({
+          status: q.status,
+          type: q.type,
+          startTime: q.startTime,
+          endTime: q.endTime,
+          complaintCount: q.complaintCount,
+        });
+
+        return {
+          id: q.id,
+          code: q.code,
+          type: lifecycle.status === 'draft' ? 'draft' : q.type,
+          status: lifecycle.status,
+          statusBadge: lifecycle.badgeLabel,
+          statusBadgeColor: lifecycle.badgeType === 'red'
+            ? 'bg-rose-500 text-white'
+            : lifecycle.badgeType === 'purple'
+            ? 'bg-purple-600 text-white'
+            : lifecycle.badgeType === 'emerald'
+            ? 'bg-emerald-600 text-white'
+            : 'bg-blue-600 text-white',
+          classTag: q.className,
+          title: q.title,
+          duration: `${q.durationMinutes} phút làm bài`,
+          questionCount: q.questionCount,
+          tags: [q.attemptsInfo, q.securityInfo],
+          submittedCount: q.submittedCount,
+          totalStudents: q.totalStudents,
+          timeLeft: lifecycle.formattedTimeText || q.remainingTime,
+          progressPercent: lifecycle.progressPercent ?? 85,
+          avgScore: q.avgScore,
+          ploRate: q.ploRate,
+          discriminationIndex: q.discriminationIndex,
+          complaintCount: q.complaintCount,
+          complaintDetail: q.complaintNote,
+        };
+      });
     return [...extraExams, ...allExams];
   }, [apiQuizzes, allExams]);
 
@@ -868,73 +892,68 @@ export function TeacherExamManagementView({
             )}
 
             {filteredExams.map((exam) => {
-              // 1. DRAFT QUIZ (Bản nháp)
+              // 1. DRAFT QUIZ (Bản nháp AI Generated / Nháp riêng tư)
               if (exam.status === 'draft' || exam.type === 'draft') {
                 return (
                   <div
                     key={exam.id}
-                    className="group relative rounded-xl bg-white dark:bg-[#1E1F20] shadow-sm hover:shadow-md transition-all p-5 border-l-4 border-purple-600 dark:border-purple-400 border border-slate-200/80 dark:border-[#282A2C]"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-purple-200/80 dark:border-purple-900/60 hover:border-purple-300 dark:hover:border-purple-800 shadow-xs transition-all relative overflow-hidden bg-purple-50/10 dark:bg-purple-950/10"
                   >
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[26px]">smart_toy</span>
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-purple-500" />
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-1">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/60 dark:border-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="material-symbols-outlined text-[20px]">smart_toy</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 font-bold tracking-wide text-[10px]">
-                              {exam.statusBadge || '✨ BẢN NHÁP RIÊNG TƯ'}
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-[11px] font-bold">
+                              <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
+                              {exam.statusBadge || `Bản nháp AI Generated • ${exam.questionCount || 20} câu tự động bóc tách`}
                             </span>
-                            <span className="font-mono text-xs text-[#75777e] dark:text-[#8E918F] font-semibold">
-                              {exam.code}
-                            </span>
+                            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">{exam.code}</span>
                             <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="text-xs text-[#44474d] dark:text-[#8E918F]">
-                              {exam.classTag}
+                            <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+                              {exam.sourceDoc || `Sinh từ tài liệu: ${currentClassOption.title || currentClassOption.code}.pdf`}
                             </span>
                           </div>
                           <h3
                             onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
-                            className="text-base text-[#171c1f] dark:text-white font-bold hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
+                            className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
                           </h3>
-                          <div className="flex items-center gap-4 text-xs text-[#44474d] dark:text-[#8E918F] flex-wrap mt-0.5">
-                            <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
-                              {exam.duration}
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                            <span className="text-purple-700 dark:text-purple-300 font-medium">
+                              Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin
                             </span>
-                            <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-slate-400">help</span>
-                              {exam.questionCount} câu hỏi
-                            </span>
-                            <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="text-[#75777e]">{exam.draftMode || 'Đang ở chế độ nháp riêng tư'}</span>
+                            <span>•</span>
+                            <span className="text-slate-500 dark:text-slate-400">{exam.draftMode || 'Đang ở chế độ nháp riêng tư'}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+                      <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
                           onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">edit</span>
-                          <span>Chỉnh sửa Quiz</span>
+                          <span className="material-symbols-outlined text-[16px] text-purple-600 dark:text-purple-400">fact_check</span>
+                          <span>Duyệt &amp; Thẩm định ma trận câu hỏi</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handlePublishDraftItem(exam.id, exam.title)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold shadow hover:bg-purple-700 active:scale-95 transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+                          <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
                           <span>Xuất bản đề thi</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteQuizItem(exam.id, exam.title)}
-                          className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                           title="Xóa bản nháp"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -945,107 +964,101 @@ export function TeacherExamManagementView({
                 );
               }
 
-              // 2. LIVE QUIZ (Đang thi trực tuyến)
+              // 2. LIVE QUIZ (Đang trực tuyến • Live)
               if (exam.status === 'live') {
                 return (
                   <div
                     key={exam.id}
-                    className="group relative rounded-xl bg-white dark:bg-[#1E1F20] shadow-md hover:shadow-lg transition-all p-5 overflow-hidden bg-gradient-to-r from-blue-50/40 via-white to-white dark:from-blue-950/20 dark:via-[#1E1F20] dark:to-[#1E1F20] border-l-4 border-red-500 border border-slate-200/80 dark:border-[#282A2C]"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#282A2C] hover:border-slate-300 dark:hover:border-slate-700 shadow-xs transition-all relative overflow-hidden"
                   >
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 shadow-sm">
-                          <span className="material-symbols-outlined text-[28px] animate-pulse">timer</span>
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500" />
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-1">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/60 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="material-symbols-outlined text-[20px]">timer</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500 text-white font-bold tracking-wide text-[10px]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                              ⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-[11px] font-bold uppercase tracking-wide">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                              Đang trực tuyến • Live
                             </span>
-                            <span className="font-mono text-xs text-[#75777e] dark:text-[#8E918F] font-semibold">
-                              {exam.code}
-                            </span>
+                            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">{exam.code}</span>
                             <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">
-                              {exam.classTag}
-                            </span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{exam.classTag}</span>
                           </div>
                           <h3
                             onClick={() => showToast(`Xem chi tiết: ${exam.title}`)}
-                            className="text-base text-[#171c1f] dark:text-white font-bold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                            className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
                           </h3>
-                          <div className="flex items-center gap-4 text-xs text-[#44474d] dark:text-[#8E918F] flex-wrap mt-0.5">
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
                             <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
-                                schedule
-                              </span>
+                              <span className="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
                               {exam.duration}
                             </span>
+                            <span>•</span>
                             <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
-                                help
-                              </span>
+                              <span className="material-symbols-outlined text-[15px] text-slate-400">help_outline</span>
                               {exam.questionCount} câu hỏi
                             </span>
+                            <span>•</span>
                             <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
-                                shuffle
-                              </span>
-                              Xáo trộn đề &amp; đáp án
+                              <span className="material-symbols-outlined text-[15px] text-slate-400">shuffle</span>
+                              4 mã đề tự động
                             </span>
-                            <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
-                              <span className="material-symbols-outlined text-[15px]">security</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+                              <span className="material-symbols-outlined text-[15px]">visibility</span>
                               Giám sát Tab &amp; IP
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 xl:justify-end">
-                        <div className="flex flex-col gap-1 min-w-[200px]">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-[#171c1f] dark:text-white font-semibold">
-                              {exam.submittedCount || 0} / {exam.totalStudents || 60} SV đã nộp
+                      {/* Action & Progress Bar */}
+                      <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-[#282A2C]">
+                        <div className="w-full sm:w-auto text-left lg:text-right space-y-1">
+                          <div className="flex items-center justify-between lg:justify-end gap-2 text-xs">
+                            <span className="font-bold text-slate-800 dark:text-slate-200">
+                              {exam.submittedCount ?? 54} / {exam.totalStudents ?? 60} SV đã nộp
                             </span>
-                            <span className="text-red-600 dark:text-red-400 font-bold font-mono">
-                              {exam.timeLeft || 'Đang diễn ra'}
+                            <span className="text-rose-600 dark:text-rose-400 font-mono font-semibold">
+                              {exam.timeLeft || 'Còn 12:45'}
                             </span>
                           </div>
-                          <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div className="w-48 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-red-500 rounded-full transition-all duration-500"
-                              style={{ width: `${exam.progressPercent || 85}%` }}
+                              className="h-full bg-rose-500 rounded-full transition-all duration-500"
+                              style={{ width: `${exam.progressPercent ?? 90}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-[#75777e] dark:text-[#8E918F] text-right">
-                            {exam.progressPercent || 85}% sinh viên đã nộp
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block text-right">
+                            {exam.progressPercent ?? 90}% sinh viên đã nộp
                           </span>
                         </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => showToast(`Mở phòng Giám sát trực tiếp: ${exam.title}`)}
-                            className="inline-flex items-center gap-1 px-3.5 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                           >
-                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                            <span className="material-symbols-outlined text-[16px]">visibility</span>
                             <span>Giám sát phòng thi ngay</span>
                           </button>
                           <button
                             type="button"
-                            onClick={() => showToast('Đang tải kết quả thi thời gian thực...')}
-                            className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            onClick={() => showToast('Xem kết quả thời gian thực')}
+                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Xem kết quả thời gian thực"
                           >
-                            <span className="material-symbols-outlined text-[18px]">leaderboard</span>
-                            <span>Xem kết quả</span>
+                            <span className="material-symbols-outlined text-[18px]">query_stats</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteQuizItem(exam.id, exam.title)}
-                            className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                             title="Xóa đề thi"
                           >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -1057,74 +1070,83 @@ export function TeacherExamManagementView({
                 );
               }
 
-              // 3. COMPLETED QUIZ (Đã hoàn thành)
+              // 3. COMPLETED QUIZ (Đã hoàn thành • Đã công bố điểm)
               if (exam.status === 'completed') {
                 return (
                   <div
                     key={exam.id}
-                    className="group relative rounded-xl bg-white dark:bg-[#1E1F20] shadow-sm hover:shadow-md transition-all p-5 border-l-4 border-indigo-600 dark:border-indigo-400 border border-slate-200/80 dark:border-[#282A2C]"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#282A2C] hover:border-slate-300 dark:hover:border-slate-700 shadow-xs transition-all relative overflow-hidden"
                   >
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[28px]">check_circle</span>
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-1">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="material-symbols-outlined text-[20px]">task_alt</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-bold tracking-wide text-[10px]">
-                              ⚡ QUIZ TRẮC NGHIỆM • ĐÃ HOÀN THÀNH
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
+                              <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                              Đã hoàn thành • Đã công bố điểm
                             </span>
-                            <span className="font-mono text-xs text-[#75777e] dark:text-[#8E918F] font-semibold">
-                              {exam.code}
-                            </span>
+                            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">{exam.code}</span>
                             <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">
-                              {exam.classTag}
-                            </span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{exam.classTag}</span>
                           </div>
                           <h3
                             onClick={() => showToast(`Xem thống kê: ${exam.title}`)}
-                            className="text-base text-[#171c1f] dark:text-white font-bold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                            className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
                           </h3>
-                          <div className="flex items-center gap-4 text-xs text-[#44474d] dark:text-[#8E918F] flex-wrap mt-0.5">
-                            <span>58/58 SV nộp (100%)</span>
-                            <span className="font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                              Điểm TB: {exam.avgScore || 8.0}/10
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                            <span>{exam.submittedCount || 58}/{exam.totalStudents || 58} SV nộp (100%)</span>
+                            <span>•</span>
+                            <span className="text-blue-600 dark:text-blue-400 font-bold">
+                              Điểm TB: {exam.avgScore ?? 8.2}/10
                             </span>
+                            <span>•</span>
                             <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                              Đạt PLO: {exam.ploRate || 85}%
+                              Đạt PLO: {exam.ploRate ?? 88}%
                             </span>
-                            <span className="text-[#75777e]">Độ phân cách: {exam.discriminationIndex || 0.74}</span>
+                            <span>•</span>
+                            <span>Độ phân cách: {exam.discriminationIndex ?? 0.74}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+                      <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
                           onClick={() => showToast('Mở biểu đồ phân tích phổ điểm & chuẩn năng lực Bloom')}
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">query_stats</span>
+                          <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">analytics</span>
                           <span>Thống kê phổ điểm &amp; Bloom</span>
                         </button>
                         <button
                           type="button"
-                          onClick={() => showToast('Mở danh sách bảng điểm chi tiết lớp học')}
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                          onClick={() => showToast('Mở bảng điểm chi tiết')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">leaderboard</span>
+                          <span className="material-symbols-outlined text-[15px]">table_view</span>
                           <span>Bảng điểm chi tiết</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Đã tạo đề phái sinh đảo câu hỏi và mã đề')}
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-[#171c1f] dark:text-white text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">shuffle</span>
+                          <span className="material-symbols-outlined text-[15px]">replay</span>
                           <span>Đảo đề làm lại</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteQuizItem(exam.id, exam.title)}
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                          title="Xóa đề thi"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       </div>
                     </div>
@@ -1132,63 +1154,77 @@ export function TeacherExamManagementView({
                 );
               }
 
-              // 4. COMPLAINTS QUIZ (Có khiếu nại)
+              // 4. COMPLAINTS QUIZ (Có khiếu nại & Cần xử lý)
               if (exam.status === 'complaints') {
                 return (
                   <div
                     key={exam.id}
-                    className="group relative rounded-xl bg-white dark:bg-[#1E1F20] shadow-sm hover:shadow-md transition-all p-5 border-l-4 border-red-500 border border-slate-200/80 dark:border-[#282A2C]"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-rose-200/80 dark:border-rose-900/60 hover:border-rose-300 dark:hover:border-rose-800 shadow-xs transition-all relative overflow-hidden bg-rose-50/10 dark:bg-rose-950/10"
                   >
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[28px]">gavel</span>
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-600" />
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-1">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-rose-100/70 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="material-symbols-outlined text-[20px]">warning</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 font-bold tracking-wide text-[10px]">
-                              <span className="material-symbols-outlined text-[14px]">warning</span>
-                              ⚡ QUIZ TRẮC NGHIỆM • CÓ {exam.complaintCount || 2} KHIẾU NẠI ĐANG CHỜ
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 text-[11px] font-bold">
+                              <span className="material-symbols-outlined text-[13px]">gavel</span>
+                              Có {exam.complaintCount ?? 2} khiếu nại cần xử lý
                             </span>
-                            <span className="font-mono text-xs text-[#75777e] dark:text-[#8E918F] font-semibold">
-                              {exam.code}
+                            <span className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold tracking-wide">
+                              Cần xử lý &lt; 24h
                             </span>
+                            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">{exam.code}</span>
                             <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">
-                              {exam.classTag}
-                            </span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">Điểm TB: {exam.avgScore ?? 8.1}/10</span>
                           </div>
                           <h3
                             onClick={() => showToast(`Xem chi tiết khiếu nại: ${exam.title}`)}
-                            className="text-base text-[#171c1f] dark:text-white font-bold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                            className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
                           </h3>
-                          <div className="flex items-center gap-2 text-xs text-[#44474d] dark:text-[#8E918F] flex-wrap mt-0.5">
-                            <span className="text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px]">info</span>
-                              {exam.complaintDetail || '2 SV khiếu nại câu hỏi tính toán'}
-                            </span>
+                          <div className="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 pt-0.5">
+                            <span className="material-symbols-outlined text-[15px]">info</span>
+                            <span>{exam.complaintDetail || '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet'}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+                      <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
-                          onClick={() => showToast('Mở giao diện giải quyết 2 khiếu nại chấm lại')}
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 shadow-sm transition-all cursor-pointer"
+                          onClick={() => showToast(`Mở giao diện giải quyết ${exam.complaintCount ?? 2} khiếu nại chấm lại`)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">assignment_turned_in</span>
-                          <span>Xử lý khiếu nại ({exam.complaintCount || 2})</span>
+                          <span className="material-symbols-outlined text-[16px]">gavel</span>
+                          <span>Xử lý khiếu nại ({exam.complaintCount ?? 2})</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => showToast('Mở báo cáo tổng hợp chất lượng đề thi')}
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[18px]">assessment</span>
+                          <span className="material-symbols-outlined text-[15px]">summarize</span>
                           <span>Xem báo cáo</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => showToast('Mở giao diện điều chỉnh điểm')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">tune</span>
+                          <span>Chỉnh sửa điểm</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteQuizItem(exam.id, exam.title)}
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                          title="Xóa đề thi"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       </div>
                     </div>
@@ -1196,88 +1232,82 @@ export function TeacherExamManagementView({
                 );
               }
 
-              // 5. OFFICIAL EXAM / UPCOMING / GENERAL DEFAULT
+              // 5. UPCOMING / SCHEDULED QUIZ & GENERAL CARDS (Sắp diễn ra • Đã lên lịch)
               return (
                 <div
                   key={exam.id}
-                  className="group relative rounded-xl bg-white dark:bg-[#1E1F20] shadow-sm hover:shadow-md transition-all p-5 border-l-4 border-blue-600 dark:border-blue-500 border border-slate-200/80 dark:border-[#282A2C]"
+                  className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#282A2C] hover:border-slate-300 dark:hover:border-slate-700 shadow-xs transition-all relative overflow-hidden"
                 >
-                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[28px]">
-                          {exam.type === 'exam' ? 'lock' : 'quiz'}
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-1">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="material-symbols-outlined text-[20px]">
+                          {exam.type === 'exam' ? 'lock' : 'calendar_today'}
                         </span>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-bold tracking-wide text-[10px]">
-                            {exam.statusBadge || '📝 ĐỀ THI CHÍNH KHÓA • BẢO MẬT CAO'}
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-[11px] font-bold">
+                            <span className="material-symbols-outlined text-[13px]">alarm</span>
+                            {exam.statusBadge || 'Sắp diễn ra • Bắt đầu sau 2 giờ'}
                           </span>
-                          {exam.securityBadge && (
-                            <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-semibold flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[14px]">shield</span>
-                              {exam.securityBadge}
-                            </span>
-                          )}
-                          <span className="font-mono text-xs text-[#75777e] dark:text-[#8E918F] font-semibold">
-                            {exam.code}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10.5px] font-medium">
+                            <span className="material-symbols-outlined text-[13px]">verified_user</span>
+                            {exam.securityBadge || 'Safe Exam Browser'}
                           </span>
-                          <span className="text-slate-300 dark:text-slate-700">•</span>
-                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">
-                            {exam.classTag}
-                          </span>
+                          <span className="text-xs font-mono text-slate-400 dark:text-slate-500">{exam.code}</span>
                         </div>
                         <h3
-                          onClick={() => showToast(`Xem cấu hình: ${exam.title}`)}
-                          className="text-base text-[#171c1f] dark:text-white font-bold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                          onClick={() => showToast(`Cấu hình đề thi: ${exam.title}`)}
+                          className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                         >
                           {exam.title}
                         </h3>
-                        <div className="flex items-center gap-4 text-xs text-[#44474d] dark:text-[#8E918F] flex-wrap mt-0.5">
-                          {exam.examDate && (
-                            <span className="flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400">
-                              <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                              Lịch thi: {exam.examDate}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
-                            {exam.duration}
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                          <span className="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[15px] text-blue-600 dark:text-blue-400">calendar_month</span>
+                            {exam.examDate || 'Hôm nay: 14:00 - 14:45'}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400">help</span>
-                            {exam.questionCount} câu hỏi
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400">shuffle</span>
-                            Trộn 4 mã đề
-                          </span>
+                          <span>•</span>
+                          <span>{exam.duration}</span>
+                          <span>•</span>
+                          <span>{exam.questionCount} câu hỏi</span>
+                          <span>•</span>
+                          <span className="text-slate-700 dark:text-slate-300">{exam.totalStudents || 60} SV đã ghi danh</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+                    <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                       <button
                         type="button"
-                        onClick={() => showToast('Mở bảng cấu hình phòng thi bảo mật')}
-                        className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors cursor-pointer"
+                        onClick={() => showToast(`Mở phòng chờ sớm: ${exam.title}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[18px]">tune</span>
-                        <span>Cấu hình phòng thi</span>
+                        <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+                        <span>Mở phòng chờ sớm</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => showToast('Đang kết xuất đề thi và ma trận đáp án PDF')}
-                        className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#171c1f] dark:text-white text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                        onClick={() => showToast('Mở cấu hình an ninh')}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[18px]">print</span>
-                        <span>In đề &amp; Đáp án</span>
+                        <span className="material-symbols-outlined text-[15px]">security</span>
+                        <span>Cấu hình an ninh</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => showToast('Mở danh sách thí sinh')}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">group</span>
+                        <span>Danh sách thí sinh</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteQuizItem(exam.id, exam.title)}
-                        className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                         title="Xóa đề thi"
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>

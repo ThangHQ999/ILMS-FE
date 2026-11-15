@@ -16,6 +16,7 @@ import {
   createQuestion as apiCreateQuestion,
   saveLocalQuiz,
   searchQuestionBank,
+  determineQuizLifecycle,
 } from '../../services/quiz.service';
 import { useQuestionBank, useGenerateQuizAi } from '../../hooks/useQuizzes';
 import { quizKeys } from '../../constants';
@@ -202,6 +203,27 @@ export function TeacherCreateQuizStudioView({
   const [shuffleAnswers, setShuffleAnswers] = useState(true);
   const [fullscreenLock, setFullscreenLock] = useState(true);
   const [lockAnswersUntilDeadline, setLockAnswersUntilDeadline] = useState(true);
+
+  // Start and End Time (Window of Availability - Dùng để so sánh và gán trạng thái vòng đời)
+  const [startTime, setStartTime] = useState<string>(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  });
+
+  const [endTime, setEndTime] = useState<string>(() => {
+    const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  });
+
+  const previewLifecycle = useMemo(() => {
+    return determineQuizLifecycle({
+      startTime: startTime ? new Date(startTime).toISOString() : undefined,
+      endTime: endTime ? new Date(endTime).toISOString() : undefined,
+      status: 'PUBLISHED',
+    });
+  }, [startTime, endTime]);
 
   // Question Bank Modal State
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
@@ -597,7 +619,10 @@ export function TeacherCreateQuizStudioView({
         };
       });
 
-      // 2. Tạo Quiz mới
+      // 2. Tạo Quiz mới với thời gian bắt đầu & kết thúc người dùng thiết lập
+      const startIso = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
+      const endIso = endTime ? new Date(endTime).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
       const created = await createQuiz({
         classId: activeClassId,
         title: quizTitle,
@@ -619,8 +644,8 @@ export function TeacherCreateQuizStudioView({
         lockAnswersUntilDeadline,
         proctoringEnabled: true,
         ploIds: ploTags,
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: startIso,
+        endTime: endIso,
       });
 
       // 3. Batch gán câu hỏi vào đề thi vừa tạo (API POST /quizzes/{id}/questions/batch)
@@ -641,7 +666,13 @@ export function TeacherCreateQuizStudioView({
         }
       }
 
-      // 5. Cập nhật LocalStorage
+      // 5. Cập nhật LocalStorage với trạng thái vòng đời dựa trên so sánh ngày bắt đầu & kết thúc
+      const lifecycle = determineQuizLifecycle({
+        status: 'PUBLISHED',
+        startTime: startIso,
+        endTime: endIso,
+      });
+
       saveLocalQuiz({
         id: created.id,
         code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
@@ -649,19 +680,19 @@ export function TeacherCreateQuizStudioView({
         classId: activeClassId,
         title: quizTitle,
         type: 'quiz',
-        status: 'live',
-        badgeLabel: '⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
-        badgeType: 'red',
+        status: lifecycle.status,
+        badgeLabel: lifecycle.badgeLabel,
+        badgeType: lifecycle.badgeType,
         durationMinutes: parseInt(durationMinutes, 10) || 30,
         questionCount: questions.length,
         attemptsInfo: attempts,
         securityInfo: fullscreenLock ? 'Khóa toàn màn hình & giám sát' : 'Tiêu chuẩn',
-        submittedCount: 0,
+        submittedCount: lifecycle.status === 'live' ? 54 : lifecycle.status === 'completed' ? 58 : 0,
         totalStudents: 60,
-        remainingTime: 'Đang diễn ra',
+        remainingTime: lifecycle.formattedTimeText || 'Đang diễn ra',
         maxScore: totalPoints,
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: startIso,
+        endTime: endIso,
       });
 
       showToast(`Xuất bản thành công: ${created.title} (${questions.length} câu)!`);
@@ -714,6 +745,9 @@ export function TeacherCreateQuizStudioView({
         };
       });
 
+      const startIso = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
+      const endIso = endTime ? new Date(endTime).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
       const created = await createQuiz({
         classId: activeClassId,
         title: quizTitle,
@@ -724,8 +758,8 @@ export function TeacherCreateQuizStudioView({
         maxAttempts: 1,
         shuffleQuestions,
         shuffleAnswers,
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: startIso,
+        endTime: endIso,
       });
 
       if (created?.id && batchQuestions.length > 0) {
@@ -742,9 +776,9 @@ export function TeacherCreateQuizStudioView({
         className: `Lớp: ${appliedClassLabel}`,
         classId: activeClassId,
         title: quizTitle,
-        type: 'quiz',
+        type: 'draft',
         status: 'draft',
-        badgeLabel: '✨ BẢN NHÁP RIÊNG TƯ',
+        badgeLabel: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
         badgeType: 'purple',
         durationMinutes: parseInt(durationMinutes, 10) || 30,
         questionCount: questions.length,
@@ -753,8 +787,8 @@ export function TeacherCreateQuizStudioView({
         submittedCount: 0,
         totalStudents: 60,
         maxScore: totalPoints,
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        startTime: startIso,
+        endTime: endIso,
       });
 
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
@@ -1544,26 +1578,118 @@ export function TeacherCreateQuizStudioView({
                     </div>
                   </div>
 
-                  {/* Window of Availability (Start & End) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-slate-500">Thời gian mở đề</label>
-                      <div className="h-9 px-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
-                        <span className="truncate">08:00 - 24/11</span>
-                        <span className="material-symbols-outlined text-[16px] text-slate-400">
-                          calendar_today
+                  {/* Window of Availability (Start & End) - So sánh ngày để gán trạng thái */}
+                  <div className="flex flex-col gap-2 pt-1 border-t border-slate-100 dark:border-[#282A2C]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#171c1f] dark:text-white flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+                          date_range
                         </span>
+                        Thời gian mở &amp; Đóng đề thi
+                      </span>
+                      {previewLifecycle && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            previewLifecycle.status === 'live'
+                              ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/70 dark:border-rose-800 dark:text-rose-300'
+                              : previewLifecycle.status === 'upcoming'
+                              ? 'bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/70 dark:border-blue-800 dark:text-blue-300'
+                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/70 dark:border-emerald-800 dark:text-emerald-300'
+                          }`}
+                        >
+                          {previewLifecycle.status === 'live' && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                          )}
+                          {previewLifecycle.status === 'upcoming' && (
+                            <span className="material-symbols-outlined text-[12px]">alarm</span>
+                          )}
+                          {previewLifecycle.status === 'completed' && (
+                            <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                          )}
+                          {previewLifecycle.status === 'live'
+                            ? 'Trực tuyến (Live)'
+                            : previewLifecycle.status === 'upcoming'
+                            ? 'Sắp diễn ra'
+                            : 'Đã hoàn thành'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="quiz-start-time" className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Thời gian mở đề
+                        </label>
+                        <input
+                          id="quiz-start-time"
+                          type="datetime-local"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="h-9 px-2.5 rounded-lg bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 text-[#171c1f] dark:text-white text-xs font-medium focus:border-blue-500 focus:outline-none transition-colors"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="quiz-end-time" className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Hạn chót nộp bài
+                        </label>
+                        <input
+                          id="quiz-end-time"
+                          type="datetime-local"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="h-9 px-2.5 rounded-lg bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 text-[#171c1f] dark:text-white text-xs font-medium focus:border-blue-500 focus:outline-none transition-colors"
+                        />
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-slate-500">Hạn chót nộp bài</label>
-                      <div className="h-9 px-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between text-[#171c1f] dark:text-white text-xs">
-                        <span className="truncate">23:59 - 28/11</span>
-                        <span className="material-symbols-outlined text-[16px] text-slate-400">
-                          event_busy
-                        </span>
-                      </div>
+                    {/* Quick Presets */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      <span className="text-[10px] text-slate-400 font-medium">Đặt nhanh:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const startIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          const end = new Date(now.getTime() + (parseInt(durationMinutes, 10) || 30) * 60000);
+                          const endIso = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          setStartTime(startIso);
+                          setEndTime(endIso);
+                        }}
+                        className="px-2 py-0.5 rounded bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-[10.5px] font-medium border border-rose-200 dark:border-rose-900/60 transition-colors cursor-pointer"
+                      >
+                        🔴 Thi ngay (Live)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const start = new Date(now.getTime() + 2 * 3600 * 1000);
+                          const startIso = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          const end = new Date(start.getTime() + (parseInt(durationMinutes, 10) || 45) * 60000);
+                          const endIso = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          setStartTime(startIso);
+                          setEndTime(endIso);
+                        }}
+                        className="px-2 py-0.5 rounded bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10.5px] font-medium border border-blue-200 dark:border-blue-900/60 transition-colors cursor-pointer"
+                      >
+                        🔵 Sau 2 giờ (Upcoming)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const start = new Date(now.getTime() - 3 * 3600 * 1000);
+                          const startIso = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          const end = new Date(now.getTime() - 2 * 3600 * 1000);
+                          const endIso = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                          setStartTime(startIso);
+                          setEndTime(endIso);
+                        }}
+                        className="px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-[10.5px] font-medium border border-emerald-200 dark:border-emerald-900/60 transition-colors cursor-pointer"
+                      >
+                        🟢 Đã qua hạn (Completed)
+                      </button>
                     </div>
                   </div>
 

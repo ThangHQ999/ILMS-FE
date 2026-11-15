@@ -434,9 +434,9 @@ export interface QuizItem {
   classId: string;
   title: string;
   type: 'quiz' | 'exam' | 'draft';
-  status: 'live' | 'completed' | 'draft' | 'pending';
+  status: 'live' | 'upcoming' | 'completed' | 'complaints' | 'draft' | 'pending';
   badgeLabel: string;
-  badgeType: 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'gray';
+  badgeType: 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'gray' | 'emerald';
   durationMinutes: number;
   questionCount: number;
   attemptsInfo: string;

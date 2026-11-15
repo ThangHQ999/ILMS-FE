@@ -65,6 +65,111 @@ export function deleteLocalQuiz(id: string): void {
 // RESILIENT MOCK DATA (Matches Teacher Dashboard & Exam Management Specs)
 // ============================================================================
 
+export interface QuizLifecycleInfo {
+  status: 'live' | 'upcoming' | 'completed' | 'complaints' | 'draft';
+  badgeLabel: string;
+  badgeType: 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'gray' | 'emerald';
+  formattedTimeText?: string;
+  remainingSeconds?: number;
+  progressPercent?: number;
+}
+
+/**
+ * So sánh ngày bắt đầu, ngày kết thúc và trạng thái để tự động xác định vòng đời bài quiz:
+ * - DRAFT: Bản nháp AI / bản nháp riêng tư
+ * - COMPLAINTS: Đang có khiếu nại của sinh viên cần xử lý
+ * - UPCOMING: now < startTime (Sắp diễn ra • Bắt đầu sau X)
+ * - LIVE: startTime <= now <= endTime (Đang trực tuyến • Live)
+ * - COMPLETED: now > endTime (Đã hoàn thành • Đã công bố điểm)
+ */
+export function determineQuizLifecycle(quiz: {
+  status?: string;
+  type?: string;
+  startTime?: string;
+  endTime?: string;
+  complaintCount?: number;
+}): QuizLifecycleInfo {
+  const isDraftStatus =
+    quiz.status?.toUpperCase() === 'DRAFT' ||
+    quiz.type === 'draft' ||
+    quiz.status === 'draft';
+
+  if (isDraftStatus) {
+    return {
+      status: 'draft',
+      badgeLabel: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
+      badgeType: 'purple',
+      formattedTimeText: 'Đang ở chế độ nháp riêng tư',
+    };
+  }
+
+  if (quiz.complaintCount && quiz.complaintCount > 0) {
+    return {
+      status: 'complaints',
+      badgeLabel: `Có ${quiz.complaintCount} khiếu nại cần xử lý`,
+      badgeType: 'red',
+      formattedTimeText: 'Cần xử lý < 24h',
+    };
+  }
+
+  const now = Date.now();
+  const start = quiz.startTime ? new Date(quiz.startTime).getTime() : now;
+  const end = quiz.endTime ? new Date(quiz.endTime).getTime() : now + 3600000;
+
+  // 1. Sắp diễn ra (Upcoming)
+  if (now < start) {
+    const diffMs = start - now;
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHours = Math.round(diffMs / 3600000);
+    const diffDays = Math.round(diffMs / 86400000);
+
+    let timeText = '';
+    if (diffMins < 60) {
+      timeText = `Bắt đầu sau ${Math.max(1, diffMins)} phút`;
+    } else if (diffHours < 24) {
+      timeText = `Bắt đầu sau ${diffHours} giờ`;
+    } else {
+      timeText = `Bắt đầu sau ${diffDays} ngày`;
+    }
+
+    return {
+      status: 'upcoming',
+      badgeLabel: `Sắp diễn ra • ${timeText}`,
+      badgeType: 'blue',
+      formattedTimeText: timeText,
+    };
+  }
+
+  // 2. Đang trực tuyến (Live)
+  if (now >= start && now <= end) {
+    const remainingSecs = Math.max(0, Math.floor((end - now) / 1000));
+    const mins = Math.floor(remainingSecs / 60);
+    const secs = remainingSecs % 60;
+    const formatted = `Còn ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+    const totalDurationMs = Math.max(1, end - start);
+    const elapsedMs = Math.min(totalDurationMs, now - start);
+    const progressPercent = Math.min(100, Math.max(10, Math.round((elapsedMs / totalDurationMs) * 100)));
+
+    return {
+      status: 'live',
+      badgeLabel: 'Đang trực tuyến • Live',
+      badgeType: 'red',
+      formattedTimeText: formatted,
+      remainingSeconds: remainingSecs,
+      progressPercent,
+    };
+  }
+
+  // 3. Đã hoàn thành (Completed)
+  return {
+    status: 'completed',
+    badgeLabel: 'Đã hoàn thành • Đã công bố điểm',
+    badgeType: 'emerald',
+    formattedTimeText: 'Đã hoàn thành',
+  };
+}
+
 export const MOCK_QUIZ_STATS: QuizStatsSummary = {
   totalCount: 14,
   quizCount: 9,
@@ -89,7 +194,7 @@ export const MOCK_QUIZZES: QuizItem[] = [
     title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
     type: 'quiz',
     status: 'live',
-    badgeLabel: 'QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
+    badgeLabel: 'Đang trực tuyến • Live',
     badgeType: 'red',
     durationMinutes: 30,
     questionCount: 20,
@@ -97,9 +202,28 @@ export const MOCK_QUIZZES: QuizItem[] = [
     securityInfo: 'Giám sát Tab & IP',
     submittedCount: 54,
     totalStudents: 60,
-    remainingTime: 'Còn: 11:55',
-    startTime: '2026-11-20T08:00:00Z',
-    endTime: '2026-11-20T08:30:00Z',
+    remainingTime: 'Còn 12:45',
+    startTime: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    endTime: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'quiz-05',
+    code: 'QUIZ-CS202-05',
+    className: 'Lớp: CS202.CLC01',
+    classId: 'cs-202',
+    title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
+    type: 'quiz',
+    status: 'upcoming',
+    badgeLabel: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
+    badgeType: 'blue',
+    durationMinutes: 45,
+    questionCount: 25,
+    attemptsInfo: 'Safe Exam Browser',
+    securityInfo: 'Safe Exam Browser',
+    submittedCount: 0,
+    totalStudents: 60,
+    startTime: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
+    endTime: new Date(Date.now() + (2 * 3600 + 45 * 60) * 1000).toISOString(),
   },
   {
     id: 'quiz-03',
@@ -109,11 +233,11 @@ export const MOCK_QUIZZES: QuizItem[] = [
     title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
     type: 'quiz',
     status: 'completed',
-    badgeLabel: 'QUIZ TRẮC NGHIỆM • ĐÃ HOÀN THÀNH',
-    badgeType: 'blue',
-    durationMinutes: 20,
-    questionCount: 15,
-    attemptsInfo: '1 lần làm duy nhất',
+    badgeLabel: 'Đã hoàn thành • Đã công bố điểm',
+    badgeType: 'emerald',
+    durationMinutes: 30,
+    questionCount: 20,
+    attemptsInfo: '58/58 SV nộp (100%)',
     securityInfo: 'Chống gian lận AI',
     submittedCount: 58,
     totalStudents: 58,
@@ -121,8 +245,8 @@ export const MOCK_QUIZZES: QuizItem[] = [
     maxScore: 10,
     ploRate: 88,
     discriminationIndex: 0.74,
-    startTime: '2026-11-10T09:00:00Z',
-    endTime: '2026-11-10T09:20:00Z',
+    startTime: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    endTime: new Date(Date.now() - (48 * 3600 - 30 * 60) * 1000).toISOString(),
   },
   {
     id: 'quiz-02',
@@ -131,11 +255,11 @@ export const MOCK_QUIZZES: QuizItem[] = [
     classId: 'cs-202',
     title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
     type: 'quiz',
-    status: 'completed',
-    badgeLabel: 'QUIZ TRẮC NGHIỆM • CÓ 2 KHIẾU NẠI ĐANG CHỜ',
-    badgeType: 'yellow',
-    durationMinutes: 25,
-    questionCount: 20,
+    status: 'complaints',
+    badgeLabel: 'Có 2 khiếu nại cần xử lý',
+    badgeType: 'red',
+    durationMinutes: 35,
+    questionCount: 25,
     attemptsInfo: '2 lần thử',
     securityInfo: 'Xáo trộn đề & đáp án',
     submittedCount: 56,
@@ -144,9 +268,9 @@ export const MOCK_QUIZZES: QuizItem[] = [
     maxScore: 10,
     ploRate: 82,
     complaintCount: 2,
-    complaintNote: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time',
-    startTime: '2026-10-25T14:00:00Z',
-    endTime: '2026-10-25T14:25:00Z',
+    complaintNote: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
+    startTime: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+    endTime: new Date(Date.now() - (72 * 3600 - 35 * 60) * 1000).toISOString(),
   },
   {
     id: 'exam-midterm',
@@ -156,8 +280,8 @@ export const MOCK_QUIZZES: QuizItem[] = [
     title: 'Đề thi Giữa kỳ: Mạng máy tính & Kiến trúc TCP/IP',
     type: 'exam',
     status: 'completed',
-    badgeLabel: 'ĐỀ THI CHÍNH KHÓA • ĐÃ HOÀN THÀNH',
-    badgeType: 'blue',
+    badgeLabel: 'Đã hoàn thành • Đã công bố điểm',
+    badgeType: 'emerald',
     durationMinutes: 60,
     questionCount: 40,
     attemptsInfo: '1 lần duy nhất',
@@ -172,20 +296,20 @@ export const MOCK_QUIZZES: QuizItem[] = [
   },
   {
     id: 'quiz-draft-01',
-    code: 'QUIZ-CS202-DRAFT',
+    code: 'AI-DRAFT-APP',
     className: 'Lớp: CS202.CLC01',
     classId: 'cs-202',
-    title: 'Bản nháp AI: Ôn tập Tầng Ứng dụng & DNS/HTTP (Exam Blueprint)',
+    title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
     type: 'draft',
     status: 'draft',
-    badgeLabel: 'BẢN NHÁP AI (BLUEPRINT)',
+    badgeLabel: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
     badgeType: 'purple',
-    durationMinutes: 30,
-    questionCount: 15,
+    durationMinutes: 25,
+    questionCount: 20,
     attemptsInfo: 'Dự thảo',
     securityInfo: 'Chưa công bố',
-    startTime: '2026-11-25T08:00:00Z',
-    endTime: '2026-11-25T08:30:00Z',
+    startTime: new Date(Date.now() + 7 * 86400 * 1000).toISOString(),
+    endTime: new Date(Date.now() + (7 * 86400 + 1800) * 1000).toISOString(),
   },
 ];
 
@@ -431,9 +555,11 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
 
     if (items && items.length > 0) {
       serverItems = items.map((q) => {
-        const now = new Date().toISOString();
-        const isLive = q.startTime <= now && q.endTime >= now;
-        const isCompleted = q.endTime < now;
+        const lifecycle = determineQuizLifecycle({
+          status: q.status,
+          startTime: q.startTime,
+          endTime: q.endTime,
+        });
 
         return {
           id: q.id,
@@ -441,24 +567,20 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
           className: 'Lớp: CS202.CLC01',
           classId: q.classId,
           title: q.title,
-          type: 'quiz',
-          status: isLive ? 'live' : isCompleted ? 'completed' : 'pending',
-          badgeLabel: isLive
-            ? 'QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN'
-            : isCompleted
-            ? 'QUIZ TRẮC NGHIỆM • ĐÃ HOÀN THÀNH'
-            : 'QUIZ TRẮC NGHIỆM • SẮP DIỄN RA',
-          badgeType: isLive ? 'red' : isCompleted ? 'blue' : 'yellow',
+          type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
+          status: lifecycle.status,
+          badgeLabel: lifecycle.badgeLabel,
+          badgeType: lifecycle.badgeType,
           durationMinutes: q.durationMinutes,
           questionCount: q.totalQuestions || 20,
           attemptsInfo: `${q.maxAttempts} lần làm`,
           securityInfo: q.shuffleQuestions ? 'Xáo trộn đề & đáp án' : 'Tiêu chuẩn',
-          submittedCount: isLive ? 45 : isCompleted ? 58 : 0,
+          submittedCount: lifecycle.status === 'live' ? 54 : lifecycle.status === 'completed' ? 58 : 0,
           totalStudents: 60,
-          remainingTime: isLive ? 'Đang diễn ra' : undefined,
-          avgScore: isCompleted ? 8.0 : undefined,
+          remainingTime: lifecycle.formattedTimeText,
+          avgScore: lifecycle.status === 'completed' ? 8.2 : undefined,
           maxScore: 10,
-          ploRate: isCompleted ? 85 : undefined,
+          ploRate: lifecycle.status === 'completed' ? 88 : undefined,
           startTime: q.startTime,
           endTime: q.endTime,
         };
@@ -468,7 +590,7 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
     // Graceful fallback to rich mock data
   }
 
-  // Kết hợp danh sách đề thi đã tạo từ LocalStorage lên đầu bảng
+  // Kết hợp danh sách đề thi đã tạo từ LocalStorage lên đầu bảng và tự động cập nhật vòng đời
   const filteredLocal = params.classId
     ? localList.filter((item) => {
         if (!item.classId) return true;
@@ -479,11 +601,27 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
     : localList;
 
   const effectiveLocal = filteredLocal.length > 0 ? filteredLocal : localList;
+  const mappedLocal = effectiveLocal.map((item) => {
+    const lifecycle = determineQuizLifecycle({
+      status: item.status,
+      type: item.type,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      complaintCount: item.complaintCount,
+    });
+    return {
+      ...item,
+      status: lifecycle.status,
+      badgeLabel: lifecycle.badgeLabel,
+      badgeType: lifecycle.badgeType,
+      remainingTime: lifecycle.formattedTimeText || item.remainingTime,
+    };
+  });
 
   const baseList = serverItems.length > 0 ? serverItems : MOCK_QUIZZES;
-  const localIds = new Set(effectiveLocal.map((item) => item.id));
+  const localIds = new Set(mappedLocal.map((item) => item.id));
   const filteredBase = baseList.filter((item) => !localIds.has(item.id));
-  return [...effectiveLocal, ...filteredBase];
+  return [...mappedLocal, ...filteredBase];
 }
 
 /**
@@ -572,6 +710,13 @@ export async function createQuiz(payload: QuizRequestDTO): Promise<QuizResponseD
   }
 
   // Đồng bộ hóa ngay lập tức vào LocalStorage để xuất hiện ngay trong danh sách giao diện
+  // Tự động phân tích và gán vòng đời (Live, Upcoming, Completed, Draft) theo ngày giờ bắt đầu và kết thúc
+  const lifecycle = determineQuizLifecycle({
+    status: payload.status,
+    startTime: payload.startTime,
+    endTime: payload.endTime,
+  });
+
   const targetClassLabel = payload.description?.startsWith('Lớp:')
     ? payload.description
     : `Lớp: ${payload.classId}`;
@@ -582,19 +727,17 @@ export async function createQuiz(payload: QuizRequestDTO): Promise<QuizResponseD
     className: targetClassLabel,
     classId: payload.classId,
     title: createdResult.title,
-    type: 'quiz',
-    status: payload.status === 'DRAFT' ? 'draft' : 'live',
-    badgeLabel: payload.status === 'DRAFT'
-      ? '✨ BẢN NHÁP RIÊNG TƯ'
-      : '⚡ QUIZ TRẮC NGHIỆM • ĐANG THI TRỰC TUYẾN',
-    badgeType: payload.status === 'DRAFT' ? 'purple' : 'red',
+    type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
+    status: lifecycle.status,
+    badgeLabel: lifecycle.badgeLabel,
+    badgeType: lifecycle.badgeType,
     durationMinutes: createdResult.durationMinutes,
     questionCount: createdResult.totalQuestions || 20,
     attemptsInfo: `${createdResult.maxAttempts || 2} lần làm`,
     securityInfo: 'Giám sát Tab & IP',
     submittedCount: 0,
     totalStudents: 60,
-    remainingTime: 'Đang diễn ra',
+    remainingTime: lifecycle.formattedTimeText || 'Đang diễn ra',
     startTime: createdResult.startTime,
     endTime: createdResult.endTime,
   };
