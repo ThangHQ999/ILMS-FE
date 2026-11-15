@@ -293,18 +293,26 @@ export function CourseDetailPageView({
       {/* Modals */}
       <CreateChapterModal
         isOpen={isAddChapterOpen}
+        courseCode={course?.courseCode || 'CS-202'}
+        courseTitle={course?.name}
+        chapters={chapters}
         onClose={() => setIsAddChapterOpen(false)}
         onSubmit={handleCreateChapter}
         isLoading={addChapterMutation.isPending}
+        onToast={showToast}
       />
 
       <CreateLessonModal
         isOpen={Boolean(addLessonTargetChapterId)}
+        courseCode={course?.courseCode || 'CS-202'}
+        courseTitle={course?.name}
+        chapters={chapters}
         chapterId={addLessonTargetChapterId}
         chapterTitle={targetChapter?.title}
         onClose={() => setAddLessonTargetChapterId(null)}
         onSubmit={handleCreateLesson}
         isLoading={addLessonMutation.isPending}
+        onToast={showToast}
       />
     </div>
   );
