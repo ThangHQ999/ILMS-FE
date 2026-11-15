@@ -20,6 +20,7 @@ import {
 } from '../../services/quiz.service';
 import { useQuestionBank, useGenerateQuizAi } from '../../hooks/useQuizzes';
 import { quizKeys } from '../../constants';
+import { getSubjectInfoForClass } from '../../constants/subject-quiz.constants';
 import type {
   AddQuizQuestionRequestDTO,
   QuestionResponseDTO,
@@ -169,29 +170,24 @@ export function TeacherCreateQuizStudioView({
     return 'CS-202 (Mạng máy tính & Truyền thông)';
   }, [activeClass]);
 
+  const subjectInfo = useMemo(() => {
+    return getSubjectInfoForClass(activeClass);
+  }, [activeClass]);
+
   // App Shell State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form Metadata State
-  const [quizTitle, setQuizTitle] = useState(
-    'Quiz 04: Tầng Mạng & Thuật toán Định tuyến OSPF / BGP'
-  );
-  const [selectedModule, setSelectedModule] = useState(
-    'Chương 4: Tầng Mạng & Giao thức IP, Định tuyến'
-  );
-  const [ploTags, setPloTags] = useState<string[]>([
-    'PLO-03: Phân tích định tuyến',
-    'PLO-05: Cấu hình Router/Switch',
-  ]);
-  const [instructions, setInstructions] = useState(
-    'Bài trắc nghiệm đánh giá kiến thức tuần 7 về Giao thức Link-State (OSPF) và Path-Vector (BGP). Sinh viên được sử dụng sơ đồ mạng đã cho, không tham khảo tài liệu trái phép. Chú ý tính toán bảng định tuyến Dijkstra cẩn thận.'
-  );
+  // Form Metadata State: Tự động khởi tạo theo đúng môn học & lớp giảng dạy
+  const [quizTitle, setQuizTitle] = useState(subjectInfo.defaultQuizTitle);
+  const [selectedModule, setSelectedModule] = useState(subjectInfo.defaultChapter);
+  const [ploTags, setPloTags] = useState<string[]>(subjectInfo.ploTags);
+  const [instructions, setInstructions] = useState(subjectInfo.instructions);
 
   // Dynamic Questions Studio State
-  const [questions, setQuestions] = useState<StudioQuestionItem[]>(INITIAL_STUDIO_QUESTIONS);
+  const [questions, setQuestions] = useState<StudioQuestionItem[]>(subjectInfo.sampleQuestions);
 
   // Right Panel Settings State
   const [durationMinutes, setDurationMinutes] = useState('30');
@@ -219,7 +215,7 @@ export function TeacherCreateQuizStudioView({
 
   const [lastSavedTime, setLastSavedTime] = useState<string>('14:20');
 
-  // Khôi phục bản nháp tự động từ LocalStorage nếu có
+  // Khôi phục bản nháp tự động từ LocalStorage hoặc cập nhật thông tin chuẩn theo môn học
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const targetQuizId = searchParams.get('quizId');
@@ -228,27 +224,48 @@ export function TeacherCreateQuizStudioView({
       : `ilms_quiz_draft_${activeClassId}`;
 
     const rawDraft = localStorage.getItem(storageKey);
+    let loadedFromDraft = false;
+
     if (rawDraft) {
       try {
         const parsed = JSON.parse(rawDraft);
-        if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
-        if (parsed.selectedModule) setSelectedModule(parsed.selectedModule);
-        if (parsed.ploTags) setPloTags(parsed.ploTags);
-        if (parsed.instructions) setInstructions(parsed.instructions);
-        if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
-          setQuestions(parsed.questions);
+        // Kiểm tra nếu lớp học hiện tại KHÔNG PHẢI CS-202 nhưng bản nháp lại chứa tiêu đề/nội dung mặc định của CS-202
+        const isStaleCrossSubjectDraft =
+          subjectInfo.key !== 'mangMayTinh' &&
+          (parsed.quizTitle?.includes('Tầng Mạng') ||
+            parsed.quizTitle?.includes('OSPF') ||
+            parsed.selectedModule?.includes('Tầng Mạng'));
+
+        if (!isStaleCrossSubjectDraft) {
+          if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
+          if (parsed.selectedModule) setSelectedModule(parsed.selectedModule);
+          if (parsed.ploTags) setPloTags(parsed.ploTags);
+          if (parsed.instructions) setInstructions(parsed.instructions);
+          if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+            setQuestions(parsed.questions);
+          }
+          if (parsed.durationMinutes) setDurationMinutes(parsed.durationMinutes);
+          if (parsed.attempts) setAttempts(parsed.attempts);
+          if (parsed.scoringStrategy) setScoringStrategy(parsed.scoringStrategy);
+          if (parsed.startTime) setStartTime(parsed.startTime);
+          if (parsed.endTime) setEndTime(parsed.endTime);
+          if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
+          loadedFromDraft = true;
         }
-        if (parsed.durationMinutes) setDurationMinutes(parsed.durationMinutes);
-        if (parsed.attempts) setAttempts(parsed.attempts);
-        if (parsed.scoringStrategy) setScoringStrategy(parsed.scoringStrategy);
-        if (parsed.startTime) setStartTime(parsed.startTime);
-        if (parsed.endTime) setEndTime(parsed.endTime);
-        if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
       } catch (err) {
         console.warn('Could not parse saved draft:', err);
       }
     }
-  }, [activeClassId, searchParams]);
+
+    // Nếu không có bản nháp hợp lệ và không chỉ định quizId, cập nhật theo môn học hiện tại
+    if (!loadedFromDraft && !targetQuizId) {
+      setQuizTitle(subjectInfo.defaultQuizTitle);
+      setSelectedModule(subjectInfo.defaultChapter);
+      setPloTags(subjectInfo.ploTags);
+      setInstructions(subjectInfo.instructions);
+      setQuestions(subjectInfo.sampleQuestions);
+    }
+  }, [activeClassId, searchParams, subjectInfo]);
 
   const previewLifecycle = useMemo(() => {
     return determineQuizLifecycle({
@@ -441,49 +458,27 @@ export function TeacherCreateQuizStudioView({
   // AI Question Generation
   const handleGenerateAiQuestions = async () => {
     try {
-      showToast('AI đang phân tích học liệu Chương 4 và sinh câu hỏi...');
-      
-      const newAiQuestions: StudioQuestionItem[] = [
-        {
-          id: `q-ai-${Date.now()}-1`,
-          orderIndex: questions.length + 1,
-          type: 'SINGLE_CHOICE',
-          typeLabel: 'Trắc nghiệm AI sinh',
-          bloomLevel: 'Thông hiểu • Bloom 2',
-          difficultyLevel: 'MEDIUM',
-          points: 1.0,
-          content: 'Trong cấu hình định tuyến BGP, thuộc tính nào sau đây được coi là Well-known Mandatory và xác định danh sách các AS mà bản tin quảng bá đã đi qua?',
-          options: [
-            { id: `opt-ai-1-a`, label: 'A', text: 'AS-Path', isCorrect: true },
-            { id: `opt-ai-1-b`, label: 'B', text: 'Next-Hop', isCorrect: false },
-            { id: `opt-ai-1-c`, label: 'C', text: 'Local Preference', isCorrect: false },
-            { id: `opt-ai-1-d`, label: 'D', text: 'MED (Multi-Exit Discriminator)', isCorrect: false },
-          ],
-          explanation: 'AS-Path là thuộc tính Well-known Mandatory trong BGP, vừa dùng để chọn đường đi ngắn nhất vừa giúp chống Loop định tuyến giữa các AS.',
-          isCollapsed: false,
-        },
-        {
-          id: `q-ai-${Date.now()}-2`,
-          orderIndex: questions.length + 2,
-          type: 'SINGLE_CHOICE',
-          typeLabel: 'Trắc nghiệm AI sinh',
-          bloomLevel: 'Vận dụng • Bloom 3',
-          difficultyLevel: 'HARD',
-          points: 1.0,
-          content: 'Mạng con 172.16.0.0/16 được chia thành các subnet có độ dài tiền tố /20. Số lượng subnet tối đa có thể tạo được và số host khả dụng trên mỗi subnet là bao nhiêu?',
-          options: [
-            { id: `opt-ai-2-a`, label: 'A', text: '16 subnets và 4094 hosts/subnet', isCorrect: true },
-            { id: `opt-ai-2-b`, label: 'B', text: '32 subnets và 2046 hosts/subnet', isCorrect: false },
-            { id: `opt-ai-2-c`, label: 'C', text: '8 subnets và 8190 hosts/subnet', isCorrect: false },
-            { id: `opt-ai-2-d`, label: 'D', text: '16 subnets và 4096 hosts/subnet', isCorrect: false },
-          ],
-          explanation: 'Mượn 4 bit (20 - 16 = 4) -> 2^4 = 16 subnets. Còn lại 12 bit host -> 2^12 - 2 = 4094 hosts khả dụng.',
-          isCollapsed: false,
-        },
-      ];
+      showToast(`AI đang phân tích học liệu ${subjectInfo.subjectName} và sinh câu hỏi...`);
+
+      const sourceAiQuestions =
+        subjectInfo.aiQuestions && subjectInfo.aiQuestions.length > 0
+          ? subjectInfo.aiQuestions
+          : subjectInfo.sampleQuestions;
+
+      const newAiQuestions: StudioQuestionItem[] = sourceAiQuestions.map((q, idx) => ({
+        ...q,
+        id: `q-ai-${Date.now()}-${idx + 1}`,
+        orderIndex: questions.length + idx + 1,
+        typeLabel: 'Trắc nghiệm AI sinh',
+        options: q.options.map((opt) => ({
+          ...opt,
+          id: `opt-ai-${Date.now()}-${opt.label.toLowerCase()}`,
+        })),
+        isCollapsed: false,
+      }));
 
       setQuestions((prev) => [...prev, ...newAiQuestions]);
-      showToast('AI đã sinh thành công 2 câu hỏi chuẩn hóa và thêm vào đề thi!');
+      showToast(`AI đã sinh thành công ${newAiQuestions.length} câu hỏi cho môn ${subjectInfo.subjectName}!`);
     } catch {
       showToast('Lỗi khi sinh câu hỏi AI');
     }
@@ -837,7 +832,7 @@ export function TeacherCreateQuizStudioView({
         title: quizTitle,
         type: 'draft',
         status: 'draft',
-        badgeLabel: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
+        badgeLabel: `Bản nháp riêng tư • ${questions.length} câu hỏi`,
         badgeType: 'purple',
         durationMinutes: parseInt(durationMinutes, 10) || 30,
         questionCount: questions.length,
@@ -976,7 +971,7 @@ export function TeacherCreateQuizStudioView({
                       </span>
                     </div>
                     <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-xs font-bold">
-                      ID: CS202-QZ-04
+                      ID: {subjectInfo.defaultQuizCode}
                     </span>
                   </div>
 
@@ -1033,9 +1028,11 @@ export function TeacherCreateQuizStudioView({
                           onChange={(e) => setSelectedModule(e.target.value)}
                           className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer"
                         >
-                          <option>Chương 4: Tầng Mạng &amp; Giao thức IP, Định tuyến</option>
-                          <option>Chương 3: Tầng Giao vận (TCP &amp; UDP)</option>
-                          <option>Chương 5: Tầng Liên kết dữ liệu &amp; Mạng LAN</option>
+                          {subjectInfo.chapters.map((chap) => (
+                            <option key={chap} value={chap}>
+                              {chap}
+                            </option>
+                          ))}
                         </select>
                         <span className="material-symbols-outlined absolute right-3 top-2.5 text-[20px] text-slate-400 pointer-events-none">
                           expand_more
@@ -1532,7 +1529,7 @@ export function TeacherCreateQuizStudioView({
                       Nguồn học liệu tri thức
                     </label>
                     <div
-                      onClick={() => showToast('Đã chọn nguồn giáo trình: Giao_trinh_Mang_may_tinh_v2.pdf')}
+                      onClick={() => showToast(`Đã chọn nguồn giáo trình: ${subjectInfo.sourceDoc}`)}
                       className="p-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#282A2C] cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -1541,9 +1538,9 @@ export function TeacherCreateQuizStudioView({
                         </span>
                         <div className="flex flex-col min-w-0">
                           <span className="text-xs font-semibold text-[#171c1f] dark:text-white truncate">
-                            Giao_trinh_Mang_may_tinh_v2.pdf
+                            {subjectInfo.sourceDoc}
                           </span>
-                          <span className="text-[11px] text-slate-400">18 thực thể • 4 chương</span>
+                          <span className="text-[11px] text-slate-400">{subjectInfo.sourceDocStats}</span>
                         </div>
                       </div>
                       <span className="material-symbols-outlined text-slate-400 text-[18px]">

@@ -21,6 +21,7 @@ import {
   useProctorSessions,
 } from '../../hooks/useQuizzes';
 import { determineQuizLifecycle } from '../../services/quiz.service';
+import { getSubjectInfoForClass } from '../../constants/subject-quiz.constants';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -202,12 +203,17 @@ export function TeacherExamManagementView({
   };
 
   // Filters & State
-  const [activeCategory, setActiveCategory] = useState<'all' | 'quiz' | 'exam' | 'live' | 'completed' | 'draft'>('quiz');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'quiz' | 'exam' | 'live' | 'completed' | 'draft'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChapter, setSelectedChapter] = useState('Chương 4: Tầng Mạng');
+  const [selectedChapter, setSelectedChapter] = useState('ALL');
   const [selectedBloom, setSelectedBloom] = useState('ALL');
   const [selectedSort, setSelectedSort] = useState('RECENT');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Môn học & giáo trình liên kết theo lớp học hiện tại
+  const currentSubjectInfo = useMemo(() => {
+    return getSubjectInfoForClass(currentClassOption);
+  }, [currentClassOption]);
 
   // Live Timer Countdown simulation
   const [secondsRemaining, setSecondsRemaining] = useState(765); // 12:45
@@ -231,142 +237,173 @@ export function TeacherExamManagementView({
     }, 3000);
   };
 
-  // Base Exam Data matching 5 Lifecycle States
+  // Xác định xem có phải lớp học demo mẫu CS-202 hay không
+  const isDefaultDemoClass = useMemo(() => {
+    const id = String(currentClassOption.id || '').toLowerCase().trim();
+    const code = String(currentClassOption.code || '').toLowerCase().trim();
+    return id === 'cs-202' || id === 'cs202' || code === 'cs-202' || code === 'cs202';
+  }, [currentClassOption]);
+
+  // Base Exam Data matching 5 Lifecycle States (CHỈ hiển thị cho lớp mẫu CS-202)
   const classTagText = `Lớp: ${currentClassOption.code}`;
-  const allExams: ExamItem[] = useMemo(() => [
-    {
-      id: `quiz-04-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-04`,
-      type: 'quiz',
-      status: 'live',
-      statusBadge: 'Đang trực tuyến • Live',
-      statusBadgeColor: 'bg-rose-500 text-white',
-      classTag: classTagText,
-      title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
-      duration: '30 phút làm bài',
-      questionCount: 20,
-      tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
-      submittedCount: 54,
-      totalStudents: 60,
-      timeLeft: formattedTimeLeft,
-      progressPercent: 90,
-    },
-    {
-      id: `quiz-05-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-05`,
-      type: 'quiz',
-      status: 'upcoming',
-      statusBadge: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
-      statusBadgeColor: 'bg-blue-600 text-white',
-      securityBadge: 'Safe Exam Browser',
-      classTag: classTagText,
-      title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
-      examDate: 'Hôm nay: 14:00 - 14:45',
-      duration: '45 phút',
-      questionCount: 25,
-      totalStudents: 60,
-      tags: ['Safe Exam Browser'],
-    },
-    {
-      id: `quiz-03-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-03`,
-      type: 'quiz',
-      status: 'completed',
-      statusBadge: 'Đã hoàn thành • Đã công bố điểm',
-      statusBadgeColor: 'bg-emerald-600 text-white',
-      classTag: classTagText,
-      title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
-      duration: '30 phút',
-      questionCount: 20,
-      tags: ['58/58 SV nộp (100%)'],
-      submittedCount: 58,
-      totalStudents: 58,
-      avgScore: 8.2,
-      ploRate: 88,
-      discriminationIndex: 0.74,
-    },
-    {
-      id: `quiz-02-${currentClassOption.id}`,
-      code: `QUIZ-${currentClassOption.code.replace(/[^a-zA-Z0-9]/g, '') || 'CS202'}-02`,
-      type: 'quiz',
-      status: 'complaints',
-      statusBadge: 'Có 2 khiếu nại cần xử lý',
-      statusBadgeColor: 'bg-rose-600 text-white',
-      classTag: classTagText,
-      title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
-      duration: '35 phút',
-      questionCount: 25,
-      tags: [],
-      submittedCount: 56,
-      totalStudents: 60,
-      avgScore: 8.1,
-      complaintCount: 2,
-      complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
-    },
-    {
-      id: `quiz-06-draft-${currentClassOption.id}`,
-      code: 'AI-DRAFT-APP',
-      type: 'draft',
-      status: 'draft',
-      statusBadge: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
-      statusBadgeColor: 'bg-purple-600 text-white',
-      classTag: classTagText,
-      title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
-      sourceDoc: 'Sinh từ tài liệu: Chapter5_Application_Layer.pdf',
-      duration: '25 phút',
-      questionCount: 20,
-      tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
-      draftMode: 'Đang ở chế độ nháp riêng tư',
-    },
-  ], [currentClassOption, classTagText, formattedTimeLeft]);
+  const allExams: ExamItem[] = useMemo(() => {
+    if (!isDefaultDemoClass) return [];
+    return [
+      {
+        id: `quiz-04-${currentClassOption.id}`,
+        code: `QUIZ-CS202-04`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
+        submittedCount: 54,
+        totalStudents: 60,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 90,
+      },
+      {
+        id: `quiz-05-${currentClassOption.id}`,
+        code: `QUIZ-CS202-05`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        securityBadge: 'Safe Exam Browser',
+        classTag: classTagText,
+        title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
+        examDate: 'Hôm nay: 14:00 - 14:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 60,
+        tags: ['Safe Exam Browser'],
+      },
+      {
+        id: `quiz-03-${currentClassOption.id}`,
+        code: `QUIZ-CS202-03`,
+        type: 'quiz',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
+        duration: '30 phút',
+        questionCount: 20,
+        tags: ['58/58 SV nộp (100%)'],
+        submittedCount: 58,
+        totalStudents: 58,
+        avgScore: 8.2,
+        ploRate: 88,
+        discriminationIndex: 0.74,
+      },
+      {
+        id: `quiz-02-${currentClassOption.id}`,
+        code: `QUIZ-CS202-02`,
+        type: 'quiz',
+        status: 'complaints',
+        statusBadge: 'Có 2 khiếu nại cần xử lý',
+        statusBadgeColor: 'bg-rose-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
+        duration: '35 phút',
+        questionCount: 25,
+        tags: [],
+        submittedCount: 56,
+        totalStudents: 60,
+        avgScore: 8.1,
+        complaintCount: 2,
+        complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
+      },
+      {
+        id: `quiz-06-draft-${currentClassOption.id}`,
+        code: 'AI-DRAFT-APP',
+        type: 'draft',
+        status: 'draft',
+        statusBadge: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
+        statusBadgeColor: 'bg-purple-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
+        sourceDoc: 'Sinh từ tài liệu: Chapter5_Application_Layer.pdf',
+        duration: '25 phút',
+        questionCount: 20,
+        tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
+        draftMode: 'Đang ở chế độ nháp riêng tư',
+      },
+    ];
+  }, [currentClassOption, classTagText, formattedTimeLeft, isDefaultDemoClass]);
 
 
-  // Merge API Quizzes with Base Mock Items and Dynamically Calculate Lifecycle
+  // Merge API Quizzes with Base Mock Items: PHÂN TÁCH RIÊNG BIỆT KHO QUIZ THEO TỪNG LỚP HỌC
   const mergedExams = useMemo(() => {
-    if (!apiQuizzes || apiQuizzes.length === 0) return allExams;
-    const existingIds = new Set(allExams.map((e) => e.id));
-    const extraExams: ExamItem[] = apiQuizzes
-      .filter((q) => !existingIds.has(q.id))
-      .map((q) => {
-        const lifecycle = determineQuizLifecycle({
-          status: q.status,
-          type: q.type,
-          startTime: q.startTime,
-          endTime: q.endTime,
-          complaintCount: q.complaintCount,
-        });
+    const classIdStr = String(currentClassOption.id || '').toLowerCase().trim();
+    const classCodeStr = String(currentClassOption.code || '').toLowerCase().trim();
 
-        return {
-          id: q.id,
-          code: q.code,
-          type: lifecycle.status === 'draft' ? 'draft' : q.type,
-          status: lifecycle.status,
-          statusBadge: lifecycle.badgeLabel,
-          statusBadgeColor: lifecycle.badgeType === 'red'
+    // Lọc nghiêm ngặt các bài quiz thuộc về lớp này
+    const classQuizzes = (apiQuizzes || []).filter((q) => {
+      if (!q.classId) return false;
+      const qCId = String(q.classId).toLowerCase().trim();
+      return (
+        qCId === classIdStr ||
+        classIdStr.includes(qCId) ||
+        qCId.includes(classIdStr) ||
+        (classCodeStr && qCId.includes(classCodeStr))
+      );
+    });
+
+    const extraExams: ExamItem[] = classQuizzes.map((q) => {
+      const lifecycle = determineQuizLifecycle({
+        status: q.status,
+        type: q.type,
+        startTime: q.startTime,
+        endTime: q.endTime,
+        complaintCount: q.complaintCount,
+      });
+
+      return {
+        id: q.id,
+        code: q.code,
+        type: lifecycle.status === 'draft' ? 'draft' : q.type,
+        status: lifecycle.status,
+        statusBadge: lifecycle.badgeLabel,
+        statusBadgeColor:
+          lifecycle.badgeType === 'red'
             ? 'bg-rose-500 text-white'
             : lifecycle.badgeType === 'purple'
             ? 'bg-purple-600 text-white'
             : lifecycle.badgeType === 'emerald'
             ? 'bg-emerald-600 text-white'
             : 'bg-blue-600 text-white',
-          classTag: q.className,
-          title: q.title,
-          duration: `${q.durationMinutes} phút làm bài`,
-          questionCount: q.questionCount,
-          tags: [q.attemptsInfo, q.securityInfo],
-          submittedCount: q.submittedCount,
-          totalStudents: q.totalStudents,
-          timeLeft: lifecycle.formattedTimeText || q.remainingTime,
-          progressPercent: lifecycle.progressPercent ?? 85,
-          avgScore: q.avgScore,
-          ploRate: q.ploRate,
-          discriminationIndex: q.discriminationIndex,
-          complaintCount: q.complaintCount,
-          complaintDetail: q.complaintNote,
-        };
-      });
-    return [...extraExams, ...allExams];
-  }, [apiQuizzes, allExams]);
+        classTag: q.className || classTagText,
+        title: q.title,
+        duration: `${q.durationMinutes} phút làm bài`,
+        questionCount: q.questionCount,
+        tags: [q.attemptsInfo, q.securityInfo],
+        submittedCount: q.submittedCount,
+        totalStudents: q.totalStudents,
+        timeLeft: lifecycle.formattedTimeText || q.remainingTime,
+        progressPercent: lifecycle.progressPercent ?? 85,
+        avgScore: q.avgScore,
+        ploRate: q.ploRate,
+        discriminationIndex: q.discriminationIndex,
+        complaintCount: q.complaintCount,
+        complaintDetail: q.complaintNote,
+      };
+    });
+
+    // Nếu là lớp demo CS-202, hiển thị thêm các mẫu demo nếu chưa có đủ
+    if (isDefaultDemoClass) {
+      const existingIds = new Set(extraExams.map((e) => e.id));
+      const remainingDemo = allExams.filter((e) => !existingIds.has(e.id));
+      return [...extraExams, ...remainingDemo];
+    }
+
+    // Các lớp học khác TUYỆT ĐỐI CHỈ hiển thị đúng các bài quiz được tạo trong lớp học đó
+    return extraExams;
+  }, [apiQuizzes, allExams, currentClassOption, classTagText, isDefaultDemoClass]);
 
   // Filtering Logic
   const filteredExams = useMemo(() => {
@@ -378,6 +415,15 @@ export function TeacherExamManagementView({
       if (activeCategory === 'completed' && exam.status !== 'completed') return false;
       if (activeCategory === 'draft' && exam.type !== 'draft' && exam.status !== 'draft') return false;
 
+      // Chapter filter
+      if (selectedChapter !== 'ALL' && selectedChapter.trim()) {
+        const chapNorm = selectedChapter.toLowerCase();
+        const matchTitle = exam.title.toLowerCase().includes(chapNorm);
+        const matchSource = exam.sourceDoc?.toLowerCase().includes(chapNorm);
+        const matchTags = exam.tags?.some((t) => t.toLowerCase().includes(chapNorm));
+        if (!matchTitle && !matchSource && !matchTags) return false;
+      }
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -388,7 +434,7 @@ export function TeacherExamManagementView({
 
       return true;
     });
-  }, [mergedExams, activeCategory, searchQuery]);
+  }, [mergedExams, activeCategory, searchQuery, selectedChapter]);
 
   const categoryCounts = useMemo(() => {
     return {
@@ -400,6 +446,28 @@ export function TeacherExamManagementView({
       draft: mergedExams.filter((e) => e.type === 'draft' || e.status === 'draft').length,
     };
   }, [mergedExams]);
+
+  const liveExamItem = useMemo(() => {
+    return mergedExams.find((e) => e.status === 'live');
+  }, [mergedExams]);
+
+  const classAvgScoreText = useMemo(() => {
+    if (isDefaultDemoClass) return '7.82';
+    const completedWithScores = mergedExams.filter(
+      (e) => e.avgScore !== undefined && e.avgScore > 0
+    );
+    if (completedWithScores.length === 0) return '--';
+    const total = completedWithScores.reduce((acc, curr) => acc + (curr.avgScore || 0), 0);
+    return (total / completedWithScores.length).toFixed(1);
+  }, [isDefaultDemoClass, mergedExams]);
+
+  const classComplaintsCount = useMemo(() => {
+    if (isDefaultDemoClass) return 3;
+    const complaintItems = mergedExams.filter(
+      (e) => e.status === 'complaints' || (e.complaintCount && e.complaintCount > 0)
+    );
+    return complaintItems.reduce((acc, curr) => acc + (curr.complaintCount || 1), 0);
+  }, [isDefaultDemoClass, mergedExams]);
 
   if (viewMode === 'create') {
     return (
@@ -611,22 +679,38 @@ export function TeacherExamManagementView({
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between border-t border-slate-100 dark:border-[#282A2C] text-xs">
-                <div className="flex items-center gap-1.5 text-[#171c1f] dark:text-white font-medium">
-                  <span className="font-semibold text-red-600 dark:text-red-400">Quiz 04:</span>
-                  <span className="text-[#44474d] dark:text-[#8E918F]">
-                    {apiStats?.liveSubmittedStudents ?? 54}/{apiStats?.liveTotalStudents ?? 60} SV đang làm
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const onlineCount = proctorSessions?.filter((s) => s.status === 'ONLINE').length || 54;
-                    showToast(`Phòng thi: ${onlineCount} sinh viên đang kết nối trực tuyến`);
-                  }}
-                  className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                >
-                  Giám sát trực tiếp ({proctorSessions?.length || 3} camera) →
-                </button>
+                {categoryCounts.live > 0 ? (
+                  <>
+                    <div className="flex items-center gap-1.5 text-[#171c1f] dark:text-white font-medium truncate max-w-[200px]">
+                      <span className="font-semibold text-red-600 dark:text-red-400 truncate">
+                        {liveExamItem?.title ? liveExamItem.title.split(':')[0] : 'Đang thi'}:
+                      </span>
+                      <span className="text-[#44474d] dark:text-[#8E918F]">
+                        {liveExamItem?.submittedCount ?? 54}/{liveExamItem?.totalStudents ?? 60} SV đang làm
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        showToast(`Phòng thi ${liveExamItem?.title || ''}: Đang kết nối giám sát trực tiếp`);
+                      }}
+                      className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                    >
+                      Giám sát trực tiếp →
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#75777e] dark:text-[#8E918F]">Không có ca thi trực tuyến</span>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                      className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      + Mở đề thi mới →
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -639,13 +723,16 @@ export function TeacherExamManagementView({
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-3xl text-[#171c1f] dark:text-white font-bold">
-                      {apiStats?.avgScore ?? 7.82}
+                      {classAvgScoreText}
                     </span>
-                    <span className="text-xs text-[#75777e]">/10</span>
-                    <span className="inline-flex items-center text-xs text-emerald-600 dark:text-emerald-400 font-semibold ml-1">
-                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span>+
-                      {apiStats?.avgScoreDiff ?? 0.4}
-                    </span>
+                    {classAvgScoreText !== '--' && (
+                      <>
+                        <span className="text-xs text-[#75777e]">/10</span>
+                        <span className="inline-flex items-center text-xs text-emerald-600 dark:text-emerald-400 font-semibold ml-1">
+                          <span className="material-symbols-outlined text-[16px]">arrow_upward</span>+0.4
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -653,9 +740,9 @@ export function TeacherExamManagementView({
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between text-xs text-[#44474d] dark:text-[#8E918F] border-t border-slate-100 dark:border-[#282A2C]">
-                <span>{apiStats?.ploPassRate ?? 84.5}% sinh viên đạt chuẩn PLO</span>
+                <span>{isDefaultDemoClass ? '84.5% sinh viên đạt chuẩn PLO' : 'Đánh giá chuẩn đầu ra PLO'}</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                  Đạt chuẩn
+                  {classAvgScoreText !== '--' ? 'Đạt chuẩn' : 'Chưa có điểm'}
                 </span>
               </div>
             </div>
@@ -669,11 +756,17 @@ export function TeacherExamManagementView({
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-3xl text-[#171c1f] dark:text-white font-bold">
-                      {apiStats?.complaintsCount ? `0${apiStats.complaintsCount}` : '03'}
+                      {classComplaintsCount < 10 ? `0${classComplaintsCount}` : classComplaintsCount}
                     </span>
-                    <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-[11px] font-semibold">
-                      Cần xử lý &lt; 24h
-                    </span>
+                    {classComplaintsCount > 0 ? (
+                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-[11px] font-semibold">
+                        Cần xử lý &lt; 24h
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-semibold">
+                        Tất cả đã xử lý
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-700 dark:text-amber-400">
@@ -682,20 +775,21 @@ export function TeacherExamManagementView({
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between text-xs border-t border-slate-100 dark:border-[#282A2C]">
                 <span className="text-[#44474d] dark:text-[#8E918F]">
-                  {complaintsData?.[0]?.studentName
-                    ? `${complaintsData.length} đơn chờ thẩm định`
-                    : '2 câu Quiz 02 • 1 câu Giữa kỳ'}
+                  {classComplaintsCount > 0
+                    ? (isDefaultDemoClass ? '2 câu Quiz 02 • 1 câu Giữa kỳ' : `${classComplaintsCount} yêu cầu phúc khảo`)
+                    : '0 khiếu nại đang chờ'}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const count = complaintsData?.length || 3;
-                    showToast(`Mở hàng đợi thẩm định ${count} phiếu khiếu nại chấm lại`);
-                  }}
-                  className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                >
-                  Xử lý ngay ({complaintsData?.length || 3}) →
-                </button>
+                {classComplaintsCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      showToast(`Mở hàng đợi thẩm định ${classComplaintsCount} phiếu khiếu nại chấm lại`);
+                    }}
+                    className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Xử lý ngay ({classComplaintsCount}) →
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -821,11 +915,12 @@ export function TeacherExamManagementView({
                   onChange={(e) => setSelectedChapter(e.target.value)}
                   className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg bg-[#f0f4f8] dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs focus:bg-white dark:focus:bg-[#282A2C] outline-none cursor-pointer"
                 >
-                  <option>Chương 4: Tầng Mạng</option>
-                  <option>Chương 1: Tổng quan</option>
-                  <option>Chương 2: Tầng Ứng dụng</option>
-                  <option>Chương 3: Tầng Giao vận</option>
-                  <option>Tất cả chương học</option>
+                  <option value="ALL">Tất cả chương học</option>
+                  {currentSubjectInfo.chapters.map((chap) => (
+                    <option key={chap} value={chap}>
+                      {chap}
+                    </option>
+                  ))}
                 </select>
                 <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-[#75777e] text-[18px] pointer-events-none">
                   expand_more

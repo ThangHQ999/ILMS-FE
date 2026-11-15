@@ -590,18 +590,19 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
     // Graceful fallback to rich mock data
   }
 
-  // Kết hợp danh sách đề thi đã tạo từ LocalStorage lên đầu bảng và tự động cập nhật vòng đời
-  const filteredLocal = params.classId
+  // Lọc nghiêm ngặt các bài quiz từ LocalStorage THEO ĐÚNG CLASS ID CỦA LỚP ĐANG CHỌN
+  // Tuyệt đối KHÔNG gộp bài quiz của lớp khác vào khi lớp này chưa có bài thi!
+  const targetClassId = params.classId ? String(params.classId).toLowerCase().trim() : '';
+
+  const filteredLocal = targetClassId
     ? localList.filter((item) => {
-        if (!item.classId) return true;
-        const pId = String(params.classId).toLowerCase().trim();
+        if (!item.classId) return false;
         const iId = String(item.classId).toLowerCase().trim();
-        return iId === pId || pId.includes(iId) || iId.includes(pId);
+        return iId === targetClassId || targetClassId.includes(iId) || iId.includes(targetClassId);
       })
     : localList;
 
-  const effectiveLocal = filteredLocal.length > 0 ? filteredLocal : localList;
-  const mappedLocal = effectiveLocal.map((item) => {
+  const mappedLocal = filteredLocal.map((item) => {
     const lifecycle = determineQuizLifecycle({
       status: item.status,
       type: item.type,
@@ -618,7 +619,15 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
     };
   });
 
-  const baseList = serverItems.length > 0 ? serverItems : MOCK_QUIZZES;
+  // Base list: CHỈ hiển thị mock quizzes nếu đang ở lớp mẫu mặc định CS-202 (hoặc không truyền classId)
+  // Tuyệt đối KHÔNG gộp đề thi của lớp khác hay mock data vào các lớp học khác!
+  const isDefaultClass =
+    !targetClassId ||
+    targetClassId === 'cs-202' ||
+    targetClassId.includes('cs202') ||
+    targetClassId.includes('cs-202');
+
+  const baseList = isDefaultClass ? (serverItems.length > 0 ? serverItems : MOCK_QUIZZES) : serverItems;
   const localIds = new Set(mappedLocal.map((item) => item.id));
   const filteredBase = baseList.filter((item) => !localIds.has(item.id));
   return [...mappedLocal, ...filteredBase];
