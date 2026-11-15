@@ -50,7 +50,7 @@ export const MOCK_COURSES: ClassCourse[] = [
     currentWeek: 'Tuần 9/15',
     instructorName: 'TS. Nguyễn Văn An (CN)',
     instructorAvatar: 'NA',
-    instructorColor: 'bg-blue-600',
+    instructorColor: 'bg-[#007BFF]',
     hasAiTutor: true,
     lecturesCount: 38,
     knowledgeNodesCount: 142,

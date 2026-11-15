@@ -162,11 +162,11 @@ export function ClassMaterialsTab({
             className="h-9 px-3.5 rounded-full font-semibold text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all inline-flex items-center gap-1.5 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 shadow-xs active:scale-95"
             title="Quản lý tiến trình xử lý ngầm (Background AI Queue)"
           >
-            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400">
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
               assignment
             </span>
             <span>Hàng đợi AI</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] text-[10px] font-bold">
               2
             </span>
           </Link>
@@ -174,9 +174,9 @@ export function ClassMaterialsTab({
           <button
             type="button"
             onClick={() => setIsUploadAiModalOpen(true)}
-            className="h-9 px-3.5 rounded-full font-semibold text-xs bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-all inline-flex items-center gap-1.5 whitespace-nowrap shadow-xs active:scale-95"
+            className="h-9 px-4 rounded-full font-semibold text-xs text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-none bg-transparent"
           >
-            <span className="material-symbols-outlined text-[17px] text-indigo-600 dark:text-indigo-400">
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
               auto_awesome
             </span>
             <span>{t('btnAiScan')}</span>
@@ -185,7 +185,7 @@ export function ClassMaterialsTab({
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className="h-9 px-4 rounded-full font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-xs inline-flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-all"
+            className="h-9 px-4 rounded-full font-semibold text-xs bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs inline-flex items-center gap-1.5 whitespace-nowrap transition-all border-none cursor-pointer"
           >
             <span className="material-symbols-outlined text-[17px]">upload_file</span>
             <span>+ {t('btnUploadMaterial')}</span>
@@ -196,82 +196,82 @@ export function ClassMaterialsTab({
       {/* 2. 4 KPI STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Storage */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
               {t('kpiStorage')}
             </span>
-            <span className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">cloud</span>
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+            <span className="text-2xl font-extrabold text-gray-900 dark:text-[#E3E3E3]">
               1.4 GB
             </span>
-            <span className="text-xs font-semibold text-slate-400">/ 10 GB (14%)</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">/ 10 GB (14%)</span>
           </div>
-          <div className="mt-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="mt-2 w-full bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-blue-600 dark:bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+              className="bg-[#007BFF] dark:bg-[#A8C7FA] h-1.5 rounded-full transition-all duration-500"
               style={{ width: '14%' }}
             />
           </div>
         </div>
 
         {/* KPI 2: Uploaded count */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
               {t('kpiUploaded')}
             </span>
-            <span className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-emerald-700 dark:text-[#81C995] flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">description</span>
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+            <span className="text-2xl font-extrabold text-emerald-600 dark:text-[#81C995]">
               38
             </span>
-            <span className="text-xs font-semibold text-slate-400">tài liệu số</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">tài liệu số</span>
           </div>
-          <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-[#8E918F] font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span>{t('kpiUploadedNote')}</span>
           </div>
         </div>
 
         {/* KPI 3: Subject Allocation */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
               {t('kpiSubjects')}
             </span>
-            <span className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">library_books</span>
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+            <span className="text-2xl font-extrabold text-gray-900 dark:text-[#E3E3E3]">
               4 / 4
             </span>
-            <span className="text-xs font-semibold text-slate-400">môn học</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">môn học</span>
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">
+          <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-[#8E918F]">
+            <span className="font-semibold text-blue-600 dark:text-[#A8C7FA]">
               100% môn có giáo trình
             </span>
-            <span className="text-[11px] text-slate-400">Kỳ 1</span>
+            <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">Kỳ 1</span>
           </div>
         </div>
 
         {/* KPI 4: AI Extraction */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
               {t('kpiAiExtract')}
             </span>
-            <span className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-purple-700 dark:text-purple-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">psychology</span>
             </span>
           </div>
@@ -279,7 +279,7 @@ export function ClassMaterialsTab({
             <span className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">
               98%
             </span>
-            <span className="text-xs font-semibold text-slate-400">(37/38 tài liệu)</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">(37/38 tài liệu)</span>
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-purple-700 dark:text-purple-300 font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
@@ -289,7 +289,7 @@ export function ClassMaterialsTab({
       </div>
 
       {/* 3. FILTER & SEARCH TOOLBAR */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-[#1E1F20] p-4 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Dropdowns */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2">
@@ -392,20 +392,20 @@ export function ClassMaterialsTab({
       </div>
 
       {/* 4. AI ASSISTANT & KNOWLEDGE GRAPH BANNER */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">auto_awesome</span>
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3] flex items-center gap-2 flex-wrap">
                 <span>{t('aiAssistantTitle')}</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD]/60 dark:bg-[#1A2E4D] text-[#041E49] dark:text-[#A8C7FA] border-none">
                   {t('aiBadge')}
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-[#8E918F] mt-0.5">
                 {t('aiAssistantDesc')}
               </p>
             </div>
@@ -415,7 +415,7 @@ export function ClassMaterialsTab({
             <button
               type="button"
               onClick={() => handleOpenAutoQuiz()}
-              className="px-3.5 py-2 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 transition-colors flex items-center gap-1.5 active:scale-95"
+              className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-semibold border-none bg-transparent transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">bolt</span>
               <span>{t('btnAutoQuiz')}</span>
@@ -423,7 +423,7 @@ export function ClassMaterialsTab({
             <button
               type="button"
               onClick={() => handleOpenGraph()}
-              className="px-3.5 py-2 rounded-full text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 shadow-xs active:scale-95"
+              className="px-4 py-2 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer border-none"
             >
               <span className="material-symbols-outlined text-[16px]">schema</span>
               <span>{t('btnOpenGraph')}</span>
@@ -485,46 +485,46 @@ export function ClassMaterialsTab({
       {/* 5. DATA VIEW: TABLE OR GRID */}
       {viewMode === 'list' ? (
         /* TABLE VIEW */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse min-w-[900px]">
-              <thead className="bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/70 dark:border-slate-800 select-none">
+              <thead className="bg-[#F0F4F8] dark:bg-[#131314] text-[11px] font-semibold text-gray-500 dark:text-[#8E918F] uppercase tracking-wider border-none select-none">
                 <tr>
-                  <th className="px-3 py-3 text-center w-12 font-semibold">
+                  <th className="py-4 px-3 w-14 text-center align-middle">
                     {t('colStt')}
                   </th>
-                  <th className="px-3 py-3 font-semibold" style={{ width: '280px' }}>
+                  <th className="py-4 px-4 min-w-[280px] align-middle">
                     {t('colName')}
                   </th>
-                  <th className="px-3 py-3 whitespace-nowrap font-semibold">
+                  <th className="py-4 px-3 w-[180px] min-w-[140px] align-middle whitespace-nowrap">
                     {t('colSubject')}
                   </th>
-                  <th className="px-3 py-3 text-center whitespace-nowrap font-semibold">
+                  <th className="py-4 px-3 w-[130px] min-w-[110px] text-center align-middle whitespace-nowrap">
                     {t('colCategory')}
                   </th>
-                  <th className="px-3 py-3 text-center whitespace-nowrap font-semibold">
+                  <th className="py-4 px-3 w-[110px] text-center align-middle whitespace-nowrap">
                     {t('colSize')}
                   </th>
-                  <th className="px-3 py-3 text-center whitespace-nowrap font-semibold">
+                  <th className="py-4 px-3 w-[120px] text-center align-middle whitespace-nowrap">
                     {t('colUpdated')}
                   </th>
-                  <th className="px-4 py-3 text-center whitespace-nowrap font-semibold">
+                  <th className="py-4 px-4 w-[140px] min-w-[120px] text-center align-middle whitespace-nowrap">
                     {t('colAiSync')}
                   </th>
-                  <th className="px-3 py-3 text-center whitespace-nowrap font-semibold">
+                  <th className="py-4 px-3 w-[110px] text-center align-middle whitespace-nowrap">
                     {t('colViews')}
                   </th>
-                  <th className="px-3.5 py-3 text-right whitespace-nowrap font-semibold">
+                  <th className="py-4 px-4 w-[130px] text-right align-middle whitespace-nowrap">
                     {t('colActions')}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
+              <tbody className="text-gray-700 dark:text-[#C4C7C5] border-none font-medium">
                 {filteredMaterials.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-400 text-sm">
+                    <td colSpan={9} className="py-12 text-center text-gray-400 dark:text-[#8E918F] text-sm align-middle">
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">
+                        <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-[#8E918F]">
                           find_in_page
                         </span>
                         <span>Không tìm thấy học liệu nào phù hợp với bộ lọc</span>
@@ -539,34 +539,34 @@ export function ClassMaterialsTab({
                     return (
                       <tr
                         key={mat.id}
-                        className={`transition-colors ${
+                        className={`transition-colors border-none ${
                           isPinned
-                            ? 'bg-blue-50/40 dark:bg-blue-950/20 hover:bg-blue-50/70 dark:hover:bg-blue-950/30'
-                            : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'
+                            ? 'bg-blue-50/40 dark:bg-[#1A2E4D]/20 hover:bg-blue-50/60 dark:hover:bg-[#1A2E4D]/30'
+                            : 'hover:bg-black/[0.03] dark:hover:bg-white/5'
                         }`}
                       >
                         {/* STT / Pin */}
-                        <td className="px-3 py-3.5 text-center text-xs font-mono font-bold">
+                        <td className="py-5 px-3 text-center align-middle text-xs font-mono font-bold">
                           {isPinned ? (
                             <span
-                              className="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400 cursor-pointer"
+                              className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA] cursor-pointer"
                               title="Đã ghim"
                               onClick={() => handleTogglePin(mat.id)}
                             >
                               push_pin
                             </span>
                           ) : (
-                            <span className="text-slate-400">
+                            <span className="text-gray-400 dark:text-[#8E918F]">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
                           )}
                         </td>
 
                         {/* Title & File detail */}
-                        <td className="px-3 py-3.5 max-w-xs">
-                          <div className="flex items-center gap-2.5">
+                        <td className="py-5 px-4 align-middle max-w-xs">
+                          <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs ${badge.bg}`}
+                              className={`w-9 h-9 rounded-2xl font-bold text-xs flex items-center justify-center shrink-0 shadow-xs ${badge.bg}`}
                             >
                               <span className="material-symbols-outlined text-[18px]">
                                 {badge.icon}
@@ -575,20 +575,20 @@ export function ClassMaterialsTab({
                             <div className="min-w-0 flex-1">
                               <div
                                 onClick={() => handleDownload(mat)}
-                                className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer flex items-center gap-1.5 flex-wrap"
+                                className="font-semibold text-gray-900 dark:text-[#E3E3E3] text-sm hover:text-blue-600 dark:hover:text-[#A8C7FA] cursor-pointer flex items-center gap-1.5 flex-wrap"
                               >
                                 <span className="truncate max-w-[210px]" title={mat.filename}>
                                   {mat.filename}
                                 </span>
                                 {mat.badge && (
-                                  <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700 flex-shrink-0">
+                                  <span className="whitespace-nowrap px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] shrink-0 border-none">
                                     {mat.badge}
                                   </span>
                                 )}
                               </div>
                               {mat.subDetail && (
                                 <div
-                                  className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5"
+                                  className="text-xs text-gray-500 dark:text-[#8E918F] truncate mt-0.5"
                                   title={mat.subDetail}
                                 >
                                   {mat.subDetail}
@@ -599,54 +599,54 @@ export function ClassMaterialsTab({
                         </td>
 
                         {/* Subject & Code */}
-                        <td className="px-3 py-3.5 whitespace-nowrap">
+                        <td className="py-5 px-3 align-middle whitespace-nowrap">
                           <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                            <span className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
                               {mat.subjectName}
                             </span>
-                            <span className="text-[11px] font-mono text-slate-400">
+                            <span className="text-[11px] font-mono text-gray-400 dark:text-[#8E918F]">
                               {mat.subjectCode}
                             </span>
                           </div>
                         </td>
 
                         {/* Category */}
-                        <td className="px-3 py-3.5 text-center whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
+                        <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
+                          <span className="whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] border-none">
                             {mat.category}
                           </span>
                         </td>
 
                         {/* Size */}
-                        <td className="px-3 py-3.5 text-center font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td className="py-5 px-3 text-center align-middle font-mono text-xs text-gray-600 dark:text-[#C4C7C5] whitespace-nowrap">
                           {mat.size}
                         </td>
 
                         {/* Updated date */}
-                        <td className="px-3 py-3.5 text-center text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        <td className="py-5 px-3 text-center align-middle text-xs text-gray-500 dark:text-[#8E918F] whitespace-nowrap">
                           {mat.updatedAt}
                         </td>
 
                         {/* AI Sync */}
-                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold">
+                        <td className="py-5 px-4 text-center align-middle whitespace-nowrap">
+                          <div className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-[#142E20] text-emerald-800 dark:text-[#81C995] border-none text-[11px] font-semibold">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             <span>{mat.aiStatus}</span>
                           </div>
                         </td>
 
                         {/* Views/Downloads */}
-                        <td className="px-3 py-3.5 text-center font-mono text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        <td className="py-5 px-3 text-center align-middle font-mono text-xs font-bold text-gray-800 dark:text-[#E3E3E3] whitespace-nowrap">
                           {mat.viewsCount} lượt
                         </td>
 
                         {/* Actions */}
-                        <td className="px-3.5 py-3.5 text-right whitespace-nowrap relative">
+                        <td className="py-5 px-4 text-right align-middle whitespace-nowrap relative">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
                               onClick={() => handleOpenGraph(mat)}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              className="p-2 text-blue-600 dark:text-[#A8C7FA] hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors border-none bg-transparent cursor-pointer"
                               title={t('actionGraph')}
                             >
                               <span className="material-symbols-outlined text-[18px]">
@@ -656,7 +656,7 @@ export function ClassMaterialsTab({
                             <button
                               type="button"
                               onClick={() => handleDownload(mat)}
-                              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              className="p-2 text-gray-500 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors border-none bg-transparent cursor-pointer"
                               title={t('actionDownload')}
                             >
                               <span className="material-symbols-outlined text-[18px]">
@@ -671,7 +671,7 @@ export function ClassMaterialsTab({
                                 onClick={() =>
                                   setActiveMenuId(activeMenuId === mat.id ? null : mat.id)
                                 }
-                                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-[#E3E3E3] rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer"
                                 title={t('actionMore')}
                               >
                                 <span className="material-symbols-outlined text-[18px]">
@@ -685,11 +685,11 @@ export function ClassMaterialsTab({
                                     className="fixed inset-0 z-20"
                                     onClick={() => setActiveMenuId(null)}
                                   />
-                                  <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 py-1.5 z-30 text-xs text-left">
+                                  <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-[#1E1F20] rounded-2xl shadow-xl border-none py-1.5 z-30 text-xs text-left">
                                     <button
                                       type="button"
                                       onClick={() => handleTogglePin(mat.id)}
-                                      className="w-full px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
+                                      className="w-full px-3.5 py-2 text-gray-700 dark:text-[#C4C7C5] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 border-none bg-transparent"
                                     >
                                       <span className="material-symbols-outlined text-[16px]">
                                         push_pin
@@ -704,7 +704,7 @@ export function ClassMaterialsTab({
                                         setActiveMenuId(null);
                                         handleOpenAutoQuiz(mat);
                                       }}
-                                      className="w-full px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
+                                      className="w-full px-3.5 py-2 text-gray-700 dark:text-[#C4C7C5] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 border-none bg-transparent"
                                     >
                                       <span className="material-symbols-outlined text-[16px]">
                                         bolt
@@ -772,17 +772,17 @@ export function ClassMaterialsTab({
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center disabled:opacity-40"
+                className="w-8 h-8 rounded-full border-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center disabled:opacity-40 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentPage(1)}
-                className={`w-8 h-8 rounded-lg font-bold flex items-center justify-center shadow-xs ${
+                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
                   currentPage === 1
-                    ? 'bg-blue-600 text-white'
-                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
                 }`}
               >
                 1
@@ -790,10 +790,10 @@ export function ClassMaterialsTab({
               <button
                 type="button"
                 onClick={() => setCurrentPage(2)}
-                className={`w-8 h-8 rounded-lg font-medium flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
                   currentPage === 2
-                    ? 'bg-blue-600 text-white font-bold'
-                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
                 }`}
               >
                 2
@@ -801,10 +801,10 @@ export function ClassMaterialsTab({
               <button
                 type="button"
                 onClick={() => setCurrentPage(3)}
-                className={`w-8 h-8 rounded-lg font-medium flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
                   currentPage === 3
-                    ? 'bg-blue-600 text-white font-bold'
-                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
                 }`}
               >
                 3
@@ -813,7 +813,7 @@ export function ClassMaterialsTab({
                 type="button"
                 disabled={currentPage === 3}
                 onClick={() => setCurrentPage((p) => Math.min(3, p + 1))}
-                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center disabled:opacity-40"
+                className="w-8 h-8 rounded-full border-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center disabled:opacity-40 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               </button>
@@ -828,7 +828,7 @@ export function ClassMaterialsTab({
             return (
               <div
                 key={mat.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
@@ -898,7 +898,7 @@ export function ClassMaterialsTab({
                     <button
                       type="button"
                       onClick={() => handleDownload(mat)}
-                      className="px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1 shadow-xs transition-all"
+                      className="px-4 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold flex items-center gap-1 transition-all border-none cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[15px]">download</span>
                       <span>Tải về</span>
@@ -913,18 +913,18 @@ export function ClassMaterialsTab({
 
       {/* MODAL 1: UPLOAD MATERIAL */}
       {isUploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">upload_file</span>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3]">
                     {t('modalUploadTitle')}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-gray-500 dark:text-[#8E918F]">
                     {t('modalUploadDesc')}
                   </p>
                 </div>
@@ -932,21 +932,21 @@ export function ClassMaterialsTab({
               <button
                 type="button"
                 onClick={() => setIsUploadOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center"
+                className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 flex items-center justify-center cursor-pointer border-none bg-transparent"
               >
                 ✕
               </button>
             </div>
 
             {/* Dropzone */}
-            <div className="border-[3px] border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-blue-500 hover:bg-blue-50/20 dark:hover:bg-blue-950/20 transition-all cursor-pointer">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3">
+            <div className="bg-[#F0F4F8] dark:bg-[#131314] rounded-2xl p-6 text-center border-none hover:opacity-90 transition-opacity cursor-pointer">
+              <div className="w-12 h-12 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-2xl">cloud_upload</span>
               </div>
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              <p className="text-xs font-semibold text-gray-800 dark:text-[#E3E3E3]">
                 {t('uploadDropzone')}
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-gray-400 dark:text-[#8E918F] mt-1">
                 PDF, PPTX, DOCX, ZIP hoặc MP4 lên tới 100 MB
               </p>
             </div>
@@ -1013,7 +1013,7 @@ export function ClassMaterialsTab({
                   setIsUploadAiModalOpen(true);
                   notify('Đang bắt đầu truyền tải tệp và phân tích AI học liệu...');
                 }}
-                className="px-5 py-2 rounded-full text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs border-none cursor-pointer transition-all"
               >
                 {t('btnSubmitUpload')}
               </button>
@@ -1024,8 +1024,8 @@ export function ClassMaterialsTab({
 
       {/* MODAL 2: AI SCAN MODAL */}
       {isAiScanOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -1108,18 +1108,18 @@ export function ClassMaterialsTab({
 
       {/* MODAL 3: AUTO-QUIZ GENERATOR */}
       {isAutoQuizOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">bolt</span>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3]">
                     {t('btnAutoQuiz')}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-gray-500 dark:text-[#8E918F]">
                     Tạo câu hỏi trắc nghiệm tự động từ Slide bài giảng
                   </p>
                 </div>
@@ -1127,7 +1127,7 @@ export function ClassMaterialsTab({
               <button
                 type="button"
                 onClick={() => setIsAutoQuizOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center"
+                className="w-8 h-8 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 flex items-center justify-center cursor-pointer border-none bg-transparent"
               >
                 ✕
               </button>
@@ -1135,18 +1135,18 @@ export function ClassMaterialsTab({
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="font-semibold text-gray-700 dark:text-[#C4C7C5] block mb-1">
                   Tài liệu nguồn được chọn
                 </label>
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2.5">
+                <div className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-amber-500 text-[20px]">
                     slideshow
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                    <div className="font-semibold text-gray-900 dark:text-[#E3E3E3] truncate">
                       {selectedMaterial?.filename || 'Slide_Chuong05_Cay_phan_doan.pptx'}
                     </div>
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-gray-400 dark:text-[#8E918F]">
                       Cấu trúc dữ liệu và giải thuật (CS-202)
                     </div>
                   </div>
@@ -1155,10 +1155,10 @@ export function ClassMaterialsTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label className="font-semibold text-gray-700 dark:text-[#C4C7C5] block mb-1">
                     Cấp độ tư duy (Bloom)
                   </label>
-                  <select className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                  <select className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none text-gray-900 dark:text-[#E3E3E3] outline-none">
                     <option>Bloom 3: Vận dụng (Application)</option>
                     <option>Bloom 1: Ghi nhớ (Recall)</option>
                     <option>Bloom 2: Thấu hiểu (Understand)</option>
@@ -1166,10 +1166,10 @@ export function ClassMaterialsTab({
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label className="font-semibold text-gray-700 dark:text-[#C4C7C5] block mb-1">
                     Số lượng câu hỏi
                   </label>
-                  <select className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                  <select className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none text-gray-900 dark:text-[#E3E3E3] outline-none">
                     <option>5 câu hỏi nhanh</option>
                     <option>10 câu trắc nghiệm</option>
                     <option>15 câu toàn chương</option>
@@ -1177,9 +1177,9 @@ export function ClassMaterialsTab({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-slate-700 dark:text-slate-300 space-y-1">
-                <div className="font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+              <div className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none text-gray-700 dark:text-[#C4C7C5] space-y-1">
+                <div className="font-semibold text-gray-900 dark:text-[#E3E3E3] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA]">check_circle</span>
                   <span>Ví dụ câu hỏi được AI tạo ra:</span>
                 </div>
                 <p className="text-[11px] leading-relaxed">
@@ -1192,7 +1192,7 @@ export function ClassMaterialsTab({
               <button
                 type="button"
                 onClick={() => setIsAutoQuizOpen(false)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
               >
                 Đóng
               </button>
@@ -1202,7 +1202,7 @@ export function ClassMaterialsTab({
                   setIsAutoQuizOpen(false);
                   notify(t('toastQuizGenerated'));
                 }}
-                className="px-5 py-2 rounded-full text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs border-none cursor-pointer transition-all"
               >
                 Tạo và thêm vào đề thi
               </button>
@@ -1213,8 +1213,8 @@ export function ClassMaterialsTab({
 
       {/* MODAL 4: KNOWLEDGE GRAPH PREVIEW */}
       {isGraphOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -1267,7 +1267,7 @@ export function ClassMaterialsTab({
                   <span className="text-[10px] text-blue-300 font-normal">Tiên quyết</span>
                 </div>
 
-                <div className="px-4 py-2.5 rounded-2xl bg-purple-900/90 border-[3px] border-purple-400 text-purple-100 text-xs font-extrabold text-center shadow-xl animate-pulse">
+                <div className="px-4 py-2.5 rounded-2xl bg-purple-900/90 border-none text-purple-100 text-xs font-semibold text-center shadow-xl animate-pulse">
                   <div>Segment Tree</div>
                   <span className="text-[10px] text-purple-300 font-normal">Đang học • 18 nodes</span>
                 </div>

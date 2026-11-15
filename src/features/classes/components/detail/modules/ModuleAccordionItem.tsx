@@ -74,12 +74,8 @@ export function ModuleAccordionItem({
 
   return (
     <div
-      className={`rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all duration-200 border-[3px] ${
-        module.isActiveFocus
-          ? 'border-blue-500 shadow-md ring-2 ring-blue-500/20'
-          : module.isLocked
-          ? 'border-slate-300 dark:border-slate-800 opacity-75'
-          : 'border-slate-300 dark:border-slate-700'
+      className={`rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none overflow-hidden transition-all duration-200 border-none ${
+        module.isLocked ? 'opacity-75' : ''
       }`}
     >
       {/* Module Header */}
@@ -87,14 +83,14 @@ export function ModuleAccordionItem({
         onClick={onToggle}
         className={`p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer select-none transition-colors ${
           module.isActiveFocus
-            ? 'bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-50 dark:hover:bg-blue-950/60'
-            : 'bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ? 'bg-[#D3E3FD]/30 dark:bg-[#162B4D]/30 hover:opacity-90'
+            : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
         }`}
       >
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           {isEditMode && (
             <span
-              className="material-symbols-outlined text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-grab shrink-0"
+              className="material-symbols-outlined text-gray-400 hover:text-gray-700 dark:hover:text-[#E3E3E3] cursor-grab shrink-0"
               title="Kéo thả để sắp xếp lại chương"
               onClick={(e) => e.stopPropagation()}
             >
@@ -103,10 +99,10 @@ export function ModuleAccordionItem({
           )}
 
           <div
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-xs ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border-none ${
               module.isActiveFocus
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
             }`}
           >
             {module.order}
@@ -115,21 +111,21 @@ export function ModuleAccordionItem({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`text-[11px] font-bold uppercase tracking-wider ${
-                  module.isActiveFocus ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'
+                className={`text-[11px] font-semibold uppercase tracking-wider ${
+                  module.isActiveFocus ? 'text-blue-600 dark:text-[#A8C7FA]' : 'text-gray-500 dark:text-[#8E918F]'
                 }`}
               >
                 Chương {module.order} {module.isActiveFocus && '• Đang giảng dạy'}
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+              <span className="text-xs text-gray-500 dark:text-[#8E918F] font-medium">
                 {module.weeks}
               </span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 border-none ${
                   module.isActiveFocus
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-200/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300'
+                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
                 }`}
               >
                 {module.isActiveFocus && (
@@ -193,32 +189,32 @@ export function ModuleAccordionItem({
 
       {/* Module Lessons Content */}
       {isExpanded && (
-        <div className="p-4 sm:p-5 flex flex-col gap-2.5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="p-4 sm:p-5 flex flex-col gap-2.5 border-t border-black/5 dark:border-white/5 bg-white dark:bg-[#1E1F20]">
           {module.lessons.length === 0 ? (
-            <p className="text-xs text-slate-400 italic py-2 text-center">
+            <p className="text-xs text-gray-400 dark:text-[#8E918F] italic py-2 text-center">
               Chưa có bài học nào trong chương này.
             </p>
           ) : (
             module.lessons.map((lesson) => (
               <div
                 key={lesson.id}
-                className={`p-3 sm:p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
+                className={`p-3.5 sm:p-4 rounded-2xl border-none transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
                   lesson.isDraft
-                    ? 'bg-slate-50/70 dark:bg-slate-800/40 border-dashed border-slate-300 dark:border-slate-700'
-                    : 'bg-slate-50/40 dark:bg-slate-800/40 hover:bg-slate-100/70 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-800'
+                    ? 'bg-[#F0F4F8]/60 dark:bg-[#131314]/60'
+                    : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {isEditMode && (
                     <span
-                      className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 cursor-grab text-[18px] shrink-0"
+                      className="material-symbols-outlined text-gray-300 group-hover:text-gray-500 cursor-grab text-[18px] shrink-0"
                       title="Kéo thả bài học"
                     >
                       drag_indicator
                     </span>
                   )}
 
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-100/70 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] flex items-center justify-center shrink-0 border-none">
                     <span className="material-symbols-outlined text-[19px]">
                       {getFormatIcon(lesson.type)}
                     </span>
@@ -227,25 +223,25 @@ export function ModuleAccordionItem({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {lesson.code && (
-                        <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                        <span className="font-mono text-xs font-bold text-blue-600 dark:text-[#A8C7FA]">
                           {lesson.code}
                         </span>
                       )}
-                      <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] truncate">
                         {lesson.title}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 flex-wrap">
                       <span>{lesson.meta}</span>
                       <span>•</span>
-                      <span className="text-slate-700 dark:text-slate-300 font-medium">
+                      <span className="text-gray-700 dark:text-[#C4C7C5] font-medium">
                         {lesson.stats}
                       </span>
                       {lesson.alert && (
                         <>
                           <span>•</span>
-                          <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-0.5">
+                          <span className="text-rose-600 dark:text-[#F28B82] font-semibold flex items-center gap-0.5">
                             <span className="material-symbols-outlined text-[14px]">warning</span>
                             <span>{lesson.alert}</span>
                           </span>
@@ -254,7 +250,7 @@ export function ModuleAccordionItem({
                       {lesson.prerequisite && (
                         <>
                           <span>•</span>
-                          <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-0.5">
+                          <span className="text-amber-700 dark:text-[#FFB784] font-medium flex items-center gap-0.5">
                             <span className="material-symbols-outlined text-[14px]">lock</span>
                             <span>{lesson.prerequisite}</span>
                           </span>
@@ -265,23 +261,23 @@ export function ModuleAccordionItem({
                 </div>
 
                 {/* Right controls per lesson */}
-                <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-black/5 dark:border-white/5">
                   {lesson.isDraft ? (
                     <>
-                      <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] text-[10px] font-semibold border-none">
                         Bản nháp
                       </span>
                       <button
                         type="button"
                         onClick={() => onPublishLesson(lesson.id)}
-                        className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-[11px] font-bold transition-colors cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-[11px] font-semibold transition-colors cursor-pointer border-none"
                       >
                         Xuất bản
                       </button>
                     </>
                   ) : lesson.submissionsCount ? (
                     <>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-[#142E20] text-emerald-800 dark:text-[#81C995] text-[10px] font-semibold border-none">
                         Đang mở nộp
                       </span>
                       <button
