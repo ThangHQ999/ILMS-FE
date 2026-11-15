@@ -678,13 +678,17 @@ export function ClassDetailPageView({
       />
 
       <InviteMemberModal
-        classCode={classInfo?.enrollmentKey || classInfo?.name || classId}
+        classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
+        instructorName={classInfo?.instructor?.fullName || userFullName}
+        enrolledCount={classInfo?.enrolledCount || 45}
+        maxStudents={classInfo?.maxStudents || 60}
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}
-        onInvite={(email) => {
+        onInvite={(emails) => {
           setIsInviteOpen(false);
-          showToast(`Đã gửi lời mời tham gia lớp tới email: ${email}`);
+          showToast(`Đã gửi lời mời tham gia lớp tới: ${emails}`);
         }}
+        onToast={showToast}
       />
 
       <ToastNotification message={toastMessage} />
