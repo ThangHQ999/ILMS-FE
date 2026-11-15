@@ -71,6 +71,21 @@ export function TeacherCreateQuizStudioView({
 
   const activeClassId = activeClass ? String(activeClass.id) : (targetClassId || 'cs-202');
 
+  const appliedClassLabel = useMemo(() => {
+    if (activeClass) {
+      const code = activeClass.name || activeClass.classCode || activeClass.code || String(activeClass.id);
+      const title = activeClass.title || '';
+      if (title && title !== code) {
+        if (!code.includes(':') && !title.includes(':')) {
+          return `${code} (${title})`;
+        }
+        return title.includes(code) ? title : `${code} (${title})`;
+      }
+      return code || 'CS-202 (Mạng máy tính & Truyền thông)';
+    }
+    return 'CS-202 (Mạng máy tính & Truyền thông)';
+  }, [activeClass]);
+
   // App Shell State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -322,55 +337,52 @@ export function TeacherCreateQuizStudioView({
                     </span>
                   </div>
 
-                  {/* Quiz Title */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-[#171c1f] dark:text-white flex items-center justify-between">
-                      <span>
-                        Tên tiêu đề bài Quiz <span className="text-red-500">*</span>
-                      </span>
-                      <span className="text-xs text-slate-500 font-normal">
+                  {/* Ô nhập tiêu đề bài Quiz */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="quiz-title" className="text-sm font-semibold text-slate-800 dark:text-white">
+                        Tên tiêu đề bài Quiz <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-xs text-slate-400 font-mono">
                         {quizTitle.length} / 120 ký tự
                       </span>
-                    </label>
-                    <input
-                      type="text"
+                    </div>
+                    <input 
+                      type="text" 
+                      id="quiz-title"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] text-slate-800 dark:text-white font-medium text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all placeholder:text-slate-400 shadow-xs" 
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
-                      placeholder="Nhập tên bài thi trắc nghiệm..."
-                      className="h-10 px-3.5 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-sm font-semibold border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                      placeholder="Nhập tiêu đề đề thi trắc nghiệm..."
                     />
                   </div>
 
-                  {/* Course Module & Output standard Matrix */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">school</span>
-                        <span>Lớp học mục tiêu</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={activeClassId}
-                          onChange={(e) => setTargetClassId(e.target.value)}
-                          className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer truncate"
-                        >
-                          {availableClasses.map((c) => {
-                            const code = c.name || c.classCode || c.id;
-                            const title = c.title || '';
-                            const label = title && title !== code ? `${code}: ${title}` : (code || title);
-                            return (
-                              <option key={c.id} value={String(c.id)}>
-                                {label}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        <span className="material-symbols-outlined absolute right-3 top-2.5 text-[20px] text-slate-400 pointer-events-none">
-                          expand_more
-                        </span>
-                      </div>
+                  {/* ======================================================== */}
+                  {/* PHẦN SỬA ĐỔI: Badge Lớp áp dụng (Disabled / Locked State) */}
+                  {/* ======================================================== */}
+                  <div className="mt-2.5 flex items-center">
+                    <div
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100/90 dark:bg-[#282A2C] border border-slate-200/80 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 select-none shadow-xs"
+                      title="Đã cố định theo lớp giảng dạy hiện tại"
+                    >
+                      {/* Icon lớp học */}
+                      <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+                        school
+                      </span>
+                      {/* Text thông tin lớp */}
+                      <span className="font-medium">
+                        Lớp áp dụng: <strong className="text-slate-900 dark:text-white font-semibold">{appliedClassLabel}</strong>
+                      </span>
+                      {/* Biểu tượng ổ khóa cố định */}
+                      <span className="material-symbols-outlined text-[14px] text-slate-400 ml-0.5">
+                        lock
+                      </span>
                     </div>
+                  </div>
+                  {/* ======================================================== */}
 
+                  {/* Course Module & Output standard Matrix */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
                         Chương / Module liên kết
