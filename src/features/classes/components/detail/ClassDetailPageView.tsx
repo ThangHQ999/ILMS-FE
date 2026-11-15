@@ -426,6 +426,7 @@ export function ClassDetailPageView({
               <ClassMembersTab
                 members={members}
                 currentRole={effectiveRole}
+                classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
@@ -480,6 +481,7 @@ export function ClassDetailPageView({
               <ClassMembersTab
                 members={members}
                 currentRole={effectiveRole}
+                classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}

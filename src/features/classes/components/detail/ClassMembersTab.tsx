@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import type { ClassMember } from '../../schemas/class-detail.schema';
+import { StudentDetailDrawer } from './StudentDetailDrawer';
 
 interface ClassMembersTabProps {
   members?: ClassMember[];
   currentRole?: 'owner' | 'teacher' | 'student';
+  classCode?: string;
   onApproveMember?: (member: ClassMember) => void;
   onRejectMember?: (member: ClassMember) => void;
   onInviteClick?: () => void;
@@ -15,6 +17,7 @@ interface ClassMembersTabProps {
 export function ClassMembersTab({
   members = [],
   currentRole = 'owner',
+  classCode = 'CS-202',
   onApproveMember,
   onRejectMember,
   onInviteClick,
@@ -368,17 +371,21 @@ export function ClassMembersTab({
 
                     {/* Student Info */}
                     <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => setSelectedStudentForProfile(student)}
+                        className="flex items-center gap-3 cursor-pointer group"
+                        title="Xem hồ sơ & tiến độ chi tiết"
+                      >
                         <div className="relative shrink-0">
                           {student.avatarUrl ? (
                             <img
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                              className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 group-hover:ring-2 group-hover:ring-blue-500 transition-all"
                               src={student.avatarUrl}
                               alt={student.name}
                             />
                           ) : (
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs group-hover:ring-2 group-hover:ring-blue-500 transition-all ${
                                 isRisk
                                   ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
                                   : isNeedHelp
@@ -401,7 +408,7 @@ export function ClassMembersTab({
                         </div>
 
                         <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm">
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {student.name}
                           </span>
                           <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
@@ -781,95 +788,24 @@ export function ClassMembersTab({
         </div>
       </div>
 
-      {/* 5. MODAL HỒ SƠ HỌC VIÊN CHI TIẾT */}
-      {selectedStudentForProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 max-w-lg w-full p-6 space-y-5 shadow-2xl animate-scaleUp">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                {selectedStudentForProfile.avatarUrl ? (
-                  <img
-                    className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                    src={selectedStudentForProfile.avatarUrl}
-                    alt={selectedStudentForProfile.name}
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-sm flex items-center justify-center">
-                    {selectedStudentForProfile.avatar}
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                    {selectedStudentForProfile.name}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-mono">
-                    MSSV: {selectedStudentForProfile.studentCode} • {selectedStudentForProfile.email}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedStudentForProfile(null)}
-                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Chuyên cần</span>
-                <div className="text-base font-extrabold text-blue-600 dark:text-blue-400 font-mono mt-0.5">
-                  {selectedStudentForProfile.attendanceRate}%
-                </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Đồ thị tri thức</span>
-                <div className="text-base font-extrabold text-blue-600 dark:text-blue-400 font-mono mt-0.5">
-                  {selectedStudentForProfile.knowledgePercent}%
-                </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Điểm GPA</span>
-                <div className="text-base font-extrabold text-slate-900 dark:text-slate-100 font-mono mt-0.5">
-                  {selectedStudentForProfile.gpa?.toFixed(1)}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 space-y-1.5 text-xs">
-              <div className="flex items-center gap-1.5 text-indigo-900 dark:text-indigo-200 font-bold">
-                <span className="material-symbols-outlined text-[17px]">psychology</span>
-                <span>Đánh giá năng lực chuẩn ABET / PLO:</span>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                Sinh viên có năng lực giải quyết vấn đề tốt trên đồ thị tri thức (đã mở{' '}
-                {selectedStudentForProfile.knowledgeNodesUnlocked}/82 nút mạng). Đạt yêu cầu chuẩn đầu ra PLO1 và PLO3.
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedStudentForProfile(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                Đóng
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedStudentForProfile(null);
-                  notify(`Đã chuyển hướng đến Sổ tay học tập chi tiết của ${selectedStudentForProfile.name}`);
-                }}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
-              >
-                Xem chi tiết học tập →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. DRAWER HỒ SƠ & TIẾN ĐỘ HỌC VIÊN CHI TIẾT */}
+      <StudentDetailDrawer
+        isOpen={!!selectedStudentForProfile}
+        onClose={() => setSelectedStudentForProfile(null)}
+        student={selectedStudentForProfile}
+        classCode={classCode}
+        onSendMessage={(s) =>
+          notify(`Đang mở hội thoại trực tiếp với sinh viên ${s.name}...`)
+        }
+        onUnenroll={(s) => {
+          if (onRejectMember) onRejectMember(s);
+          notify(`Đã xử lý rút học viên ${s.name} khỏi lớp ${classCode}.`);
+        }}
+        onSaveNote={(sId, note) =>
+          notify(`Đã lưu ghi chú học vụ cho sinh viên ID ${sId}`)
+        }
+        onToast={notify}
+      />
     </div>
   );
 }
