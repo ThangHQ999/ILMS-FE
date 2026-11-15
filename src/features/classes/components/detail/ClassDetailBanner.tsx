@@ -69,10 +69,10 @@ export function ClassDetailBanner({
               {/* Badges row */}
               <div className="flex items-center gap-2 mb-2 flex-wrap text-xs font-semibold">
                 <span className="px-3 py-0.5 rounded-full bg-[#0059bb] text-white font-bold tracking-wide uppercase shadow-xs">
-                  {classInfo.enrollmentKey || classInfo.name || 'CS-202'} • Nhóm 01
+                  {classInfo.name || classInfo.enrollmentKey || 'CS-202'}
                 </span>
                 <span className="px-3 py-0.5 rounded-full bg-white/15 text-slate-200">
-                  {classInfo.semester || 'Học kỳ 1 • 2024-2025'}
+                  {classInfo.semester || 'Học kỳ 1 • 2026-2027'}
                 </span>
                 <span className="px-3 py-0.5 rounded-full bg-white/10 text-white flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -82,7 +82,7 @@ export function ClassDetailBanner({
 
               {/* Title */}
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight truncate">
-                {classInfo.title}
+                {classInfo.title || classInfo.name || 'Không gian Lớp học'}
               </h1>
 
               {/* Subtitle / Instructor */}

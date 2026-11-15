@@ -25,6 +25,7 @@ import {
   ArchiveModal,
   AddSubjectModal,
   InviteMemberModal,
+  CreateAnnouncementModal,
   ToastNotification,
 } from './ClassDetailModals';
 import { CreateSubjectModal } from './CreateSubjectModal';
@@ -96,6 +97,7 @@ export function ClassDetailPageView({
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
   const [isCreateSubjectOpen, setIsCreateSubjectOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -255,7 +257,7 @@ export function ClassDetailPageView({
             <span className="text-slate-300 dark:text-slate-700">/</span>
             <span className="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              {classInfo?.title || 'Đang tải thông tin lớp...'}
+              {classInfo?.title || classInfo?.name || 'Đang tải thông tin lớp...'}
             </span>
           </div>
 
@@ -393,6 +395,7 @@ export function ClassDetailPageView({
                 classInfo={classInfo}
                 currentRole={effectiveRole}
                 onNavigateTab={setActiveTab}
+                onOpenCreateAnnouncement={() => setIsCreateAnnouncementOpen(true)}
                 onToast={showToast}
               />
             )}
@@ -472,7 +475,7 @@ export function ClassDetailPageView({
                     content: ann.content,
                   });
                 }}
-                onPostClick={() => showToast('Mở khung soạn thông báo mới cho lớp')}
+                onPostClick={() => setIsCreateAnnouncementOpen(true)}
                 onToast={showToast}
               />
             )}
@@ -654,7 +657,7 @@ export function ClassDetailPageView({
       />
 
       <ArchiveModal
-        classNameTitle={classInfo?.title || 'Lớp học'}
+        classNameTitle={classInfo?.title || classInfo?.name || 'Lớp học'}
         isOpen={isArchiveOpen}
         onClose={() => setIsArchiveOpen(false)}
         onConfirm={handleArchiveConfirm}
@@ -687,6 +690,24 @@ export function ClassDetailPageView({
         onInvite={(emails) => {
           setIsInviteOpen(false);
           showToast(`Đã gửi lời mời tham gia lớp tới: ${emails}`);
+        }}
+        onToast={showToast}
+      />
+
+      <CreateAnnouncementModal
+        isOpen={isCreateAnnouncementOpen}
+        onClose={() => setIsCreateAnnouncementOpen(false)}
+        classId={classId}
+        classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
+        classNameTitle={classInfo?.title || classInfo?.name || 'Cấu trúc dữ liệu & Giải thuật'}
+        studentCount={classInfo?.enrolledCount || 45}
+        onPublish={(data) => {
+          postAnnouncementMutation.mutate({
+            title: data.title,
+            content: data.content,
+          });
+          refetch();
+          showToast(`Đã đăng thông báo "${data.title}" thành công!`);
         }}
         onToast={showToast}
       />

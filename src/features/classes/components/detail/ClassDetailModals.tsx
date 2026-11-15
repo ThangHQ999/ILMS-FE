@@ -218,6 +218,13 @@ export function AddSubjectModal({ isOpen, onClose, onConfirm }: AddSubjectModalP
 
 export { InviteMemberModal } from './InviteMemberModal';
 export type { InviteMemberModalProps } from './InviteMemberModal';
+export { CreateAnnouncementModal } from './CreateAnnouncementModal';
+export type {
+  CreateAnnouncementModalProps,
+  CreateAnnouncementData,
+  AttachedFile,
+  TargetClassOption,
+} from './CreateAnnouncementModal';
 
 
 interface ToastNotificationProps {

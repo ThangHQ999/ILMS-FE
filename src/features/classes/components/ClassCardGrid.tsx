@@ -26,7 +26,9 @@ export function ClassCardGrid({
   // Container class dynamic based on student vs faculty and grid vs list
   const containerClass =
     workspaceMode === 'student'
-      ? 'grid grid-cols-1 md:grid-cols-2 gap-6'
+      ? viewMode === 'list'
+        ? 'grid grid-cols-1 gap-4.5'
+        : 'grid grid-cols-1 md:grid-cols-2 gap-6'
       : viewMode === 'list'
       ? 'grid grid-cols-1 gap-6'
       : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';

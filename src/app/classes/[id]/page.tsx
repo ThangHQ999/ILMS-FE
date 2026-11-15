@@ -12,6 +12,7 @@ interface PageProps {
 export default function ClassDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
+  const cleanId = decodeURIComponent(id || '').trim();
   const { data: user, isLoading, isError } = useCurrentUser();
 
   useEffect(() => {
@@ -25,5 +26,5 @@ export default function ClassDetailPage({ params }: PageProps) {
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
       : 'TS. Lê Hoàng Nam';
 
-  return <ClassDetailPageView classId={id} userFullName={userFullName} />;
+  return <ClassDetailPageView classId={cleanId} userFullName={userFullName} />;
 }

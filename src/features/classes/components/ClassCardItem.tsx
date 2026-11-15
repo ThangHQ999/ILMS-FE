@@ -23,7 +23,7 @@ export function ClassCardItem({
 }: ClassCardItemProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Dynamic Tech Gradient, Diagram & Accent Tag
+  // Dynamic Tech Gradient, Diagram & Accent Tag (with smart fallback hashing for short/custom names like 'd1')
   const getTechDetails = (major: string = '', title: string = '', name: string = '') => {
     const text = `${major} ${title} ${name}`.toLowerCase();
 
@@ -31,13 +31,13 @@ export function ClassCardItem({
     if (text.includes('trí tuệ') || text.includes('ai') || text.includes('mining') || text.includes('khai phá')) {
       return {
         type: 'ai',
-        gradient: 'from-slate-900 via-purple-950 to-indigo-800',
+        gradient: 'from-slate-950 via-purple-950 to-indigo-900',
         tag: 'AI • KNOWLEDGE GRAPHS & MINING',
         icon: 'psychology',
         textColor: 'text-purple-200',
         progressGradient: 'from-purple-500 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="100" cy="75" r="25" strokeDasharray="2 2" strokeWidth="1.5" />
             <circle cx="200" cy="75" r="35" strokeWidth="1.5" />
             <circle cx="300" cy="75" r="25" strokeDasharray="2 2" strokeWidth="1.5" />
@@ -52,13 +52,13 @@ export function ClassCardItem({
     if (text.includes('kỹ thuật lập trình') || text.includes('ktlt') || text.includes('c++')) {
       return {
         type: 'cpp',
-        gradient: 'from-slate-900 via-cyan-950 to-blue-800',
+        gradient: 'from-slate-950 via-cyan-950 to-blue-900',
         tag: 'C++ • MODERN CODING',
         icon: 'terminal',
         textColor: 'text-cyan-200',
         progressGradient: 'from-cyan-500 to-blue-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M30,75 L120,30 L220,110 L310,40 L380,80" strokeWidth="2" />
             <circle cx="120" cy="30" fill="currentColor" r="4" />
             <circle cx="220" cy="110" fill="currentColor" r="4" />
@@ -72,13 +72,13 @@ export function ClassCardItem({
     if (text.includes('cấu trúc dữ liệu') || text.includes('ctdl') || text.includes('thuật nâng cao')) {
       return {
         type: 'algorithms',
-        gradient: 'from-slate-900 via-indigo-950 to-indigo-700',
+        gradient: 'from-slate-950 via-indigo-950 to-indigo-800',
         tag: workspaceMode === 'student' ? 'ADVANCED DSA • TREE & GRAPH' : 'ALGORITHMS • TREE / GRAPH',
         icon: 'account_tree',
         textColor: 'text-indigo-200',
         progressGradient: 'from-indigo-500 to-purple-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="200" cy="30" r="10" strokeWidth="2" />
             <circle cx="120" cy="90" r="8" strokeWidth="2" />
             <circle cx="280" cy="90" r="8" strokeWidth="2" />
@@ -97,13 +97,13 @@ export function ClassCardItem({
     if (text.includes('thông minh') || text.includes('thiet ke') || text.includes('thtt') || text.includes('graph theory')) {
       return {
         type: 'graph',
-        gradient: 'from-slate-900 via-sky-950 to-blue-800',
+        gradient: 'from-slate-950 via-sky-950 to-blue-900',
         tag: 'ALGORITHMS • GRAPH THEORY',
         icon: 'schema',
         textColor: 'text-sky-200',
         progressGradient: 'from-blue-600 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M0,75 C100,20 150,130 250,75 C350,20 400,100 400,100" strokeDasharray="4 4" strokeWidth="2" />
             <circle cx="80" cy="55" fill="currentColor" r="4" />
             <circle cx="200" cy="95" fill="currentColor" r="5" />
@@ -119,13 +119,13 @@ export function ClassCardItem({
     if (text.includes('hướng đối tượng') || text.includes('oop') || text.includes('java')) {
       return {
         type: 'oop',
-        gradient: 'from-slate-900 via-sky-950 to-blue-700',
+        gradient: 'from-slate-950 via-sky-950 to-blue-800',
         tag: 'JAVA • OOP ARCHITECTURE',
         icon: 'code_blocks',
         textColor: 'text-sky-200',
         progressGradient: 'from-sky-500 to-blue-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <rect height="70" rx="6" strokeWidth="1.5" width="80" x="50" y="30" />
             <rect height="70" rx="6" strokeWidth="1.5" width="80" x="220" y="30" />
             <path d="M130,65 L220,65" strokeDasharray="3 3" strokeWidth="2" />
@@ -139,13 +139,13 @@ export function ClassCardItem({
     if (text.includes('mạng') || text.includes('mmt') || text.includes('networking') || text.includes('tcp')) {
       return {
         type: 'networking',
-        gradient: 'from-slate-900 via-teal-950 to-teal-700',
+        gradient: 'from-slate-950 via-teal-950 to-teal-800',
         tag: 'NETWORKING • TCP / IP',
         icon: 'router',
         textColor: 'text-teal-200',
         progressGradient: 'from-teal-500 to-emerald-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <circle cx="60" cy="75" r="12" strokeWidth="1.5" />
             <circle cx="200" cy="35" r="10" strokeWidth="1.5" />
             <circle cx="200" cy="115" r="10" strokeWidth="1.5" />
@@ -163,13 +163,13 @@ export function ClassCardItem({
     if (text.includes('dữ liệu') || text.includes('csdl') || text.includes('database') || text.includes('sql')) {
       return {
         type: 'database',
-        gradient: 'from-slate-900 via-blue-950 to-blue-800',
-        tag: 'DATABASE • SQL / NOSQL',
+        gradient: 'from-slate-950 via-blue-950 to-indigo-900',
+        tag: 'DATABASE • SQL / NOSQL ARCHITECTURE',
         icon: 'database',
         textColor: 'text-blue-200',
         progressGradient: 'from-blue-600 to-indigo-600',
         diagram: (
-          <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
             <path d="M0,75 C100,20 150,130 250,75 C350,20 400,100 400,100" strokeDasharray="4 4" strokeWidth="2" />
             <circle cx="80" cy="55" fill="currentColor" r="4" />
             <circle cx="200" cy="95" fill="currentColor" r="5" />
@@ -181,20 +181,82 @@ export function ClassCardItem({
       };
     }
 
-    // Default
-    return {
-      type: 'default',
-      gradient: 'from-slate-900 via-slate-800 to-indigo-800',
-      tag: 'COMPUTER SCIENCE • CORE',
-      icon: 'terminal',
-      textColor: 'text-slate-200',
-      progressGradient: 'from-blue-600 to-indigo-600',
-      diagram: (
-        <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
-          <circle cx="200" cy="75" r="40" strokeDasharray="3 3" strokeWidth="1.5" />
-        </svg>
-      ),
-    };
+    // 8. Smart Hash-Based Fallback for Custom/Short names (such as "d1")
+    // Ensures freshly created classes have high-tech vibrancy and modern topology visuals
+    const seed = (name || title || 'default')
+      .split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const fallbackVariants = [
+      {
+        type: 'cloud',
+        gradient: 'from-slate-950 via-sky-950 to-blue-900',
+        tag: 'CLOUD NATIVE & CYBER ARCHITECTURE',
+        icon: 'cloud_sync',
+        textColor: 'text-sky-200',
+        progressGradient: 'from-sky-500 to-blue-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <circle cx="100" cy="75" r="25" strokeDasharray="3 3" strokeWidth="1.5" />
+            <circle cx="200" cy="55" r="32" strokeWidth="2" />
+            <circle cx="300" cy="85" r="22" strokeWidth="1.5" />
+            <line strokeWidth="1.5" x1="125" x2="168" y1="75" y2="55" />
+            <line strokeWidth="1.5" x1="232" x2="278" y1="55" y2="85" />
+          </svg>
+        ),
+      },
+      {
+        type: 'software',
+        gradient: 'from-slate-950 via-teal-950 to-emerald-900',
+        tag: 'SOFTWARE ENGINEERING & ARCHITECTURE',
+        icon: 'developer_board',
+        textColor: 'text-teal-200',
+        progressGradient: 'from-teal-500 to-emerald-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <path d="M40,75 L120,35 L200,105 L280,45 L360,75" strokeWidth="2" />
+            <circle cx="120" cy="35" fill="currentColor" r="4" />
+            <circle cx="200" cy="105" fill="currentColor" r="5" />
+            <circle cx="280" cy="45" fill="currentColor" r="4" />
+          </svg>
+        ),
+      },
+      {
+        type: 'ai-core',
+        gradient: 'from-slate-950 via-purple-950 to-indigo-900',
+        tag: 'INTELLIGENT SYSTEMS & DATA MODELING',
+        icon: 'psychology',
+        textColor: 'text-purple-200',
+        progressGradient: 'from-purple-500 to-indigo-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <circle cx="80" cy="75" r="22" strokeDasharray="3 3" strokeWidth="1.5" />
+            <circle cx="200" cy="45" r="28" strokeWidth="2" />
+            <circle cx="320" cy="75" r="22" strokeDasharray="3 3" strokeWidth="1.5" />
+            <line strokeWidth="1.5" x1="102" x2="172" y1="75" y2="45" />
+            <line strokeWidth="1.5" x1="228" x2="298" y1="45" y2="75" />
+          </svg>
+        ),
+      },
+      {
+        type: 'distributed',
+        gradient: 'from-slate-950 via-indigo-950 to-blue-900',
+        tag: 'DISTRIBUTED SYSTEMS & KNOWLEDGE GRAPH',
+        icon: 'hub',
+        textColor: 'text-indigo-200',
+        progressGradient: 'from-blue-600 to-indigo-600',
+        diagram: (
+          <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 400 150">
+            <rect height="50" rx="8" strokeWidth="1.5" width="70" x="50" y="50" />
+            <rect height="50" rx="8" strokeWidth="1.5" width="70" x="165" y="50" />
+            <rect height="50" rx="8" strokeWidth="1.5" width="70" x="280" y="50" />
+            <line strokeWidth="2" x1="120" x2="165" y1="75" y2="75" />
+            <line strokeWidth="2" x1="235" x2="280" y1="75" y2="75" />
+          </svg>
+        ),
+      },
+    ];
+
+    return fallbackVariants[seed % fallbackVariants.length];
   };
 
   const tech = getTechDetails(item.major, item.title, item.name);
@@ -211,7 +273,7 @@ export function ClassCardItem({
     if (textLower.includes('ctdl') || textLower.includes('thuật nâng cao')) {
       return {
         grade: '8.8',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
         teacher: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
         progressPercent: 84,
         nodesUnlocked: '42/50',
@@ -221,8 +283,9 @@ export function ClassCardItem({
           icon: 'alarm',
           text: 'Bài tập Lab 05 (Segment Tree) hết hạn lúc 23:59 hôm nay',
           action: 'Nộp ngay',
+          actionHref: `/classes/${item.id}?tab=assignments`,
           actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
-          containerClass: 'bg-rose-50 border-rose-200/60 text-rose-700',
+          containerClass: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-900/60 text-rose-700 dark:text-rose-300',
         },
       };
     }
@@ -231,7 +294,7 @@ export function ClassCardItem({
     if (textLower.includes('thtt') || textLower.includes('thông minh')) {
       return {
         grade: '7.5',
-        gradeColor: 'bg-amber-50 border-amber-200 text-amber-800',
+        gradeColor: 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300',
         teacher: 'PGS.TS. Vũ Đình Thành',
         progressPercent: 65,
         nodesUnlocked: '28/40',
@@ -241,8 +304,9 @@ export function ClassCardItem({
           icon: 'edit_note',
           text: 'Quiz 04 (Dijkstra & DSU) mở đến Chủ nhật tuần này',
           action: 'Làm Quiz',
+          actionHref: `/classes/${item.id}?tab=assignments`,
           actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50 border-amber-200/60 text-amber-800',
+          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-900/60 text-amber-800 dark:text-amber-300',
         },
       };
     }
@@ -251,7 +315,7 @@ export function ClassCardItem({
     if (textLower.includes('oop') || textLower.includes('đối tượng')) {
       return {
         grade: '9.2',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
         teacher: 'ThS. Hoàng Minh Tuấn',
         progressPercent: 92,
         nodesUnlocked: '36/40',
@@ -261,8 +325,9 @@ export function ClassCardItem({
           icon: 'check_circle',
           text: 'Đã nộp toàn bộ bài tập tuần này • Điểm Lab gần nhất: Xuất sắc',
           action: '',
+          actionHref: '',
           actionClass: '',
-          containerClass: 'bg-emerald-50 border-emerald-200/60 text-emerald-800',
+          containerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300',
         },
       };
     }
@@ -271,7 +336,7 @@ export function ClassCardItem({
     if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
       return {
         grade: '8.0',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
         teacher: 'TS. Nguyễn Bảo Anh • Trợ giảng AI Socratic 24/7',
         progressPercent: 48,
         nodesUnlocked: '20/45',
@@ -281,8 +346,9 @@ export function ClassCardItem({
           icon: 'smart_toy',
           text: 'Socratic AI gợi ý: Ôn tập 5 câu hỏi Flashcard thuật toán A*',
           action: 'Ôn ngay',
+          actionHref: `/classes/${item.id}?tab=stream`,
           actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
-          containerClass: 'bg-purple-50 border-purple-200/60 text-purple-800',
+          containerClass: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/60 dark:border-purple-900/60 text-purple-800 dark:text-purple-300',
         },
       };
     }
@@ -290,7 +356,7 @@ export function ClassCardItem({
     // Default student metrics
     return {
       grade: '8.5',
-      gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+      gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
       teacher: item.instructor?.fullName || 'TS. Lê Hoàng Nam',
       progressPercent: 75,
       nodesUnlocked: '30/40',
@@ -300,13 +366,181 @@ export function ClassCardItem({
         icon: 'info',
         text: 'Học liệu tuần mới đã được tải lên không gian học tập',
         action: 'Xem ngay',
+        actionHref: `/classes/${item.id}`,
         actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        containerClass: 'bg-blue-50 border-blue-200/60 text-blue-800',
+        containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/60 dark:border-blue-900/60 text-blue-800 dark:text-blue-300',
+      },
+    };
+  };
+
+  // Faculty mode specific metrics & contextual action strip
+  const getFacultyMetrics = () => {
+    const textLower = (item.name + item.title + (item.major || '')).toLowerCase();
+
+    // 1. CSDL
+    if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
+      return {
+        ploPassRate: 88.5,
+        attendanceRate: 98,
+        teachingProgress: 72,
+        curriculumWeek: 'Tuần 10/15',
+        completedLessons: '18/24',
+        instructorInfo: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 GV',
+        capacityText: `${item.enrolledCount || 42}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 42) / 60) * 100),
+        alert: {
+          type: 'warning',
+          icon: 'pending_actions',
+          text: '3 yêu cầu tham gia lớp đang chờ giảng viên duyệt',
+          action: 'Duyệt ngay',
+          actionHref: `/classes/${item.id}?tab=people`,
+          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
+          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
+        },
+      };
+    }
+
+    // 2. CTDL / Thuật toán
+    if (textLower.includes('ctdl') || textLower.includes('thuật')) {
+      return {
+        ploPassRate: 91.2,
+        attendanceRate: 96,
+        teachingProgress: 65,
+        curriculumWeek: 'Tuần 9/15',
+        completedLessons: '14/20',
+        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
+        capacityText: `${item.enrolledCount || 38}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 38) / 60) * 100),
+        alert: {
+          type: 'info',
+          icon: 'assignment_turned_in',
+          text: '5 bài thực hành Lab 04 (Dijkstra) mới nộp cần chấm điểm',
+          action: 'Chấm bài',
+          actionHref: `/classes/${item.id}?tab=assignments`,
+          actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+          containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
+        },
+      };
+    }
+
+    // 3. OOP
+    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
+      return {
+        ploPassRate: 94.0,
+        attendanceRate: 100,
+        teachingProgress: 80,
+        curriculumWeek: 'Tuần 12/15',
+        completedLessons: '22/26',
+        instructorInfo: 'ThS. Hoàng Minh Tuấn • 1 GV',
+        capacityText: `${item.enrolledCount || 45}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 45) / 60) * 100),
+        alert: {
+          type: 'warning',
+          icon: 'how_to_reg',
+          text: '1 sinh viên xin phép nghỉ buổi thực hành có phép',
+          action: 'Xem đơn',
+          actionHref: `/classes/${item.id}?tab=people`,
+          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
+          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
+        },
+      };
+    }
+
+    // 4. MMT
+    if (textLower.includes('mmt') || textLower.includes('mạng')) {
+      return {
+        ploPassRate: 85.0,
+        attendanceRate: 92,
+        teachingProgress: 55,
+        curriculumWeek: 'Tuần 7/15',
+        completedLessons: '11/18',
+        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
+        capacityText: `${item.enrolledCount || 36}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 36) / 60) * 100),
+        alert: {
+          type: 'danger',
+          icon: 'alarm',
+          text: 'Bài thực hành Lab 3 hết hạn nộp vào 23:59 ngày mai',
+          action: 'Nhắc nhở',
+          actionHref: `/classes/${item.id}?tab=stream`,
+          actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
+          containerClass: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/80 dark:border-rose-800/60 text-rose-800 dark:text-rose-300',
+        },
+      };
+    }
+
+    // 5. KTLT
+    if (textLower.includes('ktlt') || textLower.includes('kỹ thuật') || textLower.includes('c++')) {
+      return {
+        ploPassRate: 89.4,
+        attendanceRate: 98,
+        teachingProgress: 70,
+        curriculumWeek: 'Tuần 10/15',
+        completedLessons: '16/22',
+        instructorInfo: 'TS. Lê Hoàng Nam • 1 GV',
+        capacityText: `${item.enrolledCount || 48}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 48) / 60) * 100),
+        alert: {
+          type: 'success',
+          icon: 'check_circle',
+          text: '98% sinh viên đã hoàn thành Quiz tuần 09 • Chuẩn bị bài giảng tuần 10',
+          action: '',
+          actionHref: '',
+          actionClass: '',
+          containerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300',
+        },
+      };
+    }
+
+    // 6. AI
+    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
+      return {
+        ploPassRate: 92.8,
+        attendanceRate: 95,
+        teachingProgress: 45,
+        curriculumWeek: 'Tuần 6/15',
+        completedLessons: '9/18',
+        instructorInfo: 'TS. Nguyễn Bảo Anh • 3 GV',
+        capacityText: `${item.enrolledCount || 40}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount || 40) / 60) * 100),
+        alert: {
+          type: 'purple',
+          icon: 'smart_toy',
+          text: 'AI Tutor đã giải đáp 142 câu hỏi thắc mắc của sinh viên tuần qua',
+          action: 'Xem AI Log',
+          actionHref: `/classes/${item.id}?tab=stream`,
+          actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
+          containerClass: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/80 dark:border-purple-800/60 text-purple-800 dark:text-purple-300',
+        },
+      };
+    }
+
+    // Default / Newly Created Class (e.g. d1)
+    const enrolled = item.enrolledCount || 42;
+    const maxStudents = item.maxStudents || 60;
+    return {
+      ploPassRate: 88.0,
+      attendanceRate: 96,
+      teachingProgress: 60,
+      curriculumWeek: 'Tuần 8/15',
+      completedLessons: '12/20',
+      instructorInfo: item.instructor?.fullName || 'TS. Lê Hoàng Nam (Chủ nhiệm lớp)',
+      capacityText: `${enrolled}/${maxStudents} học viên`,
+      capacityPercent: Math.round((enrolled / maxStudents) * 100),
+      alert: {
+        type: 'info',
+        icon: 'campaign',
+        text: 'Lớp học hoạt động tốt • Đã đồng bộ không gian bài giảng & đề cương',
+        action: 'Vào quản lý',
+        actionHref: `/classes/${item.id}`,
+        actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+        containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
       },
     };
   };
 
   const studentData = getStudentMetrics();
+  const facultyData = getFacultyMetrics();
 
   // Schedule display for Faculty mode
   const getFacultySchedule = () => {
@@ -321,100 +555,6 @@ export function ClassCardItem({
     if (nameLower.includes('ktlt') || nameLower.includes('kỹ thuật')) return 'Thứ 4 (Tiết 1-3)';
     if (nameLower.includes('ai') || nameLower.includes('trí tuệ')) return 'Thứ 7 (Tiết 4-6)';
     return 'Lịch học linh hoạt';
-  };
-
-  // Status / Alert Strip for Faculty mode
-  const renderFacultyStatusStrip = () => {
-    const textLower = (item.name + item.title).toLowerCase();
-
-    // 1. CSDL: 3 yêu cầu tham gia đang chờ duyệt
-    if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2 truncate">
-            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-            <span className="font-semibold truncate">3 yêu cầu tham gia đang chờ duyệt</span>
-          </div>
-          <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400 shrink-0">arrow_forward</span>
-        </div>
-      );
-    }
-
-    // 2. CTDL: Hoạt động gần nhất 2 giờ trước • Tuần 8
-    if (textLower.includes('ctdl') || textLower.includes('thuật')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
-          <span className="flex items-center gap-2 truncate">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">history</span>
-            <span className="truncate">Hoạt động gần nhất 2 giờ trước</span>
-          </span>
-          <span className="text-[11px] font-semibold text-slate-400 shrink-0">Tuần 8</span>
-        </div>
-      );
-    }
-
-    // 3. OOP: 1 yêu cầu tham gia đang chờ duyệt
-    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2 truncate">
-            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-            <span className="font-semibold truncate">1 yêu cầu tham gia đang chờ duyệt</span>
-          </div>
-          <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400 shrink-0">arrow_forward</span>
-        </div>
-      );
-    }
-
-    // 4. MMT: Bài thực hành Lab 3 sắp đến hạn vào ngày mai • 23:59
-    if (textLower.includes('mmt') || textLower.includes('mạng')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2 truncate">
-            <span className="material-symbols-outlined text-[16px] text-rose-600 shrink-0">alarm</span>
-            <span className="font-semibold truncate">Bài thực hành Lab 3 sắp đến hạn vào ngày mai</span>
-          </div>
-          <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 shrink-0">23:59</span>
-        </div>
-      );
-    }
-
-    // 5. KTLT: Hoạt động gần nhất hôm nay • 98% nộp bài
-    if (textLower.includes('ktlt') || textLower.includes('kỹ thuật') || textLower.includes('c++')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
-          <span className="flex items-center gap-2 truncate">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">update</span>
-            <span className="truncate">Hoạt động gần nhất hôm nay</span>
-          </span>
-          <span className="text-[11px] font-semibold text-emerald-600 shrink-0">98% nộp bài</span>
-        </div>
-      );
-    }
-
-    // 6. AI: Hoạt động gần nhất hôm qua • Tích hợp AI Tutor
-    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
-      return (
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
-          <span className="flex items-center gap-2 truncate">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">schedule</span>
-            <span className="truncate">Hoạt động gần nhất hôm qua</span>
-          </span>
-          <span className="text-[11px] font-semibold text-blue-600 shrink-0">Tích hợp AI Tutor</span>
-        </div>
-      );
-    }
-
-    // Default faculty strip
-    return (
-      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between">
-        <span className="flex items-center gap-2 truncate">
-          <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0">schedule</span>
-          <span className="truncate">Hoạt động gần nhất hôm nay</span>
-        </span>
-        <span className="text-[11px] font-semibold text-emerald-600 shrink-0">100% tiến độ</span>
-      </div>
-    );
   };
 
   return (
@@ -541,21 +681,30 @@ export function ClassCardItem({
       {/* 2. CARD CONTENT BODY */}
       <div className="p-5 flex-1 flex flex-col justify-between gap-4">
         <div className="space-y-3">
-          {/* Class Title & Code */}
+          {/* Class Title & Dynamic Badge (Grade for Student vs PLO for Faculty) */}
           <div>
             <div className="flex items-start justify-between gap-3">
-              <Link href={`/classes/${item.id}`} className="flex-1">
+              <Link href={`/classes/${item.id}`} className="flex-1 min-w-0">
                 <h3 className="font-display text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 cursor-pointer">
                   {item.title || item.name}
                 </h3>
               </Link>
 
-              {/* Student Grade Badge */}
+              {/* Student Mode: Grade Badge */}
               {workspaceMode === 'student' && (
                 <div className={`flex items-center gap-1 shrink-0 px-2.5 py-0.5 rounded border text-[11px] font-semibold ${studentData.gradeColor}`}>
                   <span className="text-[10px] font-medium opacity-70">Điểm QT:</span>
                   <strong className="font-display font-extrabold">{studentData.grade}</strong>
                   <span className="text-[10px] opacity-60">/10</span>
+                </div>
+              )}
+
+              {/* Faculty Mode: PLO Pass Rate Badge */}
+              {workspaceMode === 'faculty' && (
+                <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold shadow-2xs">
+                  <span className="material-symbols-outlined text-[14px]">verified</span>
+                  <span className="text-[10px] font-medium opacity-80">Đạt chuẩn PLO:</span>
+                  <strong className="font-display font-extrabold">{facultyData.ploPassRate}%</strong>
                 </div>
               )}
             </div>
@@ -609,28 +758,47 @@ export function ClassCardItem({
             </>
           ) : (
             <>
-              {/* Faculty Students & Teachers count */}
-              <div className="flex items-center gap-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[18px] text-slate-400">group</span>
-                  <span><strong className="text-slate-800 dark:text-slate-200 font-bold">{item.enrolledCount || 42}</strong> học viên</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[18px] text-slate-400">person</span>
-                  <span><strong className="text-slate-800 dark:text-slate-200 font-bold">{item.name.includes('OOP') ? 1 : 2}</strong> giảng viên</span>
-                </span>
-              </div>
+              {/* Faculty Instructor & Capacity & Attendance stats */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="material-symbols-outlined text-[17px] text-slate-400 shrink-0">co_present</span>
+                    <span className="truncate">
+                      <strong>Phụ trách:</strong> {facultyData.instructorInfo}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span className="material-symbols-outlined text-[15px]">done_all</span>
+                    <span>Chuyên cần: {facultyData.attendanceRate}%</span>
+                  </div>
+                </div>
 
-              {/* Status / Alert Strip for Faculty Mode */}
-              {renderFacultyStatusStrip()}
+                {/* Curriculum Progress Bar (Mirroring student node progress for faculty) */}
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">
+                      Tiến độ đề cương: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{facultyData.curriculumWeek} ({facultyData.teachingProgress}%)</strong>
+                    </span>
+                    <span className="text-slate-400 text-[11px]">
+                      Sĩ số: <strong className="text-blue-600 dark:text-blue-400 font-semibold">{facultyData.capacityText}</strong>
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${tech.progressGradient || 'from-blue-600 to-indigo-600'}`}
+                      style={{ width: `${facultyData.teachingProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
             </>
           )}
         </div>
 
-        {/* Student Alert Strip with contextual Action Button */}
-        {workspaceMode === 'student' && (
-          <div className={`p-3 rounded-xl border text-xs flex items-center justify-between ${studentData.alert.containerClass}`}>
-            <div className="flex items-center gap-2 truncate">
+        {/* Action Strip with contextual Action Button (Both Student & Faculty Mode) */}
+        {workspaceMode === 'student' ? (
+          <div className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${studentData.alert.containerClass}`}>
+            <div className="flex items-center gap-2 truncate min-w-0">
               <span className="material-symbols-outlined text-[17px] shrink-0">
                 {studentData.alert.icon}
               </span>
@@ -640,8 +808,8 @@ export function ClassCardItem({
             </div>
             {studentData.alert.action ? (
               <Link
-                href={`/classes/${item.id}`}
-                className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors ${studentData.alert.actionClass}`}
+                href={studentData.alert.actionHref || `/classes/${item.id}`}
+                className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors shadow-2xs ${studentData.alert.actionClass}`}
               >
                 {studentData.alert.action}
               </Link>
@@ -649,6 +817,31 @@ export function ClassCardItem({
               studentData.alert.type === 'success' && (
                 <span className="text-[11px] font-bold text-emerald-600 shrink-0">
                   Xuất sắc
+                </span>
+              )
+            )}
+          </div>
+        ) : (
+          <div className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${facultyData.alert.containerClass}`}>
+            <div className="flex items-center gap-2 truncate min-w-0">
+              <span className="material-symbols-outlined text-[17px] shrink-0">
+                {facultyData.alert.icon}
+              </span>
+              <span className="font-semibold truncate">
+                {facultyData.alert.text}
+              </span>
+            </div>
+            {facultyData.alert.action ? (
+              <Link
+                href={facultyData.alert.actionHref}
+                className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors shadow-2xs ${facultyData.alert.actionClass}`}
+              >
+                {facultyData.alert.action}
+              </Link>
+            ) : (
+              facultyData.alert.type === 'success' && (
+                <span className="text-[11px] font-bold text-emerald-600 shrink-0">
+                  Hoàn thành
                 </span>
               )
             )}
