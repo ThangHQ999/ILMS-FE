@@ -255,7 +255,7 @@ export function InviteMemberModal({
                 <span className="text-xs text-slate-500 dark:text-slate-400 block mt-1">
                   Hiệu lực đến:{' '}
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    23:59, 31/12/2024
+                    23:59, 31/12/2026
                   </span>
                 </span>
               </div>
@@ -587,3 +587,4 @@ export function InviteMemberModal({
     </div>
   );
 }
+
