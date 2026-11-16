@@ -223,24 +223,22 @@ export function ClassDetailPageView({
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
-      {/* 2. Top Header with Breadcrumbs & Role Simulator */}
-      <DashboardHeader
-        isFocus={isFocusMode}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleMode={() => setIsFocusMode(!isFocusMode)}
-        userFullName={userFullName}
-      />
-
-      {/* 3. Main Workspace Area */}
-      <main
-        className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-7xl w-full mx-auto ${
-          isFocusMode
-            ? 'pl-24'
-            : isSidebarCollapsed
-            ? 'pl-24'
-            : 'lg:pl-[284px]'
+      {/* Main Container offset for Sidebar */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isFocusMode || isSidebarCollapsed ? 'pl-20' : 'pl-72'
         }`}
       >
+        {/* 2. Top Header with Breadcrumbs & Role Simulator */}
+        <DashboardHeader
+          isFocus={isFocusMode}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleMode={() => setIsFocusMode(!isFocusMode)}
+          userFullName={userFullName}
+        />
+
+        {/* 3. Main Workspace Area */}
+        <main className="w-full flex-1 pt-20 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
         {/* Breadcrumbs & Role Switcher Sub-header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 min-w-0">
@@ -522,6 +520,7 @@ export function ClassDetailPageView({
           </div>
         )}
       </main>
+      </div>
 
       {/* Socratic AI Tutor Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">

@@ -37,7 +37,7 @@ export function LessonSyllabusSidebar({
 
   return (
     <aside
-      className="w-80 shrink-0 bg-white dark:bg-slate-900 border-r-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col transition-all duration-300 z-30 h-[calc(100vh-8rem)] sticky top-32 overflow-y-auto"
+      className="w-80 shrink-0 bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 rounded-2xl shadow-sm flex flex-col transition-all duration-300 z-30 h-[calc(100vh-8.5rem)] my-6 ml-4 lg:ml-6 overflow-hidden"
       id="left-sidebar"
     >
       {/* Sidebar Header */}
@@ -84,7 +84,7 @@ export function LessonSyllabusSidebar({
       </div>
 
       {/* Syllabus Accordion */}
-      <div className="p-3 pb-8 flex flex-col gap-2">
+      <div className="p-3 pb-8 flex flex-col gap-2 flex-1 overflow-y-auto">
         {/* ======================================================== */}
         {/* Module 1 (Done)                                         */}
         {/* ======================================================== */}

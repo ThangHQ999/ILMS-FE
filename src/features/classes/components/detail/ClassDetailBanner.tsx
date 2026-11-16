@@ -107,36 +107,25 @@ export function ClassDetailBanner({
           </div>
 
           {/* Right: Resolved Role Badge from class_member */}
-          <div className="flex flex-col items-start md:items-end gap-1.5 shrink-0 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 shadow-sm self-stretch md:self-auto justify-center">
-            <div className="flex items-center gap-1.5 text-slate-300 text-xs font-medium">
-              <span className="material-symbols-outlined text-[16px] text-[#d8e2ff]">verified_user</span>
-              <span>Vai trò trong lớp:</span>
-            </div>
+          <div className="flex items-center shrink-0 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 shadow-sm self-stretch md:self-auto justify-center">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="flex items-center gap-1.5 text-slate-300 text-xs font-semibold">
+                <span className="material-symbols-outlined text-[16px] text-[#d8e2ff]">verified_user</span>
+                <span>Vai trò:</span>
+              </span>
 
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 ring-1 ring-white/30 shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="material-symbols-outlined text-[#d8e2ff] text-[18px]">
-                {currentRole === 'owner'
-                  ? 'verified'
-                  : currentRole === 'teacher'
-                  ? 'co_present'
-                  : 'school'}
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-white">
-                {currentRole === 'owner'
-                  ? 'Chủ sở hữu / Trưởng bộ môn'
-                  : currentRole === 'teacher'
-                  ? 'Giảng viên phụ trách'
-                  : 'Học viên chính thức'}
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-[#d8e2ff] text-[#001a41] text-[10px] uppercase font-extrabold tracking-wider">
-                {currentRole === 'owner' ? 'OWNER' : currentRole === 'teacher' ? 'GV' : 'HV'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 text-[10px] text-slate-300/80 mt-0.5">
-              <span className="material-symbols-outlined text-[12px]">dataset</span>
-              <span>Dữ liệu phân quyền từ class_member</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 ring-1 ring-white/30 shadow-inner">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="material-symbols-outlined text-[#d8e2ff] text-[17px]">
+                  {currentRole === 'owner' || currentRole === 'teacher' ? 'co_present' : 'school'}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white">
+                  {currentRole === 'owner' || currentRole === 'teacher' ? 'Giảng viên' : 'Học viên'}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-[#d8e2ff] text-[#001a41] text-[10px] uppercase font-extrabold tracking-wider">
+                  {currentRole === 'owner' ? 'OWNER' : currentRole === 'teacher' ? 'GV' : 'HV'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -225,9 +214,9 @@ export function ClassDetailBanner({
       </section>
 
       {/* 2. MAIN NAVIGATION TAB BAR (Dọn gọn thanh tab - 5 Tabs chuẩn) */}
-      <div className="flex items-center justify-between flex-wrap gap-3 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-850 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
+      <div className="flex items-center justify-between gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-850 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden">
         {/* Tab pills container */}
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -235,13 +224,13 @@ export function ClassDetailBanner({
                 key={tab.id}
                 type="button"
                 onClick={() => onTabChange(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                   isActive
                     ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-sm border border-slate-200/80 dark:border-slate-700'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-white/50 dark:hover:bg-slate-800/50 font-semibold'
                 }`}
               >
-                <span className={`material-symbols-outlined text-[19px] ${isActive ? 'fill-icon' : ''}`}>
+                <span className={`material-symbols-outlined text-[18px] sm:text-[19px] ${isActive ? 'fill-icon' : ''}`}>
                   {tab.icon}
                 </span>
                 <span>{tab.label}</span>
@@ -259,19 +248,6 @@ export function ClassDetailBanner({
               </button>
             );
           })}
-        </div>
-
-        {/* Quick Context Info Indicator */}
-        <div className="hidden xl:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-medium px-3">
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">verified</span>
-            <span>Mã môn: <strong className="font-mono text-slate-800 dark:text-slate-200">IT005.O21</strong></span>
-          </div>
-          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700" />
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-slate-400 text-[18px]">domain</span>
-            <span>Phòng Lab: <strong className="text-slate-800 dark:text-slate-200">H6-302</strong></span>
-          </div>
         </div>
       </div>
     </div>

@@ -259,7 +259,7 @@ export function FacultyClassListView({
   };
 
   return (
-    <div className="flex flex-col gap-4.5 pt-1" id="faculty-classes-list-container">
+    <div className="flex flex-col gap-6 pt-2" id="faculty-classes-list-container">
       {items.map((item) => {
         const tech = getTechDetails(item.major, item.title, item.name);
         const faculty = getFacultyMetrics(item);
@@ -400,7 +400,7 @@ export function FacultyClassListView({
               </div>
 
               {/* RIGHT BLOCK: ACTIONS & MENU */}
-              <div className="flex items-center justify-end gap-2.5 pt-2 xl:pt-0 shrink-0">
+              <div className="flex items-center justify-end gap-2.5 pt-2 xl:pt-0 shrink-0 ml-4 sm:ml-6 lg:ml-8 xl:ml-10">
                 <Link
                   href={`/classes/${item.id}`}
                   className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-xs hover:shadow transition-all cursor-pointer"

@@ -28,7 +28,7 @@ export function ClassCardGrid({
   const containerClass =
     workspaceMode === 'student'
       ? viewMode === 'list'
-        ? 'grid grid-cols-1 gap-4.5'
+        ? 'grid grid-cols-1 gap-6'
         : 'grid grid-cols-1 md:grid-cols-2 gap-6'
       : viewMode === 'list'
       ? 'grid grid-cols-1 gap-6'

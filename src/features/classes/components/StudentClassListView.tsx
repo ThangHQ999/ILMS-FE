@@ -250,7 +250,7 @@ export function StudentClassListView({
   };
 
   return (
-    <div className="flex flex-col gap-4.5 pt-1" id="classes-list-container">
+    <div className="flex flex-col gap-6 pt-2" id="classes-list-container">
       {items.map((item) => {
         const tech = getTechDetails(item.major, item.title, item.name);
         const student = getStudentMetrics(item);
@@ -387,7 +387,7 @@ export function StudentClassListView({
               </div>
 
               {/* RIGHT BLOCK: ACTIONS & MENU */}
-              <div className="flex items-center justify-end gap-2.5 pt-2 xl:pt-0 shrink-0">
+              <div className="flex items-center justify-end gap-2.5 pt-2 xl:pt-0 shrink-0 ml-4 sm:ml-6 lg:ml-8 xl:ml-10">
                 <Link
                   href={`/classes/${item.id}`}
                   prefetch={true}

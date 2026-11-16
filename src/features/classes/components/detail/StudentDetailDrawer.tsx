@@ -78,36 +78,35 @@ export function StudentDetailDrawer({
 
   return (
     <>
-      {/* Drawer Backdrop */}
+      {/* Modal Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 transition-opacity duration-300"
         id="drawer-backdrop"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Student Roster Detail Drawer */}
-      <aside
-        className="fixed top-0 right-0 bottom-0 w-full sm:w-[480px] max-w-full bg-white dark:bg-[#1E1F20] shadow-2xl z-50 flex flex-col justify-between overflow-hidden border-none animate-in slide-in-from-right duration-300 ease-out"
-        id="student-detail-drawer"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="student-drawer-title"
-      >
-        {/* Drawer Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
-          {/* Drawer Header Bar */}
-          <div className="flex items-start justify-between pb-2 border-none">
+      {/* Centered Modal Container */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 pointer-events-none">
+        <div
+          className="pointer-events-auto w-full max-w-xl max-h-[85vh] bg-white dark:bg-[#1E1F20] rounded-3xl shadow-2xl border-2 border-slate-300 dark:border-slate-700 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          id="student-detail-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-drawer-title"
+        >
+          {/* Modal Header Bar */}
+          <div className="px-5 pt-3.5 pb-3 sm:px-6 sm:pt-4 sm:pb-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3.5">
-              <div className="relative">
+              <div className="relative shrink-0">
                 {student.avatarUrl ? (
                   <img
-                    className="w-14 h-14 rounded-full object-cover shadow-sm"
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover shadow-sm ring-2 ring-blue-100 dark:ring-blue-900/50"
                     src={student.avatarUrl}
                     alt={student.name}
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] flex items-center justify-center font-bold text-lg shadow-sm border-none">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] flex items-center justify-center font-bold text-base sm:text-lg shadow-sm border-none ring-2 ring-blue-100 dark:ring-blue-900/50">
                     {student.avatar || firstName.charAt(0)}
                   </div>
                 )}
@@ -121,7 +120,7 @@ export function StudentDetailDrawer({
                 <div className="flex items-center gap-2">
                   <h2
                     id="student-drawer-title"
-                    className="text-lg font-bold text-gray-900 dark:text-[#E3E3E3] tracking-tight"
+                    className="text-base sm:text-lg font-bold text-gray-900 dark:text-[#E3E3E3] tracking-tight"
                   >
                     {student.name}
                   </h2>
@@ -145,12 +144,15 @@ export function StudentDetailDrawer({
               type="button"
               onClick={onClose}
               aria-label="Đóng hồ sơ học viên"
-              className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-500 dark:text-[#8E918F] hover:text-gray-900 dark:hover:text-[#E3E3E3] flex items-center justify-center transition-colors cursor-pointer border-none"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-500 dark:text-[#8E918F] hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer border-none"
               id="close-drawer-btn"
             >
-              <span className="material-symbols-outlined text-[20px]">close</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[20px]">close</span>
             </button>
           </div>
+
+          {/* Modal Scrollable Body */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 flex flex-col gap-5 custom-scrollbar">
 
           {/* Identity & Contact Information Card */}
           <div className="bg-[#F0F4F8] dark:bg-[#131314] p-4 rounded-3xl border-none flex flex-col gap-3">
@@ -492,7 +494,8 @@ export function StudentDetailDrawer({
             )}
           </div>
         </div>
-      </aside>
+        </div>
+      </div>
     </>
   );
 }

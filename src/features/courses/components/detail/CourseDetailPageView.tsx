@@ -3,16 +3,17 @@
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
-import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { useCourse } from '../../hooks/useCourse';
-import type { Chapter, Lesson, CreateChapterInput, CreateLessonInput } from '../../schemas/course.schema';
-import { CourseBanner } from './CourseBanner';
-import { CourseSyllabusTab } from './CourseSyllabusTab';
-import { CourseMaterialsTab } from './CourseMaterialsTab';
-import { CourseKnowledgeGraphTab } from './CourseKnowledgeGraphTab';
-import { CourseAiTutorTab } from './CourseAiTutorTab';
+import type { CreateChapterInput, CreateLessonInput } from '../../schemas/course.schema';
+import { CourseWorkspaceHeader } from './CourseWorkspaceHeader';
+import { CourseWorkspaceSidebar, type CourseWorkspaceTab } from './CourseWorkspaceSidebar';
+import { CourseHeroBanner } from './CourseHeroBanner';
+import { CourseStreamTabContent } from './CourseStreamTabContent';
+import { CourseModulesTabContent } from './CourseModulesTabContent';
+import { CourseAssignmentsTabContent } from './CourseAssignmentsTabContent';
+import { CoursePeopleTabContent } from './CoursePeopleTabContent';
+import { CourseSettingsTabContent } from './CourseSettingsTabContent';
+import { CourseSocraticAiPopover } from './CourseSocraticAiPopover';
 import { CreateChapterModal } from './CreateChapterModal';
 import { CreateLessonModal } from './CreateLessonModal';
 
@@ -26,14 +27,12 @@ export function CourseDetailPageView({
   userFullName = 'TS. Lê Hoàng Nam',
 }: CourseDetailPageViewProps) {
   const router = useRouter();
-  const t = useTranslations('courses.detail');
 
-  // Layout shell states
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  // Role simulator state: student vs teacher
+  const [role, setRole] = useState<'student' | 'teacher'>('student');
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<'syllabus' | 'materials' | 'knowledgeGraph' | 'aiTutor'>('syllabus');
+  // Active tab state: stream | modules | assignments | people | settings
+  const [activeTab, setActiveTab] = useState<CourseWorkspaceTab>('stream');
 
   // Modals state
   const [isAddChapterOpen, setIsAddChapterOpen] = useState(false);
@@ -44,8 +43,21 @@ export function CourseDetailPageView({
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2800);
+    }, 3000);
   }, []);
+
+  // Handle role change
+  const handleRoleChange = (newRole: 'student' | 'teacher') => {
+    setRole(newRole);
+    if (newRole === 'student' && activeTab === 'settings') {
+      setActiveTab('stream');
+    }
+    showToast(
+      newRole === 'teacher'
+        ? 'Đã chuyển sang Chế độ Giảng viên (Teacher Studio)'
+        : 'Đã chuyển sang Chế độ Học viên (Student Workspace)'
+    );
+  };
 
   // Fetch course & chapters data
   const {
@@ -58,23 +70,14 @@ export function CourseDetailPageView({
     addLessonMutation,
   } = useCourse(courseId);
 
-  // Calculate totals
-  const totalLessons = chapters.reduce((acc, ch) => acc + (ch.lessons?.length || 0), 0);
-  const completedLessons = chapters.reduce(
-    (acc, ch) => acc + (ch.lessons?.filter((l) => l.status === 'COMPLETED').length || 0),
-    0
-  );
-  const totalDurationMinutes = chapters.reduce(
-    (acc, ch) => acc + (ch.lessons?.reduce((lAcc, l) => lAcc + (l.duration || 45), 0) || 0),
-    0
-  );
-  const totalHours = Math.round(totalDurationMinutes / 60) || 36;
+  const courseCode = course?.courseCode || 'CS-202';
+  const courseTitle = course?.name || 'Mạng máy tính & Truyền thông dữ liệu';
 
   const handleCreateChapter = (input: CreateChapterInput) => {
     addChapterMutation.mutate(input, {
       onSuccess: () => {
         setIsAddChapterOpen(false);
-        showToast(t('toastChapterCreated'));
+        showToast('Tạo chương mới thành công!');
       },
     });
   };
@@ -86,87 +89,76 @@ export function CourseDetailPageView({
       {
         onSuccess: () => {
           setAddLessonTargetChapterId(null);
-          showToast(t('toastLessonCreated'));
+          showToast('Tạo bài học mới thành công!');
         },
       }
     );
   };
 
-  const handleSelectLesson = (lesson: Lesson, chapter: Chapter) => {
-    showToast(`Đang mở bài học: "${lesson.title}" (${chapter.title})`);
-    router.push(`/courses/${courseId}/lessons/${lesson.id}`);
-  };
-
-  // Find target chapter title for lesson modal
   const targetChapter = chapters.find((c) => c.id === addLessonTargetChapterId);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      {/* Toast popup */}
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+      {/* Toast Alert Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-xl backdrop-blur-sm text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <span className="material-symbols-outlined text-[18px] text-emerald-400 dark:text-emerald-600">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#0d1c32]/95 dark:bg-card/95 text-white dark:text-foreground border border-blue-500/40 px-5 py-2.5 rounded-full shadow-2xl backdrop-blur-md text-xs sm:text-sm font-semibold flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <span className="material-symbols-outlined text-[18px] text-emerald-400">
             check_circle
           </span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Sidebar */}
-      <DashboardSidebar
-        isFocus={isFocusMode}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+      {/* 1. Global Navigation Header */}
+      <CourseWorkspaceHeader
+        courseCode={courseCode}
+        courseTitle={courseTitle}
+        role={role}
+        onRoleChange={handleRoleChange}
+        userFullName={userFullName}
       />
 
-      {/* Main Body */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
-          isFocusMode
-            ? 'pl-20'
-            : isSidebarCollapsed
-            ? 'md:pl-20'
-            : 'md:pl-72'
-        }`}
-      >
-        <DashboardHeader
-          isFocus={isFocusMode}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggleMode={() => setIsFocusMode((prev) => !prev)}
-          userFullName={userFullName}
-          title="Không gian môn học"
-        />
+      {/* 2. Left Navigation Sidebar (Hidden on mobile, fixed w-72 on lg) */}
+      <CourseWorkspaceSidebar
+        courseCode={courseCode}
+        courseTitle={courseTitle}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        role={role}
+      />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
-          {/* Loading Skeleton */}
+      {/* 3. Main Workspace Area */}
+      <div className="flex-1 flex flex-col pt-16 lg:ml-72 transition-all duration-200">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+          {/* Loading state skeleton */}
           {isLoading ? (
             <div className="flex flex-col gap-6 animate-pulse">
-              <div className="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800" />
-              <div className="h-12 w-96 rounded-full bg-slate-200 dark:bg-slate-800" />
-              <div className="h-48 rounded-3xl bg-slate-200 dark:bg-slate-800" />
+              <div className="h-44 rounded-2xl bg-muted/60" />
+              <div className="h-12 w-96 rounded-xl bg-muted/60" />
+              <div className="h-80 rounded-2xl bg-muted/60" />
             </div>
-          ) : isError || !course ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border-[3px] border-slate-300 dark:border-slate-700 my-8">
-              <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-600 flex items-center justify-center mx-auto mb-4">
+          ) : isError ? (
+            <div className="bg-card rounded-2xl p-10 text-center border border-border my-8 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/60 text-red-600 flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-[32px]">error</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+              <h2 className="text-lg font-bold text-foreground mb-2">
                 Không thể tải thông tin môn học
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-6">
+              <p className="text-xs text-muted-foreground max-w-md mx-auto mb-6">
                 Đã xảy ra lỗi khi kết nối tới hệ thống hoặc môn học không tồn tại.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <Link
                   href="/classes"
-                  className="px-5 py-2 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  className="px-5 py-2 rounded-full text-xs font-semibold bg-muted text-foreground hover:bg-muted/80"
                 >
                   Quay lại Lớp học
                 </Link>
                 <button
                   type="button"
                   onClick={() => refetch()}
-                  className="px-5 py-2 rounded-full text-xs font-bold bg-blue-600 text-white shadow-xs"
+                  className="px-5 py-2 rounded-full text-xs font-bold bg-[#0059bb] text-white shadow-xs hover:bg-[#004bb0]"
                 >
                   Thử lại
                 </button>
@@ -174,115 +166,75 @@ export function CourseDetailPageView({
             </div>
           ) : (
             <>
-              {/* Course Banner */}
-              <CourseBanner
-                course={course}
-                totalLessons={totalLessons}
-                completedLessons={completedLessons}
-                totalChapters={chapters.length || 8}
-                totalHours={totalHours}
-                onOpenAddChapter={() => setIsAddChapterOpen(true)}
-                onOpenAddLesson={() => {
-                  const firstChapId = chapters[0]?.id;
-                  if (firstChapId) {
-                    setAddLessonTargetChapterId(firstChapId);
-                  } else {
-                    setIsAddChapterOpen(true);
-                  }
-                }}
-                onSelectTab={(tab) => setActiveTab(tab as any)}
+              {/* Course Hero Banner with Tab Switcher */}
+              <CourseHeroBanner
+                courseCode={courseCode}
+                courseTitle={courseTitle}
+                instructor="TS. Lê Hoàng Nam"
+                role={role}
+                onRoleChange={handleRoleChange}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                assignmentsCount={2}
+                membersCount={48}
               />
 
-              {/* TABS NAVIGATION */}
-              <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('syllabus')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold border-[3px] transition-all cursor-pointer ${
-                    activeTab === 'syllabus'
-                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 font-semibold'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
-                  <span>{t('tabSyllabus')}</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono ${
-                      activeTab === 'syllabus'
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {chapters.length}
-                  </span>
-                </button>
+              {/* Tab 1: Tổng quan & Bảng tin */}
+              {activeTab === 'stream' && (
+                <CourseStreamTabContent
+                  role={role}
+                  courseCode={courseCode}
+                  onGoToAssignments={() => setActiveTab('assignments')}
+                  onGoToPeople={() => setActiveTab('people')}
+                  showToast={showToast}
+                />
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('materials')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
-                    activeTab === 'materials'
-                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[20px]">folder_open</span>
-                  <span>{t('tabMaterials')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('knowledgeGraph')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
-                    activeTab === 'knowledgeGraph'
-                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[20px]">hub</span>
-                  <span>{t('tabKnowledgeGraph')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('aiTutor')}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-semibold border-[3px] transition-all cursor-pointer ${
-                    activeTab === 'aiTutor'
-                      ? 'bg-[#0059bb] text-white border-[#0059bb] shadow-sm font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300/60 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[20px] text-amber-500">smart_toy</span>
-                  <span>{t('tabAiTutor')}</span>
-                </button>
-              </div>
-
-              {/* Tab Contents */}
-              {activeTab === 'syllabus' && (
-                <CourseSyllabusTab
-                  chapters={chapters}
+              {/* Tab 2: Chương trình học */}
+              {activeTab === 'modules' && (
+                <CourseModulesTabContent
+                  role={role}
+                  courseId={courseId}
                   onOpenAddChapter={() => setIsAddChapterOpen(true)}
-                  onOpenAddLessonForChapter={(chapId) => setAddLessonTargetChapterId(chapId)}
-                  onSelectLesson={handleSelectLesson}
+                  onOpenAddLesson={() => {
+                    const firstChapId = chapters[0]?.id;
+                    if (firstChapId) {
+                      setAddLessonTargetChapterId(firstChapId);
+                    } else {
+                      setIsAddChapterOpen(true);
+                    }
+                  }}
+                  onSwitchToStudent={() => handleRoleChange('student')}
+                  onGoToAssignments={() => setActiveTab('assignments')}
+                  showToast={showToast}
                 />
               )}
 
-              {activeTab === 'materials' && (
-                <CourseMaterialsTab
-                  courseName={course.name}
-                  onShowToast={showToast}
+              {/* Tab 3: Bài tập & Đánh giá */}
+              {activeTab === 'assignments' && (
+                <CourseAssignmentsTabContent
+                  role={role}
+                  courseCode={courseCode}
+                  showToast={showToast}
                 />
               )}
 
-              {activeTab === 'knowledgeGraph' && (
-                <CourseKnowledgeGraphTab
-                  courseName={course.name}
+              {/* Tab 4: Thành viên */}
+              {activeTab === 'people' && (
+                <CoursePeopleTabContent
+                  role={role}
+                  courseCode={courseCode}
+                  membersCount={48}
+                  showToast={showToast}
                 />
               )}
 
-              {activeTab === 'aiTutor' && (
-                <CourseAiTutorTab
-                  courseName={course.name}
+              {/* Tab 5: Cài đặt & Thống kê (Dành riêng cho Giảng viên) */}
+              {activeTab === 'settings' && role === 'teacher' && (
+                <CourseSettingsTabContent
+                  courseCode={courseCode}
+                  courseTitle={courseTitle}
+                  showToast={showToast}
                 />
               )}
             </>
@@ -290,11 +242,17 @@ export function CourseDetailPageView({
         </main>
       </div>
 
-      {/* Modals */}
+      {/* Floating Socratic AI Tutor Copilot Popover */}
+      <CourseSocraticAiPopover
+        courseCode={courseCode}
+        currentLessonTitle="Bài 3.2 TCP Handshake"
+      />
+
+      {/* Chapter & Lesson Creation Modals */}
       <CreateChapterModal
         isOpen={isAddChapterOpen}
-        courseCode={course?.courseCode || 'CS-202'}
-        courseTitle={course?.name}
+        courseCode={courseCode}
+        courseTitle={courseTitle}
         chapters={chapters}
         onClose={() => setIsAddChapterOpen(false)}
         onSubmit={handleCreateChapter}
@@ -304,8 +262,8 @@ export function CourseDetailPageView({
 
       <CreateLessonModal
         isOpen={Boolean(addLessonTargetChapterId)}
-        courseCode={course?.courseCode || 'CS-202'}
-        courseTitle={course?.name}
+        courseCode={courseCode}
+        courseTitle={courseTitle}
         chapters={chapters}
         chapterId={addLessonTargetChapterId}
         chapterTitle={targetChapter?.title}
