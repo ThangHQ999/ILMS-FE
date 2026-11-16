@@ -3,6 +3,8 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { SettingsTabId } from '../types';
+import { useStorageSummary } from '../hooks/useStorage';
+import { useMySubscription } from '../hooks/useSubscriptions';
 
 interface SettingsNavigationTabsProps {
   activeTab: SettingsTabId;
@@ -14,6 +16,8 @@ export function SettingsNavigationTabs({
   onSelectTab,
 }: SettingsNavigationTabsProps) {
   const t = useTranslations('settings');
+  const { data: summary } = useStorageSummary();
+  const { data: mySub } = useMySubscription();
 
   const navItems: Array<{
     id: SettingsTabId;
@@ -58,6 +62,27 @@ export function SettingsNavigationTabs({
       subtitle: t('tabSupportSubtitle'),
     },
   ];
+
+  // Dynamic membership & storage metrics
+  const isFree = (mySub?.planCode || summary?.planCode || 'FREE') === 'FREE';
+  const planName = mySub?.planName || summary?.planName || (isFree ? 'Gói Cơ bản' : 'Gói Chuyên nghiệp (Pro)');
+  const isStorageNearLimit = summary?.isStorageNearLimit || (summary?.usagePercentage ?? 0) >= 85;
+  const storagePct = summary?.usagePercentage ?? 0;
+  const storageText = summary
+    ? `${summary.usedStorageFormatted} / ${summary.maxStorageFormatted}`
+    : '0 MB / 1.0 GB';
+
+  const expiryText = mySub?.endDate
+    ? `Hết hạn ${new Date(mySub.endDate).toLocaleDateString('vi-VN')}`
+    : isFree
+    ? 'Gói vĩnh viễn'
+    : t('quotaExpiresAt');
+
+  const progressColor = isStorageNearLimit
+    ? 'bg-rose-500'
+    : storagePct > 60
+    ? 'bg-amber-500'
+    : 'bg-[#0B57D0] dark:bg-[#A8C7FA]';
 
   return (
     <div className="flex flex-col gap-4 sticky top-20">
@@ -128,15 +153,19 @@ export function SettingsNavigationTabs({
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-snug">
-                ILMS Pro Member
+                {planName}
               </span>
               <span className="text-[11px] text-[#0B57D0] dark:text-[#A8C7FA] font-semibold">
-                {t('quotaExpiresAt')}
+                {expiryText}
               </span>
             </div>
           </div>
-          <span className="px-3 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold border-none">
-            {t('badgeActive')}
+          <span className={`px-3 py-1 rounded-full text-[10px] font-bold border-none ${
+            isFree
+              ? 'bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:text-[#C4C7C5]'
+              : 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
+          }`}>
+            {isFree ? 'MIỄN PHÍ' : mySub?.status === 'ACTIVE' ? t('badgeActive') : 'Hoạt động'}
           </span>
         </div>
 
@@ -150,14 +179,17 @@ export function SettingsNavigationTabs({
               {t('cloudQuotaTitle')}
             </span>
             <span className="font-mono text-[#1F1F1F] dark:text-[#E3E3E3] font-bold">
-              15.6 / 20 GB
+              {storageText}
             </span>
           </div>
           <div className="w-full h-2 rounded-full bg-[#E1E5EA] dark:bg-[#1E1F20] overflow-hidden">
-            <div className="h-full bg-[#0B57D0] dark:bg-[#A8C7FA] rounded-full" style={{ width: '78%' }} />
+            <div
+              className={`h-full ${progressColor} rounded-full transition-all duration-300`}
+              style={{ width: `${Math.min(100, Math.max(0, storagePct))}%` }}
+            />
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#747775] dark:text-[#8E918F]">
-            <span>{t('usedPercentage')}</span>
+            <span>{t('usedPercentage', { percent: storagePct.toFixed(1) })}</span>
             <button
               onClick={() => onSelectTab('tab-billing')}
               className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-semibold border-none cursor-pointer bg-transparent"

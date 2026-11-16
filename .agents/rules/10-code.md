@@ -61,8 +61,17 @@ export function useCourse(id: string) {
 ## 6. Forms
 `react-hook-form` + `zodResolver(schema)`; form type = `z.infer`; full `defaultValues`; submit button `disabled` while pending; reset after successful create; server errors via `form.setError('field', { message: 'errors.xxx' })`; render with the shared `FormField`.
 
-## 7. Async UI states
-Every async region handles **loading** (Skeleton), **error** (`ErrorState` + retry), **empty** (`EmptyState`), **success**. New routes get `loading.tsx` and `error.tsx`; call `notFound()` when an id has no data.
+## 7. Async UI states & Component Lifecycle
+Every component fetching API or displaying async data MUST strictly handle the **7-State Matrix**:
+1. **Normal / Success**: Real data list/grid/table (`data.length > 0`) with pagination and interactive actions.
+2. **Skeleton Loading (`isLoading`)**: Shimmer skeleton layout mirroring the actual UI shape (Card skeleton, Table row skeleton, Header skeleton) — NEVER a solitary full-screen spinner for content areas.
+3. **Empty Zero-Data (`!isLoading && data.length === 0 && !hasFilters`)**: First-time user / zero state. Contextual illustration/icon + clear explanation + Primary CTA ("Tạo mới", "Tham gia", "Tải lên").
+4. **Empty Filter / Not Found (`!isLoading && data.length === 0 && hasFilters`)**: Search/filter mismatch. MUST be distinct from Zero-Data: do not tell user to create new; display query mismatch message + "Đặt lại bộ lọc" / "Xóa tìm kiếm" CTA.
+5. **Specialized / Archived Tab**: Tab-specific states (e.g. Đã lưu trữ / Hết hạn / Bản nháp) with status badges, contextual actions ("Khôi phục") or dedicated tab empty state.
+6. **Error State (`isError`)**: Friendly user message via i18n (NEVER raw stack traces/HTTP codes) + warning icon + "Thử lại" button invoking `refetch()`.
+7. **Background Fetching (`isFetching && !isLoading`)**: Subtle progress indicator or gentle opacity (`opacity-70 transition-opacity`) without unmounting existing data to eliminate layout shift.
+- *Dev State Previews*: Major views should expose a `StatePreviewToolbar` during development (`NODE_ENV === 'development'`) to allow instant QA across all states without manually altering backend data.
+- *Route level*: New routes must include `loading.tsx` and `error.tsx`; call `notFound()` when a target record ID does not exist.
 
 ## 8. Naming
 Folders `kebab-case` · components `PascalCase.tsx` · hooks `useXxx.ts` · services `xxx.service.ts` · schemas `xxx.schema.ts` · stores `useXxxStore.ts` · constants `UPPER_SNAKE_CASE` · booleans `is/has/can/should` · handlers `handleXxx`, props `onXxx`. Routes, roles, permissions come from `constants/`, never string literals. Env vars only via `env` from `lib/env.ts`, never `process.env.X`.

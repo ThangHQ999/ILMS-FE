@@ -6,650 +6,386 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useUserRole } from '@/hooks/useUserRole';
 
-interface DashboardSidebarProps {
-  isFocus: boolean;
+export interface DashboardSidebarProps {
+  isFocus?: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   workspaceMode?: 'faculty' | 'student';
 }
 
+interface NavItem {
+  href: string;
+  icon: string;
+  label: string;
+  active: boolean;
+  badge?: React.ReactNode;
+  iconColor?: string;
+}
+
+interface NavGroup {
+  key: string;
+  title: string;
+  items: NavItem[];
+}
+
 export function DashboardSidebar({
-  isFocus,
+  isFocus = false,
   isCollapsed = false,
   onToggleCollapse,
   workspaceMode,
 }: DashboardSidebarProps) {
-  const t = useTranslations('dashboard');
+  const t = useTranslations('sidebar');
   const pathname = usePathname();
   const { isTeacher: roleIsTeacher } = useUserRole();
   const isTeacher = workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher;
 
+  // In Focus mode, collapse automatically to 72px without triggering any API mutation
+  const collapsed = isFocus || isCollapsed;
+
+  // Active route matching (includes teammate routes: /courses, /competency, /timetable)
   const isOverviewActive = pathname === '/dashboard';
-  const isClassesActive = pathname.startsWith('/classes') || pathname.startsWith('/courses');
+  const isClassesActive =
+    (pathname.startsWith('/classes') || pathname.startsWith('/courses')) &&
+    !pathname.includes('discussions') &&
+    !pathname.includes('assignments');
   const isMaterialsActive = pathname.startsWith('/materials');
-  const isGraphActive = pathname.startsWith('/knowledge-graph');
+  const isScheduleActive =
+    pathname.startsWith('/lesson-sessions') ||
+    pathname.startsWith('/schedule') ||
+    pathname.startsWith('/timetable');
   const isRadarActive = pathname.startsWith('/competency');
-  const isAssignmentsActive = pathname.startsWith('/assignments') || (pathname.startsWith('/classes') && (pathname.includes('assignments') || pathname.includes('cs-202')));
+  const isAssignmentsActive =
+    pathname.startsWith('/assignments') ||
+    (pathname.startsWith('/classes') && pathname.includes('assignments'));
+  const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
+  const isDiscussionsActive =
+    pathname.startsWith('/discussions') ||
+    (pathname.startsWith('/classes') && pathname.includes('discussions'));
   const isSettingsActive = pathname.startsWith('/settings');
 
-  // Shared Design System Classes (consistent across Student & Teacher)
-  const activeClass = 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#0842A0]/60 dark:text-[#D3E3FD] font-medium';
-  const inactiveClass = 'text-[#444746] hover:bg-[#E9EEF6] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:bg-[#282A2C] dark:hover:text-[#E3E3E3] transition-colors';
-  const badgePill = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA]';
+  // Unified Design System Styling (compatible with all workspace views)
+  const activeClass =
+    'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 font-semibold shadow-xs';
+  const inactiveClass =
+    'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 transition-colors font-medium';
 
-  // ==========================================
-  // 1. TEACHER SIDEBAR CONFIGURATION
-  // ==========================================
-  interface TeacherNavItem {
-    href: string;
-    icon: string;
-    label: string;
-    active: boolean;
-    badge?: React.ReactNode;
-    iconColor?: string;
-  }
-
-  interface TeacherNavSection {
-    title: string;
-    items: TeacherNavItem[];
-  }
-
-  const teacherSections: TeacherNavSection[] = [
+  const navGroups: NavGroup[] = [
     {
-      title: 'QUẢN TRỊ ĐÀO TẠO',
+      key: 'generalGroup',
+      title: t('generalGroup'),
       items: [
         {
           href: '/dashboard',
-          icon: 'dashboard',
-          label: 'Tổng quan',
+          icon: 'grid_view',
+          label: t('navOverview'),
           active: isOverviewActive,
         },
         {
           href: '/classes',
           icon: 'school',
-          label: 'Lớp học của tôi',
-          active: isClassesActive && !isAssignmentsActive,
+          label: t('navMyClasses'),
+          active: isClassesActive,
         },
         {
           href: '/materials',
-          icon: 'library_books',
-          label: 'Kho học liệu & Bóc tách AI',
+          icon: 'auto_stories',
+          label: t('navMaterials'),
           active: isMaterialsActive,
-          badge: <span className={`${badgePill} font-mono`}>AI</span>,
-        },
-        {
-          href: '/knowledge-graph',
-          icon: 'account_tree',
-          label: 'Đồ thị tri thức môn học',
-          active: isGraphActive,
-        },
-        {
-          href: '/competency',
-          icon: 'analytics',
-          label: 'Bảng điểm & Ma trận PLO',
-          active: isRadarActive,
-        },
-      ],
-    },
-    {
-      title: 'KHẢO THÍ & BÀI THI',
-      items: [
-        {
-          href: '/assignments',
-          icon: 'help_center',
-          label: 'Ngân hàng câu hỏi',
-          active: pathname.includes('tab=bank'),
-        },
-        {
-          href: '/assignments',
-          icon: 'fact_check',
-          label: 'Quản lý Đề thi & Quiz',
-          active: isAssignmentsActive && !pathname.includes('tab=bank'),
-        },
-        {
-          href: '/assignments',
-          icon: 'visibility',
-          label: 'Giám sát phòng thi',
-          active: pathname.includes('proctoring'),
           badge: (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FCE8E6] dark:bg-[#3C1919] text-[#C5221F] dark:text-[#F28B82] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C5221F] dark:bg-[#F28B82] animate-pulse" />
-              Live
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full font-mono bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 shrink-0">
+              AI
             </span>
           ),
         },
         {
+          href: '/lesson-sessions',
+          icon: 'calendar_month',
+          label: t('navSchedule'),
+          active: isScheduleActive,
+        },
+        {
+          href: '/competency',
+          icon: 'radar',
+          label: isTeacher ? t('navPloMatrix') : t('navCompetency'),
+          active: isRadarActive,
+        },
+        {
           href: '/assignments',
-          icon: 'gavel',
-          label: 'Khiếu nại & Chấm lại',
-          active: pathname.includes('appeals'),
-          badge: <span className={badgePill}>3</span>,
+          icon: 'quiz',
+          label: t('navAssignments'),
+          active: isAssignmentsActive,
+          badge: (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
+              3
+            </span>
+          ),
+        },
+        {
+          href: '/knowledge-graph',
+          icon: 'hub',
+          label: t('navGraph'),
+          active: isGraphActive,
         },
       ],
     },
     {
-      title: 'TƯƠNG TÁC & HỖ TRỢ',
+      key: 'aiGroup',
+      title: t('aiGroup'),
       items: [
         {
-          href: '/classes',
-          icon: 'forum',
-          label: 'Thảo luận & Tương tác',
-          active: pathname.startsWith('/discussions'),
+          href: '/ai-tutor',
+          icon: 'auto_awesome',
+          label: t('navAiTutor'),
+          active: isAiTutorActive,
+          iconColor: 'text-blue-600 dark:text-blue-400',
+          badge: (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 shrink-0">
+              24/7
+            </span>
+          ),
         },
         {
-          href: '/ai-tutor',
-          icon: 'smart_toy',
-          label: 'Trợ lý AI Giảng dạy',
-          active: isAiTutorActive,
-          iconColor: 'text-purple-600 dark:text-purple-400',
+          href: '/classes?tab=discussions',
+          icon: 'forum',
+          label: t('navDiscussions'),
+          active: isDiscussionsActive,
+          badge: (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 shrink-0">
+              5
+            </span>
+          ),
         },
       ],
     },
   ];
 
-  // ==========================================
-  // 2. TEACHER SIDEBAR RENDERING
-  // ==========================================
-  if (isTeacher) {
-    if (isFocus) {
-      // 80px Compact Sidebar for Focus Mode (Teacher)
-      return (
-        <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div className="flex flex-col items-center gap-6">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center h-12 w-12 rounded-full focus:outline-none hover:opacity-90 transition-opacity"
-              title="ILMS"
-            >
-              <img
-                src="/logo-dark.png"
-                alt="ILMS Logo"
-                className="h-8 w-auto object-contain hidden dark:block"
-              />
-              <img
-                src="/logo-light.png"
-                alt="ILMS Logo"
-                className="h-8 w-auto object-contain block dark:hidden"
-              />
-            </Link>
-            <nav className="flex flex-col items-center gap-1.5 w-full px-2">
-              {teacherSections.flatMap((s) => s.items).map((item) => (
-                <Link
-                  key={item.href + item.label}
-                  href={item.href}
-                  prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
-                    }`}
-                  title={item.label}
-                >
-                  <span className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''}`}>
-                    {item.icon}
-                  </span>
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          <div className="flex flex-col items-center gap-1.5 w-full px-2 pt-2 border-t border-[#E1E5EA]/60 dark:border-[#282A2C]">
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${inactiveClass}`}
-              title="Trợ giúp & Hướng dẫn"
-            >
-              <span className="material-symbols-outlined text-[20px]">help_outline</span>
-            </Link>
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
-                }`}
-              title={t('navSettings')}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-            </Link>
-          </div>
-        </aside>
-      );
+  const handleToggle = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
     }
+  };
 
-    // Standard / Collapsible Sidebar for Teacher (Matches Student Design)
-    return (
-      <aside
-        className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-72'
-          } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
-      >
-        {/* Collapse/Expand Floating Button on the border */}
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border-none shadow-none flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
-            title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-            type="button"
-            aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-          >
-            <span className="material-symbols-outlined text-[15px] text-[#444746] group-hover:text-black dark:text-[#C4C7C5] dark:group-hover:text-white transition-colors">
-              {isCollapsed ? 'chevron_right' : 'chevron_left'}
-            </span>
-          </button>
-        )}
-
-        <div className="flex flex-col flex-1 min-h-0 w-full">
-          {/* Brand Header */}
-          <div className={`h-14 flex items-center mb-2 shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+  return (
+    <aside
+      className={`fixed left-0 top-0 h-screen ${
+        collapsed ? 'w-[72px]' : 'w-64'
+      } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
+    >
+      {/* 1. Header (Brand Logo + Top-Edge Collapse/Expand Button) */}
+      <div className="h-[60px] px-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
+        {!collapsed ? (
+          <>
             <Link
               href="/dashboard"
               prefetch={true}
-              className="flex items-center focus:outline-none hover:opacity-90 transition-opacity"
-              title="ILMS"
+              className="flex items-center group focus:outline-none min-w-0 h-9"
+              title="ILMS EduTech"
             >
-              {isCollapsed ? (
-                <img
-                  src="/logo-short.png"
-                  alt="ILMS Logo"
-                  className="h-8 w-auto object-contain transition-transform hover:scale-105"
-                />
-              ) : (
-                <>
-                  <img
-                    src="/logo-dark.png"
-                    alt="ILMS Logo"
-                    className="h-8 w-auto object-contain hidden dark:block"
-                  />
-                  <img
-                    src="/logo-light.png"
-                    alt="ILMS Logo"
-                    className="h-8 w-auto object-contain block dark:hidden"
-                  />
-                </>
-              )}
+              <img
+                src="/logo-full.png"
+                alt="ILMS EduTech"
+                className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+              />
             </Link>
+
+            {!isFocus && onToggleCollapse && (
+              <button
+                type="button"
+                onClick={handleToggle}
+                aria-label={t('collapseSidebar')}
+                title={t('collapseSidebar')}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="w-full flex items-center justify-center relative">
+            <Link
+              href="/dashboard"
+              prefetch={true}
+              className="w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-transform"
+              title="ILMS EduTech"
+            >
+              <img
+                src="/logo-short.png"
+                alt="ILMS"
+                className="w-8 h-8 object-contain"
+              />
+            </Link>
+
+            {!isFocus && onToggleCollapse && (
+              <button
+                type="button"
+                onClick={handleToggle}
+                aria-label={t('expandSidebar')}
+                title={t('expandSidebar')}
+                className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:scale-110 transition-transform cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+              </button>
+            )}
           </div>
+        )}
+      </div>
 
-          {/* Navigation Scroll Area */}
-          <nav className={`flex-1 flex flex-col gap-3 overflow-y-auto scrollbar-none w-full ${isCollapsed ? 'items-center' : ''}`}>
-            {teacherSections.map((section) => (
-              <div key={section.title} className="flex flex-col gap-1 w-full">
-                {!isCollapsed && (
-                  <div className="px-3 py-1 mb-0.5">
-                    <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
-                      {section.title}
-                    </span>
-                  </div>
-                )}
-                <div className={`flex flex-col gap-1 w-full ${isCollapsed ? 'items-center' : ''}`}>
-                  {section.items.map((item) => {
-                    if (isCollapsed) {
-                      return (
-                        <Link
-                          key={item.href + item.label}
-                          href={item.href}
-                          prefetch={item.href.startsWith('/')}
-                          className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
-                            }`}
-                          title={item.label}
-                        >
-                          <span
-                            className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''
-                              }`}
-                          >
-                            {item.icon}
-                          </span>
-                        </Link>
-                      );
-                    }
+      {/* 2. Scrollable Navigation Area */}
+      <nav
+        className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none ${
+          collapsed ? 'px-2' : 'px-3'
+        }`}
+      >
+        {navGroups.map((group) => (
+          <div key={group.key} className="space-y-1">
+            {!collapsed ? (
+              <div className="px-3 pt-1 pb-1.5">
+                <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
+                  {group.title}
+                </span>
+              </div>
+            ) : (
+              <div className="h-2 w-full flex items-center justify-center">
+                <div className="h-px w-6 bg-slate-200 dark:bg-slate-800 my-1" />
+              </div>
+            )}
 
-                    return (
-                      <Link
-                        key={item.href + item.label}
-                        href={item.href}
-                        prefetch={item.href.startsWith('/')}
-                        className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${item.active ? activeClass : inactiveClass
-                          }`}
-                      >
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                if (collapsed) {
+                  return (
+                    <Link
+                      key={item.href + item.label}
+                      href={item.href}
+                      prefetch={item.href.startsWith('/')}
+                      title={item.label}
+                      className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
+                        item.active ? activeClass : inactiveClass
+                      }`}
+                    >
+                      {item.href === '/ai-tutor' ? (
+                        <img
+                          src="/socratic_mascot.png"
+                          alt="AI"
+                          className="w-5 h-5 object-contain"
+                        />
+                      ) : (
                         <span
-                          className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''
-                            }`}
+                          className={`material-symbols-outlined text-[20px] ${
+                            !item.active && item.iconColor ? item.iconColor : ''
+                          }`}
                         >
                           {item.icon}
                         </span>
-                        <span className="flex-1 truncate">{item.label}</span>
-                        {item.badge}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
-        </div>
+                      )}
+                      {item.badge && (
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 ring-2 ring-white dark:ring-[#121620]" />
+                      )}
+                    </Link>
+                  );
+                }
 
-        {/* Bottom System & Account Items + Footer */}
-        <div className={`shrink-0 pt-2 border-t border-[#E1E5EA]/60 dark:border-[#282A2C] flex flex-col gap-1 w-full mt-2 ${isCollapsed ? 'items-center' : ''}`}>
-          {/* Trợ giúp & Hướng dẫn */}
-          {isCollapsed ? (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${inactiveClass}`}
-              title="Trợ giúp & Hướng dẫn"
-            >
-              <span className="material-symbols-outlined text-[20px]">help_outline</span>
-            </Link>
-          ) : (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${inactiveClass}`}
-            >
-              <span className="material-symbols-outlined text-[20px]">help_outline</span>
-              <span className="flex-1 truncate">Trợ giúp & Hướng dẫn</span>
-            </Link>
-          )}
-
-          {/* Cài đặt tài khoản */}
-          {isCollapsed ? (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
-                }`}
-              title={t('navSettings')}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-            </Link>
-          ) : (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`w-full flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors ${isSettingsActive ? activeClass : inactiveClass
-                }`}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-              <span className="flex-1 truncate">{t('navSettings')}</span>
-            </Link>
-          )}
-
-          {/* Footer Metadata */}
-          {!isCollapsed && (
-            <div className="px-3 pt-2 pb-0.5 text-[11px] text-[#747775] dark:text-[#8E918F] flex items-center justify-between border-t border-[#E1E5EA]/40 dark:border-[#282A2C] mt-1 shrink-0">
-              <span>Học kỳ II - 2024</span>
-              <span className="font-mono">v2.5</span>
+                return (
+                  <Link
+                    key={item.href + item.label}
+                    href={item.href}
+                    prefetch={item.href.startsWith('/')}
+                    title={item.label}
+                    className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
+                      item.active ? activeClass : inactiveClass
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {item.href === '/ai-tutor' ? (
+                        <img
+                          src="/socratic_mascot.png"
+                          alt="AI"
+                          className="w-5 h-5 object-contain shrink-0"
+                        />
+                      ) : (
+                        <span
+                          className={`material-symbols-outlined text-[20px] shrink-0 ${
+                            !item.active && item.iconColor ? item.iconColor : ''
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                      )}
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge}
+                  </Link>
+                );
+              })}
             </div>
-          )}
-        </div>
-      </aside>
-    );
-  }
+          </div>
+        ))}
+      </nav>
 
-  // ==========================================
-  // 3. STUDENT SIDEBAR (PRESERVED ORIGINAL)
-  // ==========================================
-  const studentNavItems = [
-    {
-      href: '/dashboard',
-      icon: 'grid_view',
-      label: t('navOverview'),
-      active: isOverviewActive,
-      show: true,
-    },
-    {
-      href: '/classes',
-      icon: 'school',
-      label: 'Khóa học của tôi',
-      active: isClassesActive,
-      show: true,
-    },
-    {
-      href: '/materials',
-      icon: 'upload_file',
-      label: 'Xử lý học liệu',
-      active: isMaterialsActive,
-      show: isTeacher,
-    },
-    {
-      href: '/knowledge-graph',
-      icon: 'hub',
-      label: t('navGraph'),
-      active: isGraphActive,
-      show: true,
-    },
-    {
-      href: '/competency',
-      icon: 'radar',
-      label: 'Năng lực cá nhân',
-      active: isRadarActive,
-      show: true,
-    },
-    {
-      href: '/assignments',
-      icon: 'quiz',
-      label: t('navQuizzes'),
-      active: isAssignmentsActive,
-      badge: '3 Mới',
-      show: true,
-    },
-    {
-      href: '/ai-tutor',
-      icon: 'auto_awesome',
-      label: t('navAiTutor'),
-      active: isAiTutorActive,
-      badge: '24/7',
-      show: true,
-    },
-  ].filter((item) => item.show);
-
-  if (isFocus) {
-    // 80px Compact Sidebar for Focus Mode (Student)
-    return (
-      <aside className="fixed left-0 top-0 h-full w-20 bg-white dark:bg-[#1E1F20] border-none z-50 flex flex-col justify-between py-4 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-        <div className="flex flex-col items-center gap-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center h-12 w-12 rounded-full focus:outline-none hover:opacity-90 transition-opacity"
-            title="ILMS"
-          >
-            <img
-              src="/logo-dark.png"
-              alt="ILMS Logo"
-              className="h-8 w-auto object-contain hidden dark:block"
-            />
-            <img
-              src="/logo-light.png"
-              alt="ILMS Logo"
-              className="h-8 w-auto object-contain block dark:hidden"
-            />
-          </Link>
-          <nav className="flex flex-col items-center gap-1.5 w-full px-2">
-            {studentNavItems.map((item) => (
-              <Link
-                key={item.href + item.label}
-                href={item.href}
-                prefetch={item.href.startsWith('/')}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${item.active ? activeClass : inactiveClass
-                  }`}
-                title={item.label}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="flex flex-col items-center gap-1.5 w-full px-2">
+      {/* 3. Pinned Footer (Help, Settings, Semester Metadata) */}
+      <div
+        className={`shrink-0 pt-2 pb-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-1 ${
+          collapsed ? 'px-2 items-center' : 'px-3'
+        }`}
+      >
+        {collapsed ? (
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isSettingsActive ? activeClass : inactiveClass
-              }`}
+            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${inactiveClass}`}
+            title={t('navHelp')}
+          >
+            <span className="material-symbols-outlined text-[20px]">help_outline</span>
+          </Link>
+        ) : (
+          <Link
+            href="/settings"
+            prefetch={true}
+            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${inactiveClass}`}
+          >
+            <span className="material-symbols-outlined text-[19px] shrink-0">help_outline</span>
+            <span className="truncate">{t('navHelp')}</span>
+          </Link>
+        )}
+
+        {collapsed ? (
+          <Link
+            href="/settings"
+            prefetch={true}
+            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${
+              isSettingsActive ? activeClass : inactiveClass
+            }`}
             title={t('navSettings')}
           >
             <span className="material-symbols-outlined text-[20px]">settings</span>
           </Link>
-        </div>
-      </aside>
-    );
-  }
-
-  // Sidebar for Analytics Mode (Student)
-  return (
-    <aside
-      className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-20' : 'w-72'
-        } bg-white dark:bg-[#1E1F20] border-none p-4 flex flex-col justify-between z-50 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none`}
-    >
-      {/* Collapse/Expand Floating Button on the border */}
-      {onToggleCollapse && (
-        <button
-          onClick={onToggleCollapse}
-          className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-white dark:bg-[#282A2C] border-none shadow-none flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer group"
-          title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-          type="button"
-          aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-        >
-          <span className="material-symbols-outlined text-[15px] text-[#444746] group-hover:text-black dark:text-[#C4C7C5] dark:group-hover:text-white transition-colors">
-            {isCollapsed ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
-      )}
-
-      <div className="flex flex-col flex-1 min-h-0">
-        {/* Brand Header */}
-        <div className={`h-14 flex items-center mb-3 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+        ) : (
           <Link
-            href="/dashboard"
+            href="/settings"
             prefetch={true}
-            className="flex items-center focus:outline-none hover:opacity-90 transition-opacity"
-            title="ILMS"
+            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${
+              isSettingsActive ? activeClass : inactiveClass
+            }`}
           >
-            {isCollapsed ? (
-              <img
-                src="/logo-short.png"
-                alt="ILMS Logo"
-                className="h-8 w-auto object-contain transition-transform hover:scale-105"
-              />
-            ) : (
-              <>
-                <img
-                  src="/logo-dark.png"
-                  alt="ILMS Logo"
-                  className="h-8 w-auto object-contain hidden dark:block"
-                />
-                <img
-                  src="/logo-light.png"
-                  alt="ILMS Logo"
-                  className="h-8 w-auto object-contain block dark:hidden"
-                />
-              </>
-            )}
+            <span className="material-symbols-outlined text-[19px] shrink-0">settings</span>
+            <span className="truncate">{t('navSettings')}</span>
           </Link>
-        </div>
-
-        {/* Section title */}
-        {!isCollapsed && (
-          <div className="px-3 py-1 mb-1">
-            <span className="font-medium text-xs text-[#747775] dark:text-[#8E918F] uppercase tracking-wider">
-              {t('learningArea')}
-            </span>
-          </div>
         )}
 
-        {/* Nav Links */}
-        <nav className={`flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-none ${isCollapsed ? 'items-center' : ''}`}>
-          {studentNavItems.map((item) => {
-            if (isCollapsed) {
-              return (
-                <Link
-                  key={item.href + item.label}
-                  href={item.href}
-                  prefetch={item.href.startsWith('/')}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full ${item.active ? activeClass : inactiveClass
-                    }`}
-                  title={item.label}
-                >
-                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                </Link>
-              );
-            }
-
-            return (
-              <Link
-                key={item.href + item.label}
-                href={item.href}
-                prefetch={item.href.startsWith('/')}
-                className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${item.active ? activeClass : inactiveClass
-                  }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                <span className="flex-1 truncate">{item.label}</span>
-                {item.badge && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA]">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-
-          <div className="my-1 border-none" />
-
-          {/* Settings */}
-          {isCollapsed ? (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center justify-center w-12 h-12 rounded-full ${isSettingsActive ? activeClass : inactiveClass
-                }`}
-              title={t('navSettings')}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-            </Link>
-          ) : (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`flex items-center gap-3.5 h-12 px-4 rounded-full text-sm font-medium ${isSettingsActive ? activeClass : inactiveClass
-                }`}
-            >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
-              <span>{t('navSettings')}</span>
-            </Link>
-          )}
-        </nav>
-      </div>
-
-      {/* Bottom Storage Widget ("Bộ nhớ Cloud Lab") */}
-      {!isCollapsed ? (
-        <div className="bg-[#F0F4F9] dark:bg-[#131314] rounded-2xl p-4 border-none mt-4 shadow-none">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
-              {t('cloudStorage')}
+        {!collapsed ? (
+          <div className="pt-2 px-3 flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+            <span className="truncate">{t('semesterBadge')}</span>
+            <span className="font-mono text-[10px] font-semibold text-slate-400">
+              {t('systemVersion')}
             </span>
-            <span className="font-mono text-xs text-[#0B57D0] dark:text-[#A8C7FA] font-medium">78%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-[#E9EEF6] dark:bg-[#282A2C] overflow-hidden mb-2.5">
-            <div className="bg-[#0B57D0] dark:bg-[#A8C7FA] h-full rounded-full transition-all duration-300" style={{ width: '78%' }} />
+        ) : (
+          <div className="pt-1.5 text-center text-[9px] font-mono font-semibold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 w-8 mx-auto mt-1">
+            {t('systemVersion')}
           </div>
-          <div className="flex items-center justify-between text-xs text-[#747775] dark:text-[#8E918F]">
-            <span>15.6 GB / 20 GB</span>
-            <a href="#" className="font-medium text-[#0B57D0] dark:text-[#A8C7FA] hover:underline">
-              {t('upgrade')}
-            </a>
-          </div>
-        </div>
-      ) : (
-        <div
-          className="p-2.5 mx-auto mt-4 rounded-full bg-[#F0F4F9] dark:bg-[#131314] border-none shadow-none flex flex-col items-center gap-1 cursor-pointer hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors"
-          title={`${t('cloudStorage')}: 15.6 GB / 20 GB (78%)`}
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#0B57D0] dark:text-[#A8C7FA]">
-            cloud
-          </span>
-          <span className="font-mono text-[10px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
-            78%
-          </span>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }

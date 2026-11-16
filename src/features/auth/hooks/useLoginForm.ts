@@ -8,8 +8,8 @@ import { loginInputSchema } from '../schemas/auth.schema';
 import { LoginFormState, LoginFormErrors } from '../types';
 
 const INITIAL_FORM_STATE: LoginFormState = {
-  identifier: 'tunganh9876544@gmail.com',
-  password: 'Password123@',
+  identifier: '',
+  password: '',
   rememberMe: true,
 };
 

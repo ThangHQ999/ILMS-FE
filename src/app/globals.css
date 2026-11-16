@@ -270,4 +270,392 @@ pre::-webkit-scrollbar-thumb {
   text-rendering: auto;
 }
 
+/* ==========================================================================
+   ILMS Full-Bleed Spatial World ("Luminous Socratic Observatory")
+   Inspired by immersive spatial web worlds, tailored for Light & Dark modes
+   ========================================================================== */
+
+.ilms-horizon-atmosphere {
+  --horizon-depth: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #dbeafe;
+}
+
+.dark .ilms-horizon-atmosphere {
+  background: #041336;
+}
+
+.ilms-horizon-deep {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(92% 62% at 76% -6%, rgba(56, 189, 248, 0.32), transparent 68%),
+    radial-gradient(75% 55% at 14% 18%, rgba(99, 102, 241, 0.18), transparent 66%),
+    linear-gradient(180deg, #d8ecff 0%, #e5f0ff 24%, #edf3ff 52%, #e4ecff 78%, #d8e5ff 100%);
+}
+
+.dark .ilms-horizon-deep {
+  background:
+    radial-gradient(90% 60% at 78% -8%, rgba(56, 170, 255, 0.44), transparent 70%),
+    radial-gradient(70% 50% at 16% 12%, rgba(79, 70, 229, 0.28), transparent 68%),
+    linear-gradient(180deg, #0b4aa6 0%, #0a3c8e 20%, #072e73 44%, #052158 70%, #04163e 100%);
+}
+
+.ilms-horizon-canopy {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: -12%;
+  height: 86%;
+  background:
+    radial-gradient(56% 50% at 60% 0%, rgba(255, 255, 255, 0.72), rgba(125, 211, 252, 0.22) 48%, transparent 78%),
+    radial-gradient(32% 28% at 78% 0%, rgba(254, 243, 199, 0.45), transparent 70%);
+  opacity: calc(1 - var(--horizon-depth, 0) * 1.65);
+  transition: opacity 0.4s ease-out;
+}
+
+.dark .ilms-horizon-canopy {
+  background:
+    radial-gradient(56% 50% at 62% 0%, rgba(125, 211, 252, 0.3), rgba(56, 130, 246, 0.12) 48%, transparent 78%),
+    radial-gradient(30% 26% at 78% 0%, rgba(224, 242, 254, 0.2), transparent 70%);
+}
+
+.ilms-horizon-rays {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18%;
+  height: 115%;
+  opacity: calc(0.92 - var(--horizon-depth, 0) * 1.45);
+  mix-blend-mode: screen;
+  transition: opacity 0.8s ease;
+}
+
+.ilms-horizon-rays > span {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-origin: 50% 0;
+  background: radial-gradient(
+    50% 100% at 50% 0%,
+    rgba(255, 255, 255, 0.48),
+    rgba(125, 211, 252, 0.14) 55%,
+    transparent 78%
+  );
+  animation: ilms-ray-sway var(--dur, 18s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+
+.dark .ilms-horizon-rays > span {
+  background: radial-gradient(
+    50% 100% at 50% 0%,
+    rgba(186, 230, 253, 0.15),
+    rgba(125, 211, 252, 0.05) 55%,
+    transparent 78%
+  );
+}
+
+.ilms-horizon-rays > .ilms-ray-1 { left: 7%; width: 14vw; --r: 16deg; --dur: 19s; }
+.ilms-horizon-rays > .ilms-ray-2 { left: 25%; width: 9vw; --r: 9deg; --dur: 15s; --delay: -6s; }
+.ilms-horizon-rays > .ilms-ray-3 { left: 43%; width: 16vw; --r: 3deg; --dur: 22s; --delay: -3s; }
+.ilms-horizon-rays > .ilms-ray-4 { left: 62%; width: 10vw; --r: -7deg; --dur: 17s; --delay: -9s; }
+.ilms-horizon-rays > .ilms-ray-5 { left: 78%; width: 14vw; --r: -14deg; --dur: 21s; --delay: -12s; }
+
+@keyframes ilms-ray-sway {
+  0% {
+    transform: rotate(var(--r, 8deg)) translateX(-1.5vw);
+    opacity: 0.55;
+  }
+  100% {
+    transform: rotate(calc(var(--r, 8deg) + 4deg)) translateX(1.5vw);
+    opacity: 1;
+  }
+}
+
+.ilms-horizon-orb {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+  animation: ilms-orb-drift var(--dur, 32s) ease-in-out infinite alternate;
+}
+
+.ilms-horizon-orb-cyan {
+  width: 48vmax;
+  height: 48vmax;
+  left: -16vmax;
+  top: 28vh;
+  background: radial-gradient(closest-side, rgba(6, 182, 212, 0.18), transparent);
+  --dur: 31s;
+}
+
+.ilms-horizon-orb-indigo {
+  width: 54vmax;
+  height: 54vmax;
+  right: -18vmax;
+  top: -12vmax;
+  background: radial-gradient(closest-side, rgba(79, 70, 229, 0.18), transparent);
+  --dur: 37s;
+}
+
+.ilms-horizon-orb-gold {
+  width: 42vmax;
+  height: 42vmax;
+  right: 10vw;
+  bottom: -18vmax;
+  background: radial-gradient(closest-side, rgba(245, 158, 11, 0.14), transparent);
+  --dur: 29s;
+}
+
+@keyframes ilms-orb-drift {
+  0% { transform: translateZ(0) scale(1); }
+  100% { transform: translate3d(4vw, -3vh, 0) scale(1.08); }
+}
+
+.ilms-horizon-abyss {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(199, 219, 254, 0.08), rgba(196, 181, 253, 0.28));
+  opacity: calc(var(--horizon-depth, 0) * 0.85);
+}
+
+.dark .ilms-horizon-abyss {
+  background: linear-gradient(180deg, rgba(4, 14, 52, 0.2), rgba(4, 9, 38, 0.72));
+}
+
+.ilms-horizon-dawn {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 45% at 50% 105%, rgba(99, 102, 241, 0.24), transparent 70%),
+    radial-gradient(42% 30% at 50% 100%, rgba(14, 165, 233, 0.22), transparent 70%);
+  opacity: clamp(0, calc((var(--horizon-depth, 0) - 0.58) * 2.6), 1);
+}
+
+.dark .ilms-horizon-dawn {
+  background:
+    radial-gradient(70% 45% at 50% 105%, rgba(124, 58, 237, 0.34), transparent 70%),
+    radial-gradient(40% 30% at 50% 100%, rgba(34, 211, 238, 0.22), transparent 70%);
+}
+
+/* Harmonized Spatial Glass Surfaces (Light Pearl Glass & Dark Sapphire Glass) */
+.ilms-world-glass,
+.ilms-world-glass-radiant {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+.ilms-world-glass {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 255, 255, 0.88), transparent 58%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.78), rgba(235, 245, 255, 0.68) 48%, rgba(224, 238, 255, 0.74));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -32px 52px -44px rgba(59, 130, 246, 0.2),
+    0 26px 64px -30px rgba(15, 38, 92, 0.18);
+}
+
+.dark .ilms-world-glass {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(125, 211, 252, 0.14), transparent 55%),
+    linear-gradient(160deg, rgba(37, 112, 214, 0.22), rgba(13, 52, 128, 0.36) 42%, rgba(6, 28, 78, 0.56));
+  box-shadow:
+    inset 0 1px 0 rgba(214, 240, 255, 0.22),
+    inset 0 -40px 60px -50px rgba(56, 189, 248, 0.34),
+    0 30px 70px -32px rgba(1, 10, 40, 0.78);
+}
+
+.ilms-world-glass-radiant {
+  background:
+    radial-gradient(90% 70% at 85% 0%, rgba(186, 230, 253, 0.65), transparent 60%),
+    radial-gradient(80% 70% at 10% 100%, rgba(221, 214, 254, 0.55), transparent 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(232, 244, 255, 0.8) 50%, rgba(224, 236, 255, 0.86));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    0 0 70px -24px rgba(37, 99, 235, 0.22),
+    0 32px 72px -34px rgba(15, 38, 92, 0.24);
+}
+
+.dark .ilms-world-glass-radiant {
+  background:
+    radial-gradient(90% 70% at 85% 0%, rgba(125, 211, 252, 0.25), transparent 60%),
+    radial-gradient(80% 70% at 10% 100%, rgba(167, 139, 250, 0.22), transparent 60%),
+    linear-gradient(135deg, rgba(67, 56, 202, 0.42), rgba(37, 99, 235, 0.32) 50%, rgba(14, 116, 144, 0.34));
+  box-shadow:
+    inset 0 1px 0 rgba(224, 242, 254, 0.3),
+    0 0 80px -20px rgba(56, 189, 248, 0.35),
+    0 34px 80px -34px rgba(2, 8, 40, 0.82);
+}
+
+.ilms-world-glass::before,
+.ilms-world-glass-radiant::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(56, 189, 248, 0.25) 35%,
+    rgba(99, 102, 241, 0.2) 68%,
+    rgba(167, 139, 250, 0.55)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.dark .ilms-world-glass::before,
+.dark .ilms-world-glass-radiant::before {
+  background: linear-gradient(
+    135deg,
+    rgba(165, 243, 252, 0.62),
+    rgba(165, 243, 252, 0.08) 32%,
+    rgba(129, 140, 248, 0.08) 68%,
+    rgba(196, 181, 253, 0.48)
+  );
+}
+
+/* Pearl Tactile Surface (Used for 3D Socratic Open Book & High-Clarity Interactive Cards) */
+.ilms-pearl-page {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 8% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(155deg, #f7fbff 0%, #e4f0ff 48%, #eae4ff 100%);
+  color: #0b2457;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -18px 30px -22px rgba(92, 120, 220, 0.45),
+    0 28px 64px -28px rgba(8, 24, 68, 0.32),
+    0 0 0 1px rgba(190, 225, 255, 0.65);
+}
+
+.dark .ilms-pearl-page {
+  background:
+    radial-gradient(120% 90% at 8% 0%, rgba(56, 189, 248, 0.16) 0%, transparent 55%),
+    linear-gradient(155deg, rgba(16, 40, 96, 0.92) 0%, rgba(11, 28, 74, 0.94) 52%, rgba(22, 24, 78, 0.94) 100%);
+  color: #eef6ff;
+  box-shadow:
+    inset 0 1px 0 rgba(224, 242, 254, 0.25),
+    inset 0 -18px 30px -22px rgba(56, 189, 248, 0.25),
+    0 30px 70px -28px rgba(1, 8, 36, 0.85),
+    0 0 0 1px rgba(125, 211, 252, 0.24);
+}
+
+/* Scroll Choreography Driven by --e (0..1) and --s (0..1) */
+.ilms-scroll-scene {
+  --e: 1;
+  --s: 0.5;
+  position: relative;
+}
+
+.ilms-scroll-rise {
+  opacity: clamp(0, calc((var(--e, 1) - var(--lag, 0)) * 2.4), 1);
+  transform: translate3d(
+    0,
+    calc(clamp(0, calc(1 - (var(--e, 1) - var(--lag, 0)) * 1.55), 1) * 44px),
+    0
+  );
+  will-change: transform, opacity;
+}
+
+/* 3D Perspective Unfolding Socratic Book */
+.ilms-book-stage {
+  position: relative;
+  perspective: 1700px;
+}
+
+@media (min-width: 1024px) {
+  .ilms-book-page-left {
+    border-radius: 1.75rem 0.5rem 0.5rem 1.75rem;
+    transform-origin: 100% 50%;
+    transform: rotateY(calc((1 - var(--e, 1)) * 38deg));
+    will-change: transform;
+  }
+  .ilms-book-page-right {
+    border-radius: 0.5rem 1.75rem 1.75rem 0.5rem;
+    transform-origin: 0% 50%;
+    transform: rotateY(calc((1 - var(--e, 1)) * -38deg));
+    will-change: transform;
+  }
+  .ilms-book-page-right::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2.2rem;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0.18), transparent);
+    pointer-events: none;
+  }
+}
+
+/* Zero-Gravity Floating Animation for Cosmic Companions */
+.ilms-zero-g-float {
+  animation: ilms-zero-g 6.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.ilms-zero-g-float-delayed {
+  animation: ilms-zero-g 7.8s ease-in-out -3.2s infinite alternate;
+  will-change: transform;
+}
+
+@keyframes ilms-zero-g {
+  0% {
+    transform: translate3d(0, 6px, 0) rotate(-2deg);
+  }
+  100% {
+    transform: translate3d(0, -14px, 0) rotate(2.5deg);
+  }
+}
+
+/* Orbital Glossy Porthole Badges */
+.ilms-porthole {
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 44%),
+    radial-gradient(circle at 50% 62%, rgba(56, 189, 248, 0.32), rgba(37, 99, 235, 0.48) 72%);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.72),
+    inset 0 -10px 18px -8px rgba(15, 38, 92, 0.35),
+    0 14px 28px -12px rgba(15, 38, 92, 0.32);
+}
+
+.dark .ilms-porthole {
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 42%),
+    radial-gradient(circle at 50% 60%, rgba(56, 189, 248, 0.42), rgba(30, 58, 138, 0.78) 72%);
+  box-shadow:
+    inset 0 0 0 2px rgba(224, 242, 254, 0.52),
+    inset 0 -10px 18px -8px rgba(2, 10, 50, 0.7),
+    0 14px 30px -14px rgba(1, 8, 40, 0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ilms-horizon-rays > span,
+  .ilms-horizon-orb,
+  .ilms-zero-g-float,
+  .ilms-zero-g-float-delayed {
+    animation: none !important;
+  }
+  .ilms-scroll-rise,
+  .ilms-book-page-left,
+  .ilms-book-page-right {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+
 

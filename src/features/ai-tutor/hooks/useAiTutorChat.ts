@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ChatMessage, ChatSession } from '../types';
-import { generateSocraticAiReply, saveChatSessions } from '../services/ai-tutor.service';
+import { streamChat } from '../services/socratic-chat.service';
 
 interface UseAiTutorChatProps {
   activeSession: ChatSession | null;
@@ -49,7 +49,7 @@ export function useAiTutorChat({
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Send message handler
+  // Send message handler using real Socratic AI stream
   const sendMessage = useCallback(
     async (overrideText?: string) => {
       const textToSend = (overrideText ?? inputText).trim();
@@ -76,15 +76,69 @@ export function useAiTutorChat({
       onUpdateSessionMessages(activeSession.id, updatedMessages, newTitle);
       setIsTyping(true);
 
-      // Simulate Socratic AI processing and reasoning
-      setTimeout(() => {
-        const aiMessage = generateSocraticAiReply(textToSend);
-        const finalMessages = [...updatedMessages, aiMessage];
-        onUpdateSessionMessages(activeSession.id, finalMessages);
-        setIsTyping(false);
-      }, 750);
+      const aiMsgId = 'ai-' + Date.now();
+      let accumulated = '';
+      let hasAdded = false;
+
+      await streamChat(
+        {
+          message: textToSend,
+          session_id: activeSession.id,
+        },
+        {
+          onToken: (delta) => {
+            accumulated += delta;
+            setIsTyping(false);
+            if (!hasAdded) {
+              hasAdded = true;
+              onUpdateSessionMessages(activeSession.id, [
+                ...updatedMessages,
+                {
+                  id: aiMsgId,
+                  sender: 'ai',
+                  content: accumulated,
+                  timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                },
+              ]);
+            } else {
+              onUpdateSessionMessages(
+                activeSession.id,
+                updatedMessages.map((m) => (m.id === aiMsgId ? { ...m, content: accumulated } : m))
+              );
+            }
+            scrollToBottom();
+          },
+          onDone: (data) => {
+            setIsTyping(false);
+            const finalContent = data.full_content || accumulated;
+            onUpdateSessionMessages(activeSession.id, [
+              ...updatedMessages,
+              {
+                id: data.assistant_message_id || aiMsgId,
+                sender: 'ai',
+                content: finalContent,
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+              },
+            ]);
+            scrollToBottom();
+          },
+          onError: (err) => {
+            setIsTyping(false);
+            onUpdateSessionMessages(activeSession.id, [
+              ...updatedMessages,
+              {
+                id: 'ai-err-' + Date.now(),
+                sender: 'ai',
+                content: `⚠️ Kết nối tới máy chủ AI Socratic bị gián đoạn: ${err.message}`,
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+              },
+            ]);
+            scrollToBottom();
+          },
+        }
+      );
     },
-    [inputText, activeSession, isTyping, onUpdateSessionMessages]
+    [inputText, activeSession, isTyping, onUpdateSessionMessages, scrollToBottom]
   );
 
   // Copy code helper
@@ -95,47 +149,15 @@ export function useAiTutorChat({
     });
   }, []);
 
-  // Export session transcript
-  const exportSessionTranscript = useCallback(() => {
-    if (!activeSession) return;
-    const lines = [
-      `# BIÊN BẢN HỌC TẬP: ${activeSession.title}`,
-      `Thời gian: ${new Date().toLocaleString('vi-VN')}`,
-      `Hệ thống: ILMS Socratic AI Tutor`,
-      `==========================================\n`,
-    ];
-
-    activeSession.messages.forEach((msg) => {
-      const senderName = msg.sender === 'user' ? 'HỌC VIÊN' : 'SOCRATIC AI';
-      lines.push(`[${msg.timestamp}] ${senderName}:\n${msg.content}\n`);
-      if (msg.codeSnippet) {
-        lines.push(`\`\`\`${msg.codeSnippet.language}\n${msg.codeSnippet.code}\n\`\`\`\n`);
-      }
-      if (msg.socraticQuestion) {
-        lines.push(`> Câu hỏi tư duy: ${msg.socraticQuestion}\n`);
-      }
-      lines.push('------------------------------------------');
-    });
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${activeSession.title.replace(/[^\w\s\u00C0-\u1EF9]/g, '')}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [activeSession]);
-
   return {
     inputText,
     setInputText,
     isTyping,
     isFullscreen,
-    copiedCodeId,
-    threadEndRef,
-    sendMessage,
     toggleFullscreen,
+    copiedCodeId,
     copyCode,
-    exportSessionTranscript,
+    sendMessage,
+    threadEndRef,
   };
 }

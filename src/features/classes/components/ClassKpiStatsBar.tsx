@@ -16,9 +16,9 @@ export function ClassKpiStatsBar({
   workspaceMode = 'faculty',
   stats,
   studentStats = {
-    enrolledClassesCount: 4,
-    upcomingAssignmentsCount: 2,
-    avgProgressPercent: 88,
+    enrolledClassesCount: 0,
+    upcomingAssignmentsCount: 0,
+    avgProgressPercent: 0,
   },
   onKpiClick,
   activeKpi,
@@ -56,7 +56,7 @@ export function ClassKpiStatsBar({
 
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {studentStats.enrolledClassesCount || 4}
+              {studentStats.enrolledClassesCount ?? 0}
             </span>
             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
               lớp tín chỉ
@@ -65,7 +65,7 @@ export function ClassKpiStatsBar({
 
           <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            <span className="truncate">100% đúng tiến độ học tập</span>
+            <span className="truncate">Theo kế hoạch học tập hiện tại</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function ClassKpiStatsBar({
 
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl font-extrabold text-rose-600 dark:text-rose-400 tracking-tight">
-              {studentStats.upcomingAssignmentsCount || 2}
+              {studentStats.upcomingAssignmentsCount ?? 0}
             </span>
             <span className="text-sm font-semibold text-rose-600/80 dark:text-rose-400/80">
               bài tập cần hoàn thành
@@ -104,8 +104,14 @@ export function ClassKpiStatsBar({
           </div>
 
           <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 truncate">
-            <span className="material-symbols-outlined text-[16px]">alarm</span>
-            <span className="truncate font-semibold">1 bài đến hạn 23:59 hôm nay</span>
+            <span className="material-symbols-outlined text-[16px]">
+              {(studentStats.upcomingAssignmentsCount ?? 0) > 0 ? 'alarm' : 'check_circle'}
+            </span>
+            <span className="truncate font-semibold">
+              {(studentStats.upcomingAssignmentsCount ?? 0) > 0
+                ? `${studentStats.upcomingAssignmentsCount} bài tập chưa hoàn thành`
+                : 'Đã hoàn thành toàn bộ bài tập'}
+            </span>
           </div>
         </div>
 
@@ -182,7 +188,7 @@ export function ClassKpiStatsBar({
 
         <div className="flex items-baseline gap-2">
           <span className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {stats.activeClassesCount || 12}
+            {stats.activeClassesCount ?? 0}
           </span>
           <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
             lớp học trực tiếp
@@ -191,7 +197,7 @@ export function ClassKpiStatsBar({
 
         <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
           <span className="material-symbols-outlined text-[16px]">check_circle</span>
-          <span className="truncate">100% đúng tiến độ phân phối chương trình</span>
+          <span className="truncate">Theo kế hoạch giảng dạy học kỳ</span>
         </div>
       </div>
 
@@ -223,7 +229,7 @@ export function ClassKpiStatsBar({
 
         <div className="flex items-baseline gap-2">
           <span className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {stats.totalStudentsCount || 368}
+            {stats.totalStudentsCount ?? 0}
           </span>
           <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
             thành viên ghi danh
@@ -232,7 +238,7 @@ export function ClassKpiStatsBar({
 
         <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400">
           <span className="material-symbols-outlined text-[16px]">trending_up</span>
-          <span className="truncate">+24 sinh viên tham gia tuần này</span>
+          <span className="truncate">Theo danh sách sinh viên thực tế</span>
         </div>
       </div>
 
@@ -265,7 +271,7 @@ export function ClassKpiStatsBar({
 
         <div className="flex items-baseline gap-2">
           <span className="font-display text-3xl font-extrabold text-rose-600 dark:text-rose-400 tracking-tight">
-            {stats.needsAttentionCount || 7}
+            {stats.needsAttentionCount ?? 0}
           </span>
           <span className="text-sm font-semibold text-rose-600/80 dark:text-rose-400/80">
             yêu cầu chờ
@@ -273,14 +279,15 @@ export function ClassKpiStatsBar({
         </div>
 
         <div className="mt-3 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-          <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            4 duyệt sinh viên
-          </span>
-          <span className="text-slate-300 dark:text-slate-600">•</span>
-          <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            3 bài quá hạn chấm
+          <span className="inline-flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-400">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                (stats.needsAttentionCount ?? 0) > 0 ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'
+              }`}
+            />
+            {(stats.needsAttentionCount ?? 0) > 0
+              ? `${stats.needsAttentionCount} yêu cầu đang chờ xử lý`
+              : 'Không có yêu cầu chờ xử lý'}
           </span>
         </div>
       </div>

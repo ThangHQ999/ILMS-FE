@@ -10,7 +10,6 @@ import { FocusZenHeader } from './FocusZenHeader';
 import { FocusHeroQuestCard } from './FocusHeroQuestCard';
 import { FocusTheoryModal } from './FocusTheoryModal';
 import { FocusQuizModal } from './FocusQuizModal';
-import { SocraticAICoach } from '@/features/dashboard';
 
 interface CompetencyFocusViewProps {
   userFullName?: string;
@@ -125,16 +124,6 @@ export function CompetencyFocusView({
           <span>{toastText}</span>
         </div>
       )}
-
-      {/* Embedded Socratic AI Coach (Mini / Dockable) */}
-      <SocraticAICoach
-        userFullName={userFullName}
-        width={aiWidth}
-        onWidthChange={setAiWidth}
-        isMinimized={isAiMinimized}
-        onToggleMinimize={() => setIsAiMinimized((prev) => !prev)}
-        floatingDock={true}
-      />
     </div>
   );
 }

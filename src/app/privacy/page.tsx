@@ -1,4 +1,21 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { buildMetadata } from '@/lib/seo';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations('seo'),
+  ]);
+
+  return buildMetadata({
+    title: t('privacyTitle'),
+    description: t('privacyDescription'),
+    path: '/privacy',
+    locale,
+  });
+}
 
 export default function PrivacyPage() {
   return (

@@ -106,14 +106,9 @@ export function ForgotPasswordPageView() {
               <div className="flex justify-center mb-6 pt-1">
                 <Link href="/" className="focus:outline-none">
                   <img
-                    src="/logo-dark.png"
+                    src="/logo-full.png"
                     alt="ILMS Logo"
-                    className="h-10 sm:h-11 w-auto object-contain hidden dark:block brightness-110 contrast-125 transition-transform duration-200 hover:scale-105"
-                  />
-                  <img
-                    src="/logo-light.png"
-                    alt="ILMS Logo"
-                    className="h-10 sm:h-11 w-auto object-contain block dark:hidden transition-transform duration-200 hover:scale-105"
+                    className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 hover:scale-105"
                   />
                 </Link>
               </div>

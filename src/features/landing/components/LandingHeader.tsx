@@ -52,23 +52,16 @@ export function LandingHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#131314] backdrop-blur-md border-none shadow-none transition-colors">
-      <div className="h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/65 dark:bg-[#061844]/65 backdrop-blur-xl border-b border-white/40 dark:border-sky-300/12 shadow-[0_10px_32px_-18px_rgba(15,38,92,0.18)] transition-colors">
+      <div className="h-16 w-full max-w-[1640px] mx-auto px-5 sm:px-8 lg:px-14 flex items-center justify-between">
         {/* Brand Logo & Nav */}
         <div className="flex items-center gap-6 lg:gap-10">
           <Link href="/" prefetch={true} className="flex items-center gap-2 group focus:outline-none">
-            <div className="relative py-1 px-2 rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] border-none transition-colors flex items-center">
-              <img
-                src="/logo-dark.png"
-                alt="ILMS Logo"
-                className="h-8 sm:h-9 w-auto object-contain hidden dark:block brightness-110 contrast-125 transition-transform group-hover:scale-105"
-              />
-              <img
-                src="/logo-light.png"
-                alt="ILMS Logo"
-                className="h-8 sm:h-9 w-auto object-contain block dark:hidden transition-transform group-hover:scale-105"
-              />
-            </div>
+            <img
+              src="/logo-full.png"
+              alt="ILMS Logo"
+              className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+            />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -112,8 +105,8 @@ export function LandingHeader() {
                     href="#tinh-nang-noi-bat"
                     className="flex items-start gap-3 p-2.5 rounded-2xl hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors group/item"
                   >
-                    <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] shrink-0 group-hover/item:scale-105 transition-transform">
-                      <Bot className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-2xl bg-transparent flex items-center justify-center shrink-0 group-hover/item:scale-105 transition-transform overflow-hidden">
+                      <img src="/socratic_mascot.png" alt="Socratic AI" className="w-7 h-7 object-contain" />
                     </div>
                     <div className="flex flex-col text-left">
                       <span className="text-[13px] font-bold text-[#1F1F1F] dark:text-[#E3E3E3] group-hover/item:text-[#0B57D0] dark:group-hover/item:text-[#A8C7FA] transition-colors">
@@ -126,7 +119,7 @@ export function LandingHeader() {
                   </a>
 
                   <a
-                    href="#tinh-nang-noi-bat"
+                    href="#khong-gian-lop-hoc"
                     className="flex items-start gap-3 p-2.5 rounded-2xl hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors group/item"
                   >
                     <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] shrink-0 group-hover/item:scale-105 transition-transform">
@@ -143,7 +136,7 @@ export function LandingHeader() {
                   </a>
 
                   <a
-                    href="#tinh-nang-noi-bat"
+                    href="#khong-gian-lop-hoc"
                     className="flex items-start gap-3 p-2.5 rounded-2xl hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors group/item"
                   >
                     <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] shrink-0 group-hover/item:scale-105 transition-transform">
@@ -244,12 +237,12 @@ export function LandingHeader() {
               </div>
             </div>
 
-            <a
-              href="#bang-gia"
+            <Link
+              href="/pricing"
               className="text-sm font-semibold text-[#444746] dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] transition-colors py-2"
             >
               {t('pricing')}
-            </a>
+            </Link>
 
             {/* Resources Dropdown */}
             <div className="relative group inline-block">
@@ -394,13 +387,13 @@ export function LandingHeader() {
           >
             {t('solutions')}
           </a>
-          <a
-            href="#bang-gia"
+          <Link
+            href="/pricing"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-full font-medium text-slate-700 dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-sm"
           >
             {t('pricing')}
-          </a>
+          </Link>
           <a
             href="#ve-chung-toi"
             onClick={() => setMobileMenuOpen(false)}

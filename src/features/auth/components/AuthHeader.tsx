@@ -39,7 +39,7 @@ export function AuthHeader() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center focus:outline-none">
             <img
-              src="/logo.png"
+              src="/logo-full.png"
               alt="ILMS Logo"
               className="h-9 w-auto object-contain"
             />

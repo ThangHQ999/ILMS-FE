@@ -163,7 +163,7 @@ export function KnowledgeAnalyticsView({
       {/* 3. Main Stage Content */}
       <div
         className={`pt-20 px-6 pb-12 transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-26' : 'pl-72'
+          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         <div className="flex flex-col w-full max-w-[1720px] mx-auto gap-6">

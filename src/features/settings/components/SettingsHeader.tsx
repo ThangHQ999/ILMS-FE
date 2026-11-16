@@ -10,7 +10,7 @@ interface SettingsHeaderProps {
 }
 
 export function SettingsHeader({
-  userFullName = 'Trần Nhật Minh',
+  userFullName = 'Người dùng ILMS',
   searchQuery,
   onSearchChange,
 }: SettingsHeaderProps) {
