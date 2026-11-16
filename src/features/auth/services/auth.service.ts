@@ -7,6 +7,7 @@ import {
   LoginInput,
   RegisterInput,
   oauthUrlResponseSchema,
+  ResetPasswordInput,
 } from '../schemas/auth.schema';
 import { OAuthProvider } from '../types';
 
@@ -38,9 +39,17 @@ export async function logout(): Promise<void> {
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem('ilms_user');
+      localStorage.removeItem('ilms_active_role_override');
+      document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     } catch {}
   }
-  await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.LOGOUT);
+  try {
+    await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.LOGOUT);
+  } catch {
+    // Ignore backend error if token is already expired or invalidated
+  }
 }
 
 export async function forgotPassword(email: string): Promise<void> {
@@ -86,5 +95,13 @@ export async function exchangeOAuthCode(
     { code }
   );
   return userProfileSchema.parse(data.data);
+}
+
+export async function resetPassword(input: ResetPasswordInput): Promise<void> {
+  await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.RESET_PASSWORD, {
+    token: input.token,
+    newPassword: input.newPassword,
+    confirmPassword: input.confirmPassword,
+  });
 }
 

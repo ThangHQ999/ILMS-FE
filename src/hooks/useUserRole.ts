@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useCurrentUser } from '@/features/auth';
-import { useClasses } from '@/features/classes/hooks/useClasses';
 import { ActiveRole, ROLES } from '@/constants/roles';
 
 const STORAGE_KEY = 'ilms_active_role_override';
@@ -24,14 +23,27 @@ export interface UserRoleResult {
 
 export function useUserRole(): UserRoleResult {
   const { data: user, isLoading: isUserLoading, isError: isUserError } = useCurrentUser();
-  const { data: classesData, isLoading: isClassesLoading } = useClasses();
 
-  // 1. Thuật toán tự động nhận diện vai trò dựa trên Backend data
+  // 1. Thuật toán tự động nhận diện vai trò dựa trên Backend data từ currentUser
   const detectedRole = useMemo<ActiveRole>(() => {
     if (!user) return 'STUDENT';
 
     // Ưu tiên 1: System Admin có quyền của Giảng viên cao cấp
-    if (user.roleName === ROLES.ADMIN || user.roleName?.includes('ADMIN')) {
+    const roleUpper = String(user.roleName || '').toUpperCase();
+    if (roleUpper === ROLES.ADMIN || roleUpper.includes('ADMIN')) {
+      return 'TEACHER';
+    }
+
+    // Giảng viên từ roleName hoặc roles array
+    if (roleUpper.includes('TEACHER') || roleUpper.includes('FACULTY') || roleUpper.includes('INSTRUCTOR')) {
+      return 'TEACHER';
+    }
+
+    const anyUser = user as { roles?: string[] };
+    if (Array.isArray(anyUser.roles) && anyUser.roles.some((r) => {
+      const u = String(r).toUpperCase();
+      return u.includes('TEACHER') || u.includes('FACULTY') || u.includes('ADMIN');
+    })) {
       return 'TEACHER';
     }
 
@@ -47,20 +59,8 @@ export function useUserRole(): UserRoleResult {
       return 'STUDENT';
     }
 
-    // Ưu tiên 3: Dựa vào quyền sở hữu lớp học hoặc vai trò giảng dạy trong lớp
-    const hasTeachingClasses = classesData?.items?.some(
-      (c) =>
-        (c.ownerId && c.ownerId === user.id) ||
-        c.teachingRole === 'PRIMARY_INSTRUCTOR' ||
-        c.teachingRole === 'TA'
-    );
-
-    if (hasTeachingClasses) {
-      return 'TEACHER';
-    }
-
     return 'STUDENT';
-  }, [user, classesData]);
+  }, [user]);
 
   // 2. Trạng thái Role hiện tại (hỗ trợ chuyển đổi góc nhìn để test/demo)
   const [activeRole, setActiveRole] = useState<ActiveRole>(detectedRole);
@@ -68,35 +68,29 @@ export function useUserRole(): UserRoleResult {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY) as ActiveRole | null;
+      const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'TEACHER' || stored === 'STUDENT') {
         setActiveRole(stored);
-        setIsOverridden(stored !== detectedRole);
+        setIsOverridden(true);
       } else {
         setActiveRole(detectedRole);
         setIsOverridden(false);
       }
     } catch {
       setActiveRole(detectedRole);
-      setIsOverridden(false);
     }
   }, [detectedRole]);
 
-  // 3. Hàm chuyển đổi vai trò thủ công (Dành cho Giảng viên muốn xem giao diện SV hoặc khi test UI)
-  const switchRole = useCallback(
-    (role: ActiveRole) => {
-      setActiveRole(role);
-      setIsOverridden(role !== detectedRole);
-      try {
-        localStorage.setItem(STORAGE_KEY, role);
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [detectedRole]
-  );
+  const switchRole = useCallback((newRole: ActiveRole) => {
+    setActiveRole(newRole);
+    setIsOverridden(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, newRole);
+    } catch {
+      // ignore
+    }
+  }, []);
 
-  // 4. Hàm khôi phục về vai trò gốc tự phát hiện
   const resetRole = useCallback(() => {
     setActiveRole(detectedRole);
     setIsOverridden(false);
@@ -109,13 +103,18 @@ export function useUserRole(): UserRoleResult {
 
   const isTeacher = activeRole === 'TEACHER';
   const isStudent = activeRole === 'STUDENT';
-  const isAdmin = user?.roleName === ROLES.ADMIN || user?.roleName?.includes('ADMIN') || false;
+  const isAdmin = Boolean(
+    user?.roleName === ROLES.ADMIN ||
+    user?.roleName?.toUpperCase().includes('ADMIN')
+  );
 
-  const roleBadge = isAdmin
-    ? 'Quản trị viên'
-    : isTeacher
-    ? 'Giảng viên'
-    : 'Học sinh';
+  const roleBadge = useMemo(() => {
+    if (isAdmin) return 'Quản trị viên (Admin)';
+    if (isTeacher) return 'Giảng viên (Faculty)';
+    return 'Học viên (Student)';
+  }, [isAdmin, isTeacher]);
+
+  const isAuthenticated = Boolean(!isUserLoading && !isUserError && user);
 
   return {
     user,
@@ -125,11 +124,10 @@ export function useUserRole(): UserRoleResult {
     isStudent,
     isAdmin,
     isOverridden,
-    isLoading: isUserLoading || (!user && isClassesLoading),
-    isAuthenticated: !isUserLoading && !isUserError && !!user,
+    isLoading: isUserLoading,
+    isAuthenticated,
     roleBadge,
     switchRole,
     resetRole,
   };
 }
-
