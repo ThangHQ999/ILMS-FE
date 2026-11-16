@@ -372,8 +372,10 @@ export async function toggleClassCodeStatus(
  * Endpoint: POST /api/v1/classes/join-by-code
  */
 export async function joinClassByCode(classCode: string): Promise<unknown> {
+  const code = classCode.trim();
   const { data } = await api.post<ApiResponse<unknown>>('/classes/join-by-code', {
-    class_code: classCode.trim(),
+    classCode: code,
+    class_code: code,
   });
   return data.data;
 }

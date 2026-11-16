@@ -17,6 +17,7 @@ import { ClassMembersTab } from './ClassMembersTab';
 import { ClassSettingsTab } from './ClassSettingsTab';
 import { ClassMaterialsTab } from './ClassMaterialsTab';
 import { ClassStreamTab } from './ClassStreamTab';
+import { ClassModulesTab } from './ClassModulesTab';
 import { ClassAssignmentsTab } from './ClassAssignmentsTab';
 import { ClassAnalyticsSettingsTab } from './ClassAnalyticsSettingsTab';
 import {
@@ -215,7 +216,7 @@ export function ClassDetailPageView({
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] text-gray-900 dark:text-[#E3E3E3] flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
@@ -261,17 +262,17 @@ export function ClassDetailPageView({
           </div>
 
           {/* Role Simulator Switcher */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-xs w-fit border-none">
-            <span className="text-gray-500 dark:text-[#8E918F] font-medium">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs w-fit">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">
               {t('viewAs')}
             </span>
             <button
               type="button"
               onClick={() => handleRoleChange('student')}
-              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer border-none ${
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
                 effectiveRole === 'student'
-                  ? 'font-bold bg-white dark:bg-[#1E1F20] text-emerald-600 dark:text-emerald-400 shadow-xs'
-                  : 'font-medium text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
+                  ? 'font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Học viên
@@ -279,10 +280,10 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => handleRoleChange('teacher')}
-              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer border-none ${
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
                 effectiveRole === 'teacher'
-                  ? 'font-bold bg-white dark:bg-[#1E1F20] text-blue-600 dark:text-[#A8C7FA] shadow-xs'
-                  : 'font-medium text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
+                  ? 'font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Giảng viên
@@ -290,10 +291,10 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => handleRoleChange('owner')}
-              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer border-none ${
+              className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
                 effectiveRole === 'owner'
-                  ? 'font-bold bg-white dark:bg-[#1E1F20] text-amber-600 dark:text-amber-400 shadow-xs'
-                  : 'font-medium text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
+                  ? 'font-bold bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Chủ lớp
@@ -304,27 +305,75 @@ export function ClassDetailPageView({
         {/* Loading / Error States */}
         {isLoading ? (
           <div className="space-y-6 animate-pulse">
-            <div className="h-48 rounded-3xl bg-[#E1E5EA] dark:bg-[#282A2C]" />
-            <div className="h-64 rounded-3xl bg-[#E1E5EA] dark:bg-[#282A2C]" />
+            <div className="h-48 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+            <div className="h-64 rounded-2xl bg-slate-200 dark:bg-slate-800" />
           </div>
         ) : isError || !classInfo ? (
-          <div className="my-8 p-10 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-sm dark:shadow-none text-center space-y-3">
+          <div className="my-8 p-10 rounded-2xl bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/60 text-center space-y-3">
             <span className="material-symbols-outlined text-[32px] text-red-500">
               error_outline
             </span>
-            <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
               Không thể tải thông tin lớp học
             </p>
             <button
               type="button"
               onClick={() => refetch()}
-              className="px-5 py-2 text-xs font-bold rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all border-none cursor-pointer"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700"
             >
               Thử lại
             </button>
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Multi-role Simulator Toggle (Student vs Teacher vs Owner) with 3px border */}
+            <div className="flex items-center justify-between flex-wrap gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="material-symbols-outlined text-[20px] text-blue-600 dark:text-blue-400">
+                  switch_account
+                </span>
+                <span>Mô phỏng đa vai trò trong lớp:</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange('student')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    effectiveRole === 'student'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">school</span>
+                  Học viên
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange('teacher')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    effectiveRole === 'teacher'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">co_present</span>
+                  Giảng viên
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange('owner')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    effectiveRole === 'owner'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">verified</span>
+                  Chủ sở hữu
+                </button>
+              </div>
+            </div>
+
             {/* Banner Section */}
             <ClassDetailBanner
               classInfo={classInfo}
@@ -351,17 +400,12 @@ export function ClassDetailPageView({
               />
             )}
 
-            {(activeTab === 'subjects' || activeTab === 'modules') && (
-              <ClassSubjectsTab
-                courses={courses}
+            {activeTab === 'modules' && (
+              <ClassModulesTab
                 currentRole={effectiveRole}
-                onAddExistingClick={() => setIsAddSubjectOpen(true)}
-                onCreateNewClick={() => setIsCreateSubjectOpen(true)}
-                onRemoveClick={(c) => setRemoveTarget(c)}
-                onAssignTeacherClick={(c) =>
-                  showToast(`Mở phân công giảng viên cho môn ${c.code}`)
-                }
                 onToast={showToast}
+                onViewSubjects={() => setActiveTab('subjects')}
+                subjectsCount={courses.length}
               />
             )}
 
@@ -389,6 +433,20 @@ export function ClassDetailPageView({
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
+                onToast={showToast}
+              />
+            )}
+
+            {activeTab === 'subjects' && (
+              <ClassSubjectsTab
+                courses={courses}
+                currentRole={effectiveRole}
+                onAddExistingClick={() => setIsAddSubjectOpen(true)}
+                onCreateNewClick={() => setIsCreateSubjectOpen(true)}
+                onRemoveClick={(c) => setRemoveTarget(c)}
+                onAssignTeacherClick={(c) =>
+                  showToast(`Mở phân công giảng viên cho môn ${c.code}`)
+                }
                 onToast={showToast}
               />
             )}
@@ -435,30 +493,30 @@ export function ClassDetailPageView({
             )}
 
             {activeTab === 'overview' && (
-              <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-8 text-center space-y-4 border-none shadow-sm dark:shadow-none">
-                <div className="w-16 h-16 rounded-2xl bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] flex items-center justify-center mx-auto">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-8 text-center space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
                   <span className="material-symbols-outlined text-3xl">grid_view</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                   Tổng quan không gian giảng dạy
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] max-w-md mx-auto">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                   Lớp học hiện có {courses.length} môn học đang hoạt động, {classInfo.enrolledCount} sinh viên và tiến độ nhập điểm đạt 95.8%.
                 </p>
                 <div className="flex justify-center gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setActiveTab('stream')}
-                    className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all cursor-pointer border-none shadow-xs"
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700"
                   >
                     Xem Bảng tin lớp
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('gradebook')}
-                    className="px-5 py-2.5 rounded-full text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none bg-transparent"
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
                   >
-                    Xem bảng điểm &amp; PLO
+                    Xem bảng điểm & PLO
                   </button>
                 </div>
               </div>
@@ -480,33 +538,33 @@ export function ClassDetailPageView({
         <button
           type="button"
           onClick={() => setIsAiPopoverOpen((prev) => !prev)}
-          className="flex items-center gap-3 pl-4 pr-5 py-2.5 bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] rounded-full shadow-lg border-none hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-3 pl-4 pr-5 py-2.5 bg-slate-900 dark:bg-slate-950 text-white rounded-full shadow-2xl border-[3px] border-blue-500 hover:scale-105 active:scale-95 transition-all cursor-pointer"
         >
           <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#007BFF]/75 dark:bg-[#A8C7FA]/75 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#007BFF] dark:bg-[#A8C7FA]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500" />
           </span>
-          <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[22px]">psychology</span>
+          <span className="material-symbols-outlined text-blue-300 text-[22px]">psychology</span>
           <div className="flex flex-col text-left">
-            <span className="text-xs font-semibold leading-tight">Socratic AI Tutor</span>
-            <span className="text-[10px] text-gray-500 dark:text-[#8E918F] leading-none">Context Aware RAG</span>
+            <span className="text-xs font-bold leading-tight">Socratic AI Tutor</span>
+            <span className="text-[10px] text-blue-300 leading-none">Context Aware RAG</span>
           </div>
         </button>
       </div>
 
-      {/* Socratic AI Tutor Popover Panel with zero borders */}
+      {/* Socratic AI Tutor Popover Panel with 3px border */}
       {isAiPopoverOpen && (
-        <div className="fixed bottom-20 right-6 w-96 max-w-[calc(100vw-2rem)] rounded-3xl bg-white dark:bg-[#1E1F20] shadow-2xl border-none z-50 overflow-hidden flex flex-col">
+        <div className="fixed bottom-20 right-6 w-96 max-w-[calc(100vw-2rem)] rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border-[3px] border-blue-500 z-50 overflow-hidden flex flex-col">
           {/* Popover Header */}
-          <div className="p-4 bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] flex items-center justify-between border-b border-black/5 dark:border-white/5">
+          <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] flex items-center justify-center text-blue-600 dark:text-[#A8C7FA]">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-blue-300">
                 <span className="material-symbols-outlined text-[20px]">psychology</span>
               </div>
               <div>
-                <div className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3] leading-tight">Socratic AI Tutor</div>
-                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="font-bold text-sm text-white leading-tight">Socratic AI Tutor</div>
+                <div className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   Graph RAG: {classInfo?.name || 'CS-202'} Syllabus
                 </div>
               </div>
@@ -514,29 +572,29 @@ export function ClassDetailPageView({
             <button
               type="button"
               onClick={() => setIsAiPopoverOpen(false)}
-              className="text-gray-400 hover:text-gray-700 dark:hover:text-[#E3E3E3] transition-colors cursor-pointer border-none bg-transparent"
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
 
           {/* Popover Conversation Body */}
-          <div className="p-4 flex flex-col gap-3 max-h-80 overflow-y-auto bg-[#F0F4F8] dark:bg-[#131314] text-xs">
+          <div className="p-4 flex flex-col gap-3 max-h-80 overflow-y-auto bg-slate-50 dark:bg-slate-950 text-xs">
             {/* Quick Prompts */}
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1E1F20] border-none shadow-xs">
-              <p className="font-semibold text-blue-600 dark:text-[#A8C7FA] mb-1.5">Gợi ý câu hỏi nhanh:</p>
+            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+              <p className="font-bold text-blue-600 dark:text-blue-400 mb-1.5">Gợi ý câu hỏi nhanh:</p>
               <div className="flex flex-col gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleAskAi('Giải thích tại sao TCP cần 3 bước bắt tay thay vì 2 bước?')}
-                  className="text-left p-2 rounded-xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs transition-colors cursor-pointer border-none"
+                  className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
                   • Tại sao TCP cần 3-Way Handshake thay vì 2?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskAi('Thuật toán Dijkstra tính đường đi ngắn nhất hoạt động ra sao trong OSPF?')}
-                  className="text-left p-2 rounded-xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs transition-colors cursor-pointer border-none"
+                  className="text-left p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
                   • Giải thích thuật toán Dijkstra trong định tuyến OSPF?
                 </button>
@@ -547,10 +605,10 @@ export function ClassDetailPageView({
               {aiChatMessages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`p-3 rounded-2xl leading-relaxed text-xs ${
+                  className={`p-3 rounded-xl leading-relaxed ${
                     msg.sender === 'user'
-                      ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] self-end max-w-[85%]'
-                      : 'bg-[#F0F4F8] dark:bg-[#131314] text-gray-800 dark:text-[#C4C7C5] border-none'
+                      ? 'bg-blue-600 text-white self-end max-w-[85%]'
+                      : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs'
                   }`}
                 >
                   {msg.text}
@@ -560,7 +618,7 @@ export function ClassDetailPageView({
           </div>
 
           {/* Popover Input Field */}
-          <div className="p-3 bg-white dark:bg-[#1E1F20] border-t border-black/5 dark:border-white/5 flex items-center gap-2">
+          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
             <input
               type="text"
               value={aiInputText}
@@ -572,7 +630,7 @@ export function ClassDetailPageView({
                 }
               }}
               placeholder="Hỏi AI về giao thức mạng, RFC..."
-              className="flex-1 bg-[#F0F4F8] dark:bg-[#131314] px-4 py-2 rounded-full text-xs text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] border-none outline-none"
+              className="flex-1 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-200 dark:border-slate-700 outline-none"
             />
             <button
               type="button"
@@ -582,7 +640,7 @@ export function ClassDetailPageView({
                   setAiInputText('');
                 }
               }}
-              className="w-8 h-8 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] flex items-center justify-center hover:brightness-95 transition-all cursor-pointer border-none shrink-0"
+              className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">send</span>
             </button>
@@ -627,7 +685,6 @@ export function ClassDetailPageView({
         instructorName={classInfo?.instructor?.fullName || userFullName}
         enrolledCount={classInfo?.enrolledCount || 45}
         maxStudents={classInfo?.maxStudents || 60}
-        currentRole={effectiveRole}
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}
         onInvite={(emails) => {
