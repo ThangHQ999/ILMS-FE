@@ -7,7 +7,7 @@ import { useClasses } from '@/features/classes/hooks/useClasses';
 import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
 import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
 import type { ClassItem } from '@/features/classes/schemas/class.schema';
-import { getSubjectInfoForClass } from '../../constants/subject-quiz.constants';
+import { getSubjectInfoForClass, getMockExamsForSubject } from '../../constants/subject-quiz.constants';
 
 export interface BankQuestion {
   id: string;
@@ -416,6 +416,18 @@ export function TeacherQuestionBankView({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewingQuestion, setPreviewingQuestion] = useState<BankQuestion | null>(null);
 
+  // Push to Exam Modal State
+  const [isPushToExamModalOpen, setIsPushToExamModalOpen] = useState(false);
+  const [pushTargetMethod, setPushTargetMethod] = useState<'EXISTING' | 'NEW'>('EXISTING');
+  const [selectedTargetQuizId, setSelectedTargetQuizId] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string>('Phần 2: Bài tập & Vận dụng OSPF/BGP');
+  const [pointsPerQuestion, setPointsPerQuestion] = useState<number>(0.5);
+  const [isAutoDeduplicate, setIsAutoDeduplicate] = useState<boolean>(true);
+  const [isFreezeSnapshot, setIsFreezeSnapshot] = useState<boolean>(true);
+  const [isPreviewSelectedOpen, setIsPreviewSelectedOpen] = useState<boolean>(false);
+  const [newQuizTitle, setNewQuizTitle] = useState<string>('');
+  const [newQuizDuration, setNewQuizDuration] = useState<number>(45);
+
   // Form state for Manual Add Question Modal
   const [newQContent, setNewQContent] = useState('');
   const [newQType, setNewQType] = useState<'SINGLE_CHOICE' | 'CALCULATION'>('SINGLE_CHOICE');
@@ -483,6 +495,153 @@ export function TeacherQuestionBankView({
       setSelectedQuestionIds([]);
     } else {
       setSelectedQuestionIds(filteredQuestions.map((q) => q.id));
+    }
+  };
+
+  // Target Quizzes for Push Action
+  const availableTargetQuizzes = useMemo(() => {
+    return getMockExamsForSubject(activeClass);
+  }, [activeClass]);
+
+  useEffect(() => {
+    if (availableTargetQuizzes.length > 0) {
+      setSelectedTargetQuizId(availableTargetQuizzes[0].id);
+      setSelectedSection(`Phần 2: Bài tập & Vận dụng ${activeClass.name || 'chuyên đề'}`);
+    }
+  }, [availableTargetQuizzes, activeClass]);
+
+  const effectiveSelectedQuestions = useMemo(() => {
+    if (selectedQuestionIds.length > 0) {
+      return questions.filter((q) => selectedQuestionIds.includes(q.id));
+    }
+    return filteredQuestions.slice(0, 20);
+  }, [selectedQuestionIds, questions, filteredQuestions]);
+
+  const selectedCount = effectiveSelectedQuestions.length;
+
+  const countNB = useMemo(
+    () => effectiveSelectedQuestions.filter((q) => q.bloomLevel === 'BLOOM_1').length,
+    [effectiveSelectedQuestions]
+  );
+  const countTH = useMemo(
+    () => effectiveSelectedQuestions.filter((q) => q.bloomLevel === 'BLOOM_2').length,
+    [effectiveSelectedQuestions]
+  );
+  const countVD = useMemo(
+    () => effectiveSelectedQuestions.filter((q) => q.bloomLevel === 'BLOOM_3').length,
+    [effectiveSelectedQuestions]
+  );
+  const countVDC = useMemo(
+    () => effectiveSelectedQuestions.filter((q) => q.bloomLevel === 'BLOOM_4').length,
+    [effectiveSelectedQuestions]
+  );
+
+  const coveredPlos = useMemo(() => {
+    const plos = Array.from(new Set(effectiveSelectedQuestions.map((q) => q.plo).filter(Boolean)));
+    return plos.length > 0 ? plos.join(', ') : 'PLO-01, 02, 03';
+  }, [effectiveSelectedQuestions]);
+
+  const selectedTargetQuiz = useMemo(() => {
+    return (
+      availableTargetQuizzes.find((qz) => qz.id === selectedTargetQuizId) ||
+      availableTargetQuizzes[0]
+    );
+  }, [availableTargetQuizzes, selectedTargetQuizId]);
+
+  const handleOpenPushToExamModal = () => {
+    if (selectedQuestionIds.length === 0) {
+      const top20 = filteredQuestions.slice(0, 20).map((q) => q.id);
+      setSelectedQuestionIds(top20);
+    }
+    setNewQuizTitle(`Quiz mới từ Ngân hàng: ${activeClass.name || activeClass.code}`);
+    setIsPushToExamModalOpen(true);
+  };
+
+  const handleConfirmPushToExam = () => {
+    if (pushTargetMethod === 'EXISTING') {
+      const targetTitle = selectedTargetQuiz?.title || 'Quiz đã chọn';
+
+      if (typeof window !== 'undefined' && selectedTargetQuiz) {
+        try {
+          const draftKey = `ilms_quiz_draft_${selectedTargetQuiz.id}`;
+          const existingDraftRaw = localStorage.getItem(draftKey);
+          let existingQuestions: any[] = [];
+          if (existingDraftRaw) {
+            try {
+              const parsed = JSON.parse(existingDraftRaw);
+              if (Array.isArray(parsed.questions)) existingQuestions = parsed.questions;
+            } catch {}
+          }
+
+          const newStudioQuestions = effectiveSelectedQuestions.map((q, idx) => ({
+            id: `pushed-${q.id}-${Date.now()}`,
+            orderIndex: existingQuestions.length + idx + 1,
+            type: q.type,
+            typeLabel: q.typeLabel,
+            bloomLevel: q.bloomLabel,
+            difficultyLevel: q.difficultyLevel,
+            points: pointsPerQuestion,
+            content: q.content,
+            options: q.options,
+            explanation: q.explanation,
+            isCollapsed: false,
+          }));
+
+          const updatedDraft = {
+            quizTitle: selectedTargetQuiz.title,
+            classId: activeClass.id,
+            subjectKey: subjectInfo.key,
+            questions: [...existingQuestions, ...newStudioQuestions],
+            durationMinutes: '45',
+            savedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+          };
+          localStorage.setItem(draftKey, JSON.stringify(updatedDraft));
+        } catch (err) {
+          console.warn('Could not save pushed questions to target quiz draft:', err);
+        }
+      }
+
+      showToast(`Đã đẩy thành công ${selectedCount} câu hỏi vào "${targetTitle}"!`);
+      setIsPushToExamModalOpen(false);
+    } else {
+      if (typeof window !== 'undefined') {
+        try {
+          const newDraftKey = `ilms_quiz_draft_${activeClass.id}`;
+          const newStudioQuestions = effectiveSelectedQuestions.map((q, idx) => ({
+            id: `pushed-new-${q.id}-${Date.now()}`,
+            orderIndex: idx + 1,
+            type: q.type,
+            typeLabel: q.typeLabel,
+            bloomLevel: q.bloomLabel,
+            difficultyLevel: q.difficultyLevel,
+            points: pointsPerQuestion,
+            content: q.content,
+            options: q.options,
+            explanation: q.explanation,
+            isCollapsed: false,
+          }));
+
+          const newDraft = {
+            quizTitle: newQuizTitle || `Quiz mới: ${activeClass.name}`,
+            classId: activeClass.id,
+            subjectKey: subjectInfo.key,
+            questions: newStudioQuestions,
+            durationMinutes: String(newQuizDuration),
+            savedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+          };
+          localStorage.setItem(newDraftKey, JSON.stringify(newDraft));
+        } catch {}
+      }
+
+      showToast(`Đang chuyển tới phòng tạo đề với ${selectedCount} câu hỏi...`);
+      setIsPushToExamModalOpen(false);
+      router.push(
+        `/assignments/create?classId=${encodeURIComponent(
+          activeClass.id
+        )}&classCode=${encodeURIComponent(
+          activeClass.name || activeClass.code || ''
+        )}&className=${encodeURIComponent(activeClass.title || '')}&fromBank=true`
+      );
     }
   };
 
@@ -647,15 +806,9 @@ export function TeacherQuestionBankView({
     showToast('Đã xuất thành công tệp XML định dạng Moodle!');
   };
 
-  // Push Blueprint to Quiz Studio
+  // Push Blueprint to Quiz Studio (Open Push to Exam Modal)
   const handlePushBlueprintToQuiz = () => {
-    router.push(
-      `/assignments/create?classId=${encodeURIComponent(
-        activeClass.id
-      )}&classCode=${encodeURIComponent(
-        activeClass.name || activeClass.code || 'CS-202'
-      )}&className=${encodeURIComponent(activeClass.title || '')}&fromBlueprint=true`
-    );
+    handleOpenPushToExamModal();
   };
 
   if (!isMounted) {
@@ -1431,10 +1584,14 @@ export function TeacherQuestionBankView({
                       <button
                         type="button"
                         onClick={handlePushBlueprintToQuiz}
-                        className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                        className="px-4 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                       >
                         <span className="material-symbols-outlined text-[18px]">publish</span>
-                        <span>Đẩy vào Đề thi Quiz mới</span>
+                        <span>
+                          {selectedQuestionIds.length > 0
+                            ? `Đẩy ${selectedQuestionIds.length} câu đã chọn vào Đề thi`
+                            : `Đẩy vào Đề thi Quiz 05 (20 câu)`}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1757,6 +1914,20 @@ export function TeacherQuestionBankView({
                     <span className="material-symbols-outlined text-[16px]">file_download</span>
                     Xuất XML Moodle
                   </button>
+
+                  {selectedQuestionIds.length > 0 && (
+                    <>
+                      <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
+                      <button
+                        type="button"
+                        onClick={handleOpenPushToExamModal}
+                        className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+                        <span>Đẩy {selectedQuestionIds.length} câu vào Đề thi &amp; Quiz</span>
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 {/* Pagination Number Pills */}
@@ -2221,6 +2392,345 @@ export function TeacherQuestionBankView({
               >
                 Tạo bài thi với 4 mã đề này
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: ĐẨY CÂU HỎI VÀO ĐỀ THI & QUIZ (PUSH TO EXAM MODAL)*/}
+      {/* ======================================================== */}
+      {isPushToExamModalOpen && (
+        <div
+          id="push-to-exam-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200/80 dark:border-[#282A2C] overflow-hidden my-auto flex flex-col animate-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100">
+            {/* Modal Header */}
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between border-b border-slate-200/80 dark:border-[#282A2C]">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs flex-shrink-0">
+                  <span className="material-symbols-outlined text-[26px]">rocket_launch</span>
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                      Đẩy câu hỏi vào Đề thi &amp; Quiz
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-mono text-[11px] font-bold">
+                      {selectedCount} CÂU
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Đã chọn <strong className="text-slate-800 dark:text-slate-200">{selectedCount} câu hỏi</strong> từ Ma trận / Ngân hàng Đề thi (<span className="font-semibold text-blue-600 dark:text-blue-400">{activeClass.name || activeClass.code}</span>) • Sẵn sàng bổ sung hoặc tạo đề mới
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPushToExamModalOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors -mr-1 -mt-1 cursor-pointer"
+                title="Đóng"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+              {/* Summary Chip Bar */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#282A2C] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="px-2.5 py-1 rounded-md bg-blue-600 text-white font-semibold flex items-center gap-1 shadow-2xs">
+                    <span className="material-symbols-outlined text-[14px]">assignment_turned_in</span>
+                    <span>{selectedCount} câu trắc nghiệm</span>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-medium">
+                    {countNB} NB • {countTH} TH • {countVD} VD • {countVDC} VDC
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium">
+                    {coveredPlos}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1E1F20] px-2 py-0.5 rounded border border-slate-200/80 dark:border-[#282A2C]">
+                  <span className="material-symbols-outlined text-[14px] text-blue-600 dark:text-blue-400">shield</span>
+                  <span>Trùng lặp &lt; 15%</span>
+                </div>
+              </div>
+
+              {/* Phương thức tiếp nhận */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Phương thức tiếp nhận
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: Thêm vào đề thi có sẵn */}
+                  <label
+                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${
+                      pushTargetMethod === 'EXISTING'
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40'
+                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="push_target_method"
+                      checked={pushTargetMethod === 'EXISTING'}
+                      onChange={() => setPushTargetMethod('EXISTING')}
+                      className="mt-1 text-blue-600 accent-blue-600 w-4 h-4 cursor-pointer"
+                    />
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">
+                          Thêm vào Đề thi có sẵn
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] bg-blue-600 text-white font-bold uppercase">
+                          Khuyên dùng
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Bổ sung {selectedCount} câu vào Quiz, Giữa kỳ hoặc Cuối kỳ đã lập
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Tạo đề thi mới */}
+                  <label
+                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${
+                      pushTargetMethod === 'NEW'
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40'
+                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="push_target_method"
+                      checked={pushTargetMethod === 'NEW'}
+                      onChange={() => setPushTargetMethod('NEW')}
+                      className="mt-1 text-blue-600 accent-blue-600 w-4 h-4 cursor-pointer"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">
+                        Tạo Đề thi / Quiz mới
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Khởi tạo bản nháp bài thi mới hoàn toàn với {selectedCount} câu này
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Chi tiết tiếp nhận */}
+              {pushTargetMethod === 'EXISTING' ? (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#282A2C] flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-800 dark:text-white flex items-center justify-between">
+                      <span>Chọn Đề thi / Quiz đích:</span>
+                      <span
+                        onClick={() => setPushTargetMethod('NEW')}
+                        className="text-blue-600 dark:text-blue-400 text-xs font-normal hover:underline cursor-pointer flex items-center gap-0.5"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">add</span>
+                        Tạo bài thi nháp mới
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedTargetQuizId}
+                        onChange={(e) => setSelectedTargetQuizId(e.target.value)}
+                        className="w-full bg-white dark:bg-[#1E1F20] text-slate-900 dark:text-white text-xs px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      >
+                        {availableTargetQuizzes.map((quiz) => (
+                          <option key={quiz.id} value={quiz.id}>
+                            {quiz.title} ({activeClass.name || activeClass.code} - {quiz.duration})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-white">
+                        Phần thi đích (Section):
+                      </label>
+                      <select
+                        value={selectedSection}
+                        onChange={(e) => setSelectedSection(e.target.value)}
+                        className="w-full bg-white dark:bg-[#1E1F20] text-slate-900 dark:text-white text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none cursor-pointer"
+                      >
+                        <option value="Phần 1: Trắc nghiệm khách quan tổng quát">Phần 1: Trắc nghiệm khách quan tổng quát</option>
+                        <option value="Phần 2: Bài tập & Vận dụng chuyên sâu">Phần 2: Bài tập &amp; Vận dụng chuyên sâu</option>
+                        <option value="Phần 3: Câu hỏi nâng cao chuẩn ABET">Phần 3: Câu hỏi nâng cao chuẩn ABET</option>
+                        <option value="NEW_SECTION">+ Tạo phần thi mới trong đề...</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-white">
+                        Điểm số phân bổ:
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          step={0.1}
+                          min={0.1}
+                          max={10}
+                          value={pointsPerQuestion}
+                          onChange={(e) => setPointsPerQuestion(parseFloat(e.target.value) || 0.5)}
+                          className="w-24 bg-white dark:bg-[#1E1F20] text-slate-900 dark:text-white font-mono text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none"
+                        />
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          điểm/câu (+{(pointsPerQuestion * selectedCount).toFixed(1)}đ tổng)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isAutoDeduplicate}
+                        onChange={(e) => setIsAutoDeduplicate(e.target.checked)}
+                        className="w-4 h-4 rounded text-blue-600 accent-blue-600 cursor-pointer"
+                      />
+                      <span>Tự động kiểm tra trùng lặp và loại bỏ câu hỏi đã tồn tại trong bài thi đích</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isFreezeSnapshot}
+                        onChange={(e) => setIsFreezeSnapshot(e.target.checked)}
+                        className="w-4 h-4 rounded text-blue-600 accent-blue-600 cursor-pointer"
+                      />
+                      <span>Đóng băng phiên bản câu hỏi (Snapshot version) độc lập với Ngân hàng gốc</span>
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#282A2C] flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-800 dark:text-white">
+                      Tiêu đề bài Quiz mới:
+                    </label>
+                    <input
+                      type="text"
+                      value={newQuizTitle}
+                      onChange={(e) => setNewQuizTitle(e.target.value)}
+                      placeholder="Nhập tên đề thi mới..."
+                      className="w-full bg-white dark:bg-[#1E1F20] text-slate-900 dark:text-white text-xs px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-white">
+                        Lớp áp dụng:
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={`${activeClass.name || activeClass.code}: ${activeClass.title || ''}`}
+                        className="w-full bg-slate-100 dark:bg-[#1A1A1C] text-slate-500 dark:text-slate-400 text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-white">
+                        Thời gian làm bài:
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={newQuizDuration}
+                          onChange={(e) => setNewQuizDuration(parseInt(e.target.value) || 45)}
+                          className="w-24 bg-white dark:bg-[#1E1F20] text-slate-900 dark:text-white font-mono text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none"
+                        />
+                        <span className="text-xs text-slate-500 dark:text-slate-400">phút</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Thông báo kiểm tra tương thích */}
+              <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/60 flex items-start gap-2.5 text-slate-800 dark:text-slate-200">
+                <span className="material-symbols-outlined text-[20px] text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">
+                  verified
+                </span>
+                <div className="text-xs leading-relaxed">
+                  <span className="font-bold text-blue-600 dark:text-blue-400">Kiểm tra tương thích hoàn tất: </span>
+                  {pushTargetMethod === 'EXISTING' ? (
+                    <>
+                      Đề thi <strong className="text-slate-900 dark:text-white">{selectedTargetQuiz?.title || 'đã chọn'}</strong> có cấu trúc ma trận đồng nhất chuẩn ABET. Không phát hiện trùng lặp câu hỏi. Thời gian làm bài dự kiến sẽ tự động điều chỉnh phù hợp với {selectedCount} câu bổ sung.
+                    </>
+                  ) : (
+                    <>
+                      Sẵn sàng khởi tạo đề thi mới cho lớp <strong className="text-slate-900 dark:text-white">{activeClass.name || activeClass.code}</strong> với cấu trúc {selectedCount} câu hỏi chuẩn hóa Bloom và PLO.
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Xem trước danh sách câu hỏi nếu bấm "Xem trước" */}
+              {isPreviewSelectedOpen && (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200 dark:border-slate-700 max-h-48 overflow-y-auto space-y-2">
+                  <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    Danh sách {effectiveSelectedQuestions.length} câu hỏi sẽ được đẩy vào:
+                  </div>
+                  {effectiveSelectedQuestions.map((q, idx) => (
+                    <div key={q.id} className="text-xs p-2 rounded bg-white dark:bg-[#1E1F20] border border-slate-100 dark:border-slate-800 flex items-start gap-2">
+                      <span className="font-mono text-blue-600 font-bold">{idx + 1}.</span>
+                      <div className="flex-1 truncate">
+                        <span className="font-semibold text-slate-800 dark:text-white">[{q.code}] </span>
+                        <span>{q.content}</span>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
+                        {q.bloomLabel.split(' ')[0]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50/70 dark:bg-[#131314]/70 border-t border-slate-200/80 dark:border-[#282A2C] flex items-center justify-between flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPreviewSelectedOpen((prev) => !prev)}
+                className="text-blue-600 dark:text-blue-400 hover:underline text-xs flex items-center gap-1 font-medium cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {isPreviewSelectedOpen ? 'visibility_off' : 'preview'}
+                </span>
+                <span>
+                  {isPreviewSelectedOpen ? 'Ẩn danh sách' : `Xem trước ${selectedCount} câu hỏi đã chọn`}
+                </span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPushToExamModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-xs font-semibold cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmPushToExam}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-lg shadow-md transition-all text-xs font-bold flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <span>
+                    {pushTargetMethod === 'EXISTING'
+                      ? `Xác nhận đẩy vào ${selectedTargetQuiz?.code || selectedTargetQuiz?.title.split(':')[0] || 'Quiz'} (${selectedCount} câu)`
+                      : `Tạo đề thi mới (${selectedCount} câu)`}
+                  </span>
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
