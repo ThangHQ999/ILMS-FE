@@ -8,12 +8,12 @@ import { registerInputSchema } from '../schemas/auth.schema';
 import { RegisterFormState, RegisterFormErrors } from '../types';
 
 const INITIAL_FORM_STATE: RegisterFormState = {
-  lastName: 'Nguyễn',
-  middleName: 'Văn',
-  firstName: 'An',
-  email: 'name@example.com',
-  password: 'EduTech#2025!',
-  confirmPassword: 'EduTech#2025!',
+  lastName: '',
+  middleName: '',
+  firstName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
   termsAccepted: true,
 };
 
