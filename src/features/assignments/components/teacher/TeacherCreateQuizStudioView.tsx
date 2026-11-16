@@ -124,19 +124,46 @@ export function TeacherCreateQuizStudioView({
   // Load teacher classes
   const availableClasses: ClassItem[] = useMemo(() => {
     if (propTeacherClasses && propTeacherClasses.length > 0) return propTeacherClasses;
-    const baseList =
-      classesData?.items && classesData.items.length > 0
-        ? classesData.items
-        : [...DEFAULT_FACULTY_CLASSES];
-
+    const apiClasses = classesData?.items || [];
     const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
-    const baseIds = new Set(baseList.map((c) => String(c.id)));
-    const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
-    const newCreated = localCreated.filter(
-      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
-    );
 
-    const merged = [...newCreated, ...baseList];
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+    const merged: ClassItem[] = [];
+
+    // 1. Add API classes from backend
+    for (const c of apiClasses) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey)) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 2. Add local created classes
+    for (const c of localCreated) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 3. Always include DEFAULT_FACULTY_CLASSES (CS-202, INT2022, INT-1340, CS-301, SE-214)
+    for (const c of DEFAULT_FACULTY_CLASSES) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
     const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
     return teachingOnly.length > 0 ? teachingOnly : merged;
   }, [propTeacherClasses, classesData]);
@@ -160,13 +187,26 @@ export function TeacherCreateQuizStudioView({
 
   const activeClass = useMemo(() => {
     if (targetClassId) {
-      const found = availableClasses.find(
-        (c) =>
-          String(c.id).toLowerCase() === targetClassId.toLowerCase() ||
-          c.name?.toLowerCase() === targetClassId.toLowerCase() ||
-          c.code?.toLowerCase() === targetClassId.toLowerCase() ||
-          (urlClassCode && (c.name?.toLowerCase() === urlClassCode.toLowerCase() || c.code?.toLowerCase() === urlClassCode.toLowerCase()))
-      );
+      const targetLower = targetClassId.toLowerCase().trim();
+      const codeLower = (urlClassCode || '').toLowerCase().trim();
+      const nameLower = (urlClassName || '').toLowerCase().trim();
+
+      const found = availableClasses.find((c) => {
+        const cId = String(c.id).toLowerCase().trim();
+        const cName = (c.name || '').toLowerCase().trim();
+        const cCode = (c.code || '').toLowerCase().trim();
+        const cClassCode = (c.classCode || '').toLowerCase().trim();
+        const cTitle = (c.title || '').toLowerCase().trim();
+
+        return (
+          cId === targetLower ||
+          cName === targetLower ||
+          cCode === targetLower ||
+          cClassCode === targetLower ||
+          (codeLower && (cName === codeLower || cCode === codeLower || cClassCode === codeLower)) ||
+          (nameLower && (cTitle.includes(nameLower) || cName.includes(nameLower)))
+        );
+      });
       if (found) return found;
 
       return {
@@ -258,6 +298,7 @@ export function TeacherCreateQuizStudioView({
         const parsed = JSON.parse(rawDraft);
         // Kiểm tra nghiêm ngặt: Nếu bản nháp chứa nội dung thuộc môn khác (vd môn khác nhưng có Tầng Mạng / OSPF / Cây nhị phân / SQL...)
         const hasCrossSubjectLeak =
+          (parsed.subjectKey && parsed.subjectKey !== subjectInfo.key) ||
           (subjectInfo.key !== 'mangMayTinh' && (parsed.quizTitle?.includes('Tầng Mạng') || parsed.quizTitle?.includes('OSPF') || parsed.selectedModule?.includes('Tầng Mạng'))) ||
           (subjectInfo.key !== 'giaiTich2' && (parsed.quizTitle?.includes('Giải tích') || parsed.quizTitle?.includes('Tích phân') || parsed.selectedModule?.includes('Chuỗi số'))) ||
           (subjectInfo.key !== 'cauTrucDuLieu' && (parsed.quizTitle?.includes('Cây nhị phân') || parsed.quizTitle?.includes('Giải thuật'))) ||
@@ -266,11 +307,21 @@ export function TeacherCreateQuizStudioView({
 
         if (!hasCrossSubjectLeak) {
           if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
-          if (parsed.selectedModule) setSelectedModule(parsed.selectedModule);
-          if (parsed.ploTags) setPloTags(parsed.ploTags);
+          if (parsed.selectedModule && subjectInfo.chapters.includes(parsed.selectedModule)) {
+            setSelectedModule(parsed.selectedModule);
+          } else {
+            setSelectedModule(subjectInfo.defaultChapter);
+          }
+          if (Array.isArray(parsed.ploTags) && parsed.ploTags.length > 0) {
+            setPloTags(parsed.ploTags);
+          } else {
+            setPloTags(subjectInfo.ploTags);
+          }
           if (parsed.instructions) setInstructions(parsed.instructions);
           if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
             setQuestions(parsed.questions);
+          } else {
+            setQuestions(subjectInfo.sampleQuestions);
           }
           if (parsed.durationMinutes) setDurationMinutes(parsed.durationMinutes);
           if (parsed.attempts) setAttempts(parsed.attempts);
@@ -290,7 +341,7 @@ export function TeacherCreateQuizStudioView({
       }
     }
 
-    // Nếu không có bản nháp hợp lệ và không chỉ định quizId, cập nhật theo môn học hiện tại
+    // Nếu không có bản nháp hợp lệ và không chỉ định quizId, cập nhật toàn bộ theo môn học hiện tại
     if (!loadedFromDraft && !targetQuizId) {
       setQuizTitle(subjectInfo.defaultQuizTitle);
       setSelectedModule(subjectInfo.defaultChapter);
@@ -850,6 +901,8 @@ export function TeacherCreateQuizStudioView({
         startTime: startIso,
         endTime: endIso,
         savedAt: nowStr,
+        classId: activeClassId,
+        subjectKey: subjectInfo.key,
       };
 
       if (typeof window !== 'undefined') {
@@ -898,7 +951,8 @@ export function TeacherCreateQuizStudioView({
   };
 
   const handleAddPloTag = () => {
-    const newTag = `PLO-0${ploTags.length + 2}: Kỹ năng nâng cao`;
+    const unselectedPlo = subjectInfo.ploTags.find((p) => !ploTags.includes(p));
+    const newTag = unselectedPlo || `PLO-0${ploTags.length + 1}: Kỹ năng ứng dụng chuyên sâu`;
     setPloTags([...ploTags, newTag]);
     showToast(`Đã thêm chuẩn ${newTag}`);
   };
@@ -1071,7 +1125,11 @@ export function TeacherCreateQuizStudioView({
                       </label>
                       <div className="relative">
                         <select
-                          value={selectedModule}
+                          value={
+                            subjectInfo.chapters.includes(selectedModule)
+                              ? selectedModule
+                              : subjectInfo.defaultChapter || subjectInfo.chapters[0] || ''
+                          }
                           onChange={(e) => setSelectedModule(e.target.value)}
                           className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer"
                         >

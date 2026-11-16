@@ -90,19 +90,46 @@ export function TeacherExamManagementView({
   const { data: classesData, isLoading: isClassesLoading } = useClasses();
 
   const teacherClasses: ClassItem[] = useMemo(() => {
-    const baseList =
-      classesData?.items && classesData.items.length > 0
-        ? classesData.items
-        : [...DEFAULT_FACULTY_CLASSES];
-
+    const apiClasses = classesData?.items || [];
     const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
-    const baseIds = new Set(baseList.map((c) => String(c.id)));
-    const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
-    const newCreated = localCreated.filter(
-      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
-    );
 
-    const merged = [...newCreated, ...baseList];
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+    const merged: ClassItem[] = [];
+
+    // 1. Add API classes from backend
+    for (const c of apiClasses) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey)) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 2. Add local created classes
+    for (const c of localCreated) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 3. Always include DEFAULT_FACULTY_CLASSES (CS-202, INT2022, INT-1340, CS-301, SE-214)
+    for (const c of DEFAULT_FACULTY_CLASSES) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
     const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
     return teachingOnly.length > 0 ? teachingOnly : merged;
   }, [classesData]);

@@ -20,4 +20,5 @@ export { PersonalPerformancePanel } from './components/PersonalPerformancePanel'
 export { TeacherExamManagementView } from './components/teacher/TeacherExamManagementView';
 export { TeacherCreateQuizStudioView } from './components/teacher/TeacherCreateQuizStudioView';
 export { TeacherQuizAnalyticsView } from './components/teacher/TeacherQuizAnalyticsView';
+export { TeacherQuestionBankView } from './components/teacher/TeacherQuestionBankView';
 

@@ -27,6 +27,8 @@ const routeMap: Record<string, string> = {
   '/assignments': 'Quản lý Đề thi & Bài tập',
   '/assignments/create': 'Tạo Quiz mới',
   '/assignments/create-quiz': 'Tạo Quiz mới',
+  '/assignments/question-bank': 'Ngân hàng câu hỏi',
+  '/question-bank': 'Ngân hàng câu hỏi',
   '/ai-tutor': 'Trợ lý AI Socratic',
   '/timetable': 'Thời khóa biểu theo tuần',
   '/teacher/timetable': 'Thời khóa biểu theo tuần',

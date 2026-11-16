@@ -96,16 +96,23 @@ export function DashboardSidebar({
       title: 'KHẢO THÍ & BÀI THI',
       items: [
         {
-          href: '/assignments',
+          href: '/assignments/question-bank',
           icon: 'help_center',
           label: 'Ngân hàng câu hỏi',
-          active: pathname.includes('tab=bank'),
+          active:
+            pathname.startsWith('/assignments/question-bank') ||
+            pathname.startsWith('/question-bank') ||
+            pathname.includes('tab=bank'),
         },
         {
           href: '/assignments',
           icon: 'fact_check',
           label: 'Quản lý Đề thi & Quiz',
-          active: isAssignmentsActive && !pathname.includes('tab=bank'),
+          active:
+            isAssignmentsActive &&
+            !pathname.startsWith('/assignments/question-bank') &&
+            !pathname.startsWith('/question-bank') &&
+            !pathname.includes('tab=bank'),
         },
         {
           href: '/assignments',

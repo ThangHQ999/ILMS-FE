@@ -586,10 +586,17 @@ export function getSubjectInfoForClass(classItem?: {
   }
 
   // Fallback with dynamic class code / title
-  const cleanCode = (classItem?.name || classItem?.classCode || classItem?.code || 'CLASS')
-    .toUpperCase()
-    .replace(/[^A-Z0-9-]/g, '') || 'CLASS';
-  const cleanTitle = classItem?.title || classItem?.name || 'Học phần';
+  let rawCode = (classItem?.name || classItem?.classCode || classItem?.code || 'CLASS').toUpperCase();
+  if (/^[0-9A-F-]{36}$/i.test(rawCode)) {
+    rawCode = 'CLASS';
+  }
+  const cleanCode = rawCode.replace(/[^A-Z0-9-]/g, '') || 'CLASS';
+  const cleanTitle =
+    classItem?.title && !/^[0-9a-f-]{36}$/i.test(classItem.title)
+      ? classItem.title
+      : classItem?.name && !/^[0-9a-f-]{36}$/i.test(classItem.name)
+      ? classItem.name
+      : 'Học phần';
 
   return buildGenericSubjectConfig(cleanCode, cleanTitle);
 }
