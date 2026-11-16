@@ -79,6 +79,7 @@ export const chatMessageSchema = z.object({
   senderName: z.string(),
   content: z.string(),
   timestamp: z.string(),
+  feedback_rating: z.enum(['LIKE', 'DISLIKE']).nullable().optional(),
   attachment: z
     .object({
       title: z.string(),

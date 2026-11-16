@@ -18,8 +18,14 @@ import { MobileFilterBottomSheet } from './MobileFilterBottomSheet';
 import { CreateClassModal } from './CreateClassModal';
 import { ArchiveClassModal } from './ArchiveClassModal';
 import { JoinClassModal } from './JoinClassModal';
-import { useClasses } from '../hooks/useClasses';
+import { useClasses, useClassKpiSummary } from '../hooks/useClasses';
 import { useArchiveClass } from '../hooks/useArchiveClass';
+import {
+  EmptyState,
+  ErrorState,
+  StatePreviewToolbar,
+  Button,
+} from '@/components/shared';
 import type {
   ClassFilters,
   ClassViewMode,
@@ -29,10 +35,6 @@ import type {
   WorkspaceRoleMode,
 } from '../types';
 
-import {
-  DEFAULT_FACULTY_CLASSES,
-  DEFAULT_STUDENT_CLASSES,
-} from '../constants';
 import { getLocalCreatedClasses } from '../services/class.service';
 
 type StatePreviewMode = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
@@ -64,9 +66,6 @@ export function ClassListPageView({
   });
   const [viewMode, setViewMode] = useState<ClassViewMode>('list');
 
-  // Active page state for pagination demo
-  const [currentPage, setCurrentPage] = useState(1);
-
   // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
 
@@ -91,7 +90,16 @@ export function ClassListPageView({
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Data Query
-  const { data: responseData, isLoading, refetch } = useClasses(filters);
+  const effectiveRole = workspaceMode === 'faculty' ? 'TEACHER' : 'STUDENT';
+  const queryFilters = useMemo(
+    () => ({
+      ...filters,
+      role: effectiveRole,
+    }),
+    [filters, effectiveRole]
+  );
+  const { data: responseData, isLoading, isError, refetch } = useClasses(queryFilters);
+  const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
 
   const showToast = useCallback((msg: string) => {
@@ -122,7 +130,7 @@ export function ClassListPageView({
       setActiveKpi((prev) => (prev === type ? null : type));
 
       if (type === 'teaching') {
-        showToast('Hiển thị tất cả 12 lớp học đang giảng dạy!');
+        showToast('Hiển thị danh sách lớp học đang giảng dạy!');
       } else if (type === 'students') {
         showToast('Hiển thị danh sách sắp xếp theo quy mô học viên!');
       } else if (type === 'pending') {
@@ -152,31 +160,24 @@ export function ClassListPageView({
     showToast(mode === 'list' ? 'Đã chuyển sang chế độ hiển thị Danh sách' : 'Đã chuyển sang chế độ hiển thị Dạng lưới thẻ');
   }, [showToast]);
 
-  // Filtered Items Computation
+  // Filtered Items Computation (No mock data fallback - real API data only)
   const items = useMemo(() => {
     let list: ClassItem[] = [];
+    const apiItems = responseData?.items ? [...responseData.items] : [];
 
     if (workspaceMode === 'student') {
-      const studentApiItems = responseData?.items?.filter((x) => x.teachingRole === 'STUDENT');
-      list =
-        studentApiItems && studentApiItems.length > 0
-          ? studentApiItems
-          : [...DEFAULT_STUDENT_CLASSES];
+      const studentApiItems = apiItems.filter((x) => x.teachingRole === 'STUDENT');
+      list = studentApiItems.length > 0 ? studentApiItems : apiItems;
     } else {
-      const baseList =
-        responseData?.items && responseData.items.length > 0
-          ? responseData.items
-          : [...DEFAULT_FACULTY_CLASSES];
-
       // Merge locally created classes at top (guarantees newly created classes persist across F5 refresh)
       const localCreated = isClient ? getLocalCreatedClasses() : [];
-      const baseIds = new Set(baseList.map((c) => String(c.id)));
-      const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
+      const baseIds = new Set(apiItems.map((c) => String(c.id)));
+      const baseNames = new Set(apiItems.map((c) => c.name?.toLowerCase()));
       const newCreated = localCreated.filter(
         (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
       );
 
-      list = [...newCreated, ...baseList];
+      list = [...newCreated, ...apiItems];
     }
 
     // Filter by status tab
@@ -228,29 +229,65 @@ export function ClassListPageView({
     isClient,
   ]);
 
-  // Compute Faculty KPI Stats
+  // Compute Faculty KPI Stats from API
   const facultyKpiStats: ClassKpiStats = useMemo(() => {
-    return {
-      activeClassesCount: 12,
-      totalStudentsCount: 368,
-      needsAttentionCount: 7,
-    };
-  }, []);
+    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
+    const studentsFromItems = items.reduce((acc, c) => acc + (c.enrolledCount || 0), 0);
+    const pendingFromItems = items.reduce((acc, c) => acc + (c.stats?.pendingRequestsCount || 0), 0);
 
-  // Compute Student KPI Stats
+    return {
+      activeClassesCount: kpiData?.activeClassesCount ?? activeFromItems,
+      totalStudentsCount: kpiData?.totalStudentsCount ?? studentsFromItems,
+      needsAttentionCount: kpiData?.pendingRequestsCount ?? pendingFromItems,
+    };
+  }, [kpiData, items]);
+
+  // Compute Student KPI Stats from API
   const studentKpiStats: StudentClassKpiStats = useMemo(() => {
+    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
     return {
-      enrolledClassesCount: 4,
-      upcomingAssignmentsCount: 2,
-      avgProgressPercent: 88,
+      enrolledClassesCount: activeFromItems,
+      upcomingAssignmentsCount: kpiData?.ungradedAssignmentsCount ?? 0,
+      avgProgressPercent: 0,
     };
-  }, []);
+  }, [kpiData, items]);
 
-  const activeCount = 12;
-  const enrolledCount = 4;
-  const archivedCount = 3;
-  const allCount = workspaceMode === 'student' ? 4 : 12;
-  const displayedCount = workspaceMode === 'student' ? items.length : (previewState === 'normal' ? 6 : items.length);
+  // Dynamic tab counts derived from API response
+  const totalElements = responseData?.totalElements ?? items.length;
+  const activeCount = useMemo(() => {
+    if (filters.status === 'ACTIVE' && responseData?.totalElements !== undefined) {
+      return responseData.totalElements;
+    }
+    return (responseData?.items ?? items).filter((c) => c.status === 'ACTIVE' && !c.deletedAt).length;
+  }, [responseData, items, filters.status]);
+
+  const enrolledCount = activeCount;
+
+  const archivedCount = useMemo(() => {
+    if (filters.status === 'ARCHIVED' && responseData?.totalElements !== undefined) {
+      return responseData.totalElements;
+    }
+    return (responseData?.items ?? items).filter((c) => c.status === 'ARCHIVED' || Boolean(c.deletedAt)).length;
+  }, [responseData, items, filters.status]);
+
+  const allCount = totalElements;
+  const displayedCount = items.length;
+
+  const hasActiveFilters = Boolean(
+    filters.search?.trim() ||
+    (filters.major && filters.major !== 'all') ||
+    (filters.role && filters.role !== 'ALL') ||
+    activeKpi
+  );
+
+  const pageSize = filters.size || 12;
+  const totalPages = Math.max(1, responseData?.totalPages ?? Math.ceil(totalElements / pageSize));
+  const currentPageDisplay = (filters.page ?? 0) + 1;
+
+  const handlePageSelect = useCallback((page: number) => {
+    const targetPage = Math.max(0, Math.min(page - 1, totalPages - 1));
+    handleFilterUpdate({ page: targetPage });
+  }, [totalPages, handleFilterUpdate]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
@@ -275,11 +312,7 @@ export function ClassListPageView({
       {/* 3. Main Workspace Content */}
       <main
         className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto ${
-          isFocusMode
-            ? 'pl-24'
-            : isSidebarCollapsed
-            ? 'pl-24'
-            : 'lg:pl-[280px]'
+          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         <div className="space-y-6">
@@ -328,129 +361,28 @@ export function ClassListPageView({
           />
 
           {/* Dynamic Content Display based on State Preview Sandbox or Normal View */}
-          {previewState === 'skeleton' ? (
-            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 shadow-2xs">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-                {[1, 2, 3].map((k) => (
-                  <div key={k} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-3">
-                    <div className="h-32 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-4 w-1/2 rounded bg-slate-100 dark:bg-slate-850" />
-                    <div className="h-9 rounded-xl bg-slate-100 dark:bg-slate-850 mt-2" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-center text-xs text-slate-400 mt-4">
-                Đang đồng bộ dữ liệu các lớp học từ máy chủ...
-              </p>
-            </div>
-          ) : previewState === 'empty' ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[32px]">
-                  {workspaceMode === 'student' ? 'school' : 'menu_book'}
-                </span>
-              </div>
-              <h4 className="font-display font-bold text-slate-900 dark:text-white text-base mb-1">
-                {workspaceMode === 'student' ? 'Chưa tham gia lớp học nào' : 'Chưa có lớp giảng dạy'}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                {workspaceMode === 'student'
-                  ? 'Bạn chưa ghi danh vào lớp học nào trong học kỳ này. Hãy nhập mã mời từ giảng viên để bắt đầu hành trình học tập.'
-                  : 'Bạn chưa được phân công hoặc tạo lớp học nào trong học kỳ này. Hãy bắt đầu bằng cách tạo lớp học mới hoặc liên hệ phòng đào tạo.'}
-              </p>
-              {workspaceMode === 'student' ? (
-                <button
-                  type="button"
-                  onClick={() => setIsJoinOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">key</span>
-                  <span>Tham gia lớp học ngay</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsCreateOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  <span>Tạo lớp học đầu tiên</span>
-                </button>
-              )}
-            </div>
-          ) : previewState === 'notfound' ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[32px]">search_off</span>
-              </div>
-              <h4 className="font-display font-bold text-slate-900 dark:text-white text-base mb-1">
-                Không tìm thấy kết quả phù hợp
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                Không tìm thấy lớp học nào khớp với từ khóa tìm kiếm hoặc các tiêu chí bộ lọc đã chọn.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setPreviewState('normal');
-                  handleFilterUpdate({ search: '', major: undefined, role: 'ALL' });
-                }}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">refresh</span>
-                <span>Xóa bộ lọc & Tải lại</span>
-              </button>
-            </div>
-          ) : previewState === 'archived' ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                <span className="font-display font-bold text-slate-900 dark:text-white text-sm">
-                  Lớp học đã lưu trữ (Học kỳ trước)
-                </span>
-                <span className="text-xs text-slate-500">Chế độ chỉ đọc • 3 lớp học</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { code: 'CSDL-K21-01', title: 'Cơ sở dữ liệu (HK2 23-24)', students: 44 },
-                  { code: 'WEB-K22-03', title: 'Phát triển ứng dụng Web', students: 50 },
-                  { code: 'DSA-K21-02', title: 'Thuật toán nâng cao', students: 35 },
-                ].map((c) => (
-                  <div key={c.code} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900 flex flex-col justify-between gap-3 shadow-2xs">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-semibold">
-                          {c.code}
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
-                          Đã lưu trữ
-                        </span>
-                      </div>
-                      <h5 className="font-display font-bold text-slate-900 dark:text-white text-sm">
-                        {c.title}
-                      </h5>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">{c.students} học viên</span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-2">
-                      <button
-                        type="button"
-                        className="flex-1 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Xem lớp
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => showToast('Khôi phục lớp thành công!')}
-                        className="py-1.5 px-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
-                        title="Khôi phục lớp"
-                      >
-                        Khôi phục
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {previewState === 'skeleton' || (isLoading && previewState === 'normal') ? (
+            <ClassLoadingSkeleton />
+          ) : isError && previewState === 'normal' ? (
+            <ErrorState
+              title="Không thể tải danh sách lớp học"
+              description="Đã xảy ra sự cố khi kết nối tới máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc nhấn nút thử lại bên dưới."
+              onRetry={() => refetch()}
+            />
+          ) : previewState === 'empty' || (previewState === 'normal' && items.length === 0 && !hasActiveFilters) ? (
+            <ClassEmptyState
+              workspaceMode={workspaceMode}
+              onCreateClick={() => setIsCreateOpen(true)}
+              onJoinClick={() => setIsJoinOpen(true)}
+            />
+          ) : previewState === 'notfound' || (previewState === 'normal' && items.length === 0 && hasActiveFilters) ? (
+            <ClassSearchNotFoundState
+              onClearFilters={() => {
+                setPreviewState('normal');
+                handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
+                setActiveKpi(null);
+              }}
+            />
           ) : (
             <ClassCardGrid
               items={items}
@@ -466,132 +398,72 @@ export function ClassListPageView({
           {/* 4. Pagination */}
           <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              {workspaceMode === 'student' ? (
-                <>Hiển thị <strong className="font-semibold text-slate-900 dark:text-white">1 - 4</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">4</strong> lớp học</>
+              {totalElements === 0 ? (
+                <span>Không có lớp học nào</span>
               ) : (
-                <>Hiển thị trang <strong className="font-semibold text-slate-900 dark:text-white">{currentPage}</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">2</strong> (tổng 12 lớp)</>
+                <>
+                  Hiển thị{' '}
+                  <strong className="font-semibold text-slate-900 dark:text-white">
+                    {filters.page * pageSize + 1} - {Math.min((filters.page + 1) * pageSize, totalElements)}
+                  </strong>{' '}
+                  trên{' '}
+                  <strong className="font-semibold text-slate-900 dark:text-white">
+                    {totalElements}
+                  </strong>{' '}
+                  lớp học
+                </>
               )}
             </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-                <span>Trước</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentPage === 1
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
-                }`}
-              >
-                1
-              </button>
-              {workspaceMode !== 'student' && (
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setCurrentPage(2)}
-                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    currentPage === 2
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
-                  }`}
+                  onClick={() => handlePageSelect(currentPageDisplay - 1)}
+                  disabled={currentPageDisplay <= 1}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                 >
-                  2
+                  <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                  <span>Trước</span>
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setCurrentPage(2)}
-                disabled={currentPage === 2 || workspaceMode === 'student'}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
-              >
-                <span>Tiếp theo</span>
-                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-              </button>
-            </div>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => handlePageSelect(pageNum)}
+                    className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      currentPageDisplay === pageNum
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handlePageSelect(currentPageDisplay + 1)}
+                  disabled={currentPageDisplay >= totalPages}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  <span>Tiếp theo</span>
+                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                </button>
+              </div>
+            )}
           </nav>
 
-          {/* 5. STATE PREVIEWS & SANDBOX (Matches user's template) */}
-          <section className="mt-4 p-5 rounded-2xl bg-slate-100/70 dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600 text-[20px]">
-                  developer_mode
-                </span>
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Chế độ kiểm thử trạng thái giao diện (State Previews)
-                </h4>
-              </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                Nhấp để thử nghiệm các kịch bản thực tế
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setPreviewState('normal')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  previewState === 'normal'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Danh sách hiện tại
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('skeleton')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'skeleton'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Skeleton Loading
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('empty')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'empty'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Trống (Chưa có lớp)
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('notfound')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'notfound'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Không tìm thấy theo lọc
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('archived')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'archived'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Tab Đã lưu trữ (3 lớp)
-              </button>
-            </div>
-          </section>
+          {/* 5. STATE PREVIEWS TOOLBAR */}
+          <StatePreviewToolbar
+            activeState={previewState}
+            onStateChange={(state) => setPreviewState(state as StatePreviewMode)}
+            options={[
+              { key: 'normal', label: 'Danh sách hiện tại' },
+              { key: 'skeleton', label: 'Skeleton Loading' },
+              { key: 'empty', label: 'Trống (Chưa có lớp)' },
+              { key: 'notfound', label: 'Không tìm thấy theo lọc' },
+              { key: 'archived', label: 'Tab Đã lưu trữ' },
+            ]}
+          />
         </div>
       </main>
 

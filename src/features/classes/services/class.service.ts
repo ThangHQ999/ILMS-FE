@@ -3,14 +3,15 @@ import { ApiResponse } from '@/types/common';
 import {
   classItemSchema,
   classListEnvelopeSchema,
+  classKpiSummarySchema,
   type ClassItem,
   type ClassListResponse,
+  type ClassKpiSummary,
   type CreateClassRequest,
   type UpdateClassRequest,
   type ClassFilters,
 } from '../schemas/class.schema';
 import {
-  DEFAULT_FACULTY_CLASSES,
   DEFAULT_ACADEMIC_YEAR,
   CURRENT_SEMESTER,
 } from '../constants';
@@ -49,7 +50,8 @@ export function saveLocalCreatedClass(item: ClassItem): void {
 /**
  * Fetch list of classes with search, filters and pagination.
  * Aligned with docs/api-spec.md Section 6.1:
- * Endpoint: GET /api/v1/classes (hoặc /listClasses)
+ * Endpoint: GET /api/v1/classes
+ * Chỉ gọi đúng 1 lần duy nhất đến /classes
  */
 export async function getClasses(
   filters: Partial<ClassFilters> = {}
@@ -57,6 +59,8 @@ export async function getClasses(
   const params: Record<string, unknown> = {};
   if (filters.search) params.search = filters.search.trim();
   if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+  if (filters.role && filters.role !== 'ALL') params.role = filters.role;
+  if (filters.major) params.major = filters.major;
   if (typeof filters.page === 'number') params.page = filters.page;
   if (typeof filters.size === 'number') params.size = filters.size;
 
@@ -68,17 +72,9 @@ export async function getClasses(
   let last = true;
 
   try {
-    let resData: unknown;
-
-    try {
-      // Primary: GET /api/v1/classes
-      const response = await api.get<ApiResponse<unknown>>('/classes', { params });
-      resData = response.data?.data;
-    } catch {
-      // Secondary fallback: GET /api/v1/classes/listClasses
-      const response = await api.get<ApiResponse<unknown>>('/classes/listClasses', { params });
-      resData = response.data?.data;
-    }
+    // Primary: GET /api/v1/classes (gọi đúng 1 lần, không gọi lặp hay fallback mock ngầm)
+    const response = await api.get<ApiResponse<unknown>>('/classes', { params });
+    const resData = response.data?.data ?? response.data;
 
     if (resData) {
       const parsed = classListEnvelopeSchema.parse(resData);
@@ -90,9 +86,9 @@ export async function getClasses(
       last = parsed.last;
     }
   } catch {
-    // Backend returned 401 or offline, fallback to template default classes
-    backendItems = [...DEFAULT_FACULTY_CLASSES];
-    totalElements = backendItems.length;
+    // Backend offline hoặc chưa có lớp, trả về rỗng không chèn mock data
+    backendItems = [];
+    totalElements = 0;
   }
 
   // Merge locally created classes at top (guarantees newly created classes persist across F5 refresh)
@@ -128,15 +124,8 @@ export async function getClassById(id: string): Promise<ClassItem> {
   const local = getLocalCreatedClasses().find((c) => c.id === id || c.name === id);
   if (local) return local;
 
-  try {
-    const { data } = await api.get<ApiResponse<unknown>>(`/classes/${id}`);
-    return classItemSchema.parse(data.data);
-  } catch (error) {
-    // If backend doesn't have it or 401, check defaults
-    const fallback = DEFAULT_FACULTY_CLASSES.find((c) => c.id === id || c.name === id);
-    if (fallback) return fallback;
-    throw error;
-  }
+  const { data } = await api.get<ApiResponse<unknown>>(`/classes/${id}`);
+  return classItemSchema.parse(data.data ?? data);
 }
 
 /**
@@ -150,8 +139,8 @@ export async function createClass(payload: CreateClassRequest): Promise<ClassIte
   try {
     // Call existing Spring Boot POST /api/v1/classes
     const { data } = await api.post<ApiResponse<unknown>>('/classes', payload);
-    if (data?.data) {
-      createdItem = classItemSchema.parse(data.data);
+    if (data?.data || data) {
+      createdItem = classItemSchema.parse(data.data ?? data);
     }
   } catch (error) {
     // If backend reports duplicate or validation conflict, propagate error
@@ -159,45 +148,42 @@ export async function createClass(payload: CreateClassRequest): Promise<ClassIte
     if (anyErr?.httpStatus === 409 || anyErr?.httpStatus === 400) {
       throw error;
     }
-    // If backend is in local dev mode (401 or connection error), construct ClassItem fallback
   }
 
-  if (!createdItem) {
-    createdItem = {
-      id: `class-${Date.now()}`,
-      name: payload.name.trim(),
-      title: payload.title.trim(),
-      description: payload.description?.trim() || '',
-      academicYear: payload.academicYear || DEFAULT_ACADEMIC_YEAR,
-      semester: CURRENT_SEMESTER,
-      major: payload.major || 'Khoa học Máy tính',
-      maxStudents: payload.maxStudents || 60,
-      enrolledCount: 0,
-      enrollmentKey: payload.enrollmentKey?.trim() || payload.name.trim(),
-      isCodeClosed: false,
-      status: 'ACTIVE',
-      teachingRole: 'PRIMARY_INSTRUCTOR',
-      instructor: {
-        fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm lớp)',
-      },
-      schedule: {
-        room: 'Chưa xếp phòng',
-        dayOfWeek: 'Thứ 2',
-        timeSlot: 'Tiết 1-3',
-      },
-      stats: {
-        pendingRequestsCount: 0,
-        ungradedAssignmentsCount: 0,
-        attendanceRate: 100,
-      },
-      createdAt: new Date().toISOString(),
-    };
-  }
+  const finalItem: ClassItem = createdItem ?? {
+    id: `class-${Date.now()}`,
+    name: payload.name.trim(),
+    title: payload.title.trim(),
+    description: payload.description?.trim() || '',
+    academicYear: payload.academicYear || DEFAULT_ACADEMIC_YEAR,
+    semester: CURRENT_SEMESTER,
+    major: payload.major || 'Khoa học Máy tính',
+    maxStudents: payload.maxStudents || 60,
+    enrolledCount: 0,
+    enrollmentKey: payload.enrollmentKey?.trim() || payload.name.trim(),
+    isCodeClosed: false,
+    status: 'ACTIVE',
+    teachingRole: 'PRIMARY_INSTRUCTOR',
+    instructor: {
+      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm lớp)',
+    },
+    schedule: {
+      room: 'Chưa xếp phòng',
+      dayOfWeek: 'Thứ 2',
+      timeSlot: 'Tiết 1-3',
+    },
+    stats: {
+      pendingRequestsCount: 0,
+      ungradedAssignmentsCount: 0,
+      attendanceRate: 100,
+    },
+    createdAt: new Date().toISOString(),
+  };
 
   // Save to localStorage so class is immediately preserved and stays on F5 refresh
-  saveLocalCreatedClass(createdItem);
+  saveLocalCreatedClass(finalItem);
 
-  return createdItem;
+  return finalItem;
 }
 
 /**
@@ -209,7 +195,7 @@ export async function updateClass(
   payload: Partial<UpdateClassRequest>
 ): Promise<ClassItem> {
   const { data } = await api.put<ApiResponse<unknown>>(`/classes/${id}`, payload);
-  return classItemSchema.parse(data.data);
+  return classItemSchema.parse(data.data ?? data);
 }
 
 /**
@@ -250,8 +236,33 @@ export async function toggleClassCodeStatus(
  * Endpoint: POST /api/v1/classes/join-by-code
  */
 export async function joinClassByCode(classCode: string): Promise<unknown> {
+  const trimmed = classCode.trim();
   const { data } = await api.post<ApiResponse<unknown>>('/classes/join-by-code', {
-    class_code: classCode.trim(),
+    classCode: trimmed,
+    class_code: trimmed,
   });
-  return data.data;
+  return data.data ?? data;
+}
+
+/**
+ * Get KPI overview summary for classes.
+ * Endpoint: GET /api/v1/classes/kpi-summary
+ */
+export async function getClassKpiSummary(): Promise<ClassKpiSummary> {
+  try {
+    const response = await api.get<ApiResponse<unknown>>('/classes/kpi-summary');
+    const resData = response.data?.data ?? response.data;
+    if (resData) {
+      return classKpiSummarySchema.parse(resData);
+    }
+  } catch {
+    // Fallback if backend endpoint is unavailable or user offline
+  }
+
+  return {
+    activeClassesCount: 0,
+    totalStudentsCount: 0,
+    pendingRequestsCount: 0,
+    ungradedAssignmentsCount: 0,
+  };
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DASHBOARD_STORAGE_KEY } from '../constants';
 import { DashboardMode } from '../types';
+import { patchUserPreferences } from '@/features/settings/services/settings.service';
 
 export function useDashboardMode() {
   const [mode, setMode] = useState<DashboardMode>('analytics');
@@ -25,6 +26,7 @@ export function useDashboardMode() {
     setMode(newMode);
     try {
       localStorage.setItem(DASHBOARD_STORAGE_KEY, newMode);
+      patchUserPreferences({ defaultDashboardMode: newMode }).catch(() => {});
     } catch {
       // Ignore
     }
