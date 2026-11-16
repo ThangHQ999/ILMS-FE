@@ -11,11 +11,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 1. Cài đặt môi trường Node.js trên GitHub Runner để build Next.js
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20' # Chọn phiên bản Node.js phù hợp với dự án của bạn
           cache: 'npm'

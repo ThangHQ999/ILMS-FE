@@ -1,6 +1,7 @@
 // Public API for features/landing per ARCHITECTURE.md §4.3 & create-feature skill
 
 export { LandingPageView } from './components/LandingPageView';
+export { HomeClientGate } from './components/HomeClientGate';
 export { LandingHeader } from './components/LandingHeader';
 export { LandingHero } from './components/LandingHero';
 export { LandingKnowledgeGraph } from './components/LandingKnowledgeGraph';

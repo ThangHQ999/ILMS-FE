@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Outfit, Plus_Jakarta_Sans, Roboto_Mono, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
+import { getMessages, getLocale, getTranslations } from 'next-intl/server';
+import { SITE_URL, SITE_NAME, buildMetadata } from '@/lib/seo';
 import { Providers } from '@/providers';
 import { BrowserLocaleSync } from '@/components/shared/BrowserLocaleSync';
 import { DesignSystemSync } from '@/components/shared/DesignSystemSync';
@@ -53,18 +54,37 @@ const beVietnamPro = Be_Vietnam_Pro({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: 'ILMS - Hệ thống quản lý học tập thông minh tích hợp AI',
-  description: 'Design System Customizer & Settings',
-  icons: {
-    icon: [
-      { url: '/logo-short.png?v=5', type: 'image/png', sizes: 'any' },
-      { url: '/favicon.ico?v=5', sizes: 'any' },
-    ],
-    shortcut: '/logo-short.png?v=5',
-    apple: '/apple-touch-icon.png?v=5',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations('seo'),
+  ]);
+
+  const base = buildMetadata({
+    title: t('siteTitle'),
+    description: t('siteDescription'),
+    path: '/',
+    locale,
+  });
+
+  return {
+    ...base,
+    metadataBase: new URL(SITE_URL),
+    applicationName: SITE_NAME,
+    title: {
+      default: t('siteTitle'),
+      template: t('siteTitleTemplate'),
+    },
+    icons: {
+      icon: [
+        { url: '/logo-short.png?v=5', type: 'image/png', sizes: 'any' },
+        { url: '/favicon.ico?v=5', sizes: 'any' },
+      ],
+      shortcut: '/logo-short.png?v=5',
+      apple: '/apple-touch-icon.png?v=5',
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

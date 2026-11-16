@@ -1,4 +1,21 @@
 {
+  "seo": {
+    "siteTitle": "ILMS — Hệ thống quản lý học tập thông minh tích hợp AI",
+    "siteTitleTemplate": "%s | ILMS",
+    "siteDescription": "Nền tảng học tập thông minh tích hợp Gia sư AI Socratic, Đồ thị Tri thức RAG và đánh giá năng lực 6 bậc Bloom dành cho Sinh viên & Giảng viên.",
+    "homeTitle": "ILMS — Học tập Thông minh với Gia sư AI Socratic",
+    "homeDescription": "Khơi mở tư duy phản biện từng bước cùng Cú Socrate AI, khám phá Đồ thị Tri thức RAG trực quan và làm chủ lộ trình học tập 6 bậc Bloom tại ilms.page.",
+    "pricingTitle": "Bảng giá & Gói cước",
+    "pricingDescription": "Khám phá các gói Cơ bản, Plus, Pro và Doanh nghiệp với thanh toán VietQR 24/7 cho Gia sư AI Socratic & Cloud Storage trên ILMS.",
+    "loginTitle": "Đăng nhập",
+    "loginDescription": "Đăng nhập vào không gian học tập thông minh ILMS để tiếp tục lộ trình cùng Gia sư AI Socratic.",
+    "registerTitle": "Đăng ký tài khoản",
+    "registerDescription": "Tạo tài khoản ILMS miễn phí để trải nghiệm Gia sư AI Socratic, Đồ thị Tri thức và lớp học tương tác.",
+    "termsTitle": "Điều khoản dịch vụ",
+    "termsDescription": "Quy định sử dụng nền tảng học tập thông minh ILMS (EduTech Innovations).",
+    "privacyTitle": "Chính sách bảo mật",
+    "privacyDescription": "Chính sách bảo vệ dữ liệu học tập và tuân thủ bảo mật của hệ thống ILMS."
+  },
   "common": {
     "save": "Lưu",
     "cancel": "Hủy",

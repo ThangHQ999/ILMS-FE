@@ -1,4 +1,21 @@
 {
+  "seo": {
+    "siteTitle": "ILMS — AI-Powered Intelligent Learning Management System",
+    "siteTitleTemplate": "%s | ILMS",
+    "siteDescription": "Smart learning platform integrating Socratic AI Coaching, RAG Knowledge Graphs, and 6-tier Bloom Competency Analytics for students and instructors.",
+    "homeTitle": "ILMS — Smart Learning with Socratic AI Coaching",
+    "homeDescription": "Awaken critical thinking step-by-step with our Socratic AI Owl, explore interactive RAG Knowledge Graphs, and master 6-tier Bloom competency at ilms.page.",
+    "pricingTitle": "Pricing & Plans",
+    "pricingDescription": "Explore Free, Plus, Pro, and Enterprise plans with instant VietQR checkout for Socratic AI Coaching & Cloud Storage on ILMS.",
+    "loginTitle": "Sign In",
+    "loginDescription": "Sign in to your ILMS smart workspace to continue learning with Socratic AI Coaching.",
+    "registerTitle": "Create Account",
+    "registerDescription": "Join ILMS for free to experience Socratic AI Coaching, interactive Knowledge Graphs, and smart classrooms.",
+    "termsTitle": "Terms of Service",
+    "termsDescription": "Terms of service for the ILMS smart learning platform (EduTech Innovations).",
+    "privacyTitle": "Privacy Policy",
+    "privacyDescription": "Information security and learner privacy policy for the ILMS platform."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
