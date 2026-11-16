@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { ClassHeroSection } from './ClassHeroSection';
@@ -9,6 +10,7 @@ import { ClassKpiStatsBar } from './ClassKpiStatsBar';
 import { ClassFilterToolbar } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
 import { ClassListView } from './ClassListView';
+import { StudentClassListView } from './StudentClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -52,8 +54,9 @@ export function ClassListPageView({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Workspace Role Mode: Default to 'faculty' (Chế độ Giảng dạy như yêu cầu hiện tại)
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceRoleMode>('faculty');
+  // Workspace Role Mode: Synchronized with app-wide global role
+  const { isTeacher, switchRole } = useUserRole();
+  const workspaceMode: WorkspaceRoleMode = isTeacher ? 'faculty' : 'student';
 
   // Filters & View State (in Faculty mode, default view is list / 1-column bento)
   const [filters, setFilters] = useState<ClassFilters>({
@@ -147,13 +150,11 @@ export function ClassListPageView({
   );
 
   const handleToggleWorkspace = useCallback(() => {
-    setWorkspaceMode((prev) => {
-      const next = prev === 'faculty' ? 'student' : 'faculty';
-      setViewMode(next === 'faculty' ? 'list' : 'grid');
-      showToast(next === 'faculty' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
-      return next;
-    });
-  }, [showToast]);
+    const nextRole = isTeacher ? 'STUDENT' : 'TEACHER';
+    switchRole(nextRole);
+    setViewMode(nextRole === 'TEACHER' ? 'list' : 'grid');
+    showToast(nextRole === 'TEACHER' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
+  }, [isTeacher, switchRole, showToast]);
 
   const handleViewModeChange = useCallback((mode: ClassViewMode) => {
     setViewMode(mode);
@@ -290,7 +291,7 @@ export function ClassListPageView({
   }, [totalPages, handleFilterUpdate]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] text-gray-900 dark:text-[#E3E3E3] flex flex-col font-sans transition-colors duration-200">
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
@@ -319,7 +320,10 @@ export function ClassListPageView({
           {/* Hero Section */}
           <ClassHeroSection
             workspaceMode={workspaceMode}
-            onToggleWorkspaceMode={setWorkspaceMode}
+            onToggleWorkspaceMode={(mode) => {
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
+              setViewMode(mode === 'faculty' ? 'list' : 'grid');
+            }}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
             onExportClick={() => {
@@ -343,7 +347,7 @@ export function ClassListPageView({
           <ClassFilterToolbar
             workspaceMode={workspaceMode}
             onWorkspaceModeChange={(mode) => {
-              setWorkspaceMode(mode);
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
               setViewMode(mode === 'faculty' ? 'list' : 'grid');
             }}
             filters={filters}
@@ -384,15 +388,26 @@ export function ClassListPageView({
               }}
             />
           ) : (
-            <ClassCardGrid
-              items={items}
-              workspaceMode={workspaceMode}
-              viewMode={viewMode}
-              onArchiveClick={(item) => setArchiveTarget(item)}
-              onRestoreClick={(item) => restoreClass(item.id)}
-              copiedCode={copiedCode}
-              onCopyCode={handleCopyCode}
-            />
+            <div>
+              {/* Class Presentation (Student List View vs Grid / Faculty) */}
+              {workspaceMode === 'student' && viewMode === 'list' ? (
+                <StudentClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
+              ) : (
+                <ClassCardGrid
+                  items={items}
+                  workspaceMode={workspaceMode}
+                  viewMode={viewMode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
+                  onRestoreClick={(item) => restoreClass(item.id)}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
+              )}
+            </div>
           )}
 
           {/* 4. Pagination */}
@@ -503,7 +518,7 @@ export function ClassListPageView({
 
       {/* 7. Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-2xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#1E1F20] text-[#E3E3E3] shadow-2xl border-none text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
           <span className="material-symbols-outlined text-[18px] text-emerald-400">
             check_circle
           </span>

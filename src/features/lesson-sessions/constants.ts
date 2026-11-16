@@ -6,6 +6,7 @@ export const lessonSessionKeys = {
   attendances: (classId: string, sessionId: string) =>
     [...lessonSessionKeys.all, 'attendances', classId, sessionId] as const,
   students: (classId: string) => [...lessonSessionKeys.all, 'students', classId] as const,
+  today: () => [...lessonSessionKeys.all, 'today'] as const,
 };
 
 export const EXTERNAL_CONFLICTS: ConflictDetails[] = [

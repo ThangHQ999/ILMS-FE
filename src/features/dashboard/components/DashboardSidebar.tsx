@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export interface DashboardSidebarProps {
   isFocus?: boolean;
@@ -15,16 +16,15 @@ export interface DashboardSidebarProps {
 interface NavItem {
   href: string;
   icon: string;
-  labelKey: string;
-  defaultLabel: string;
+  label: string;
   active: boolean;
   badge?: React.ReactNode;
   iconColor?: string;
 }
 
 interface NavGroup {
-  groupKey: string;
-  defaultGroup: string;
+  key: string;
+  title: string;
   items: NavItem[];
 }
 
@@ -32,20 +32,31 @@ export function DashboardSidebar({
   isFocus = false,
   isCollapsed = false,
   onToggleCollapse,
+  workspaceMode,
 }: DashboardSidebarProps) {
   const t = useTranslations('sidebar');
   const pathname = usePathname();
+  const { isTeacher: roleIsTeacher } = useUserRole();
+  const isTeacher = workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher;
 
-  // If in Focus mode, auto collapse to 72px
+  // In Focus mode, collapse automatically to 72px without triggering any API mutation
   const collapsed = isFocus || isCollapsed;
 
-  // Active route matching
+  // Active route matching (includes teammate routes: /courses, /competency, /timetable)
   const isOverviewActive = pathname === '/dashboard';
-  const isClassesActive = pathname.startsWith('/classes') && !pathname.includes('discussions');
+  const isClassesActive =
+    (pathname.startsWith('/classes') || pathname.startsWith('/courses')) &&
+    !pathname.includes('discussions') &&
+    !pathname.includes('assignments');
   const isMaterialsActive = pathname.startsWith('/materials');
   const isScheduleActive =
-    pathname.startsWith('/lesson-sessions') || pathname.startsWith('/schedule');
-  const isAssignmentsActive = pathname.startsWith('/assignments');
+    pathname.startsWith('/lesson-sessions') ||
+    pathname.startsWith('/schedule') ||
+    pathname.startsWith('/timetable');
+  const isRadarActive = pathname.startsWith('/competency');
+  const isAssignmentsActive =
+    pathname.startsWith('/assignments') ||
+    (pathname.startsWith('/classes') && pathname.includes('assignments'));
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
   const isDiscussionsActive =
@@ -53,37 +64,33 @@ export function DashboardSidebar({
     (pathname.startsWith('/classes') && pathname.includes('discussions'));
   const isSettingsActive = pathname.startsWith('/settings');
 
-  // Shared Design System Styling
+  // Unified Design System Styling (compatible with all workspace views)
   const activeClass =
     'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 font-semibold shadow-xs';
   const inactiveClass =
     'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 transition-colors font-medium';
 
-  // Navigation Groups Definition (under 18 chars each)
   const navGroups: NavGroup[] = [
     {
-      groupKey: 'generalGroup',
-      defaultGroup: 'KHÔNG GIAN CHUNG',
+      key: 'generalGroup',
+      title: t('generalGroup'),
       items: [
         {
           href: '/dashboard',
           icon: 'grid_view',
-          labelKey: 'navOverview',
-          defaultLabel: 'Tổng quan',
+          label: t('navOverview'),
           active: isOverviewActive,
         },
         {
           href: '/classes',
           icon: 'school',
-          labelKey: 'navMyClasses',
-          defaultLabel: 'Lớp học của tôi',
+          label: t('navMyClasses'),
           active: isClassesActive,
         },
         {
           href: '/materials',
           icon: 'auto_stories',
-          labelKey: 'navMaterials',
-          defaultLabel: 'Kho học liệu',
+          label: t('navMaterials'),
           active: isMaterialsActive,
           badge: (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full font-mono bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 shrink-0">
@@ -94,15 +101,19 @@ export function DashboardSidebar({
         {
           href: '/lesson-sessions',
           icon: 'calendar_month',
-          labelKey: 'navSchedule',
-          defaultLabel: 'Lịch trình',
+          label: t('navSchedule'),
           active: isScheduleActive,
+        },
+        {
+          href: '/competency',
+          icon: 'radar',
+          label: isTeacher ? t('navPloMatrix') : t('navCompetency'),
+          active: isRadarActive,
         },
         {
           href: '/assignments',
           icon: 'quiz',
-          labelKey: 'navAssignments',
-          defaultLabel: 'Bài tập & Quiz',
+          label: t('navAssignments'),
           active: isAssignmentsActive,
           badge: (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
@@ -113,21 +124,19 @@ export function DashboardSidebar({
         {
           href: '/knowledge-graph',
           icon: 'hub',
-          labelKey: 'navGraph',
-          defaultLabel: 'Đồ thị tri thức',
+          label: t('navGraph'),
           active: isGraphActive,
         },
       ],
     },
     {
-      groupKey: 'aiGroup',
-      defaultGroup: 'TƯƠNG TÁC & AI',
+      key: 'aiGroup',
+      title: t('aiGroup'),
       items: [
         {
           href: '/ai-tutor',
           icon: 'auto_awesome',
-          labelKey: 'navAiTutor',
-          defaultLabel: 'Trợ lý AI',
+          label: t('navAiTutor'),
           active: isAiTutorActive,
           iconColor: 'text-blue-600 dark:text-blue-400',
           badge: (
@@ -139,8 +148,7 @@ export function DashboardSidebar({
         {
           href: '/classes?tab=discussions',
           icon: 'forum',
-          labelKey: 'navDiscussions',
-          defaultLabel: 'Thảo luận',
+          label: t('navDiscussions'),
           active: isDiscussionsActive,
           badge: (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 shrink-0">
@@ -160,16 +168,14 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen ${collapsed ? 'w-[72px]' : 'w-64'
-        } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
+      className={`fixed left-0 top-0 h-screen ${
+        collapsed ? 'w-[72px]' : 'w-64'
+      } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
     >
-      {/* ======================================================== */}
-      {/* 1. ĐẦU TRANG (HEADER - Cao 60px)                          */}
-      {/* ======================================================== */}
+      {/* 1. Header (Brand Logo + Top-Edge Collapse/Expand Button) */}
       <div className="h-[60px] px-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
         {!collapsed ? (
           <>
-            {/* Logo Dài (Full Brand Logo) */}
             <Link
               href="/dashboard"
               prefetch={true}
@@ -183,7 +189,6 @@ export function DashboardSidebar({
               />
             </Link>
 
-            {/* Nút thu gọn < gọn ở mép trên bên phải (ẩn khi ở chế độ Focus) */}
             {!isFocus && onToggleCollapse && (
               <button
                 type="button"
@@ -198,7 +203,6 @@ export function DashboardSidebar({
           </>
         ) : (
           <div className="w-full flex items-center justify-center relative">
-            {/* Logo Ngắn (Short Icon Logo khi thu gọn / Focus Mode) */}
             <Link
               href="/dashboard"
               prefetch={true}
@@ -212,7 +216,6 @@ export function DashboardSidebar({
               />
             </Link>
 
-            {/* Nút mở rộng > khi đang thu gọn (ẩn khi ở chế độ Focus) */}
             {!isFocus && onToggleCollapse && (
               <button
                 type="button"
@@ -228,20 +231,18 @@ export function DashboardSidebar({
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* 2. MENU CUỘN Ở GIỮA (SCROLLABLE NAV AREA)               */}
-      {/* ======================================================== */}
+      {/* 2. Scrollable Navigation Area */}
       <nav
-        className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none ${collapsed ? 'px-2' : 'px-3'
-          }`}
+        className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none ${
+          collapsed ? 'px-2' : 'px-3'
+        }`}
       >
         {navGroups.map((group) => (
-          <div key={group.groupKey} className="space-y-1">
-            {/* Tiêu đề nhóm */}
+          <div key={group.key} className="space-y-1">
             {!collapsed ? (
               <div className="px-3 pt-1 pb-1.5">
                 <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
-                  {t(group.groupKey as any) || group.defaultGroup}
+                  {group.title}
                 </span>
               </div>
             ) : (
@@ -250,20 +251,18 @@ export function DashboardSidebar({
               </div>
             )}
 
-            {/* Danh sách mục */}
             <div className="space-y-1">
               {group.items.map((item) => {
-                const label = t(item.labelKey as any) || item.defaultLabel;
-
                 if (collapsed) {
                   return (
                     <Link
-                      key={item.href + item.labelKey}
+                      key={item.href + item.label}
                       href={item.href}
                       prefetch={item.href.startsWith('/')}
-                      title={label}
-                      className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${item.active ? activeClass : inactiveClass
-                        }`}
+                      title={item.label}
+                      className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
+                        item.active ? activeClass : inactiveClass
+                      }`}
                     >
                       {item.href === '/ai-tutor' ? (
                         <img
@@ -273,8 +272,9 @@ export function DashboardSidebar({
                         />
                       ) : (
                         <span
-                          className={`material-symbols-outlined text-[20px] ${!item.active && item.iconColor ? item.iconColor : ''
-                            }`}
+                          className={`material-symbols-outlined text-[20px] ${
+                            !item.active && item.iconColor ? item.iconColor : ''
+                          }`}
                         >
                           {item.icon}
                         </span>
@@ -288,12 +288,13 @@ export function DashboardSidebar({
 
                 return (
                   <Link
-                    key={item.href + item.labelKey}
+                    key={item.href + item.label}
                     href={item.href}
                     prefetch={item.href.startsWith('/')}
-                    title={label}
-                    className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${item.active ? activeClass : inactiveClass
-                      }`}
+                    title={item.label}
+                    className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
+                      item.active ? activeClass : inactiveClass
+                    }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       {item.href === '/ai-tutor' ? (
@@ -304,13 +305,14 @@ export function DashboardSidebar({
                         />
                       ) : (
                         <span
-                          className={`material-symbols-outlined text-[20px] shrink-0 ${!item.active && item.iconColor ? item.iconColor : ''
-                            }`}
+                          className={`material-symbols-outlined text-[20px] shrink-0 ${
+                            !item.active && item.iconColor ? item.iconColor : ''
+                          }`}
                         >
                           {item.icon}
                         </span>
                       )}
-                      <span className="truncate">{label}</span>
+                      <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge}
                   </Link>
@@ -321,14 +323,12 @@ export function DashboardSidebar({
         ))}
       </nav>
 
-      {/* ======================================================== */}
-      {/* 3. CHÂN TRANG (FOOTER — GHIM CỐ ĐỊNH Ở ĐÁY)             */}
-      {/* ======================================================== */}
+      {/* 3. Pinned Footer (Help, Settings, Semester Metadata) */}
       <div
-        className={`shrink-0 pt-2 pb-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-1 ${collapsed ? 'px-2 items-center' : 'px-3'
-          }`}
+        className={`shrink-0 pt-2 pb-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-1 ${
+          collapsed ? 'px-2 items-center' : 'px-3'
+        }`}
       >
-        {/* Trợ giúp */}
         {collapsed ? (
           <Link
             href="/settings"
@@ -349,13 +349,13 @@ export function DashboardSidebar({
           </Link>
         )}
 
-        {/* Cài đặt tài khoản */}
         {collapsed ? (
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${isSettingsActive ? activeClass : inactiveClass
-              }`}
+            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${
+              isSettingsActive ? activeClass : inactiveClass
+            }`}
             title={t('navSettings')}
           >
             <span className="material-symbols-outlined text-[20px]">settings</span>
@@ -364,25 +364,25 @@ export function DashboardSidebar({
           <Link
             href="/settings"
             prefetch={true}
-            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${isSettingsActive ? activeClass : inactiveClass
-              }`}
+            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${
+              isSettingsActive ? activeClass : inactiveClass
+            }`}
           >
             <span className="material-symbols-outlined text-[19px] shrink-0">settings</span>
             <span className="truncate">{t('navSettings')}</span>
           </Link>
         )}
 
-        {/* Metadata học kỳ và phiên bản — không đè chữ */}
         {!collapsed ? (
           <div className="pt-2 px-3 flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 mt-1">
-            <span className="truncate">{t('semesterBadge') || 'Học kỳ II - 2024'}</span>
+            <span className="truncate">{t('semesterBadge')}</span>
             <span className="font-mono text-[10px] font-semibold text-slate-400">
-              {t('systemVersion') || 'v2.5'}
+              {t('systemVersion')}
             </span>
           </div>
         ) : (
           <div className="pt-1.5 text-center text-[9px] font-mono font-semibold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 w-8 mx-auto mt-1">
-            v2.5
+            {t('systemVersion')}
           </div>
         )}
       </div>
