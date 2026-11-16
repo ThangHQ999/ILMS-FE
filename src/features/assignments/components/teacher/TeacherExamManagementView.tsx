@@ -21,7 +21,10 @@ import {
   useProctorSessions,
 } from '../../hooks/useQuizzes';
 import { determineQuizLifecycle } from '../../services/quiz.service';
-import { getSubjectInfoForClass } from '../../constants/subject-quiz.constants';
+import {
+  getSubjectInfoForClass,
+  getMockExamsForSubject,
+} from '../../constants/subject-quiz.constants';
 
 interface TeacherExamManagementViewProps {
   userFullName?: string;
@@ -242,105 +245,15 @@ export function TeacherExamManagementView({
     }, 3000);
   };
 
-  // Xác định xem có phải lớp học demo mẫu CS-202 hay không
-  const isDefaultDemoClass = useMemo(() => {
-    const id = String(currentClassOption.id || '').toLowerCase().trim();
-    const code = String(currentClassOption.code || '').toLowerCase().trim();
-    return id === 'cs-202' || id === 'cs202' || code === 'cs-202' || code === 'cs202';
-  }, [currentClassOption]);
+  // Reset chapter filter when class changes
+  useEffect(() => {
+    setSelectedChapter('ALL');
+  }, [currentClassOption.id]);
 
-  // Base Exam Data matching 5 Lifecycle States (CHỈ hiển thị cho lớp mẫu CS-202)
-  const classTagText = `Lớp: ${currentClassOption.code}`;
+  // Base Exam Data matching subject curriculum for the selected class
   const allExams: ExamItem[] = useMemo(() => {
-    if (!isDefaultDemoClass) return [];
-    return [
-      {
-        id: `quiz-04-${currentClassOption.id}`,
-        code: `QUIZ-CS202-04`,
-        type: 'quiz',
-        status: 'live',
-        statusBadge: 'Đang trực tuyến • Live',
-        statusBadgeColor: 'bg-rose-500 text-white',
-        classTag: classTagText,
-        title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
-        duration: '30 phút làm bài',
-        questionCount: 20,
-        tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
-        submittedCount: 54,
-        totalStudents: 60,
-        timeLeft: formattedTimeLeft,
-        progressPercent: 90,
-      },
-      {
-        id: `quiz-05-${currentClassOption.id}`,
-        code: `QUIZ-CS202-05`,
-        type: 'quiz',
-        status: 'upcoming',
-        statusBadge: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
-        statusBadgeColor: 'bg-blue-600 text-white',
-        securityBadge: 'Safe Exam Browser',
-        classTag: classTagText,
-        title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
-        examDate: 'Hôm nay: 14:00 - 14:45',
-        duration: '45 phút',
-        questionCount: 25,
-        totalStudents: 60,
-        tags: ['Safe Exam Browser'],
-      },
-      {
-        id: `quiz-03-${currentClassOption.id}`,
-        code: `QUIZ-CS202-03`,
-        type: 'quiz',
-        status: 'completed',
-        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
-        statusBadgeColor: 'bg-emerald-600 text-white',
-        classTag: classTagText,
-        title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
-        duration: '30 phút',
-        questionCount: 20,
-        tags: ['58/58 SV nộp (100%)'],
-        submittedCount: 58,
-        totalStudents: 58,
-        avgScore: 8.2,
-        ploRate: 88,
-        discriminationIndex: 0.74,
-      },
-      {
-        id: `quiz-02-${currentClassOption.id}`,
-        code: `QUIZ-CS202-02`,
-        type: 'quiz',
-        status: 'complaints',
-        statusBadge: 'Có 2 khiếu nại cần xử lý',
-        statusBadgeColor: 'bg-rose-600 text-white',
-        classTag: classTagText,
-        title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
-        duration: '35 phút',
-        questionCount: 25,
-        tags: [],
-        submittedCount: 56,
-        totalStudents: 60,
-        avgScore: 8.1,
-        complaintCount: 2,
-        complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
-      },
-      {
-        id: `quiz-06-draft-${currentClassOption.id}`,
-        code: 'AI-DRAFT-APP',
-        type: 'draft',
-        status: 'draft',
-        statusBadge: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
-        statusBadgeColor: 'bg-purple-600 text-white',
-        classTag: classTagText,
-        title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
-        sourceDoc: 'Sinh từ tài liệu: Chapter5_Application_Layer.pdf',
-        duration: '25 phút',
-        questionCount: 20,
-        tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
-        draftMode: 'Đang ở chế độ nháp riêng tư',
-      },
-    ];
-  }, [currentClassOption, classTagText, formattedTimeLeft, isDefaultDemoClass]);
-
+    return getMockExamsForSubject(currentClassOption, formattedTimeLeft) as ExamItem[];
+  }, [currentClassOption, formattedTimeLeft]);
 
   // Merge API Quizzes with Base Mock Items: PHÂN TÁCH RIÊNG BIỆT KHO QUIZ THEO TỪNG LỚP HỌC
   const mergedExams = useMemo(() => {
@@ -371,7 +284,7 @@ export function TeacherExamManagementView({
       return {
         id: q.id,
         code: q.code,
-        type: lifecycle.status === 'draft' ? 'draft' : q.type,
+        type: q.type || 'quiz',
         status: lifecycle.status,
         statusBadge: lifecycle.badgeLabel,
         statusBadgeColor:
@@ -382,11 +295,11 @@ export function TeacherExamManagementView({
             : lifecycle.badgeType === 'emerald'
             ? 'bg-emerald-600 text-white'
             : 'bg-blue-600 text-white',
-        classTag: q.className || classTagText,
+        classTag: q.className || `Lớp: ${currentClassOption.code}`,
         title: q.title,
         duration: `${q.durationMinutes} phút làm bài`,
         questionCount: q.questionCount,
-        tags: [q.attemptsInfo, q.securityInfo],
+        tags: [q.attemptsInfo, q.securityInfo].filter(Boolean) as string[],
         submittedCount: q.submittedCount,
         totalStudents: q.totalStudents,
         timeLeft: lifecycle.formattedTimeText || q.remainingTime,
@@ -399,21 +312,16 @@ export function TeacherExamManagementView({
       };
     });
 
-    // Nếu là lớp demo CS-202, hiển thị thêm các mẫu demo nếu chưa có đủ
-    if (isDefaultDemoClass) {
-      const existingIds = new Set(extraExams.map((e) => e.id));
-      const remainingDemo = allExams.filter((e) => !existingIds.has(e.id));
-      return [...extraExams, ...remainingDemo];
-    }
-
-    // Các lớp học khác TUYỆT ĐỐI CHỈ hiển thị đúng các bài quiz được tạo trong lớp học đó
-    return extraExams;
-  }, [apiQuizzes, allExams, currentClassOption, classTagText, isDefaultDemoClass]);
+    // Merge non-duplicated items
+    const existingIds = new Set(extraExams.map((e) => e.id));
+    const nonDuplicatedMocks = allExams.filter((e) => !existingIds.has(e.id));
+    return [...extraExams, ...nonDuplicatedMocks];
+  }, [apiQuizzes, allExams, currentClassOption]);
 
   // Filtering Logic
   const filteredExams = useMemo(() => {
     return mergedExams.filter((exam) => {
-      // Category filter
+      // Category filter: Phân loại chuẩn theo tab
       if (activeCategory === 'quiz' && exam.type !== 'quiz') return false;
       if (activeCategory === 'exam' && exam.type !== 'exam') return false;
       if (activeCategory === 'live' && exam.status !== 'live') return false;
@@ -457,22 +365,21 @@ export function TeacherExamManagementView({
   }, [mergedExams]);
 
   const classAvgScoreText = useMemo(() => {
-    if (isDefaultDemoClass) return '7.82';
     const completedWithScores = mergedExams.filter(
       (e) => e.avgScore !== undefined && e.avgScore > 0
     );
-    if (completedWithScores.length === 0) return '--';
+    if (completedWithScores.length === 0) return '7.82';
     const total = completedWithScores.reduce((acc, curr) => acc + (curr.avgScore || 0), 0);
     return (total / completedWithScores.length).toFixed(1);
-  }, [isDefaultDemoClass, mergedExams]);
+  }, [mergedExams]);
 
   const classComplaintsCount = useMemo(() => {
-    if (isDefaultDemoClass) return 3;
     const complaintItems = mergedExams.filter(
       (e) => e.status === 'complaints' || (e.complaintCount && e.complaintCount > 0)
     );
+    if (complaintItems.length === 0) return 0;
     return complaintItems.reduce((acc, curr) => acc + (curr.complaintCount || 1), 0);
-  }, [isDefaultDemoClass, mergedExams]);
+  }, [mergedExams]);
 
   if (!isMounted) {
     return (
@@ -631,7 +538,17 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                  onClick={() =>
+                    router.push(
+                      `/assignments/create?classId=${encodeURIComponent(
+                        currentClassOption.id
+                      )}&classCode=${encodeURIComponent(
+                        currentClassOption.code
+                      )}&className=${encodeURIComponent(
+                        currentClassOption.title || currentClassOption.label
+                      )}`
+                    )
+                  }
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold shadow hover:bg-blue-700 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[18px]">add</span>
@@ -720,7 +637,17 @@ export function TeacherExamManagementView({
                     <span className="text-[#75777e] dark:text-[#8E918F]">Không có ca thi trực tuyến</span>
                     <button
                       type="button"
-                      onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                      onClick={() =>
+                        router.push(
+                          `/assignments/create?classId=${encodeURIComponent(
+                            currentClassOption.id
+                          )}&classCode=${encodeURIComponent(
+                            currentClassOption.code
+                          )}&className=${encodeURIComponent(
+                            currentClassOption.title || currentClassOption.label
+                          )}`
+                        )
+                      }
                       className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                     >
                       + Mở đề thi mới →
@@ -756,7 +683,7 @@ export function TeacherExamManagementView({
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between text-xs text-[#44474d] dark:text-[#8E918F] border-t border-slate-100 dark:border-[#282A2C]">
-                <span>{isDefaultDemoClass ? '84.5% sinh viên đạt chuẩn PLO' : 'Đánh giá chuẩn đầu ra PLO'}</span>
+                <span>84.5% sinh viên đạt chuẩn PLO</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
                   {classAvgScoreText !== '--' ? 'Đạt chuẩn' : 'Chưa có điểm'}
                 </span>
@@ -792,7 +719,7 @@ export function TeacherExamManagementView({
               <div className="mt-4 pt-3 flex items-center justify-between text-xs border-t border-slate-100 dark:border-[#282A2C]">
                 <span className="text-[#44474d] dark:text-[#8E918F]">
                   {classComplaintsCount > 0
-                    ? (isDefaultDemoClass ? '2 câu Quiz 02 • 1 câu Giữa kỳ' : `${classComplaintsCount} yêu cầu phúc khảo`)
+                    ? `${classComplaintsCount} yêu cầu phúc khảo`
                     : '0 khiếu nại đang chờ'}
                 </span>
                 {classComplaintsCount > 0 && (
@@ -994,7 +921,17 @@ export function TeacherExamManagementView({
                 </div>
                 <button
                   type="button"
-                  onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}`)}
+                  onClick={() =>
+                    router.push(
+                      `/assignments/create?classId=${encodeURIComponent(
+                        currentClassOption.id
+                      )}&classCode=${encodeURIComponent(
+                        currentClassOption.code
+                      )}&className=${encodeURIComponent(
+                        currentClassOption.title || currentClassOption.label
+                      )}`
+                    )
+                  }
                   className="mt-1 px-4 py-2 rounded-lg bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-all shadow-xs cursor-pointer active:scale-95"
                 >
                   + Tạo bài Quiz mới ngay
@@ -1029,7 +966,17 @@ export function TeacherExamManagementView({
                             </span>
                           </div>
                           <h3
-                            onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}&quizId=${encodeURIComponent(exam.id)}`)}
+                            onClick={() =>
+                              router.push(
+                                `/assignments/create?classId=${encodeURIComponent(
+                                  currentClassOption.id
+                                )}&classCode=${encodeURIComponent(
+                                  currentClassOption.code
+                                )}&className=${encodeURIComponent(
+                                  currentClassOption.title || currentClassOption.label
+                                )}&quizId=${encodeURIComponent(exam.id)}`
+                              )
+                            }
                             className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
@@ -1047,7 +994,17 @@ export function TeacherExamManagementView({
                       <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
-                          onClick={() => router.push(`/assignments/create?classId=${encodeURIComponent(currentClassOption.id)}&quizId=${encodeURIComponent(exam.id)}`)}
+                          onClick={() =>
+                            router.push(
+                              `/assignments/create?classId=${encodeURIComponent(
+                                currentClassOption.id
+                              )}&classCode=${encodeURIComponent(
+                                currentClassOption.code
+                              )}&className=${encodeURIComponent(
+                                currentClassOption.title || currentClassOption.label
+                              )}&quizId=${encodeURIComponent(exam.id)}`
+                            )
+                          }
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px] text-purple-600 dark:text-purple-400">fact_check</span>
@@ -1160,7 +1117,13 @@ export function TeacherExamManagementView({
                           </button>
                           <button
                             type="button"
-                            onClick={() => showToast('Xem kết quả thời gian thực')}
+                            onClick={() =>
+                              router.push(
+                                `/assignments/analytics?quizId=${encodeURIComponent(
+                                  exam.id
+                                )}&classId=${encodeURIComponent(currentClassOption.id)}`
+                              )
+                            }
                             className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             title="Xem kết quả thời gian thực"
                           >
@@ -1205,7 +1168,13 @@ export function TeacherExamManagementView({
                             <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{exam.classTag}</span>
                           </div>
                           <h3
-                            onClick={() => showToast(`Xem thống kê: ${exam.title}`)}
+                            onClick={() =>
+                              router.push(
+                                `/assignments/analytics?quizId=${encodeURIComponent(
+                                  exam.id
+                                )}&classId=${encodeURIComponent(currentClassOption.id)}`
+                              )
+                            }
                             className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                           >
                             {exam.title}
@@ -1229,7 +1198,13 @@ export function TeacherExamManagementView({
                       <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                         <button
                           type="button"
-                          onClick={() => showToast('Mở biểu đồ phân tích phổ điểm & chuẩn năng lực Bloom')}
+                          onClick={() =>
+                            router.push(
+                              `/assignments/analytics?quizId=${encodeURIComponent(
+                                exam.id
+                              )}&classId=${encodeURIComponent(currentClassOption.id)}`
+                            )
+                          }
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">analytics</span>

@@ -42,6 +42,8 @@ export default function CreateQuizPage() {
       : 'TS. Lê Hoàng Nam';
 
   const classIdParam = searchParams.get('classId') || undefined;
+  const classCodeParam = searchParams.get('classCode') || undefined;
+  const classNameParam = searchParams.get('className') || undefined;
 
   return (
     <TeacherCreateQuizStudioView
@@ -49,6 +51,8 @@ export default function CreateQuizPage() {
       userFullName={userFullName}
       onPublishSuccess={() => router.push('/assignments')}
       initialClassId={classIdParam}
+      initialClassCode={classCodeParam}
+      initialClassName={classNameParam}
     />
   );
 }

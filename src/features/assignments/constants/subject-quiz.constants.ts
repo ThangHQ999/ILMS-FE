@@ -542,7 +542,9 @@ export function getSubjectInfoForClass(classItem?: {
     normalized.includes('int2022') ||
     normalized.includes('giai tich') ||
     normalized.includes('calculus') ||
-    normalized.includes('toan cao cap')
+    normalized.includes('toan cao cap') ||
+    normalized.includes('f2a0d62e-6086-4c58-ab80-7ce00c2b328a') ||
+    normalized.includes('f2a0d62e')
   ) {
     return SUBJECT_CONFIGS.giaiTich2;
   }
@@ -590,4 +592,402 @@ export function getSubjectInfoForClass(classItem?: {
   const cleanTitle = classItem?.title || classItem?.name || 'Học phần';
 
   return buildGenericSubjectConfig(cleanCode, cleanTitle);
+}
+
+export interface SubjectMockExamItem {
+  id: string;
+  code: string;
+  type: 'quiz' | 'exam' | 'draft';
+  status: 'live' | 'upcoming' | 'completed' | 'complaints' | 'draft';
+  statusBadge?: string;
+  statusBadgeColor?: string;
+  securityBadge?: string;
+  classTag?: string;
+  title: string;
+  examDate?: string;
+  duration: string;
+  questionCount: number;
+  tags?: string[];
+  submittedCount?: number;
+  totalStudents?: number;
+  timeLeft?: string;
+  progressPercent?: number;
+  avgScore?: number;
+  ploRate?: number;
+  discriminationIndex?: number;
+  complaintCount?: number;
+  complaintDetail?: string;
+  sourceDoc?: string;
+  draftMode?: string;
+}
+
+export function getMockExamsForSubject(
+  classOption: { id?: string | number | null; code?: string | null; title?: string | null; label?: string | null; name?: string | null },
+  formattedTimeLeft: string = 'Còn 12:45'
+): SubjectMockExamItem[] {
+  const subject = getSubjectInfoForClass(classOption);
+  const classId = String(classOption.id || 'cs-202');
+  const classCode = String(classOption.code || classOption.name || 'CLASS');
+  const classTagText = `Lớp: ${classCode}`;
+
+  if (subject.key === 'giaiTich2') {
+    return [
+      {
+        id: `quiz-gt2-01-${classId}`,
+        code: `QUIZ-INT2022-01`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 01: Chuỗi số & Phép tính Vi phân hàm nhiều biến',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['Chuẩn PLO-01', 'Bảng công thức vi tích phân'],
+        submittedCount: 48,
+        totalStudents: 54,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 88,
+      },
+      {
+        id: `quiz-gt2-02-${classId}`,
+        code: `QUIZ-INT2022-02`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Bắt đầu sau 3 giờ',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        securityBadge: 'Giám sát màn hình',
+        classTag: classTagText,
+        title: 'Quiz 02: Tích phân bội (Tích phân kép & Bội ba)',
+        examDate: 'Hôm nay: 15:00 - 15:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 54,
+        tags: ['Đổi biến tọa độ cực', 'Fubini theorem'],
+      },
+      {
+        id: `mid-gt2-2024-${classId}`,
+        code: `MID-INT2022-2024`,
+        type: 'exam',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Kiểm tra Giữa kỳ: Phép tính Vi phân & Tích phân bội',
+        duration: '60 phút',
+        questionCount: 30,
+        tags: ['54/54 SV nộp (100%)'],
+        submittedCount: 54,
+        totalStudents: 54,
+        avgScore: 7.8,
+        ploRate: 85,
+        discriminationIndex: 0.72,
+      },
+      {
+        id: `draft-gt2-03-${classId}`,
+        code: 'AI-DRAFT-GT2',
+        type: 'draft',
+        status: 'draft',
+        statusBadge: 'Bản nháp AI Generated • 20 câu tích phân đường',
+        statusBadgeColor: 'bg-purple-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 03: Tích phân đường & Tích phân mặt (Green / Stokes)',
+        sourceDoc: 'Sinh từ tài liệu: Giao_trinh_Giai_tich_2_Toan_Cao_Cap.pdf',
+        duration: '30 phút',
+        questionCount: 20,
+        tags: ['Phủ mức Bloom 1-3: Nhận biết, Tính toán vi phân cung'],
+        draftMode: 'Đang ở chế độ nháp riêng tư',
+      },
+    ];
+  }
+
+  if (subject.key === 'mangMayTinh') {
+    return [
+      {
+        id: `quiz-04-${classId}`,
+        code: `QUIZ-CS202-04`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF/BGP',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['4 mã đề tự động', 'Giám sát Tab & IP'],
+        submittedCount: 54,
+        totalStudents: 60,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 90,
+      },
+      {
+        id: `quiz-05-${classId}`,
+        code: `QUIZ-CS202-05`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Bắt đầu sau 2 giờ',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        securityBadge: 'Safe Exam Browser',
+        classTag: classTagText,
+        title: 'Quiz 05: Giao thức BGP & Định tuyến liên miền',
+        examDate: 'Hôm nay: 14:00 - 14:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 60,
+        tags: ['Safe Exam Browser'],
+      },
+      {
+        id: `quiz-03-${classId}`,
+        code: `QUIZ-CS202-03`,
+        type: 'quiz',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 03: Tầng Giao vận & Cơ chế bắt tay TCP',
+        duration: '30 phút',
+        questionCount: 20,
+        tags: ['58/58 SV nộp (100%)'],
+        submittedCount: 58,
+        totalStudents: 58,
+        avgScore: 8.2,
+        ploRate: 88,
+        discriminationIndex: 0.74,
+      },
+      {
+        id: `quiz-02-${classId}`,
+        code: `QUIZ-CS202-02`,
+        type: 'quiz',
+        status: 'complaints',
+        statusBadge: 'Có 2 khiếu nại cần xử lý',
+        statusBadgeColor: 'bg-rose-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 02: Tầng Liên kết dữ liệu & Giao thức CSMA/CD',
+        duration: '35 phút',
+        questionCount: 25,
+        tags: [],
+        submittedCount: 56,
+        totalStudents: 60,
+        avgScore: 8.1,
+        complaintCount: 2,
+        complaintDetail: '2 SV khiếu nại câu hỏi #14 về tính toán Backoff time trong mạng Ethernet',
+      },
+      {
+        id: `quiz-06-draft-${classId}`,
+        code: 'AI-DRAFT-APP',
+        type: 'draft',
+        status: 'draft',
+        statusBadge: 'Bản nháp AI Generated • 20 câu tự động bóc tách',
+        statusBadgeColor: 'bg-purple-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 06: Tầng Ứng dụng & Dịch vụ Mạng DNS/HTTP/SSH',
+        sourceDoc: 'Sinh từ tài liệu: Giao_trinh_Mang_may_tinh_v2.pdf',
+        duration: '25 phút',
+        questionCount: 20,
+        tags: ['Phủ đều các mức Bloom: Nhớ, Hiểu, Phân tích luồng gói tin'],
+        draftMode: 'Đang ở chế độ nháp riêng tư',
+      },
+    ];
+  }
+
+  if (subject.key === 'cauTrucDuLieu') {
+    return [
+      {
+        id: `quiz-dsa-01-${classId}`,
+        code: `QUIZ-INT1340-01`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 01: Cây nhị phân tìm kiếm & Độ phức tạp giải thuật',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['Big-O Notation', 'BST Search & Insert'],
+        submittedCount: 42,
+        totalStudents: 45,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 93,
+      },
+      {
+        id: `quiz-dsa-02-${classId}`,
+        code: `QUIZ-INT1340-02`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Ngày mai: 08:00',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 02: Thuật toán Đồ thị Dijkstra & Duyệt BFS/DFS',
+        examDate: 'Ngày mai: 08:00 - 08:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 45,
+        tags: ['Graph Traversal', 'Adjacency Matrix'],
+      },
+      {
+        id: `mid-dsa-2024-${classId}`,
+        code: `MID-INT1340-2024`,
+        type: 'exam',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Kiểm tra Giữa kỳ: Cấu trúc dữ liệu & Giải thuật',
+        duration: '60 phút',
+        questionCount: 35,
+        tags: ['45/45 SV nộp (100%)'],
+        submittedCount: 45,
+        totalStudents: 45,
+        avgScore: 7.9,
+        ploRate: 84,
+        discriminationIndex: 0.71,
+      },
+    ];
+  }
+
+  if (subject.key === 'coSoDuLieu') {
+    return [
+      {
+        id: `quiz-db-01-${classId}`,
+        code: `QUIZ-CS301-01`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 01: Chuẩn hóa CSDL & Ngôn ngữ truy vấn SQL',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['1NF 2NF 3NF BCNF', 'SQL Subquery'],
+        submittedCount: 46,
+        totalStudents: 48,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 95,
+      },
+      {
+        id: `quiz-db-02-${classId}`,
+        code: `QUIZ-CS301-02`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Ngày mai: 10:00',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 02: Giao dịch ACID & Khóa phân tán (Locking)',
+        examDate: 'Ngày mai: 10:00 - 10:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 48,
+        tags: ['Transaction Isolation', 'Deadlock Detection'],
+      },
+      {
+        id: `mid-db-2024-${classId}`,
+        code: `MID-CS301-2024`,
+        type: 'exam',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Kiểm tra Giữa kỳ: Thiết kế CSDL & Truy vấn SQL nâng cao',
+        duration: '60 phút',
+        questionCount: 35,
+        tags: ['48/48 SV nộp (100%)'],
+        submittedCount: 48,
+        totalStudents: 48,
+        avgScore: 8.3,
+        ploRate: 89,
+        discriminationIndex: 0.76,
+      },
+    ];
+  }
+
+  if (subject.key === 'congNghePhanMem') {
+    return [
+      {
+        id: `quiz-se-01-${classId}`,
+        code: `QUIZ-SE214-01`,
+        type: 'quiz',
+        status: 'live',
+        statusBadge: 'Đang trực tuyến • Live',
+        statusBadgeColor: 'bg-rose-500 text-white',
+        classTag: classTagText,
+        title: 'Quiz 01: Quy trình phát triển phần mềm & Thiết kế UML',
+        duration: '30 phút làm bài',
+        questionCount: 20,
+        tags: ['Agile / Scrum', 'Use Case & Class Diagram'],
+        submittedCount: 50,
+        totalStudents: 52,
+        timeLeft: formattedTimeLeft,
+        progressPercent: 96,
+      },
+      {
+        id: `quiz-se-02-${classId}`,
+        code: `QUIZ-SE214-02`,
+        type: 'quiz',
+        status: 'upcoming',
+        statusBadge: 'Sắp diễn ra • Ngày kia: 14:00',
+        statusBadgeColor: 'bg-blue-600 text-white',
+        classTag: classTagText,
+        title: 'Quiz 02: Mẫu thiết kế phần mềm (GoF Design Patterns)',
+        examDate: 'Ngày kia: 14:00 - 14:45',
+        duration: '45 phút',
+        questionCount: 25,
+        totalStudents: 52,
+        tags: ['Singleton, Factory, Observer'],
+      },
+      {
+        id: `mid-se-2024-${classId}`,
+        code: `MID-SE214-2024`,
+        type: 'exam',
+        status: 'completed',
+        statusBadge: 'Đã hoàn thành • Đã công bố điểm',
+        statusBadgeColor: 'bg-emerald-600 text-white',
+        classTag: classTagText,
+        title: 'Kiểm tra Giữa kỳ: Công nghệ Phần mềm & Agile Sprint',
+        duration: '60 phút',
+        questionCount: 35,
+        tags: ['52/52 SV nộp (100%)'],
+        submittedCount: 52,
+        totalStudents: 52,
+        avgScore: 8.5,
+        ploRate: 91,
+        discriminationIndex: 0.78,
+      },
+    ];
+  }
+
+  // Generic fallback
+  return [
+    {
+      id: `quiz-gen-01-${classId}`,
+      code: `QUIZ-${classCode}-01`,
+      type: 'quiz',
+      status: 'live',
+      statusBadge: 'Đang trực tuyến • Live',
+      statusBadgeColor: 'bg-rose-500 text-white',
+      classTag: classTagText,
+      title: subject.defaultQuizTitle,
+      duration: '30 phút làm bài',
+      questionCount: 20,
+      tags: ['Chuẩn PLO', 'Kiểm tra trắc nghiệm'],
+      submittedCount: 40,
+      totalStudents: 50,
+      timeLeft: formattedTimeLeft,
+      progressPercent: 80,
+    },
+    {
+      id: `mid-gen-2024-${classId}`,
+      code: `MID-${classCode}-2024`,
+      type: 'exam',
+      status: 'upcoming',
+      statusBadge: 'Sắp diễn ra • Lịch thi định kỳ',
+      statusBadgeColor: 'bg-blue-600 text-white',
+      classTag: classTagText,
+      title: `Kiểm tra Giữa kỳ: Đánh giá Năng lực Tổng hợp (${classCode})`,
+      examDate: 'Thứ 6 tuần tới: 08:00',
+      duration: '60 phút',
+      questionCount: 30,
+      totalStudents: 50,
+      tags: ['Đề thi chính thức'],
+    },
+  ];
 }

@@ -99,6 +99,7 @@ interface TeacherCreateQuizStudioViewProps {
   userFullName?: string;
   onPublishSuccess?: () => void;
   initialClassId?: string;
+  initialClassCode?: string;
   initialClassName?: string;
   teacherClasses?: ClassItem[];
 }
@@ -108,6 +109,7 @@ export function TeacherCreateQuizStudioView({
   userFullName = 'TS. Lê Hoàng Nam',
   onPublishSuccess,
   initialClassId,
+  initialClassCode,
   initialClassName,
   teacherClasses: propTeacherClasses,
 }: TeacherCreateQuizStudioViewProps) {
@@ -144,9 +146,17 @@ export function TeacherCreateQuizStudioView({
     setIsMounted(true);
   }, []);
 
-  const [targetClassId, setTargetClassId] = useState<string>(() => {
-    return initialClassId || searchParams.get('classId') || '';
-  });
+  const urlClassId = initialClassId || searchParams.get('classId') || '';
+  const urlClassCode = initialClassCode || searchParams.get('classCode') || '';
+  const urlClassName = initialClassName || searchParams.get('className') || '';
+
+  const [targetClassId, setTargetClassId] = useState<string>(() => urlClassId);
+
+  useEffect(() => {
+    if (urlClassId && urlClassId !== targetClassId) {
+      setTargetClassId(urlClassId);
+    }
+  }, [urlClassId, targetClassId]);
 
   const activeClass = useMemo(() => {
     if (targetClassId) {
@@ -154,20 +164,21 @@ export function TeacherCreateQuizStudioView({
         (c) =>
           String(c.id).toLowerCase() === targetClassId.toLowerCase() ||
           c.name?.toLowerCase() === targetClassId.toLowerCase() ||
-          c.code?.toLowerCase() === targetClassId.toLowerCase()
+          c.code?.toLowerCase() === targetClassId.toLowerCase() ||
+          (urlClassCode && (c.name?.toLowerCase() === urlClassCode.toLowerCase() || c.code?.toLowerCase() === urlClassCode.toLowerCase()))
       );
       if (found) return found;
 
       return {
         id: targetClassId,
-        name: initialClassName || targetClassId,
-        title: initialClassName || targetClassId,
-        code: targetClassId,
-        classCode: targetClassId,
+        name: urlClassCode || urlClassName || targetClassId,
+        title: urlClassName || urlClassCode || targetClassId,
+        code: urlClassCode || targetClassId,
+        classCode: urlClassCode || targetClassId,
       };
     }
     return availableClasses[0];
-  }, [availableClasses, targetClassId, initialClassName]);
+  }, [availableClasses, targetClassId, urlClassCode, urlClassName]);
 
   const activeClassId = activeClass ? String(activeClass.id) : (targetClassId || 'cs-202');
 
@@ -245,14 +256,15 @@ export function TeacherCreateQuizStudioView({
     if (rawDraft) {
       try {
         const parsed = JSON.parse(rawDraft);
-        // Kiểm tra nếu lớp học hiện tại KHÔNG PHẢI CS-202 nhưng bản nháp lại chứa tiêu đề/nội dung mặc định của CS-202
-        const isStaleCrossSubjectDraft =
-          subjectInfo.key !== 'mangMayTinh' &&
-          (parsed.quizTitle?.includes('Tầng Mạng') ||
-            parsed.quizTitle?.includes('OSPF') ||
-            parsed.selectedModule?.includes('Tầng Mạng'));
+        // Kiểm tra nghiêm ngặt: Nếu bản nháp chứa nội dung thuộc môn khác (vd môn khác nhưng có Tầng Mạng / OSPF / Cây nhị phân / SQL...)
+        const hasCrossSubjectLeak =
+          (subjectInfo.key !== 'mangMayTinh' && (parsed.quizTitle?.includes('Tầng Mạng') || parsed.quizTitle?.includes('OSPF') || parsed.selectedModule?.includes('Tầng Mạng'))) ||
+          (subjectInfo.key !== 'giaiTich2' && (parsed.quizTitle?.includes('Giải tích') || parsed.quizTitle?.includes('Tích phân') || parsed.selectedModule?.includes('Chuỗi số'))) ||
+          (subjectInfo.key !== 'cauTrucDuLieu' && (parsed.quizTitle?.includes('Cây nhị phân') || parsed.quizTitle?.includes('Giải thuật'))) ||
+          (subjectInfo.key !== 'coSoDuLieu' && (parsed.quizTitle?.includes('CSDL') || parsed.quizTitle?.includes('Dạng chuẩn'))) ||
+          (subjectInfo.key !== 'congNghePhanMem' && (parsed.quizTitle?.includes('UML') || parsed.quizTitle?.includes('Scrum')));
 
-        if (!isStaleCrossSubjectDraft) {
+        if (!hasCrossSubjectLeak) {
           if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
           if (parsed.selectedModule) setSelectedModule(parsed.selectedModule);
           if (parsed.ploTags) setPloTags(parsed.ploTags);
@@ -267,6 +279,11 @@ export function TeacherCreateQuizStudioView({
           if (parsed.endTime) setEndTime(parsed.endTime);
           if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
           loadedFromDraft = true;
+        } else {
+          // Xóa triệt để bản nháp bị nhiễm chéo từ môn khác
+          try {
+            localStorage.removeItem(storageKey);
+          } catch {}
         }
       } catch (err) {
         console.warn('Could not parse saved draft:', err);
@@ -281,7 +298,7 @@ export function TeacherCreateQuizStudioView({
       setInstructions(subjectInfo.instructions);
       setQuestions(subjectInfo.sampleQuestions);
     }
-  }, [activeClassId, searchParams, subjectInfo]);
+  }, [activeClassId, searchParams, subjectInfo.key]);
 
   const previewLifecycle = useMemo(() => {
     return determineQuizLifecycle({
