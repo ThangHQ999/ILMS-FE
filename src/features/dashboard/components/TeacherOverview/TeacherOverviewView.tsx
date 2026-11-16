@@ -10,6 +10,7 @@ import {
   TeacherAttendanceModal,
   TodaySessionItem,
 } from './TeacherAttendanceModal';
+import { TeacherCreateAnnouncementModal } from './TeacherCreateAnnouncementModal';
 import { useTeacherTodaySessions } from '@/features/lesson-sessions';
 import { TeacherWeeklyTimetableView } from '@/features/timetable';
 
@@ -63,6 +64,17 @@ export function TeacherOverviewView({
   const [selectedSessionForAttendance, setSelectedSessionForAttendance] =
     useState<TodaySessionItem | null>(null);
   const [isViewingWeeklyTimetable, setIsViewingWeeklyTimetable] = useState(false);
+  const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-dismiss toast feedback
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   // Sync sessions when server data is loaded or changes
   useEffect(() => {
@@ -153,9 +165,7 @@ export function TeacherOverviewView({
       <TeacherHeroHeader
         instructorName={instructorName}
         onOpenTimetable={() => setIsViewingWeeklyTimetable(true)}
-        onCreateAnnouncement={() => {
-          // opens announcement creator
-        }}
+        onCreateAnnouncement={() => setIsCreateAnnouncementOpen(true)}
       />
 
       {/* 2. Top Metrics Grid (4 Cards: Assigned Classes, Total Students, Pending Grading, Attendance Rate) */}
@@ -190,6 +200,30 @@ export function TeacherOverviewView({
         onClose={() => setSelectedSessionForAttendance(null)}
         onAttendanceUpdated={handleAttendanceUpdated}
       />
+
+      {/* 6. Modal Tạo thông báo mới cho lớp học */}
+      <TeacherCreateAnnouncementModal
+        isOpen={isCreateAnnouncementOpen}
+        onClose={() => setIsCreateAnnouncementOpen(false)}
+        onSuccess={(msg) => setToastMessage(msg)}
+      />
+
+      {/* Toast Notification Feedback */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white dark:bg-[#282A2C] dark:text-[#E3E3E3] px-5 py-3.5 rounded-2xl flex items-center gap-3 shadow-xl border border-gray-700/30 dark:border-[#383A3C] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <span className="material-symbols-outlined text-[#146C2E] dark:text-[#6DD58C] text-[20px]">
+            check_circle
+          </span>
+          <span className="text-sm font-medium">{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-gray-400 hover:text-white dark:hover:text-gray-200 transition-colors p-1"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

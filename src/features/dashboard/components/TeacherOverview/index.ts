@@ -4,4 +4,5 @@ export * from './TeacherTodaySessionsCard';
 export * from './TeacherAiInsightsCard';
 export * from './TeacherActiveCoursesSection';
 export * from './TeacherAttendanceModal';
+export * from './TeacherCreateAnnouncementModal';
 export * from './TeacherOverviewView';

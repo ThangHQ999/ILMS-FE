@@ -42,7 +42,6 @@ export function ClassMembersTab({
 
   // Filter students
   const filteredStudents = useMemo(() => {
-    // Only student members in the main table
     const studentList = members.filter((m) => m.role === 'STUDENT');
 
     return studentList.filter((m) => {
@@ -122,22 +121,18 @@ export function ClassMembersTab({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* 1. CLASS CAPACITY & ENROLLMENT HERO STATS */}
-      <div className="relative w-full rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-        {/* Architectural subtle trace */}
-        <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-blue-100/40 dark:bg-blue-950/20 blur-3xl pointer-events-none" />
-        <div className="absolute right-40 bottom-0 w-48 h-48 rounded-full bg-slate-100/60 dark:bg-slate-800/20 blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col gap-2 max-w-2xl">
+      <div className="w-full rounded-3xl bg-white dark:bg-[#1E1F20] p-6 shadow-sm dark:shadow-none border-none flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+        <div className="flex flex-col gap-2 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight">
               Danh sách Học viên &amp; Sĩ số lớp
             </h2>
-            <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40 font-semibold tracking-wider">
+            <span className="font-mono text-xs px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] font-semibold">
               CNTT-K22-01
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] flex items-center gap-2">
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
               verified
             </span>
             <span>Học kỳ II • Niên khóa 2024 - 2025 • Phòng máy Lab A2-404</span>
@@ -145,45 +140,38 @@ export function ClassMembersTab({
 
           {/* Key Capacity & Enrolment Badges */}
           <div className="flex flex-wrap items-center gap-3 mt-1">
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 px-3 py-1.5 rounded-xl">
-              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[19px]">
+            <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
+              <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[19px]">
                 groups
               </span>
-              <span className="text-xs text-slate-600 dark:text-slate-300">Chính thức:</span>
-              <span className="text-sm text-slate-900 dark:text-slate-100 font-bold">42</span>
+              <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">Chính thức:</span>
+              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">42</span>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 px-3 py-1.5 rounded-xl">
-              <span className="material-symbols-outlined text-slate-400 text-[19px]">
+            <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
+              <span className="material-symbols-outlined text-gray-400 text-[19px]">
                 pending_actions
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">Chờ duyệt:</span>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">0</span>
+              <span className="text-xs text-gray-500 dark:text-[#8E918F]">Chờ duyệt:</span>
+              <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">3</span>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 px-3 py-1.5 rounded-xl">
-              <span className="material-symbols-outlined text-slate-400 text-[19px]">
-                event_seat
+            <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
+              <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[19px]">
+                how_to_reg
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">Sĩ số tối đa:</span>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">60</span>
+              <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">Sĩ số tối đa:</span>
+              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">60</span>
             </div>
-
-            <div className="w-24 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden hidden sm:block">
-              <div className="bg-blue-600 h-full rounded-full" style={{ width: '70%' }} />
-            </div>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline">
-              70% lấp đầy
-            </span>
           </div>
         </div>
 
-        {/* Quick Class Action Buttons */}
-        <div className="relative z-10 flex flex-wrap items-center gap-2.5 shrink-0">
+        {/* Action Button Group */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
           >
             <span className="material-symbols-outlined text-[17px]">file_download</span>
             <span>Xuất Excel</span>
@@ -192,34 +180,36 @@ export function ClassMembersTab({
           <button
             type="button"
             onClick={handleSendEmailAll}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
           >
-            <span className="material-symbols-outlined text-[17px]">forward_to_inbox</span>
-            <span>Gửi email toàn lớp</span>
+            <span className="material-symbols-outlined text-[17px]">mail</span>
+            <span>Gửi email</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onInviteClick}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[17px]">person_add</span>
-            <span>+ Thêm học viên Email / CSV</span>
-          </button>
+          {currentRole !== 'student' && onInviteClick && (
+            <button
+              type="button"
+              onClick={onInviteClick}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-sm transition-all cursor-pointer border-none"
+            >
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              <span>+ Thêm học viên</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* 2. FILTER & BATCH ACTION TOOLBAR */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+      <div className="bg-white dark:bg-[#1E1F20] p-4 sm:p-5 rounded-3xl shadow-sm dark:shadow-none border-none flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
         {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-2.5 flex-1">
           {/* Search bar */}
-          <div className="flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 px-3 py-1.5 rounded-xl w-full sm:w-72 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
-            <span className="material-symbols-outlined text-slate-400 text-[18px] mr-2">search</span>
+          <div className="flex items-center bg-[#E1E5EA] dark:bg-[#282A2C] px-3.5 py-1.5 rounded-full w-full sm:w-72 border-none">
+            <span className="material-symbols-outlined text-gray-500 dark:text-[#8E918F] text-[18px] mr-2">search</span>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none"
+              className="w-full bg-transparent text-xs text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-500 dark:placeholder:text-[#8E918F] outline-none border-none"
               placeholder="Tìm theo Tên, MSSV, Email..."
               type="text"
             />
@@ -230,14 +220,14 @@ export function ClassMembersTab({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-200 pl-3 pr-8 py-2 rounded-xl cursor-pointer outline-none hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
+              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-xs font-medium text-gray-800 dark:text-[#C4C7C5] pl-4 pr-8 py-2 rounded-full cursor-pointer outline-none border-none"
             >
               <option value="all">Trạng thái: Tất cả</option>
               <option value="good">Đang học tốt</option>
               <option value="attention">Cần chú ý</option>
               <option value="risk">Nguy cơ trượt môn</option>
             </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-2.5 text-slate-400 text-[18px]">
+            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-gray-500 dark:text-[#8E918F] text-[18px]">
               keyboard_arrow_down
             </span>
           </div>
@@ -247,7 +237,7 @@ export function ClassMembersTab({
             <select
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
-              className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-200 pl-3 pr-8 py-2 rounded-xl cursor-pointer outline-none hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
+              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-xs font-medium text-gray-800 dark:text-[#C4C7C5] pl-4 pr-8 py-2 rounded-full cursor-pointer outline-none border-none"
             >
               <option value="all">Môn học: Tất cả môn (4)</option>
               <option value="cs202">CS-202: Cấu trúc dữ liệu &amp; Giải thuật nâng cao</option>
@@ -255,7 +245,7 @@ export function ClassMembersTab({
               <option value="it101">IT-101: Nhập môn Công nghệ thông tin</option>
               <option value="cs205">CS-205: Lập trình hướng đối tượng (OOP)</option>
             </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-2.5 text-slate-400 text-[18px]">
+            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-gray-500 dark:text-[#8E918F] text-[18px]">
               keyboard_arrow_down
             </span>
           </div>
@@ -263,7 +253,7 @@ export function ClassMembersTab({
           <button
             type="button"
             onClick={handleResetFilters}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-full text-gray-500 dark:text-[#8E918F] hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
             title="Đặt lại bộ lọc"
           >
             <span className="material-symbols-outlined text-[19px]">filter_alt_off</span>
@@ -271,15 +261,15 @@ export function ClassMembersTab({
         </div>
 
         {/* Batch Actions Trigger */}
-        <div className="flex items-center gap-2 shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden md:inline">
+        <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0">
+          <span className="text-xs font-semibold text-gray-500 dark:text-[#8E918F] hidden md:inline">
             Thao tác chọn ({selectedIds.length}):
           </span>
 
           <button
             type="button"
             onClick={handleAssignGroup}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold transition-colors cursor-pointer border-none"
           >
             <span className="material-symbols-outlined text-[17px]">hub</span>
             <span>Gán nhóm</span>
@@ -288,7 +278,7 @@ export function ClassMembersTab({
           <button
             type="button"
             onClick={handleSendReminder}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold transition-colors cursor-pointer border-none"
           >
             <span className="material-symbols-outlined text-[17px]">notification_important</span>
             <span>Gửi nhắc nhở</span>
@@ -297,21 +287,21 @@ export function ClassMembersTab({
           <button
             type="button"
             onClick={handleTakeAttendance}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold transition-all cursor-pointer shadow-xs border-none"
           >
             <span className="material-symbols-outlined text-[17px]">fact_check</span>
-            <span>Điểm danh buổi hôm nay</span>
+            <span>Điểm danh hôm nay</span>
           </button>
         </div>
       </div>
 
       {/* 3. ENTERPRISE DATA TABLE */}
-      <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-xs overflow-hidden flex flex-col">
+      <div className="w-full bg-white dark:bg-[#1E1F20] rounded-3xl shadow-sm dark:shadow-none border-none overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-850/80 text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
-                <th className="py-3.5 pl-4 pr-2 w-10" scope="col">
+              <tr className="bg-[#F0F4F8] dark:bg-[#131314] text-gray-500 dark:text-[#8E918F] text-[11px] font-semibold uppercase tracking-wider border-none select-none">
+                <th className="py-4 pl-6 pr-2 w-12 align-middle" scope="col">
                   <input
                     type="checkbox"
                     checked={
@@ -322,45 +312,42 @@ export function ClassMembersTab({
                     className="w-4 h-4 rounded text-blue-600 focus:ring-0 focus:outline-none cursor-pointer"
                   />
                 </th>
-                <th className="py-3.5 px-3" scope="col">
+                <th className="py-4 px-4 min-w-[240px] align-middle" scope="col">
                   Học viên
                 </th>
-                <th className="py-3.5 px-3" scope="col">
+                <th className="py-4 px-4 w-[220px] min-w-[170px] align-middle whitespace-nowrap" scope="col">
                   Email Sinh viên
                 </th>
-                <th className="py-3.5 px-3 text-center" scope="col">
+                <th className="py-4 px-3 w-[120px] text-center align-middle whitespace-nowrap" scope="col">
                   Chuyên cần
                 </th>
-                <th className="py-3.5 px-3" scope="col">
+                <th className="py-4 px-4 w-[180px] min-w-[150px] align-middle whitespace-nowrap" scope="col">
                   Đồ thị Tri thức (Nodes)
                 </th>
-                <th className="py-3.5 px-3 text-center" scope="col">
+                <th className="py-4 px-3 w-[120px] text-center align-middle whitespace-nowrap" scope="col">
                   Điểm GPA / PLO
                 </th>
-                <th className="py-3.5 px-3" scope="col">
+                <th className="py-4 px-4 w-[160px] min-w-[130px] align-middle whitespace-nowrap" scope="col">
                   Trạng thái
                 </th>
-                <th className="py-3.5 px-3 text-right pr-4" scope="col">
+                <th className="py-4 px-4 text-right pr-6 w-[120px] align-middle whitespace-nowrap" scope="col">
                   Thao tác
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+            <tbody className="text-xs">
               {filteredStudents.map((student) => {
                 const isSelected = selectedIds.includes(student.id);
                 const isRisk = student.learningStatus === 'AT_RISK';
                 const isNeedHelp = student.learningStatus === 'NEED_HELP';
 
-                const rowBg = isRisk
-                  ? 'bg-rose-50/60 dark:bg-rose-950/30 hover:bg-rose-100/50 dark:hover:bg-rose-950/40'
-                  : isNeedHelp
-                  ? 'bg-amber-50/40 dark:bg-amber-950/20 hover:bg-amber-100/40 dark:hover:bg-amber-950/30'
-                  : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40';
-
                 return (
-                  <tr key={student.id} className={`${rowBg} transition-colors`}>
+                  <tr
+                    key={student.id}
+                    className="hover:bg-black/[0.03] dark:hover:bg-white/5 transition-colors border-none"
+                  >
                     {/* Checkbox */}
-                    <td className="py-3.5 pl-4 pr-2">
+                    <td className="py-5 pl-6 pr-2 align-middle">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -370,36 +357,30 @@ export function ClassMembersTab({
                     </td>
 
                     {/* Student Info */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-5 px-4 align-middle">
                       <div
                         onClick={() => setSelectedStudentForProfile(student)}
                         className="flex items-center gap-3 cursor-pointer group"
-                        title="Xem hồ sơ & tiến độ chi tiết"
+                        title="Xem hồ sơ &amp; tiến độ chi tiết"
                       >
                         <div className="relative shrink-0">
                           {student.avatarUrl ? (
                             <img
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 group-hover:ring-2 group-hover:ring-blue-500 transition-all"
+                              className="w-10 h-10 rounded-full object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all"
                               src={student.avatarUrl}
                               alt={student.name}
                             />
                           ) : (
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs group-hover:ring-2 group-hover:ring-blue-500 transition-all ${
-                                isRisk
-                                  ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'
-                                  : isNeedHelp
-                                  ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300'
-                                  : 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
-                              }`}
+                              className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] group-hover:ring-2 group-hover:ring-blue-500 transition-all"
                             >
-                              {student.avatar}
+                              {student.avatar || student.name.charAt(0)}
                             </div>
                           )}
 
                           {student.leaderBadge && (
                             <span
-                              className="absolute -bottom-1 -right-1 px-1 py-0.2 bg-blue-600 text-white rounded text-[9px] font-bold shadow-2xs"
+                              className="absolute -bottom-1 -right-1 px-1.5 py-0.5 bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] rounded-full text-[9px] font-bold whitespace-nowrap"
                               title="Lớp trưởng"
                             >
                               {student.leaderBadge}
@@ -408,10 +389,10 @@ export function ClassMembersTab({
                         </div>
 
                         <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          <span className="font-semibold text-gray-900 dark:text-[#E3E3E3] truncate text-sm group-hover:text-blue-600 dark:group-hover:text-[#A8C7FA] transition-colors">
                             {student.name}
                           </span>
-                          <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                          <span className="font-mono text-[11px] text-gray-500 dark:text-[#8E918F]">
                             MSSV: {student.studentCode || '22028190'}
                           </span>
                         </div>
@@ -419,19 +400,19 @@ export function ClassMembersTab({
                     </td>
 
                     {/* Email */}
-                    <td className="py-3.5 px-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                    <td className="py-5 px-4 font-mono text-[11px] text-gray-500 dark:text-[#8E918F] align-middle whitespace-nowrap">
                       {student.email}
                     </td>
 
                     {/* Attendance */}
-                    <td className="py-3.5 px-3 text-center">
+                    <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold font-mono ${
+                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold font-mono border-none ${
                           (student.attendanceRate ?? 90) >= 90
-                            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900'
+                            ? 'bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]'
                             : (student.attendanceRate ?? 90) >= 75
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                            : 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
+                            ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
+                            : 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
                         }`}
                       >
                         {student.attendanceRate ?? 90}%
@@ -439,26 +420,26 @@ export function ClassMembersTab({
                     </td>
 
                     {/* Knowledge Graph Nodes Progress */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-5 px-4 align-middle whitespace-nowrap">
                       <div className="flex flex-col gap-1 w-36">
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-slate-700 dark:text-slate-300 font-medium">
+                          <span className="text-gray-700 dark:text-[#C4C7C5] font-medium">
                             {student.knowledgeNodesUnlocked ?? 60}/{student.knowledgeNodesTotal ?? 82}
                           </span>
                           <span
                             className={`font-semibold font-mono ${
                               isRisk || isNeedHelp
-                                ? 'text-rose-600 dark:text-rose-400'
-                                : 'text-blue-600 dark:text-blue-400'
+                                ? 'text-red-700 dark:text-[#F28B82]'
+                                : 'text-[#007BFF] dark:text-[#A8C7FA]'
                             }`}
                           >
                             {student.knowledgePercent ?? 75}%
                           </span>
                         </div>
-                        <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-gray-200 dark:bg-[#282A2C] rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${
-                              isRisk || isNeedHelp ? 'bg-rose-500' : 'bg-blue-600'
+                              isRisk || isNeedHelp ? 'bg-red-500' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
                             }`}
                             style={{ width: `${student.knowledgePercent ?? 75}%` }}
                           />
@@ -467,14 +448,14 @@ export function ClassMembersTab({
                     </td>
 
                     {/* GPA / PLO */}
-                    <td className="py-3.5 px-3 text-center">
+                    <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
                       <span
                         className={`text-base font-extrabold font-mono ${
                           isRisk
-                            ? 'text-rose-600 dark:text-rose-400'
+                            ? 'text-red-700 dark:text-[#F28B82]'
                             : (student.gpa ?? 8.0) >= 9.0
-                            ? 'text-blue-600 dark:text-blue-400'
-                            : 'text-slate-900 dark:text-slate-100'
+                            ? 'text-blue-600 dark:text-[#A8C7FA]'
+                            : 'text-gray-900 dark:text-[#E3E3E3]'
                         }`}
                       >
                         {student.gpa?.toFixed(1) ?? '8.0'}
@@ -482,48 +463,38 @@ export function ClassMembersTab({
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-5 px-4 align-middle whitespace-nowrap">
                       {student.learningStatus === 'EXCELLENT' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-semibold">
+                        <span className="whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 dark:bg-[#142E20] text-emerald-800 dark:text-[#81C995] text-xs font-semibold border-none">
                           <span>{student.statusBadge || 'Top 1 Xuất sắc'}</span>
                         </span>
                       ) : student.learningStatus === 'ACTIVE' ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[11px] font-semibold border border-blue-100 dark:border-blue-900">
+                        <span className="whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA] text-xs font-semibold border-none">
                           {student.statusBadge || 'Tích cực'}
                         </span>
                       ) : student.learningStatus === 'NEED_HELP' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-semibold">
-                          <span>{student.statusBadge || 'Cần trợ giúp ⚠️'}</span>
-                          {student.statusDetail && (
-                            <span className="text-[10px] font-normal opacity-90">
-                              {student.statusDetail}
-                            </span>
-                          )}
+                        <span className="whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-[#2E1F00] text-amber-800 dark:text-[#FFB784] text-xs font-semibold border-none">
+                          <span>{student.statusBadge || 'Cần trợ giúp'}</span>
                         </span>
                       ) : student.learningStatus === 'AT_RISK' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-600 text-white text-[11px] font-semibold shadow-2xs">
-                          <span>{student.statusBadge || 'Nguy cơ trượt ⚠️'}</span>
-                          {student.statusDetail && (
-                            <span className="text-[10px] font-normal opacity-90">
-                              {student.statusDetail}
-                            </span>
-                          )}
+                        <span className="whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82] text-xs font-semibold border-none">
+                          <span>{student.statusBadge || 'Nguy cơ trượt'}</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-medium">
+                        <span className="whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] text-xs font-medium border-none">
                           {student.statusBadge || 'Bình thường'}
                         </span>
                       )}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3.5 px-3 text-right pr-4">
+                    <td className="py-5 px-4 text-right pr-6 align-middle whitespace-nowrap">
                       <div className="inline-flex items-center gap-1">
                         {/* Profile button */}
                         <button
                           type="button"
                           onClick={() => setSelectedStudentForProfile(student)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 transition-colors cursor-pointer"
+                          className="p-2 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                           title="Xem hồ sơ cá nhân"
                         >
                           <span className="material-symbols-outlined text-[18px]">badge</span>
@@ -533,7 +504,7 @@ export function ClassMembersTab({
                         <button
                           type="button"
                           onClick={() => notify(`Mở kênh chat trực tiếp với sinh viên ${student.name}`)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 transition-colors cursor-pointer"
+                          className="p-2 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                           title="Nhắn tin riêng"
                         >
                           <span className="material-symbols-outlined text-[18px]">chat</span>
@@ -547,7 +518,7 @@ export function ClassMembersTab({
                               setSelectedStudentForProfile(student);
                               notify(`Đã kích hoạt gợi ý lộ trình AI ôn tập cho sinh viên ${student.name}`);
                             }}
-                            className="p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+                            className="p-2 rounded-full text-amber-700 dark:text-[#FFB784] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                             title="Gợi ý lộ trình AI ôn tập"
                           >
                             <span className="material-symbols-outlined text-[18px]">psychology</span>
@@ -559,7 +530,7 @@ export function ClassMembersTab({
                           <button
                             type="button"
                             onClick={() => notify(`Đã gửi thư cảnh báo học tập tới ${student.name} và phụ huynh!`)}
-                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
+                            className="p-2 rounded-full text-red-700 dark:text-[#F28B82] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                             title="Gửi cảnh báo học tập"
                           >
                             <span className="material-symbols-outlined text-[18px]">warning</span>
@@ -573,7 +544,7 @@ export function ClassMembersTab({
                             onClick={() =>
                               setActiveMenuId(activeMenuId === student.id ? null : student.id)
                             }
-                            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                             title="Tùy chọn vai trò"
                           >
                             <span className="material-symbols-outlined text-[18px]">more_vert</span>
@@ -585,16 +556,16 @@ export function ClassMembersTab({
                                 className="fixed inset-0 z-30"
                                 onClick={() => setActiveMenuId(null)}
                               />
-                              <div className="absolute right-0 mt-1 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 text-xs z-40 text-left">
+                              <div className="absolute right-0 mt-1 w-48 rounded-2xl bg-white dark:bg-[#1E1F20] shadow-xl py-2 text-xs z-40 text-left border-none animate-in fade-in zoom-in-95 duration-150">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setActiveMenuId(null);
                                     notify(`Đã chỉ định ${student.name} làm Lớp phó học tập!`);
                                   }}
-                                  className="w-full px-3 py-1.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-left hover:bg-black/5 dark:hover:bg-white/5 text-gray-800 dark:text-[#C4C7C5] flex items-center gap-2 border-none bg-transparent cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[15px]">
+                                  <span className="material-symbols-outlined text-[16px]">
                                     military_tech
                                   </span>
                                   <span>Bổ nhiệm cán sự</span>
@@ -605,12 +576,11 @@ export function ClassMembersTab({
                                     setActiveMenuId(null);
                                     notify(`Đã gán ${student.name} vào Nhóm đồ án số 1.`);
                                   }}
-                                  className="w-full px-3 py-1.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-left hover:bg-black/5 dark:hover:bg-white/5 text-gray-800 dark:text-[#C4C7C5] flex items-center gap-2 border-none bg-transparent cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[15px]">group</span>
+                                  <span className="material-symbols-outlined text-[16px]">group</span>
                                   <span>Gán vào nhóm đồ án</span>
                                 </button>
-                                <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -618,9 +588,9 @@ export function ClassMembersTab({
                                     if (onRejectMember) onRejectMember(student);
                                     notify(`Đã xóa học viên ${student.name} khỏi lớp.`);
                                   }}
-                                  className="w-full px-3 py-1.5 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 flex items-center gap-2"
+                                  className="w-full px-4 py-2 text-left hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-[#F28B82] flex items-center gap-2 border-none bg-transparent cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[15px]">
+                                  <span className="material-symbols-outlined text-[16px]">
                                     person_remove
                                   </span>
                                   <span>Xóa khỏi lớp</span>
@@ -639,72 +609,43 @@ export function ClassMembersTab({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 bg-slate-50/70 dark:bg-slate-850/60 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <span className="text-slate-500 dark:text-slate-400">
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs border-none">
+          <span className="text-gray-500 dark:text-[#8E918F]">
             Hiển thị{' '}
-            <strong className="text-slate-900 dark:text-slate-100 font-bold">
+            <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
               1 - {filteredStudents.length}
             </strong>{' '}
             trên tổng số{' '}
-            <strong className="text-slate-900 dark:text-slate-100 font-bold">42</strong> học viên
+            <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">42</strong> học viên
           </span>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors disabled:opacity-40 cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40 cursor-pointer border-none bg-transparent"
             >
               <span className="material-symbols-outlined text-[17px]">chevron_left</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(1)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                currentPage === 1
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              1
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(2)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
-                currentPage === 2
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              2
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(3)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors"
-            >
-              3
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(4)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors"
-            >
-              4
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(5)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors"
-            >
-              5
-            </button>
+            {[1, 2, 3, 4, 5].map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => setCurrentPage(page)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all border-none cursor-pointer ${
+                  currentPage === page
+                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] shadow-xs'
+                    : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-black/5 dark:hover:bg-white/5 bg-transparent'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
             >
               <span className="material-symbols-outlined text-[17px]">chevron_right</span>
             </button>
@@ -715,65 +656,65 @@ export function ClassMembersTab({
       {/* 4. CLASS ANALYTICS SUMMARY CARDS (Bento style bottom section) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Chuẩn đầu ra PLO */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex items-center gap-4">
-          <div className="w-13 h-13 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200/60 dark:border-blue-900/60 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
-            <span className="material-symbols-outlined text-[28px]">verified_user</span>
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-[#162B4D] flex items-center justify-center shrink-0 text-blue-600 dark:text-[#A8C7FA]">
+            <span className="material-symbols-outlined text-[24px]">verified_user</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+            <span className="text-[11px] font-semibold text-gray-500 dark:text-[#8E918F] uppercase tracking-wide">
               Chuẩn đầu ra đợt 1
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
+              <span className="text-xl font-bold text-gray-900 dark:text-[#E3E3E3] font-mono">
                 35/42
               </span>
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+              <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA]">
                 83.3% Đạt
               </span>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-              7 sinh viên trong danh sách ôn tập tăng cường
+            <span className="text-xs text-gray-500 dark:text-[#8E918F] truncate mt-0.5">
+              7 sinh viên ôn tập tăng cường
             </span>
           </div>
         </div>
 
         {/* Card 2: Chuyên cần trung bình */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex items-center gap-4">
-          <div className="w-13 h-13 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
-            <span className="material-symbols-outlined text-[28px]">co_present</span>
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] flex items-center justify-center shrink-0 text-gray-700 dark:text-[#C4C7C5]">
+            <span className="material-symbols-outlined text-[24px]">co_present</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+            <span className="text-[11px] font-semibold text-gray-500 dark:text-[#8E918F] uppercase tracking-wide">
               Điểm chuyên cần trung bình
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
+              <span className="text-xl font-bold text-gray-900 dark:text-[#E3E3E3] font-mono">
                 91.2%
               </span>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-medium text-gray-500 dark:text-[#8E918F]">
                 Tỷ lệ có mặt
               </span>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-              Duy trì ổn định qua 8 tuần thực hành
+            <span className="text-xs text-gray-500 dark:text-[#8E918F] truncate mt-0.5">
+              Duy trì ổn định qua 8 tuần
             </span>
           </div>
         </div>
 
         {/* Card 3: Khuyến nghị AI giảng dạy */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-white dark:from-slate-900 to-indigo-50/50 dark:to-indigo-950/20 border-[3px] border-indigo-200 dark:border-indigo-800 shadow-xs flex items-center justify-between gap-4">
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex items-center justify-between gap-4">
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+            <div className="flex items-center gap-1.5 text-blue-600 dark:text-[#A8C7FA]">
               <span className="material-symbols-outlined text-[19px]">smart_toy</span>
-              <span className="text-[11px] font-bold uppercase tracking-wide">
-                Khuyến nghị AI Giáo vụ
+              <span className="text-[11px] font-semibold uppercase tracking-wide">
+                Khuyến nghị AI
               </span>
             </div>
-            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1">
+            <span className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] mt-1">
               2 Sinh viên cần can thiệp
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-              Phạm Văn Hùng &amp; Vũ Đức Long thiếu hụt bài tập cấu trúc dữ liệu.
+            <span className="text-xs text-gray-500 dark:text-[#8E918F] line-clamp-1 mt-0.5">
+              Phạm Văn Hùng &amp; Vũ Đức Long thiếu bài tập.
             </span>
           </div>
           <button
@@ -781,7 +722,7 @@ export function ClassMembersTab({
             onClick={() =>
               notify('Mở báo cáo can thiệp sư phạm AI cho 2 sinh viên hổng kiến thức AVL & Fenwick Tree')
             }
-            className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold shrink-0 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold shrink-0 transition-colors cursor-pointer border-none bg-transparent"
           >
             Chi tiết
           </button>

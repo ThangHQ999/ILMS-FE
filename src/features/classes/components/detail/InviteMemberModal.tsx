@@ -10,6 +10,7 @@ export interface InviteMemberModalProps {
   instructorName?: string;
   enrolledCount?: number;
   maxStudents?: number;
+  currentRole?: 'student' | 'teacher' | 'owner';
   onSaveSettings?: (settings: {
     autoApprove: boolean;
     limitCap: boolean;
@@ -26,9 +27,11 @@ export function InviteMemberModal({
   instructorName = 'TS. Lê Hoàng Nam',
   enrolledCount = 45,
   maxStudents = 60,
+  currentRole = 'teacher',
   onSaveSettings,
   onToast,
 }: InviteMemberModalProps) {
+  const isStudent = currentRole === 'student';
   // State
   const initialKey = `${classCode.toUpperCase()}-MATKHAU123`;
   const [enrollmentKey, setEnrollmentKey] = useState(initialKey);
@@ -177,7 +180,7 @@ export function InviteMemberModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/70 backdrop-blur-[6px] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
       id="modalOverlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -186,31 +189,28 @@ export function InviteMemberModal({
       aria-modal="true"
       aria-labelledby="invite-modal-title"
     >
-      {/* MODAL CONTAINER (3px visual border, level-3 elevation shadow) */}
-      <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl my-auto transform transition-all overflow-hidden border-[3px] border-slate-300 dark:border-slate-700 animate-in zoom-in-95 duration-200">
-        {/* Top Decorative Accent Strip */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-600 to-slate-800" />
-
+      {/* MODAL CONTAINER (MD3 borderless dialog, level-3 elevation shadow) */}
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#1E1F20] rounded-3xl shadow-2xl my-auto transform transition-all overflow-hidden border-none animate-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="px-6 py-5 flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs border border-blue-200/60 dark:border-blue-900">
-              <span className="material-symbols-outlined text-[24px]">qr_code_scanner</span>
+            <div className="w-10 h-10 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[22px]">qr_code_scanner</span>
             </div>
             <div>
               <h2
                 id="invite-modal-title"
-                className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight"
+                className="text-base sm:text-lg font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight"
               >
-                Mời thành viên &amp; Quản lý mã vào lớp
+                {isStudent ? 'Thông tin mã mời & QR tham gia lớp' : 'Mời thành viên & Quản lý mã vào lớp'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-[#8E918F] mt-0.5">
                 Lớp:{' '}
-                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                <span className="font-semibold text-gray-900 dark:text-[#E3E3E3]">
                   {classCode}
                 </span>{' '}
                 • Giảng viên phụ trách:{' '}
-                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                <span className="font-semibold text-gray-900 dark:text-[#E3E3E3]">
                   {instructorName}
                 </span>
               </p>
@@ -221,7 +221,7 @@ export function InviteMemberModal({
             type="button"
             onClick={onClose}
             aria-label="Đóng cửa sổ"
-            className="w-9 h-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 hover:text-gray-700 dark:hover:text-[#E3E3E3] flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -232,29 +232,29 @@ export function InviteMemberModal({
           {/* ROW 1: ENROLLMENT KEY & QR CODE SPLIT */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             {/* THẺ MÃ THAM GIA LỚP (ENROLLMENT KEY) - 7 cols */}
-            <div className="md:col-span-7 flex flex-col justify-between bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-5 border-[3px] border-slate-200 dark:border-slate-700 relative overflow-hidden">
+            <div className="md:col-span-7 flex flex-col justify-between bg-[#F0F4F8] dark:bg-[#131314] rounded-3xl p-6 border-none relative overflow-hidden">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-blue-600 dark:text-[#A8C7FA] flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[16px]">key</span>
                   Mã tham gia lớp (Enrollment Key)
                 </span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 font-semibold flex items-center gap-1.5 border border-blue-200/60 dark:border-blue-900 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                <span className="text-xs px-3 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-[#A8C7FA] font-medium flex items-center gap-1.5 border-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#007BFF] dark:bg-[#A8C7FA] animate-pulse" />
                   Đang kích hoạt
                 </span>
               </div>
 
               {/* Big Code Presentation */}
-              <div className="my-4 py-4 px-3 bg-white dark:bg-slate-900 rounded-xl text-center shadow-inner border border-slate-200/80 dark:border-slate-800">
+              <div className="my-4 py-4 px-3 bg-white dark:bg-[#1E1F20] rounded-2xl text-center shadow-sm dark:shadow-none border-none">
                 <span
-                  className="font-mono text-[26px] sm:text-[30px] font-extrabold tracking-widest text-blue-600 dark:text-blue-400 block select-all"
+                  className="font-mono text-[26px] sm:text-[30px] font-bold tracking-widest text-[#0B57D0] dark:text-[#A8C7FA] block select-all"
                   id="enrollmentKeyText"
                 >
                   {enrollmentKey}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block mt-1">
+                <span className="text-xs text-gray-500 dark:text-[#8E918F] block mt-1">
                   Hiệu lực đến:{' '}
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="font-semibold text-gray-800 dark:text-[#E3E3E3]">
                     23:59, 31/12/2026
                   </span>
                 </span>
@@ -265,10 +265,10 @@ export function InviteMemberModal({
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className={`flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs ${
+                  className={`flex-1 py-2.5 px-4 rounded-full font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-none ${
                     copiedKey
                       ? 'bg-emerald-600 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.99]'
+                      : 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs'
                   }`}
                   id="copyKeyBtn"
                 >
@@ -278,34 +278,36 @@ export function InviteMemberModal({
                   <span>{copiedKey ? 'Đã sao chép!' : 'Sao chép mã'}</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleResetCode}
-                  title="Tạo lại mã ngẫu nhiên"
-                  className="py-2.5 px-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
-                    cached
-                  </span>
-                  <span>Reset Code</span>
-                </button>
+                {!isStudent && (
+                  <button
+                    type="button"
+                    onClick={handleResetCode}
+                    title="Tạo lại mã ngẫu nhiên"
+                    className="py-2.5 px-4 rounded-full bg-white dark:bg-[#1E1F20] text-gray-800 dark:text-[#C4C7C5] hover:opacity-85 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border-none shadow-sm dark:shadow-none"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                      cached
+                    </span>
+                    <span>Reset Code</span>
+                  </button>
+                )}
               </div>
             </div>
 
             {/* THẺ MÃ QR CODE TƯƠNG TÁC - 5 cols */}
-            <div className="md:col-span-5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-5 border-[3px] border-slate-200 dark:border-slate-700 flex flex-col items-center justify-between text-center">
+            <div className="md:col-span-5 bg-[#F0F4F8] dark:bg-[#131314] rounded-3xl p-6 border-none flex flex-col items-center justify-between text-center">
               <div className="w-full flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-600 dark:text-[#8E918F] flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
                   Quét mã vào lớp
                 </span>
-                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                <span className="text-xs font-medium text-gray-400 dark:text-[#8E918F]">
                   Mobile App
                 </span>
               </div>
 
               {/* Crisp 160x160 SVG QR Visual */}
-              <div className="my-3 p-2 bg-white rounded-xl shadow-xs border border-slate-200/80 flex items-center justify-center">
+              <div className="my-3 p-3 bg-white rounded-2xl shadow-xs border-none flex items-center justify-center">
                 <svg
                   id="enrollment-qr-svg"
                   className="w-36 h-36"
@@ -381,9 +383,9 @@ export function InviteMemberModal({
               <button
                 type="button"
                 onClick={handleDownloadQR}
-                className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-full bg-white dark:bg-[#1E1F20] text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs hover:opacity-85 transition-opacity flex items-center justify-center gap-1.5 cursor-pointer border-none shadow-sm dark:shadow-none"
               >
-                <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
+                <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
                   download
                 </span>
                 <span>Tải ảnh QR về máy (PNG)</span>
@@ -392,19 +394,19 @@ export function InviteMemberModal({
           </div>
 
           {/* ROW 2: THẺ ĐƯỜNG LINK MỜI TRỰC TIẾP */}
-          <div className="bg-white dark:bg-slate-850 p-4 rounded-2xl border-[3px] border-slate-200 dark:border-slate-700 shadow-xs">
+          <div className="bg-[#F0F4F8] dark:bg-[#131314] p-5 rounded-3xl border-none">
             <label
               htmlFor="directInviteLink"
-              className="text-[11px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-2"
+              className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-[#8E918F] flex items-center gap-1.5 mb-2"
             >
-              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA]">
                 link
               </span>
               Đường link mời tham gia trực tiếp
             </label>
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <div className="relative w-full">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">
                   public
                 </span>
                 <input
@@ -413,16 +415,16 @@ export function InviteMemberModal({
                   readOnly
                   value={directInviteLink}
                   onClick={(e) => (e.target as HTMLInputElement).select()}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-xs text-slate-800 dark:text-slate-200 select-all focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-[#1E1F20] border-none rounded-full font-mono text-xs text-gray-800 dark:text-[#C4C7C5] select-all focus:outline-none"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className={`w-full sm:w-auto shrink-0 px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer ${
+                className={`w-full sm:w-auto shrink-0 px-5 py-2.5 rounded-full font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-none ${
                   copiedLink
                     ? 'bg-emerald-600 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95'
                 }`}
                 id="copyLinkBtn"
               >
@@ -434,153 +436,169 @@ export function InviteMemberModal({
             </div>
           </div>
 
-          {/* ROW 3: CÀI ĐẶT PHÊ DUYỆT THAM GIA (TOGGLE CONTROLS) */}
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border-[3px] border-slate-200 dark:border-slate-700 space-y-3">
-            <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 block mb-1">
-              Quy tắc phê duyệt &amp; Giới hạn sĩ số
-            </span>
+          {/* ROW 3: CÀI ĐẶT PHÊ DUYỆT THAM GIA (CHỈ HIỂN THỊ VỚI GIẢNG VIÊN/CHỦ LỚP) */}
+          {!isStudent && (
+            <div className="bg-[#F0F4F8] dark:bg-[#131314] p-5 rounded-3xl border-none space-y-3">
+              <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-[#8E918F] block mb-1">
+                Quy tắc phê duyệt &amp; Giới hạn sĩ số
+              </span>
 
-            {/* Toggle 1: Auto approve */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5 border border-blue-200/60 dark:border-blue-900">
-                  <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+              {/* Toggle 1: Auto approve */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-[#1E1F20] rounded-2xl border-none shadow-sm dark:shadow-none">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                      Tự động duyệt học viên khi có mã hợp lệ
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-[#8E918F] mt-0.5 leading-relaxed">
+                      Sinh viên nhập đúng mã sẽ vào thẳng danh sách chính thức mà không cần GV phê duyệt tay.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    Tự động duyệt học viên khi có mã hợp lệ
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                    Sinh viên nhập đúng mã sẽ vào thẳng danh sách chính thức mà không cần GV phê duyệt tay.
-                  </p>
-                </div>
-              </div>
 
-              <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                <input
-                  type="checkbox"
-                  checked={autoApprove}
-                  onChange={(e) => setAutoApprove(e.target.checked)}
-                  className="sr-only peer"
-                  id="autoApproveToggle"
-                />
-                <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
-              </label>
-            </div>
-
-            {/* Toggle 2: Capacity cap */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0 mt-0.5 border border-slate-200 dark:border-slate-700">
-                  <span className="material-symbols-outlined text-[18px]">group</span>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    Giới hạn số lượng thành viên tối đa (Hiện tại: {enrolledCount}/{maxStudents})
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                    Tự động khóa ghi danh khi đạt sĩ số {maxStudents} sinh viên.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-900">
-                  {enrolledCount} / {maxStudents}
-                </span>
                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
-                    checked={limitCap}
-                    onChange={(e) => setLimitCap(e.target.checked)}
+                    checked={autoApprove}
+                    onChange={(e) => setAutoApprove(e.target.checked)}
                     className="sr-only peer"
-                    id="limitCapToggle"
+                    id="autoApproveToggle"
                   />
-                  <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                  <div className="w-11 h-6 bg-[#E1E5EA] dark:bg-[#282A2C] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#007BFF] dark:peer-checked:bg-[#A8C7FA]" />
                 </label>
               </div>
-            </div>
-          </div>
 
-          {/* ROW 4: GỬI LỜI MỜI QUA EMAIL HÀNG LOẠT */}
-          <form
-            onSubmit={handleSendBulkInvites}
-            className="bg-white dark:bg-slate-850 p-4 rounded-2xl border-[3px] border-slate-200 dark:border-slate-700 shadow-xs space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="bulkEmailInput"
-                className="text-[11px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
-                  outgoing_mail
+              {/* Toggle 2: Capacity cap */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-[#1E1F20] rounded-2xl border-none shadow-sm dark:shadow-none">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="material-symbols-outlined text-[18px]">group</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                      Giới hạn số lượng thành viên tối đa (Hiện tại: {enrolledCount}/{maxStudents})
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-[#8E918F] mt-0.5 leading-relaxed">
+                      Tự động khóa ghi danh khi đạt sĩ số {maxStudents} sinh viên.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs font-mono font-semibold text-blue-600 dark:text-[#A8C7FA] bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1 rounded-full">
+                    {enrolledCount} / {maxStudents}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={limitCap}
+                      onChange={(e) => setLimitCap(e.target.checked)}
+                      className="sr-only peer"
+                      id="limitCapToggle"
+                    />
+                    <div className="w-11 h-6 bg-[#E1E5EA] dark:bg-[#282A2C] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#007BFF] dark:peer-checked:bg-[#A8C7FA]" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ROW 4: GỬI LỜI MỜI QUA EMAIL HÀNG LOẠT (CHỈ HIỂN THỊ VỚI GIẢNG VIÊN/CHỦ LỚP) */}
+          {!isStudent && (
+            <form
+              onSubmit={handleSendBulkInvites}
+              className="bg-[#F0F4F8] dark:bg-[#131314] p-5 rounded-3xl border-none space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="bulkEmailInput"
+                  className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-[#8E918F] flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA]">
+                    outgoing_mail
+                  </span>
+                  Gửi lời mời qua Email hàng loạt
+                </label>
+                <span className="text-xs text-gray-400 dark:text-[#8E918F]">
+                  Phân cách bằng dấu phẩy (,)
                 </span>
-                Gửi lời mời qua Email hàng loạt
-              </label>
-              <span className="text-xs text-slate-400 dark:text-slate-500">
-                Phân cách bằng dấu phẩy (,)
-              </span>
-            </div>
-
-            <div className="relative">
-              <textarea
-                id="bulkEmailInput"
-                rows={2}
-                value={bulkEmails}
-                onChange={(e) => setBulkEmails(e.target.value)}
-                placeholder="vd: sv220201@uet.vnu.edu.vn, minhle@fit.edu.vn, teamicpc@gmail.com..."
-                className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none leading-relaxed"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs">
-                <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 shrink-0">
-                  info
-                </span>
-                <span>Sinh viên sẽ nhận email chứa hướng dẫn kèm mã kích hoạt ngay lập tức.</span>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSending}
-                className="w-full sm:w-auto shrink-0 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
-                id="sendInviteBtn"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {isSending ? 'sync' : 'forward_to_inbox'}
-                </span>
-                <span>{isSending ? 'Đang gửi...' : 'Gửi thư mời tự động'}</span>
-              </button>
-            </div>
-          </form>
+              <div className="relative">
+                <textarea
+                  id="bulkEmailInput"
+                  rows={2}
+                  value={bulkEmails}
+                  onChange={(e) => setBulkEmails(e.target.value)}
+                  placeholder="vd: sv220201@uet.vnu.edu.vn, minhle@fit.edu.vn, teamicpc@gmail.com..."
+                  className="w-full p-4 bg-white dark:bg-[#1E1F20] border-none rounded-2xl font-mono text-xs text-gray-800 dark:text-[#C4C7C5] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] focus:outline-none transition-all resize-none leading-relaxed"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-1.5 text-gray-500 dark:text-[#8E918F] text-xs">
+                  <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA] shrink-0">
+                    info
+                  </span>
+                  <span>Sinh viên sẽ nhận email chứa hướng dẫn kèm mã kích hoạt ngay lập tức.</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="w-full sm:w-auto shrink-0 px-5 py-2.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                  id="sendInviteBtn"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {isSending ? 'sync' : 'forward_to_inbox'}
+                  </span>
+                  <span>{isSending ? 'Đang gửi...' : 'Gửi thư mời tự động'}</span>
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200/80 dark:border-slate-800 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
+        <div className="px-6 py-4 border-t border-black/5 dark:border-white/5 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-gray-500 dark:text-[#8E918F] text-xs">
+            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA]">
               lock
             </span>
-            <span>Bảo mật: Chỉ thành viên được mời mới truy cập tài liệu {classCode}</span>
+            <span>Bảo mật: Chỉ thành viên có mã hoặc link mời mới truy cập lớp {classCode}</span>
           </div>
 
           <div className="flex items-center gap-2.5 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              Đóng lại
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveSettings}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">save</span>
-              <span>Lưu thiết lập mã lớp</span>
-            </button>
+            {isStudent ? (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs transition-all cursor-pointer border-none"
+              >
+                Đóng
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full font-semibold text-xs transition-all cursor-pointer border-none"
+                >
+                  Đóng lại
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-6 py-2.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer border-none"
+                >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  <span>Lưu thiết lập mã lớp</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

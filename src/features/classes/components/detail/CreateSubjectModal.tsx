@@ -127,7 +127,7 @@ export function CreateSubjectModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div
-        className="bg-white dark:bg-[#1E1F20] rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-subject-title"
@@ -135,7 +135,7 @@ export function CreateSubjectModal({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">auto_stories</span>
             </div>
             <div>
@@ -303,19 +303,19 @@ export function CreateSubjectModal({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5 dark:border-white/5">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs transition-all flex items-center gap-2 cursor-pointer border-none disabled:opacity-50"
             >
               {isLoading ? (
                 <>

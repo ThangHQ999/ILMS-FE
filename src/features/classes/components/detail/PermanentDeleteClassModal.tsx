@@ -86,32 +86,32 @@ export function PermanentDeleteClassModal({
   return (
     <div
       id="delete-modal"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/65 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-modal-title"
     >
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between gap-4">
+        <div className="p-6 pb-2 border-none flex items-start justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400 flex items-center justify-center border-[3px] border-red-200 dark:border-red-900/60 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-[#3C1919] text-red-600 dark:text-[#F28B82] flex items-center justify-center shrink-0 border-none">
               <span className="material-symbols-outlined text-[24px]">warning</span>
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3
                   id="delete-modal-title"
-                  className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight"
+                  className="text-lg font-bold text-gray-900 dark:text-[#E3E3E3] leading-tight"
                 >
                   Xác nhận xóa vĩnh viễn lớp học?
                 </h3>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                <span className="text-[10px] font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/60 px-2.5 py-0.5 rounded-full border border-red-200 dark:border-red-900/60">
+                <span className="text-[10px] font-bold text-red-700 dark:text-[#F28B82] bg-red-50 dark:bg-[#3C1919] px-2.5 py-0.5 rounded-full border-none">
                   Hành động nguy hiểm cấp cao
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <span className="text-xs text-gray-500 dark:text-[#8E918F] font-medium">
                   ID: {classId}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export function PermanentDeleteClassModal({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-500 dark:text-[#8E918F] hover:text-gray-900 dark:hover:text-[#E3E3E3] flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer border-none"
             aria-label="Đóng modal"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -129,23 +129,23 @@ export function PermanentDeleteClassModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleDelete} className="p-5 sm:p-6 space-y-5">
+        <form onSubmit={handleDelete} className="p-6 space-y-4">
           {/* Destructive Warning Banner */}
-          <div className="p-4 rounded-2xl bg-red-50/70 dark:bg-red-950/30 border-[3px] border-red-500/40 text-xs text-red-800 dark:text-red-300 space-y-1.5">
-            <div className="flex items-center gap-2 font-bold text-red-700 dark:text-red-300">
+          <div className="p-4 rounded-2xl bg-red-50 dark:bg-[#3C1919]/40 border-none text-xs text-red-800 dark:text-[#F28B82] space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-red-700 dark:text-[#F28B82]">
               <span className="material-symbols-outlined text-[18px]">error</span>
               <span>Hành động này mang tính hủy diệt và KHÔNG THỂ HOÀN TÁC.</span>
             </div>
-            <p className="leading-relaxed text-slate-600 dark:text-slate-300">
-              Toàn bộ đồ thị tri thức, kho học liệu, bảng điểm sinh viên, bài nộp và dữ liệu đồng bộ AI Socratic Tutor thuộc lớp{' '}
-              <strong className="text-slate-900 dark:text-white font-bold">{classNameTitle}</strong>{' '}
+            <p className="leading-relaxed text-gray-600 dark:text-[#C4C7C5]">
+              Toàn bộ đồ thị tri thức, kho học liệu, bảng điểm sinh viên, bài nộp và dữ liệu AI thuộc lớp{' '}
+              <strong className="text-gray-900 dark:text-[#E3E3E3] font-bold">{classNameTitle}</strong>{' '}
               sẽ bị xóa sạch hoàn toàn khỏi máy chủ đào tạo.
             </p>
           </div>
 
           {/* Error Message if API fails */}
           {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border-[2px] border-rose-300 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+            <div className="p-3.5 rounded-2xl bg-red-100 dark:bg-[#3C1919] text-xs text-red-700 dark:text-[#F28B82] flex items-start gap-2 border-none">
               <span className="material-symbols-outlined text-[18px] shrink-0">report</span>
               <span className="leading-relaxed">{errorMessage}</span>
             </div>
@@ -153,12 +153,12 @@ export function PermanentDeleteClassModal({
 
           {/* Step 1: Confirm Code */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+            <label className="block text-xs font-bold text-gray-700 dark:text-[#C4C7C5]">
               Bước 1: Nhập chính xác mã lớp học để xác thực
             </label>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-gray-500 dark:text-[#8E918F]">
               Vui lòng nhập{' '}
-              <span className="font-mono font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/80 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900">
+              <span className="font-mono font-bold text-red-600 dark:text-[#F28B82] bg-red-100 dark:bg-[#3C1919] px-2 py-0.5 rounded-full border-none">
                 {targetCode}
               </span>{' '}
               vào ô bên dưới:
@@ -171,11 +171,7 @@ export function PermanentDeleteClassModal({
                 placeholder={`Nhập ${targetCode}`}
                 disabled={isLoading}
                 autoComplete="off"
-                className={`w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono tracking-wider bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 border-[3px] transition-all outline-none ${
-                  isCodeMatch
-                    ? 'border-emerald-500 focus:border-emerald-600 bg-emerald-50/20 dark:bg-emerald-950/20'
-                    : 'border-slate-300 dark:border-slate-700 focus:border-red-500'
-                }`}
+                className="w-full px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-mono tracking-wider bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none transition-all outline-none"
               />
               {isCodeMatch && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 flex items-center">
@@ -193,7 +189,7 @@ export function PermanentDeleteClassModal({
 
           {/* Step 2: Confirm Password */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+            <label className="block text-xs font-bold text-gray-700 dark:text-[#C4C7C5]">
               Bước 2: Xác nhận mật khẩu quản trị hoặc tài khoản giảng viên
             </label>
             <div className="relative mt-1">
@@ -203,13 +199,13 @@ export function PermanentDeleteClassModal({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Nhập mật khẩu tài khoản của bạn..."
                 disabled={isLoading}
-                className="w-full pl-4 pr-11 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 border-[3px] border-slate-300 dark:border-slate-700 focus:border-red-500 transition-all outline-none"
+                className="w-full pl-4 pr-11 py-2.5 rounded-2xl text-xs sm:text-sm bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none transition-all outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-[#E3E3E3] p-1 border-none bg-transparent cursor-pointer"
                 title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -220,7 +216,7 @@ export function PermanentDeleteClassModal({
           </div>
 
           {/* Step 3: Risk Acceptance Checkbox */}
-          <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-[2px] border-slate-200 dark:border-slate-700/80 cursor-pointer select-none">
+          <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] cursor-pointer select-none border-none">
             <input
               type="checkbox"
               checked={isRiskAccepted}
@@ -228,14 +224,14 @@ export function PermanentDeleteClassModal({
               disabled={isLoading}
               className="mt-0.5 w-4 h-4 rounded text-red-600 accent-red-600 cursor-pointer"
             />
-            <span className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+            <span className="text-xs text-gray-700 dark:text-[#C4C7C5] leading-relaxed font-medium">
               Tôi hiểu rõ rủi ro và xác nhận xóa toàn bộ dữ liệu lớp học vĩnh viễn khỏi hệ thống đào tạo.
             </span>
           </label>
 
           {/* Modal Footer */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs">
+          <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-none">
+            <div className="flex items-center gap-1.5 text-gray-500 dark:text-[#8E918F] text-xs">
               <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">
                 verified_user
               </span>
@@ -247,18 +243,18 @@ export function PermanentDeleteClassModal({
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2.5 rounded-full text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] transition-colors disabled:opacity-50 cursor-pointer border-none bg-transparent"
               >
                 Hủy bỏ (Esc)
               </button>
               <button
                 type="submit"
                 disabled={!isFormValid || isLoading}
-                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-red-100 dark:bg-[#F2B8B5] text-red-900 dark:text-[#601410] hover:brightness-95 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-none"
               >
                 {isLoading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     <span>Đang xóa vĩnh viễn...</span>
                   </>
                 ) : (

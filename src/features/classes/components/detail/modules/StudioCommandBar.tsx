@@ -30,7 +30,7 @@ export function StudioCommandBar({
   onAddChapterClick,
 }: StudioCommandBarProps) {
   return (
-    <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <div className="p-5 sm:p-6 bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-all">
       {/* Left Controls: Switcher & Filter */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         {/* Edit Mode Toggle Pill */}
@@ -39,15 +39,15 @@ export function StudioCommandBar({
             e.preventDefault();
             onToggleEditMode();
           }}
-          className={`cursor-pointer select-none inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border-[2px] transition-all ${
+          className={`cursor-pointer select-none inline-flex items-center gap-2 px-4 py-1.5 rounded-full border-none transition-all ${
             isEditMode
-              ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-600'
-              : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700'
+              ? 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+              : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
           }`}
         >
           <div
             className={`w-9 h-5 rounded-full transition-colors relative flex items-center p-0.5 ${
-              isEditMode ? 'bg-blue-600' : 'bg-slate-400 dark:bg-slate-600'
+              isEditMode ? 'bg-[#007BFF] dark:bg-[#A8C7FA]' : 'bg-gray-400 dark:bg-gray-600'
             }`}
           >
             <div
@@ -56,28 +56,22 @@ export function StudioCommandBar({
               }`}
             />
           </div>
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
+          <span className="text-xs font-semibold flex items-center gap-1">
+            <span className="material-symbols-outlined text-[18px]">
               tune
             </span>
             <span>Chế độ Chỉnh sửa:</span>
-            <span
-              className={`underline decoration-2 underline-offset-4 ${
-                isEditMode
-                  ? 'text-blue-600 dark:text-blue-400 font-extrabold'
-                  : 'text-slate-500'
-              }`}
-            >
+            <span className="font-bold">
               {isEditMode ? 'ĐANG BẬT' : 'ĐANG TẮT'}
             </span>
           </span>
         </label>
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+        <div className="h-6 w-px bg-black/10 dark:bg-white/10 hidden sm:block" />
 
         {/* Filter & Search in syllabus */}
         <div className="relative flex items-center">
-          <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
+          <span className="material-symbols-outlined absolute left-3 text-gray-400 dark:text-[#8E918F] text-[18px]">
             search
           </span>
           <input
@@ -85,19 +79,19 @@ export function StudioCommandBar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm kiếm bài giảng, mã lab, tài liệu..."
-            className="pl-9 pr-3 py-1.5 w-60 sm:w-64 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+            className="pl-9 pr-4 py-2 w-60 sm:w-64 rounded-full bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] text-xs border-none outline-none transition-all font-medium"
           />
         </div>
 
         {/* Status Filter Buttons */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex items-center gap-1 bg-[#E1E5EA] dark:bg-[#282A2C] p-1 rounded-full">
           <button
             type="button"
             onClick={() => onStatusFilterChange('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
               statusFilter === 'all'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
             }`}
           >
             Tất cả ({counts.all})
@@ -105,10 +99,10 @@ export function StudioCommandBar({
           <button
             type="button"
             onClick={() => onStatusFilterChange('published')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
               statusFilter === 'published'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
             }`}
           >
             Đã xuất bản ({counts.published})
@@ -116,10 +110,10 @@ export function StudioCommandBar({
           <button
             type="button"
             onClick={() => onStatusFilterChange('draft')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
               statusFilter === 'draft'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
             }`}
           >
             Bản nháp ({counts.draft})
@@ -132,25 +126,25 @@ export function StudioCommandBar({
         <button
           type="button"
           onClick={onStudentViewClick}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
         >
-          <span className="material-symbols-outlined text-[17px] text-slate-500">visibility</span>
+          <span className="material-symbols-outlined text-[17px] text-gray-500 dark:text-[#8E918F]">visibility</span>
           <span>Xem góc nhìn học sinh</span>
         </button>
 
         <button
           type="button"
           onClick={onBatchUploadClick}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
         >
-          <span className="material-symbols-outlined text-[17px] text-slate-500">upload_file</span>
+          <span className="material-symbols-outlined text-[17px] text-gray-500 dark:text-[#8E918F]">upload_file</span>
           <span>Tải lên hàng loạt</span>
         </button>
 
         <button
           type="button"
           onClick={onAddLessonClick}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold transition-all shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold transition-all cursor-pointer border-none"
         >
           <span className="material-symbols-outlined text-[17px]">post_add</span>
           <span>+ Thêm Bài học</span>
@@ -159,7 +153,7 @@ export function StudioCommandBar({
         <button
           type="button"
           onClick={onAddChapterClick}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold transition-all shadow-xs cursor-pointer border-none"
         >
           <span className="material-symbols-outlined text-[17px]">create_new_folder</span>
           <span>+ Thêm Chương mới</span>
