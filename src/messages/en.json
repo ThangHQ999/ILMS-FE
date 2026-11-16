@@ -245,6 +245,24 @@
       "openEmailApp": "Open Email App",
       "resendCountdown": "Resend Email ({seconds}s)",
       "resendNow": "Resend Email Now"
+    },
+    "resetPasswordPage": {
+      "backToPlatform": "Back to Platform",
+      "supportAssistance": "Support & Assistance",
+      "securityBadge": "Security",
+      "formTitle": "Reset Your Password",
+      "formDescription": "Please enter a new password with at least 8 characters to secure your account.",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Minimum 8 characters",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "submitButton": "Update Password",
+      "submitting": "Updating...",
+      "successTitle": "Password Reset Successfully!",
+      "successDescription": "Your password has been updated successfully. You can now sign in with your new password.",
+      "loginNow": "Sign In Now",
+      "missingToken": "Missing authentication token in reset password link. Please verify the link in your email.",
+      "backToLogin": "Back to Sign In"
     }
   },
   "onboarding": {
@@ -495,6 +513,236 @@
       "terms": "Terms of Service",
       "privacy": "Privacy Policy",
       "contact": "Contact Us"
+    },
+    "story": {
+      "stationNavLabel": "Navigate knowledge stations",
+      "scenes": {
+        "hero": "01 • Launch Station",
+        "socratic": "02 • Socratic Dialectic",
+        "classroom": "03 • Smart Classroom",
+        "bloom": "04 • Bloom Mastery Tower",
+        "action": "05 • Get Started"
+      },
+      "roleSwitcher": {
+        "label": "Select experience perspective",
+        "student": "Student Perspective",
+        "teacher": "Instructor Perspective"
+      },
+      "hero": {
+        "studentTitle1": "Master Deep Thinking with",
+        "studentTitleHighlight": "Socratic Owl AI Tutor.",
+        "teacherTitle1": "Architect Smart Classrooms with",
+        "teacherTitleHighlight": "Knowledge Graph & AI.",
+        "studentSub": "Instead of handing out passive answers, our wise Socratic Owl guides you step-by-step through complex problems and heals knowledge gaps on a live 3D graph.",
+        "teacherSub": "Automatically extract knowledge entities from syllabi, monitor real-time EduPulse comprehension metrics, and generate Bloom-aligned quizzes in 3 seconds.",
+        "playgroundTitle": "Challenge the Socratic Owl Live",
+        "playgroundHint": "Tap a topic pill or type any question",
+        "askOwlBtn": "Ask Owl AI",
+        "explore3DBtn": "Explore 3D Journey",
+        "mascotBadge": "Socratic Owl AI • Live Online",
+        "nextHintBtn": "Next Hint",
+        "tagTop": "24/7 Socratic Guidance",
+        "tagBottom": "Zero Passive Copying",
+        "mascotDefaultQuote": "Hello! Tap me or pick a sample problem on the left to experience how I guide your critical thinking!",
+        "customReply": "Great question about \"{query}\"! Before jumping to the final formula, which input variable do you think governs the boundary state of this problem?",
+        "samples": {
+          "calculus": {
+            "subject": "📐 Calculus & Algebra",
+            "question": "Why does a quadratic equation with Δ = 0 produce a double root?",
+            "hint": "Look at the distance between the two x-axis intercepts when the parabola vertex touches the axis: what is the value of √Δ at that moment?",
+            "followUp": "Spot on! When √Δ = 0, both symmetric branches converge to the single vertex coordinate x = -b / (2a)."
+          },
+          "physics": {
+            "subject": "⚡ Mechanics & Energy",
+            "question": "How can we find impact velocity without knowing the time of fall?",
+            "hint": "At maximum height h_max, all energy is stored as potential energy. At ground impact (h = 0), where has that potential energy transformed?",
+            "followUp": "Brilliant! Equating peak potential energy to kinetic energy cancels mass m and yields v = √(2gh)."
+          },
+          "algorithms": {
+            "subject": "💻 Graph & Trees",
+            "question": "Why does a Segment Tree array require up to 4*N allocated elements?",
+            "hint": "A full binary tree with N leaves has height h = ⌈log₂N⌉. What is the maximum total node count of a binary tree of height h + 1?",
+            "followUp": "Exactly! The maximum node count is 2^(⌈log₂N⌉ + 1) - 1, which is strictly bounded by 4N."
+          }
+        }
+      },
+      "socratic": {
+        "badge": "Station 02 • Socratic Dialectic Method",
+        "title": "No Passive Spoon-Feeding — Awaken Root Understanding",
+        "subtitle": "Traditional chatbots output full answers that students copy and forget. Our Socratic Owl asks targeted guiding questions so learners discover principles themselves.",
+        "traditionalTitle": "Traditional AI Chatbots",
+        "traditionalDesc": "Dumps full solutions in 1 second → Students copy passively without grasping core logic and forget 80% of material right after exams.",
+        "ilmsTitle": "ILMS Socratic Owl Coach",
+        "ilmsDesc": "Breaks problems into a 3-step guiding inquiry → Activates deep analytical neural pathways with 94% long-term retention.",
+        "labTitle": "Interactive 3-Step Socratic Reasoning Lab",
+        "clickStepHint": "Click each step to unlock the reasoning chain",
+        "stepLabel": "Step 0{num}",
+        "studentTag": "Student",
+        "nextStepBtn": "Proceed to next step",
+        "tagTop": "Step-by-Step Inquiry",
+        "tagBottom": "+94% Deep Retention",
+        "mascotQuote2": "One well-crafted guiding question is worth ten ready-made answers!",
+        "mascotQuote3": "Break down each physical quantity calmly—you are already 80% there!",
+        "steps": {
+          "s1": {
+            "title": "Isolate Boundary Conditions",
+            "student": "I am stuck on the pendulum problem: how do I find velocity at the equilibrium point?",
+            "owl": "Hold off on memorizing formulas! At the highest turning point of the swing, what is the pendulum's instantaneous velocity?",
+            "badge": "Step 1 • Identify Anchor State"
+          },
+          "s2": {
+            "title": "Connect Conservation Laws",
+            "student": "Aha! At the highest point, velocity is 0 so kinetic energy is 0!",
+            "owl": "Sharp observation! Now as it swings down to the lowest point, what does the lost potential energy Δh convert into?",
+            "badge": "Step 2 • Energy Transformation"
+          },
+          "s3": {
+            "title": "Derive the Formula Yourself",
+            "student": "It converts entirely into kinetic energy ½mv²! Canceling m on both sides gives v = √(2g·Δh)!",
+            "owl": "Outstanding! You just proved the time-independent velocity equation yourself without rote memorization!",
+            "badge": "Step 3 • True Mastery"
+          }
+        }
+      },
+      "classroom": {
+        "badge": "Station 03 • Virtual Smart Classroom & Knowledge Graph",
+        "title": "X-Ray Competency Diagnostics on a 3D Knowledge Mesh",
+        "subtitle": "Every concept in your curriculum is mapped into a living constellation. Click any node on the graph to inspect real-time mastery and prerequisite gaps.",
+        "graphCardTitle": "Interactive Constellation Knowledge Map",
+        "clickNodeHint": "Tap any node on the graph to inspect diagnostics",
+        "kpi1Teacher": "Automated AI Attendance & Sync",
+        "kpi1Student": "Knowledge Graph Node Coverage",
+        "kpi2": "Learning Gap Recovery Velocity",
+        "kpi3": "Personalized Socratic Mentorship",
+        "tagTop": "Neo4j Graph Engine",
+        "tagBottom": "28+ Connected Entities",
+        "mascotQuote2": "Whenever an advanced node turns red, I trace back to the exact prerequisite concept you need to shore up!",
+        "mascotQuote3": "Every PDF or slide deck uploaded by instructors is automatically parsed into this interactive graph!",
+        "nodes": {
+          "recursion": {
+            "title": "Recursion",
+            "category": "Foundation Node • Mastered",
+            "diagnostic": "Solid grasp of base cases and call stack recursion trees.",
+            "action": "Ready for Dynamic Programming"
+          },
+          "pointers": {
+            "title": "Pointers & Memory",
+            "category": "Gap Detected • Needs Reinforcement",
+            "diagnostic": "Warning: Confusion detected in dynamic heap allocation and tree node pointer references.",
+            "action": "Start 3 Targeted Remedial Labs"
+          },
+          "dp": {
+            "title": "Dynamic Programming",
+            "category": "Core Node • Mastered",
+            "diagnostic": "Strong optimization of overlapping subproblems and 2D state transitions.",
+            "action": "Unlock ICPC Challenge Set"
+          },
+          "segmentTree": {
+            "title": "Segment Tree",
+            "category": "Active Node • 74% Progress",
+            "diagnostic": "Mastered O(log N) range queries; currently practicing Lazy Propagation updates.",
+            "action": "Continue Lazy Update Lab"
+          },
+          "dijkstra": {
+            "title": "Dijkstra Graph",
+            "category": "Advanced Node • Mastered",
+            "diagnostic": "Optimal priority queue shortest-path implementation verified.",
+            "action": "View Skill Credential"
+          },
+          "fenwick": {
+            "title": "Fenwick Tree",
+            "category": "Gap Detected • Review Recommended",
+            "diagnostic": "Needs practice isolating lowest set bits using bitwise (idx & -idx).",
+            "action": "Open Socratic Bitwise Guide"
+          }
+        }
+      },
+      "bloom": {
+        "badge": "Station 04 • International Bloom's Taxonomy Ascent",
+        "title": "Climb the 6-Tier Bloom Cognitive Mastery Tower",
+        "subtitle": "ILMS continuously measures and elevates learner cognition from foundational Recall up to Critical Evaluation and Original Creation.",
+        "towerTitle": "6-Tier Isometric Bloom Tower & 6-Axis Radar",
+        "clickTierHint": "Tap any tower tier to morph the live Competency Radar",
+        "tagTop": "Bloom's Taxonomy Standard",
+        "tagBottom": "Multi-Axis Assessment",
+        "mascotQuoteDefault": "The pinnacle of education is not repeating facts—it is architecting brand-new solutions!",
+        "levels": {
+          "l1": {
+            "name": "Remember",
+            "badge": "Tier 1 • Foundational Recall",
+            "desc": "Accurately identify core definitions, constants, and fundamental data structures.",
+            "sample": "Sample L1 Prompt: Define a Binary Search Tree and state its space complexity."
+          },
+          "l2": {
+            "name": "Understand",
+            "badge": "Tier 2 • Conceptual Interpretation",
+            "desc": "Explain underlying principles in your own words and illustrate with concrete examples.",
+            "sample": "Sample L2 Prompt: Why does binary search strictly require a pre-sorted input array?"
+          },
+          "l3": {
+            "name": "Apply",
+            "badge": "Tier 3 • Practical Execution",
+            "desc": "Deploy theorems and algorithms to solve real-world practical exercises.",
+            "sample": "Sample L3 Prompt: Implement Dijkstra's algorithm to route traffic across a 1,000-node city grid."
+          },
+          "l4": {
+            "name": "Analyze",
+            "badge": "Tier 4 • Structural Deconstruction",
+            "desc": "Deconstruct complex systems, uncover bottlenecks, and compare hidden trade-offs.",
+            "sample": "Sample L4 Prompt: Analyze why QuickSort degrades to O(N²) under poor pivot selection."
+          },
+          "l5": {
+            "name": "Evaluate",
+            "badge": "Tier 5 • Critical Judgment",
+            "desc": "Benchmark competing architectures and justify the optimal engineering trade-off.",
+            "sample": "Sample L5 Prompt: Between Segment Tree and Fenwick Tree, which is more memory-optimal for dynamic prefix sums?"
+          },
+          "l6": {
+            "name": "Create",
+            "badge": "Tier 6 • Original Synthesis",
+            "desc": "Synthesize cross-disciplinary knowledge to design novel models, algorithms, or systems.",
+            "sample": "L6 Challenge: Architect a hybrid graph index supporting real-time queries for 1 million concurrent learners!"
+          }
+        }
+      },
+      "conversion": {
+        "stats": {
+          "s1": "Active Students & Faculty",
+          "s2": "Socratic AI Dialogue Sessions",
+          "s3": "Partner Universities & Institutes",
+          "s4": "Deep Comprehension Gain"
+        },
+        "faqBadge": "Frequently Asked Questions",
+        "faqTitle": "Everything You Need to Know Before Takeoff",
+        "ctaBadge": "Ready for AI Education 3.0",
+        "ctaTitle": "Launch Your Intelligent Learning Workspace Today",
+        "ctaSub": "Join over 120,000+ students and educators mastering complex subjects with 24/7 Socratic Owl mentorship.",
+        "ctaPrimaryBtn": "Create Free Account Now",
+        "ctaSecondaryBtn": "Explore Plans & Pricing",
+        "ctaGuarantee": "Free Forever Starter Plan • ISO 27001 Security • 24/7 Support",
+        "faqs": {
+          "q1": {
+            "tag": "AI Methodology",
+            "q": "How is the ILMS Socratic Owl different from ChatGPT or standard AI tools?",
+            "a": "Standard AI tools dump full answers that encourage passive copying. ILMS Socratic Owl is trained on dialectical pedagogy: it pinpoints the exact step where you are stuck and asks targeted guiding questions with visual formulas so you achieve true understanding."
+          },
+          "q2": {
+            "tag": "For Instructors",
+            "q": "What happens when an instructor uploads a PDF syllabus or slide deck?",
+            "a": "Within seconds, our background AI workers extract core knowledge entities, construct an interactive classroom Knowledge Graph, and generate Bloom-tiered quiz banks automatically."
+          },
+          "q3": {
+            "tag": "Cross-Device",
+            "q": "Does the platform run smoothly on smartphones and tablets?",
+            "a": "Yes! Every classroom view, LaTeX math formula, competency radar, and 3D tilt interaction is hardware-accelerated and touch-optimized for 60 FPS on mobile and desktop."
+          },
+          "q4": {
+            "tag": "Pricing",
+            "q": "How long can I use the free plan?",
+            "a": "You can sign up and use our Starter (Free) plan indefinitely with 1.0 GB of Cloud Lab storage and daily Socratic AI mentorship—no credit card required."
+          }
+        }
+      }
     }
   },
   "dashboard": {
@@ -511,7 +759,7 @@
     "home": "Home",
     "algorithms": "Algorithms",
     "learningSpace": "Learning Workspace",
-    "searchPlaceholder": "Search lessons, courses, knowledge nodes...",
+    "searchPlaceholder": "Search classes, lectures, materials...",
     "learningArea": "Learning Area",
     "navOverview": "Overview",
     "navCourses": "My Classes",
@@ -602,7 +850,6 @@
     "quickPrompts": "Quick Thinking Prompts",
     "quickPrompt1": "💡 Explain AVL left rotation",
     "quickPrompt2": "🎯 Review yesterday's Quiz questions",
-    "quickPrompt3": "📐 Tree balancing theorem summary",
     "inputPlaceholder": "Ask questions, paste C++ code or math formula... (Shift + Enter for new line)",
     "attachFileTooltip": "Attach file or document",
     "insertCodeTooltip": "Insert code block",
@@ -898,9 +1145,9 @@
     "tabSupportTitle": "Support & About",
     "tabSupportSubtitle": "Documentation, CS help, version",
     "menuCategoriesTitle": "Settings Categories",
-    "quotaExpiresAt": "Expires Dec 15, 2025",
+    "quotaExpiresAt": "Lifetime Plan",
     "cloudQuotaTitle": "Cloud Sandbox Storage",
-    "usedPercentage": "78% used",
+    "usedPercentage": "{percent}% used",
     "btnExpandStorage": "Upgrade storage",
     "badgeHeaderTag": "System & Account",
     "mainPageTitle": "Settings & System Preferences",
@@ -1332,6 +1579,201 @@
     },
     "errors": {
       "loadFailed": "Failed to load assignments & quizzes"
+    }
+  },
+  "sidebar": {
+    "generalGroup": "GENERAL WORKSPACE",
+    "aiGroup": "INTERACTION & AI",
+    "navOverview": "Overview",
+    "navMyClasses": "My Classes",
+    "navMaterials": "Learning Hub",
+    "navSchedule": "Schedule",
+    "navAssignments": "Assignments & Quiz",
+    "navGraph": "Knowledge Graph",
+    "navAiTutor": "AI Assistant",
+    "navDiscussions": "Discussions",
+    "navHelp": "Help & Support",
+    "navSettings": "Account Settings",
+    "semesterBadge": "Semester II - 2024",
+    "systemVersion": "v2.5",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
+  },
+  "pricing": {
+    "header": {
+      "courses": "Courses",
+      "knowledgeGraph": "Knowledge Graph",
+      "pricing": "Pricing",
+      "aiTutor": "AI Tutor",
+      "streakDays": "{days} Day streak",
+      "notifications": "Notifications",
+      "login": "Sign In",
+      "register": "Get Started Free",
+      "userAvatar": "Account",
+      "dashboard": "Dashboard"
+    },
+    "hero": {
+      "chip": "ILMS Platform • Membership & Upgrades",
+      "title": "Unleash the Power of Socratic AI & Knowledge Graphs",
+      "subtitle": "Expand cloud storage, unlock deep reasoning models, and explore multi-layered knowledge graphs for optimized teaching and learning.",
+      "currentPlan": "Current plan:",
+      "defaultPlan": "Basic (Free)",
+      "dailyResetHint": "Quotas reset daily at 00:00 (GMT+7)",
+      "storage": "Storage",
+      "aiSocratic": "Socratic AI"
+    },
+    "billingToggle": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "savePercent": "Save 20%"
+    },
+    "cards": {
+      "monthlyUnit": "/ month",
+      "yearlyUnit": "/ month",
+      "lifetimeUnit": "/ Lifetime",
+      "currentPlanBtn": "Current Plan",
+      "upgradePlusBtn": "Upgrade to Plus",
+      "chooseProBtn": "Choose Pro",
+      "chooseEnterpriseBtn": "Get Enterprise",
+      "recommendedBadge": "Recommended",
+      "free": {
+        "badge": "Personal",
+        "name": "Basic Plan",
+        "description": "Get familiar with the ILMS smart learning ecosystem.",
+        "features": [
+          "1 GB cloud storage",
+          "Up to 3 concurrent courses",
+          "20 Socratic AI queries / day",
+          "Create 5 basic knowledge graphs",
+          "No automated quiz generation"
+        ]
+      },
+      "plus": {
+        "badge": "Students & Lecturers",
+        "name": "Plus Plan",
+        "description": "Full Socratic AI tutoring and interactive knowledge graphs.",
+        "features": [
+          "15 GB HD video & file storage",
+          "Manage up to 15 courses",
+          "300 Socratic AI queries / day",
+          "30 Interactive knowledge graphs",
+          "Automated Quiz generation from PDF & Slides"
+        ]
+      },
+      "pro": {
+        "badge": "Professional",
+        "name": "Pro Plan",
+        "description": "For principal lecturers, researchers, and project leads.",
+        "features": [
+          "50 GB high-speed SSD storage",
+          "Manage up to 50 courses & groups",
+          "1,000 AI Deep Reasoning queries / day",
+          "150 Knowledge Graphs & Vector Search",
+          "Automated Essay grading with AI"
+        ]
+      },
+      "enterprise": {
+        "badge": "Organization",
+        "name": "Enterprise Plan",
+        "description": "Comprehensive scalable solution for institutions and universities.",
+        "features": [
+          "200 GB+ dedicated storage",
+          "Unlimited courses & students",
+          "Unlimited Socratic & Deep AI",
+          "Custom domain & Organization branding",
+          "24/7 SLA 99.9% support"
+        ]
+      }
+    },
+    "table": {
+      "title": "Detailed Feature Comparison",
+      "subtitle": "Technical specifications and allocated quotas per membership tier.",
+      "columns": {
+        "feature": "Features",
+        "free": "Basic",
+        "plus": "Plus",
+        "pro": "Pro",
+        "enterprise": "Enterprise"
+      },
+      "rows": {
+        "storage": "Cloud Storage Capacity",
+        "aiInteractions": "Daily AI Assistant Queries",
+        "knowledgeGraphs": "Interactive Knowledge Graphs",
+        "quizGeneration": "Automated AI Quiz from Documents",
+        "courseLimit": "Managed Course Limit",
+        "essayGrading": "Automated Essay Grading with AI",
+        "customDomain": "Custom Domain & Branding",
+        "supportLevel": "Technical Support"
+      },
+      "unlimited": "Unlimited",
+      "standardSupport": "Standard (Email)",
+      "priorityTicket": "Priority (24h Ticket)",
+      "prioritySla": "1-on-1 Support (SLA 4h)",
+      "dedicatedSla": "Dedicated 24/7 (SLA 99.9%)"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Billing policies and subscriptions on ILMS.",
+      "items": [
+        {
+          "q": "Can I be both a Lecturer and a Student under the same plan?",
+          "a": "Yes. Your ILMS account seamlessly transitions between Teaching and Learning workspaces within a single subscription at no extra fee."
+        },
+        {
+          "q": "Will my data and Knowledge Graphs be deleted if my plan expires?",
+          "a": "No. Your data is preserved safely in Read-Only mode. You can still view and export your existing graphs and documents anytime."
+        },
+        {
+          "q": "Which payment methods are supported?",
+          "a": "We support instant bank transfers via VietQR (Napas 24/7 auto-activated within 5 seconds), MoMo / ZaloPay e-wallets, and Visa/Mastercard."
+        },
+        {
+          "q": "Will I receive an official VAT e-invoice?",
+          "a": "Yes. All subscription upgrades automatically issue compliant VAT e-invoices directly to your registered email address upon successful payment."
+        }
+      ]
+    },
+    "modal": {
+      "title": "Checkout {planName}",
+      "badgeMonthly": "{planName} • 30 days",
+      "badgeYearly": "{planName} • 365 days",
+      "step1": {
+        "badge": "Step 1 / 2",
+        "title": "Select Payment Method",
+        "vietqr": "VietQR Bank Transfer",
+        "vietqrDesc": "Scan with any banking app",
+        "auto247": "Auto 24/7",
+        "momo": "MoMo / ZaloPay Wallet",
+        "momoDesc": "Electronic wallet gateway",
+        "orderSummary": "Order Summary",
+        "listedPrice": "Original Price:",
+        "discount": "Yearly Discount (20%):",
+        "total": "Total Payment:",
+        "continueBtn": "Proceed to Payment"
+      },
+      "step2": {
+        "backToStep1": "Change payment method",
+        "waitingStatus": "Awaiting payment confirmation...",
+        "bank": "Beneficiary Bank:",
+        "bankName": "MB Bank (Military Bank)",
+        "accountHolder": "Account Holder:",
+        "accountHolderName": "CONG TY EDUTECH INNOVATIONS",
+        "accountNumber": "Account Number:",
+        "amount": "Amount:",
+        "transferNote": "Transfer Note:",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "autoNote": "Please keep the exact transfer note for automatic activation within 5 seconds after receiving funds.",
+        "completeBtn": "I Have Completed the Transfer",
+        "completingBtn": "Verifying payment...",
+        "successTitle": "Plan Upgraded Successfully!",
+        "successDesc": "Your account has been upgraded to {planName}."
+      }
+    },
+    "footer": {
+      "copyright": "© 2025 ILMS EduTech Platform. Designed with Material Design 3.",
+      "soc2": "SOC2 Type II",
+      "ssl": "256-Bit SSL/TLS"
     }
   }
 }

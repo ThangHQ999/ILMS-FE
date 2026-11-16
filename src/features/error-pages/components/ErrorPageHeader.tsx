@@ -28,18 +28,10 @@ export function ErrorPageHeader({ currentPage = '404' }: ErrorPageHeaderProps) {
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 focus:outline-none">
             <img
-              src="/logo-dark.png"
+              src="/logo-full.png"
               alt="ILMS Logo"
-              className="h-8 w-auto object-contain hidden dark:block"
+              className="h-8 w-auto object-contain"
             />
-            <img
-              src="/logo-light.png"
-              alt="ILMS Logo"
-              className="h-8 w-auto object-contain block dark:hidden"
-            />
-            <span className="text-base font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight hidden sm:inline-block">
-              EduTech Innovations
-            </span>
           </Link>
         </div>
 

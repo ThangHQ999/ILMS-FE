@@ -7,6 +7,7 @@ import { Providers } from '@/providers';
 import { BrowserLocaleSync } from '@/components/shared/BrowserLocaleSync';
 import { DesignSystemSync } from '@/components/shared/DesignSystemSync';
 import { RouteProgressBar } from '@/components/shared/RouteProgressBar';
+import { GlobalSocraticCoach } from '@/components/shared/GlobalSocraticCoach';
 import './globals.css';
 
 const outfit = Outfit({
@@ -57,10 +58,11 @@ export const metadata: Metadata = {
   description: 'Design System Customizer & Settings',
   icons: {
     icon: [
-      { url: '/logo-short.png', type: 'image/png' },
+      { url: '/logo-short.png?v=5', type: 'image/png', sizes: 'any' },
+      { url: '/favicon.ico?v=5', sizes: 'any' },
     ],
-    shortcut: '/logo-short.png',
-    apple: '/logo-short.png',
+    shortcut: '/logo-short.png?v=5',
+    apple: '/apple-touch-icon.png?v=5',
   },
 };
 
@@ -81,8 +83,9 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="icon" href="/logo-short.png" type="image/png" sizes="any" />
-        <link rel="apple-touch-icon" href="/logo-short.png" />
+        <link rel="icon" href="/logo-short.png?v=5" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=5" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -127,7 +130,10 @@ export default async function RootLayout({
           </Suspense>
           <BrowserLocaleSync currentLocale={locale} />
           <DesignSystemSync />
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            <GlobalSocraticCoach />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

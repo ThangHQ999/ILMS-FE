@@ -1,54 +1,85 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
+import type { LandingRolePerspective } from '../types';
+import { useScrollSectionProgress } from '../hooks/useScrollSectionProgress';
 import { LandingHeader } from './LandingHeader';
-import { LandingHero } from './LandingHero';
-import { LandingFeatures } from './LandingFeatures';
-import { LandingHowItWorks } from './LandingHowItWorks';
-import { LandingTechStack } from './LandingTechStack';
 import { LandingFooter } from './LandingFooter';
+import { LandingTechStack } from './LandingTechStack';
+import { ScrollConstellationRail } from './shared/ScrollConstellationRail';
+import { LandingHeroSection } from './sections/LandingHeroSection';
+import { SocraticDialecticSection } from './sections/SocraticDialecticSection';
+import { SmartClassroomSection } from './sections/SmartClassroomSection';
+import { BloomMasterySection } from './sections/BloomMasterySection';
+import { ConversionFaqSection } from './sections/ConversionFaqSection';
+
+const KnowledgeParticleCanvas = dynamic(
+  () =>
+    import('./3d/KnowledgeParticleCanvas').then(
+      (mod) => mod.KnowledgeParticleCanvas
+    ),
+  { ssr: false }
+);
 
 export function LandingPageView() {
-  useEffect(() => {
-    const revealElements = document.querySelectorAll('.scroll-reveal');
-
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const observer = new IntersectionObserver(
-        (entries, obs) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('reveal-visible');
-              obs.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          root: null,
-          threshold: 0.15,
-          rootMargin: '0px 0px -40px 0px',
-        }
-      );
-
-      revealElements.forEach((el) => observer.observe(el));
-
-      return () => {
-        observer.disconnect();
-      };
-    } else {
-      revealElements.forEach((el) => el.classList.add('reveal-visible'));
-    }
-  }, []);
+  const [role, setRole] = useState<LandingRolePerspective>('student');
+  const {
+    scrollProgress,
+    activeSceneIndex,
+    pointerNormalized,
+    scrollToScene,
+  } = useScrollSectionProgress();
 
   return (
-    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased transition-colors">
+    <div className="relative min-h-screen bg-[#E8EEF5] dark:bg-[#0D1117] text-slate-900 dark:text-[#E3E3E3] antialiased transition-colors overflow-x-hidden">
+      {/* Ambient Cyber-Academic Background Radial Glows */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div className="absolute -top-40 left-1/4 w-[520px] h-[520px] rounded-full bg-blue-500/10 dark:bg-sky-500/12 blur-[120px]" />
+        <div className="absolute top-1/2 -right-32 w-[460px] h-[460px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/12 blur-[120px]" />
+      </div>
+
+      {/* Layer 1: Three.js WebGL Interactive Particle Universe */}
+      <KnowledgeParticleCanvas
+        scrollProgress={scrollProgress}
+        pointerNormalized={pointerNormalized}
+      />
+
+      {/* Sticky Glassmorphic Navigation Header */}
       <LandingHeader />
-      <main className="w-full pt-16">
-        <LandingHero />
-        <LandingFeatures />
-        <LandingHowItWorks />
-        <LandingTechStack />
+
+      {/* Constellation Station Progress Rail */}
+      <ScrollConstellationRail
+        activeSceneIndex={activeSceneIndex}
+        scrollProgress={scrollProgress}
+        onSelectScene={scrollToScene}
+      />
+
+      {/* Main 5-Scene Interactive Storytelling Journey */}
+      <main className="relative z-10 w-full pt-16">
+        <LandingHeroSection
+          role={role}
+          onChangeRole={setRole}
+          onExploreScene={scrollToScene}
+        />
+
+        <SocraticDialecticSection />
+
+        <SmartClassroomSection role={role} />
+
+        <BloomMasterySection />
+
+        {/* <LandingTechStack /> */}
+
+        <ConversionFaqSection />
       </main>
-      <LandingFooter />
+
+      <div className="relative z-10">
+        <LandingFooter />
+      </div>
     </div>
   );
 }

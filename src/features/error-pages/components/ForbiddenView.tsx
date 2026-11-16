@@ -311,9 +311,9 @@ export function ForbiddenView() {
                   className="p-4 rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] transition-all flex flex-col justify-between border-none shadow-none group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="p-2 rounded-2xl bg-[#C4EED0] dark:bg-[#142E20] text-[#0D652D] dark:text-[#81C995]">
-                      <span className="material-symbols-outlined text-[18px]">psychology</span>
-                    </span>
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                      <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
+                    </div>
                     <span className="material-symbols-outlined text-slate-400 text-[16px] group-hover:translate-x-1 transition-transform">
                       arrow_forward
                     </span>
