@@ -29,9 +29,21 @@ export function BrowserLocaleSync({ currentLocale }: BrowserLocaleSyncProps) {
       .find((row) => row.startsWith('NEXT_LOCALE='));
     const existingCookie = cookieMatch ? cookieMatch.split('=')[1] : null;
 
-    // 3. Persist current server locale silently without triggering a duplicate background refresh
-    if (!existingCookie) {
-      document.cookie = `NEXT_LOCALE=${currentLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    if (existingCookie && ['vi', 'en'].includes(existingCookie)) {
+      try {
+        localStorage.setItem('ilms_language', existingCookie);
+      } catch {
+        // ignore
+      }
+    } else {
+      // 3. Fallback to localStorage or current server locale
+      try {
+        const stored = localStorage.getItem('ilms_language');
+        const fallback = stored === 'vi' || stored === 'en' ? stored : currentLocale;
+        document.cookie = `NEXT_LOCALE=${fallback}; path=/; max-age=31536000; SameSite=Lax`;
+      } catch {
+        document.cookie = `NEXT_LOCALE=${currentLocale}; path=/; max-age=31536000; SameSite=Lax`;
+      }
     }
   }, [currentLocale]);
 

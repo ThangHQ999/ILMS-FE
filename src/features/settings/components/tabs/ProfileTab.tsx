@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { useProfile, useUpdateProfile } from '../../hooks/useSettings';
+import { useCurrentUser } from '@/features/auth';
+import { useProfile, useUpdateProfile, useUploadAvatar } from '../../hooks/useSettings';
 import { ChangePasswordModal } from '../modals/ChangePasswordModal';
 import { DeleteAccountModal } from '../modals/DeleteAccountModal';
 
@@ -12,32 +13,56 @@ interface ProfileTabProps {
 
 export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
   const t = useTranslations('settings');
+  const { data: currentUser } = useCurrentUser();
   const { data: profile, isLoading } = useProfile();
   const updateProfileMutation = useUpdateProfile(onSuccessToast);
+  const uploadAvatarMutation = useUploadAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fallbackFullName = currentUser
+    ? [currentUser.lastName, currentUser.middleName, currentUser.firstName].filter(Boolean).join(' ') || currentUser.email
+    : 'Học viên ILMS';
 
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [bio, setBio] = useState('');
+  const [phone, setPhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     if (profile) {
-      setDisplayName(profile.displayName || '');
-      setUsername(profile.username || '');
+      setDisplayName(profile.displayName || fallbackFullName || '');
+      setUsername(profile.username || (currentUser?.email ? currentUser.email.split('@')[0] : '') || '');
       setBirthDate(profile.birthDate || '');
       setBio(profile.bio || '');
+      setPhone(profile.phone || '');
+      setAvatarUrl(profile.avatarUrl || currentUser?.avatarUrl || undefined);
     }
-  }, [profile]);
+  }, [profile, currentUser, fallbackFullName]);
+
+  const initials = displayName
+    ? displayName
+        .split(' ')
+        .map((w) => w[0])
+        .filter(Boolean)
+        .slice(-2)
+        .join('')
+        .toUpperCase()
+    : currentUser?.firstName
+    ? currentUser.firstName.slice(0, 2).toUpperCase()
+    : 'US';
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
       displayName,
-      username,
+      phone,
       birthDate,
       bio,
+      username,
     });
   };
 
@@ -78,31 +103,62 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
         {/* Profile Photo Row */}
         <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl border-none">
           <div className="relative">
-            <div className="w-20 h-20 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center text-2xl font-bold shadow-none">
-              {displayName.slice(0, 2).toUpperCase() || 'TM'}
-            </div>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-20 h-20 rounded-2xl object-cover shadow-none border border-slate-200 dark:border-slate-750"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center text-2xl font-bold shadow-none">
+                {initials}
+              </div>
+            )}
             <span className="absolute -bottom-1 -right-1 px-2.5 py-0.5 bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] font-bold rounded-full border-none">
               PRO
             </span>
           </div>
           <div className="flex-1 flex flex-col items-center sm:items-start gap-1">
             <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-              {displayName || 'Trần Nhật Minh'}
+              {displayName || fallbackFullName}
             </span>
             <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
               {t('avatarFormatHint')}
             </span>
             <div className="flex items-center gap-2 mt-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    uploadAvatarMutation.mutate(file, {
+                      onSuccess: (data) => {
+                        setAvatarUrl(data.avatarUrl);
+                        onSuccessToast();
+                      },
+                    });
+                  }
+                }}
+              />
               <button
-                onClick={onSuccessToast}
-                className="px-4 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium transition-all flex items-center gap-1 border-none shadow-none cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadAvatarMutation.isPending}
+                className="px-4 py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium transition-all flex items-center gap-1 border-none shadow-none cursor-pointer disabled:opacity-50"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px]">upload</span>
-                {t('btnUploadPhoto')}
+                <span className="material-symbols-outlined text-[16px]">
+                  {uploadAvatarMutation.isPending ? 'sync' : 'upload'}
+                </span>
+                {uploadAvatarMutation.isPending ? 'Đang tải lên...' : t('btnUploadPhoto')}
               </button>
               <button
-                onClick={onSuccessToast}
+                onClick={() => {
+                  setAvatarUrl(undefined);
+                  onSuccessToast();
+                }}
                 className="px-4 py-1.5 rounded-full bg-white dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#C4C7C5] text-xs font-medium transition-all border-none cursor-pointer"
                 type="button"
               >
@@ -120,7 +176,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
             </label>
             <input
               type="text"
-              value={displayName}
+              value={displayName ?? ''}
               onChange={(e) => setDisplayName(e.target.value)}
               className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all"
             />
@@ -139,7 +195,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               </span>
               <input
                 type="text"
-                value={username}
+                value={username ?? ''}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full h-11 pl-8 pr-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none font-mono text-xs text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all"
               />
@@ -155,7 +211,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
             </label>
             <input
               type="text"
-              value={birthDate}
+              value={birthDate ?? ''}
               onChange={(e) => setBirthDate(e.target.value)}
               className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all"
             />
@@ -166,12 +222,28 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#444746] dark:text-[#C4C7C5]">
+              Số điện thoại
+            </label>
+            <input
+              type="tel"
+              value={phone ?? ''}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0912345678"
+              className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all"
+            />
+            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
+              Số điện thoại liên hệ và bảo mật 2 lớp
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#444746] dark:text-[#C4C7C5]">
               {t('lblLearningRole')}
             </label>
             <input
               type="text"
               disabled
-              value={profile?.role || 'Học viên Chuyên sâu (Advanced Track)'}
+              value={profile?.role || currentUser?.roleName || 'Học viên'}
               className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-xs sm:text-sm text-[#747775] dark:text-[#8E918F] cursor-not-allowed opacity-80"
             />
             <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
@@ -187,7 +259,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
           </label>
           <textarea
             rows={3}
-            value={bio}
+            value={bio ?? ''}
             onChange={(e) => setBio(e.target.value)}
             maxLength={300}
             className="w-full p-4 rounded-2xl bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all resize-none"
@@ -220,7 +292,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                    {profile?.email || 'nhatminh.edu@gmail.com'}
+                    {profile?.email || currentUser?.email || 'user@ilms.edu.vn'}
                   </span>
                   <span className="px-3 py-0.5 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold flex items-center gap-0.5 border-none">
                     <span className="material-symbols-outlined text-[12px]">verified</span>{' '}
@@ -250,7 +322,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                    {profile?.phone || '+84 987 654 321'}
+                    {profile?.phone || 'Chưa cập nhật'}
                   </span>
                   <span className="px-3 py-0.5 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold flex items-center gap-0.5 border-none">
                     <span className="material-symbols-outlined text-[12px]">verified</span>{' '}
@@ -481,10 +553,11 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
           <button
             onClick={() => {
               if (profile) {
-                setDisplayName(profile.displayName);
-                setUsername(profile.username);
-                setBirthDate(profile.birthDate);
-                setBio(profile.bio);
+                setDisplayName(profile.displayName || fallbackFullName || '');
+                setUsername(profile.username || (currentUser?.email ? currentUser.email.split('@')[0] : '') || '');
+                setBirthDate(profile.birthDate || '');
+                setBio(profile.bio || '');
+                setPhone(profile.phone || '');
               }
             }}
             className="bg-transparent border border-[#747775] hover:bg-[#F0F4F9] text-[#1F1F1F] dark:border-[#8E918F] dark:hover:bg-[#282A2C] dark:text-[#E3E3E3] font-medium px-5 py-2.5 rounded-full text-xs whitespace-nowrap transition-colors cursor-pointer"

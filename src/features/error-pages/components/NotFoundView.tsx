@@ -250,9 +250,7 @@ export function NotFoundView() {
               className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium text-xs border-none shadow-none transition-all cursor-pointer whitespace-nowrap"
               type="button"
             >
-              <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">
-                psychology
-              </span>
+              <img src="/socratic_mascot.png" alt="Socratic AI" className="w-5 h-5 object-contain inline-block" />
               <span>{t('askSocraticAi')}</span>
             </button>
 
@@ -378,8 +376,8 @@ export function NotFoundView() {
         {isAiModalOpen && (
           <div className="fixed bottom-8 right-8 max-w-sm p-5 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-2xl border-none z-50 animate-slide-up">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] shrink-0 border-none">
-                <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+              <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center shrink-0 overflow-hidden">
+                <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">

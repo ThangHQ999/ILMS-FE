@@ -142,11 +142,87 @@ const delay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function getUserProfile(): Promise<UserProfileDto> {
   try {
-    const { data } = await api.get<ApiResponse<UserProfileDto>>('/user/profile');
-    if (data?.data) return data.data;
+    // Primary: GET /api/v1/users/profile
+    const { data } = await api.get<ApiResponse<UserProfileDto>>('/users/profile');
+    if (data?.data) {
+      return {
+        ...mockProfile,
+        ...data.data,
+        username: data.data.username || (data.data.email ? data.data.email.split('@')[0] : mockProfile.username),
+      };
+    }
   } catch {
-    // Fallback to mock data if backend endpoint is not yet implemented
+    try {
+      // Secondary fallback: GET /api/v1/user/profile
+      const { data } = await api.get<ApiResponse<UserProfileDto>>('/user/profile');
+      if (data?.data) {
+        return {
+          ...mockProfile,
+          ...data.data,
+          username: data.data.username || (data.data.email ? data.data.email.split('@')[0] : mockProfile.username),
+        };
+      }
+    } catch {
+      try {
+        // Fallback to auth/me
+        const { data } = await api.get<ApiResponse<any>>('/auth/me');
+        if (data?.data) {
+          const u = data.data;
+          const fullName =
+            [u.firstName, u.middleName, u.lastName].filter(Boolean).join(' ') ||
+            u.displayName ||
+            u.email;
+          return {
+            ...mockProfile,
+            id: u.id || mockProfile.id,
+            displayName: fullName || mockProfile.displayName,
+            username: u.email ? u.email.split('@')[0] : mockProfile.username,
+            email: u.email || mockProfile.email,
+            avatarUrl: u.avatarUrl || undefined,
+            role:
+              u.roleName === 'TEACHER' || u.roleName?.includes('TEACHER')
+                ? 'Giảng viên'
+                : u.roleName === 'ADMIN' || u.roleName?.includes('ADMIN')
+                ? 'Quản trị viên (Admin)'
+                : 'Học viên Chuyên sâu',
+          };
+        }
+      } catch {
+        // Fallback to storage or mock
+      }
+    }
   }
+
+  // Đồng bộ hóa với phiên đăng nhập hiện tại từ localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('ilms_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        const fullName =
+          [u.firstName, u.middleName, u.lastName].filter(Boolean).join(' ') ||
+          u.displayName ||
+          u.email;
+        return {
+          ...mockProfile,
+          id: u.id || mockProfile.id,
+          displayName: fullName || mockProfile.displayName,
+          username: u.email ? u.email.split('@')[0] : mockProfile.username,
+          email: u.email || mockProfile.email,
+          avatarUrl: u.avatarUrl || undefined,
+          role:
+            u.roleName === 'TEACHER' || u.roleName?.includes('TEACHER')
+              ? 'Giảng viên'
+              : u.roleName === 'ADMIN' || u.roleName?.includes('ADMIN')
+              ? 'Quản trị viên (Admin)'
+              : 'Học viên Chuyên sâu',
+        };
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   await delay();
   return { ...mockProfile };
 }
@@ -155,46 +231,164 @@ export async function updateUserProfile(
   input: UpdateProfileInput
 ): Promise<UserProfileDto> {
   try {
-    const { data } = await api.put<ApiResponse<UserProfileDto>>('/user/profile', input);
-    if (data?.data) return data.data;
+    // Primary: PUT /api/v1/users/profile
+    const { data } = await api.put<ApiResponse<UserProfileDto>>('/users/profile', input);
+    if (data?.data) {
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('ilms_user');
+          if (stored) {
+            const u = JSON.parse(stored);
+            localStorage.setItem('ilms_user', JSON.stringify({ ...u, ...data.data }));
+          }
+        } catch {}
+      }
+      return data.data;
+    }
   } catch {
-    // Fallback
+    try {
+      // Secondary fallback: PUT /api/v1/user/profile
+      const { data } = await api.put<ApiResponse<UserProfileDto>>('/user/profile', input);
+      if (data?.data) return data.data;
+    } catch {
+      // Fallback
+    }
   }
   await delay(200);
   Object.assign(mockProfile, input);
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('ilms_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        localStorage.setItem(
+          'ilms_user',
+          JSON.stringify({
+            ...u,
+            displayName: input.displayName || u.displayName,
+            avatarUrl: input.avatarUrl !== undefined ? input.avatarUrl : u.avatarUrl,
+            phone: input.phone || u.phone,
+            bio: input.bio || u.bio,
+            birthDate: input.birthDate || u.birthDate,
+          })
+        );
+      }
+    } catch {}
+  }
   return { ...mockProfile };
+}
+
+export async function uploadUserAvatar(file: File): Promise<{ avatarUrl: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const { data } = await api.post<ApiResponse<{ avatarUrl?: string }>>('/users/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (data?.data?.avatarUrl) {
+      mockProfile.avatarUrl = data.data.avatarUrl;
+      return { avatarUrl: data.data.avatarUrl };
+    }
+  } catch {
+    try {
+      const { data } = await api.post<ApiResponse<{ avatarUrl?: string }>>('/user/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (data?.data?.avatarUrl) {
+        mockProfile.avatarUrl = data.data.avatarUrl;
+        return { avatarUrl: data.data.avatarUrl };
+      }
+    } catch {
+      // Fallback create object URL for preview/offline mode
+    }
+  }
+
+  const localPreviewUrl = URL.createObjectURL(file);
+  mockProfile.avatarUrl = localPreviewUrl;
+  return { avatarUrl: localPreviewUrl };
 }
 
 export async function changeUserPassword(
   input: ChangePasswordInput
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Primary: PUT /api/v1/users/password (docs/api-spec.md Section 3.1)
     const { data } = await api.put<ApiResponse<{ message: string }>>(
-      '/user/change-password',
+      '/users/password',
       input
     );
     if (data?.data) return { success: true, message: data.message };
   } catch {
-    // Fallback
+    try {
+      // Secondary fallback: PUT /api/v1/user/password
+      const { data } = await api.put<ApiResponse<{ message: string }>>(
+        '/user/password',
+        input
+      );
+      if (data?.data) return { success: true, message: data.message };
+    } catch {
+      try {
+        // Tertiary fallback: POST /api/v1/auth/change-password
+        const { data } = await api.post<ApiResponse<{ message: string }>>(
+          '/auth/change-password',
+          input
+        );
+        if (data?.data) return { success: true, message: data.message };
+      } catch {
+        // Offline / mock mode fallback
+      }
+    }
   }
   await delay(300);
   return { success: true, message: 'Đổi mật khẩu thành công' };
 }
 
+function getPersistedLanguage(): 'vi' | 'en' {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('ilms_language');
+      if (stored === 'vi' || stored === 'en') return stored;
+      const cookieMatch = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('NEXT_LOCALE='));
+      const cookieVal = cookieMatch ? cookieMatch.split('=')[1] : null;
+      if (cookieVal === 'vi' || cookieVal === 'en') return cookieVal;
+    } catch {
+      // ignore
+    }
+  }
+  return 'vi';
+}
+
 export async function getUserPreferences(): Promise<UserPreferencesDto> {
   try {
     const { data } = await api.get<ApiResponse<UserPreferencesDto>>('/user/preferences');
-    if (data?.data) return data.data;
+    if (data?.data) {
+      if (data.data.language && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('ilms_language', data.data.language);
+        } catch {}
+      }
+      return data.data;
+    }
   } catch {
     // Fallback
   }
   await delay();
+  mockPreferences.language = getPersistedLanguage();
   return { ...mockPreferences };
 }
 
 export async function updateUserPreferences(
   input: Partial<UserPreferencesDto>
 ): Promise<UserPreferencesDto> {
+  if (input.language && typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ilms_language', input.language);
+    } catch {}
+  }
+
   try {
     const { data } = await api.put<ApiResponse<UserPreferencesDto>>(
       '/user/preferences',
@@ -209,17 +403,68 @@ export async function updateUserPreferences(
   return { ...mockPreferences };
 }
 
+export async function patchUserPreferences(
+  input: Partial<UserPreferencesDto>
+): Promise<UserPreferencesDto> {
+  if (input.language && typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ilms_language', input.language);
+    } catch {}
+  }
+
+  try {
+    const { data } = await api.patch<ApiResponse<UserPreferencesDto>>(
+      '/user/preferences',
+      input
+    );
+    if (data?.data) {
+      Object.assign(mockPreferences, data.data);
+      return data.data;
+    }
+  } catch {
+    try {
+      // Secondary fallback to PUT if PATCH not available on backend
+      const { data } = await api.put<ApiResponse<UserPreferencesDto>>(
+        '/user/preferences',
+        input
+      );
+      if (data?.data) {
+        Object.assign(mockPreferences, data.data);
+        return data.data;
+      }
+    } catch {
+      // Offline fallback
+    }
+  }
+  Object.assign(mockPreferences, input);
+  return { ...mockPreferences };
+}
+
 export async function getNotificationSettings(): Promise<NotificationSettingsDto> {
   try {
     const { data } = await api.get<ApiResponse<NotificationSettingsDto>>(
-      '/user/notification-settings'
+      '/user/preferences/notifications'
     );
-    if (data?.data) return data.data;
+    if (data?.data) {
+      return {
+        channels: {
+          ...mockNotificationSettings.channels,
+          ...(data.data.channels || {}),
+        },
+        categories: {
+          ...mockNotificationSettings.categories,
+          ...(data.data.categories || {}),
+        },
+      };
+    }
   } catch {
     // Fallback
   }
   await delay();
-  return { ...mockNotificationSettings };
+  return {
+    channels: { ...mockNotificationSettings.channels },
+    categories: { ...mockNotificationSettings.categories },
+  };
 }
 
 export async function updateNotificationSettings(
@@ -227,7 +472,7 @@ export async function updateNotificationSettings(
 ): Promise<NotificationSettingsDto> {
   try {
     const { data } = await api.put<ApiResponse<NotificationSettingsDto>>(
-      '/user/notification-settings',
+      '/user/preferences/notifications',
       input
     );
     if (data?.data) return data.data;
@@ -304,7 +549,27 @@ export async function getBillingInfo(): Promise<BillingInfoDto> {
     // Fallback
   }
   await delay();
-  return { ...mockBilling };
+  let holderName = 'TRAN NHAT MINH';
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('ilms_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        const name = [u.firstName, u.middleName, u.lastName]
+          .filter(Boolean)
+          .join(' ')
+          .toUpperCase();
+        if (name) holderName = name;
+      }
+    } catch {}
+  }
+  return {
+    ...mockBilling,
+    paymentMethods: mockBilling.paymentMethods.map((pm) => ({
+      ...pm,
+      holderName,
+    })),
+  };
 }
 
 export async function getSystemInfo(): Promise<SystemInfoDto> {

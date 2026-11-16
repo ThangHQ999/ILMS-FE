@@ -26,9 +26,13 @@ export function ClassFilterToolbar({
   onFilterChange,
   viewMode,
   onViewModeChange,
-  activeCount = 12,
-  enrolledCount = 4,
-  archivedCount = 3,
+  activeCount = 0,
+  enrolledCount = 0,
+  archivedCount = 0,
+  allCount = 0,
+  displayedCount = 0,
+  onOpenMobileFilter,
+  activeKpi,
   onClearKpi,
 }: ClassFilterToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);

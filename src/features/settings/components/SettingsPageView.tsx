@@ -58,9 +58,9 @@ export function SettingsPageView() {
   } = useSettingsSearch('tab-profile');
 
   const userFullName =
-    user?.firstName || user?.lastName
-      ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'Trần Nhật Minh';
+    [user?.lastName, user?.middleName, user?.firstName].filter(Boolean).join(' ') ||
+    user?.email ||
+    'Người dùng ILMS';
 
   return (
     <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
@@ -74,7 +74,7 @@ export function SettingsPageView() {
       {/* Main Container */}
       <div
         className={`transition-all duration-300 ${
-          isFocus || isSidebarCollapsed ? 'pl-20' : 'pl-[260px]'
+          isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         {/* Dynamic Header */}

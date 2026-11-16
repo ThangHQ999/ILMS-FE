@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
 import { LandingPageView } from '@/features/landing';
@@ -10,17 +10,24 @@ function HomePageContent() {
   const searchParams = useSearchParams();
   const { data: user, isSuccess } = useCurrentUser();
   const errorParam = searchParams.get('error') || searchParams.get('error_description');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (errorParam) {
       router.replace(`/login?error=${encodeURIComponent(errorParam)}`);
     } else if (isSuccess && user) {
       router.replace('/dashboard');
     }
-  }, [errorParam, isSuccess, user, router]);
+  }, [isMounted, errorParam, isSuccess, user, router]);
 
-  // If user is authenticated, redirect is in flight
-  if (isSuccess && user) {
+  // If user is authenticated and component is mounted on client, redirect is in flight
+  if (isMounted && isSuccess && user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
         <div className="flex flex-col items-center gap-3">

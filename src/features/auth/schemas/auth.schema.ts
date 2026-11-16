@@ -71,3 +71,16 @@ export const oauthExchangeInputSchema = z.object({
 
 export type OAuthExchangeInput = z.infer<typeof oauthExchangeInputSchema>;
 
+export const resetPasswordInputSchema = z
+  .object({
+    token: z.string().min(1, { message: 'validation.required' }),
+    newPassword: z.string().min(8, { message: 'validation.passwordMin8' }),
+    confirmPassword: z.string().min(1, { message: 'validation.confirmPasswordRequired' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'validation.passwordMismatch',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
+

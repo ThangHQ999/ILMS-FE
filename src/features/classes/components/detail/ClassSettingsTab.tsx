@@ -896,9 +896,9 @@ export function ClassSettingsTab({
                 {/* Toggle AI Tutor Active */}
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[26px]">
-                      smart_toy
-                    </span>
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                      <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
+                    </div>
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-900 dark:text-[#E3E3E3]">
                         Kích hoạt AI Tutor 24/7 cho sinh viên

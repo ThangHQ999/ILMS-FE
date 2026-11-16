@@ -40,6 +40,9 @@ export function AiTutorHeader({
             <span className="material-symbols-outlined text-[20px]">menu</span>
           </button>
         )}
+        <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+          <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
+        </div>
         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         <span className="hidden sm:inline text-[13px] font-medium text-slate-600 dark:text-[#C4C7C5]">
           {t('socraticMode')}

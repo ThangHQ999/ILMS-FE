@@ -2,6 +2,7 @@
 
 import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { RegisterHeader } from './RegisterHeader';
 import { RegisterForm } from './RegisterForm';
@@ -12,8 +13,17 @@ import { RegisterFooter } from './RegisterFooter';
 function RegisterParamsBanner() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const tAuth = useTranslations('auth');
 
   if (!error) return null;
+
+  const isOAuthCancelledOrFailed = [
+    'oauth_failed',
+    'oauth_cancelled',
+    'access_denied',
+    'cancelled',
+    'user_cancelled',
+  ].includes(error);
 
   return (
     <div className="w-full max-w-md lg:max-w-7xl mx-auto mb-4 px-5 py-3 rounded-full bg-[#FCEBA4] dark:bg-[#3C2A1E] text-[#725200] dark:text-[#FFB784] text-xs font-medium flex items-center gap-2.5 animate-fade-in border-none shadow-none">
@@ -21,8 +31,8 @@ function RegisterParamsBanner() {
         warning
       </span>
       <span>
-        {error === 'oauth_failed'
-          ? 'Đăng ký bằng tài khoản liên kết không thành công hoặc đã bị hủy. Vui lòng thử lại.'
+        {isOAuthCancelledOrFailed
+          ? tAuth('oauthFailed')
           : `Thông báo xác thực: ${decodeURIComponent(error)}`}
       </span>
     </div>

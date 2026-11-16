@@ -16,13 +16,18 @@ export { ForgotPasswordPageView } from './components/ForgotPasswordPageView';
 export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 export { ForgotPasswordSuccess } from './components/ForgotPasswordSuccess';
 
+export { ResetPasswordPageView } from './components/ResetPasswordPageView';
+export { ResetPasswordForm } from './components/ResetPasswordForm';
+
 export { useLogin } from './hooks/useLogin';
+export { useLogout } from './hooks/useLogout';
 export { useLoginForm } from './hooks/useLoginForm';
 export { useRegister } from './hooks/useRegister';
 export { useRegisterForm } from './hooks/useRegisterForm';
 export { useCurrentUser } from './hooks/useCurrentUser';
 export { useForgotPassword } from './hooks/useForgotPassword';
 export { useForgotPasswordForm } from './hooks/useForgotPasswordForm';
+export { useResetPassword } from './hooks/useResetPassword';
 export { useOAuthLogin } from './hooks/useOAuthLogin';
 export {
   login,
@@ -30,6 +35,7 @@ export {
   getMe,
   logout,
   forgotPassword,
+  resetPassword,
   getOAuthUrl,
   getOAuthUrlPublic,
   exchangeOAuthCode,
@@ -41,6 +47,7 @@ export {
   registerInputSchema,
   userProfileSchema,
   forgotPasswordInputSchema,
+  resetPasswordInputSchema,
   oauthUrlResponseSchema,
   oauthExchangeInputSchema,
 } from './schemas/auth.schema';
@@ -49,6 +56,7 @@ export type {
   RegisterInput,
   UserProfile,
   ForgotPasswordInput,
+  ResetPasswordInput,
   OAuthUrlResponse,
   OAuthExchangeInput,
 } from './schemas/auth.schema';

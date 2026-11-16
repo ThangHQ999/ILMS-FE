@@ -586,19 +586,24 @@ export const env = { ...clientEnv, ...serverEnv };
 
 ---
 
-## 17. UI STATES
-Every async view handles loading, error, empty, success.
+## 17. UI STATES (ASYNC LIFECYCLE MATRIX)
+Every async view and API-driven component MUST strictly handle the 7-State Lifecycle Matrix.
 
-| State | Mechanism |
-|---|---|
-| Route loading | `loading.tsx` (Skeleton) |
-| Component loading | shadcn `Skeleton` / `PageSkeleton` (prefer over full-page spinners) |
-| Route error | `error.tsx` (`'use client'`, retry via `reset()`) · root: `global-error.tsx` |
-| Component error | `<ErrorState onRetry={refetch} />` |
-| Empty | `<EmptyState title description action />` |
-| Missing record | `notFound()` + `not-found.tsx` |
+| State | Scenario | Required Mechanism & Visual Pattern |
+|---|---|---|
+| **1. Normal / Success** | Data exists (`data.length > 0`) | Render list/grid/table, pagination controls, full interactive capabilities. |
+| **2. Initial Loading** | `isLoading` (first fetch, no cache) | Layout-matched `Skeleton` / `PageSkeleton` (shimmer cards/tables) — never full-page spinners. |
+| **3. Empty Zero-Data** | `data.length === 0 && !hasFilters` | `<EmptyState variant="zero-data" title description action />` — onboarding illustration + Primary CTA to create/join. |
+| **4. Empty Filter / Search** | `data.length === 0 && hasFilters` | `<EmptyState variant="not-found" title description onReset />` — search-off icon + "Reset filters / Clear search" CTA. |
+| **5. Specialized / Archived** | Archived/Inactive/Trash tab | Tab banner or status badges, restore/delete actions, or dedicated tab empty state. |
+| **6. Component Error** | `isError` | `<ErrorState error title description onRetry={refetch} />` — friendly i18n text + Retry action. |
+| **7. Background Fetching** | `isFetching && !isLoading` | Keep existing data visible with subtle opacity (`opacity-70`) or micro-progress bar. No layout shift. |
+| **Route loading** | Route-level transition | `loading.tsx` (Route-level Skeleton). |
+| **Route error** | Uncaught render error | `error.tsx` (`'use client'`, retry via `reset()`) · root: `global-error.tsx`. |
+| **Missing record** | 404 Entity not found | `notFound()` + `not-found.tsx`. |
+| **Dev State Previews** | Local development / QA | `<StatePreviewToolbar states={...} activeState={...} onSelect={...} />` for 1-click state inspection. |
 
-`EmptyState`, `ErrorState`, `PageSkeleton`, `ConfirmDialog` are mandatory shared components.
+`EmptyState`, `ErrorState`, `PageSkeleton`, `ConfirmDialog`, `StatePreviewToolbar` are standard shared components in `components/shared/`.
 
 ## 18. SEO & METADATA
 `generateMetadata` on key pages (text from i18n); default `metadata` + `title.template` in the root layout; `sitemap.ts` and `robots.ts` with `alternates.languages` (hreflang); OG images via `opengraph-image.tsx`; private pages (`dashboard`, `auth`) use `robots: { index: false }`; `next/image` with meaningful `alt`.

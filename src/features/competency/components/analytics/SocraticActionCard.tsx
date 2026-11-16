@@ -22,8 +22,8 @@ export function SocraticActionCard({
       <div>
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-8 h-8 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap flex items-center justify-center border-none shadow-none">
-            <span className="material-symbols-outlined text-[19px]">smart_toy</span>
+          <div className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center border-none shadow-none overflow-hidden shrink-0">
+            <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA] font-mono block">

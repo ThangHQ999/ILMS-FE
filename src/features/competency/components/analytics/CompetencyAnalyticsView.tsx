@@ -17,7 +17,6 @@ import { StudentProfileTab } from './StudentProfileTab';
 import { SkillTreeTab } from './SkillTreeTab';
 import { StudentCompetencyMapView } from '../StudentCompetencyMapView';
 import { ClassHeatmapTab } from './ClassHeatmapTab';
-import { SocraticAICoach } from '@/features/dashboard';
 
 interface CompetencyAnalyticsViewProps {
   userFullName?: string;
@@ -74,7 +73,7 @@ export function CompetencyAnalyticsView({
       {/* Main Content Area */}
       <div
         className={`transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-20' : 'pl-[260px]'
+          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         {/* Existing Dashboard Header */}
@@ -134,16 +133,6 @@ export function CompetencyAnalyticsView({
           </div>
         </main>
       </div>
-
-      {/* Embedded Socratic AI Coach (Mini / Dockable) */}
-      <SocraticAICoach
-        userFullName={userFullName}
-        width={aiWidth}
-        onWidthChange={setAiWidth}
-        isMinimized={isAiMinimized}
-        onToggleMinimize={() => setIsAiMinimized((prev) => !prev)}
-        floatingDock={true}
-      />
     </div>
   );
 }

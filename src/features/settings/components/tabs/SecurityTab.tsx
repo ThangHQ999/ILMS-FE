@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   useSecuritySettings,
@@ -8,6 +8,8 @@ import {
   useLogoutOtherSessions,
   useUpdatePrivacy,
 } from '../../hooks/useSettings';
+import { ChangePasswordModal } from '../modals/ChangePasswordModal';
+import { CustomSelect } from '@/components/shared';
 
 interface SecurityTabProps {
   onSuccessToast: () => void;
@@ -15,6 +17,7 @@ interface SecurityTabProps {
 
 export function SecurityTab({ onSuccessToast }: SecurityTabProps) {
   const t = useTranslations('settings');
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const { data: security, isLoading } = useSecuritySettings();
   const logoutSessionMutation = useLogoutSession(onSuccessToast);
   const logoutOthersMutation = useLogoutOtherSessions(onSuccessToast);
@@ -66,6 +69,30 @@ export function SecurityTab({ onSuccessToast }: SecurityTabProps) {
             type="button"
           >
             {t('btnReconfig2FA')}
+          </button>
+        </div>
+
+        {/* Account Password Management */}
+        <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[26px]">key</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                {t('lblAccountPassword')}
+              </span>
+              <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
+                {t('hintPasswordUpdated')}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsChangePasswordOpen(true)}
+            className="px-5 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium transition-colors border-none shadow-none cursor-pointer self-start sm:self-auto"
+            type="button"
+          >
+            {t('btnChangePassword')}
           </button>
         </div>
 
@@ -145,27 +172,20 @@ export function SecurityTab({ onSuccessToast }: SecurityTabProps) {
             {t('privacyTitle')}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#444746] dark:text-[#C4C7C5]">
-                {t('lblScoreVisibility')}
-              </label>
-              <select
-                value={security.privacy.scoreVisibility}
-                onChange={(e) =>
-                  updatePrivacyMutation.mutate({
-                    scoreVisibility: e.target.value as
-                      | 'classmates_only'
-                      | 'public'
-                      | 'private',
-                  })
-                }
-                className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none cursor-pointer transition-all"
-              >
-                <option value="classmates_only">{t('optClassmatesOnly')}</option>
-                <option value="public">{t('optPublic')}</option>
-                <option value="private">{t('optPrivate')}</option>
-              </select>
-            </div>
+            <CustomSelect
+              label={t('lblScoreVisibility')}
+              value={security.privacy.scoreVisibility}
+              onChange={(val) =>
+                updatePrivacyMutation.mutate({
+                  scoreVisibility: val as 'classmates_only' | 'public' | 'private',
+                })
+              }
+              options={[
+                { value: 'classmates_only', label: t('optClassmatesOnly'), icon: 'groups' },
+                { value: 'public', label: t('optPublic'), icon: 'public' },
+                { value: 'private', label: t('optPrivate'), icon: 'lock' },
+              ]}
+            />
 
             <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex items-center justify-between">
               <div className="flex flex-col pr-2">
@@ -190,6 +210,15 @@ export function SecurityTab({ onSuccessToast }: SecurityTabProps) {
           </div>
         </div>
       </div>
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        onSuccess={() => {
+          setIsChangePasswordOpen(false);
+          onSuccessToast();
+        }}
+      />
     </div>
   );
 }

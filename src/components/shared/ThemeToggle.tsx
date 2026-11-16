@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import { patchUserPreferences } from '@/features/settings/services/settings.service';
 
 interface ThemeToggleProps {
   className?: string;
@@ -28,7 +29,9 @@ export function ThemeToggle({ className = '', showLabel = false }: ThemeTogglePr
   const isDark = resolvedTheme === 'dark';
 
   const handleToggle = () => {
-    setTheme(isDark ? 'light' : 'dark');
+    const nextTheme = isDark ? 'light' : 'dark';
+    setTheme(nextTheme);
+    patchUserPreferences({ themeMode: nextTheme, theme: nextTheme }).catch(() => {});
   };
 
   return (
