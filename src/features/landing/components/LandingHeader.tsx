@@ -52,8 +52,8 @@ export function LandingHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#131314] backdrop-blur-md border-none shadow-none transition-colors">
-      <div className="h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/65 dark:bg-[#061844]/65 backdrop-blur-xl border-b border-white/40 dark:border-sky-300/12 shadow-[0_10px_32px_-18px_rgba(15,38,92,0.18)] transition-colors">
+      <div className="h-16 w-full max-w-[1640px] mx-auto px-5 sm:px-8 lg:px-14 flex items-center justify-between">
         {/* Brand Logo & Nav */}
         <div className="flex items-center gap-6 lg:gap-10">
           <Link href="/" prefetch={true} className="flex items-center gap-2 group focus:outline-none">

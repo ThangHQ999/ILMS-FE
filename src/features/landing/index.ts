@@ -16,4 +16,6 @@ export { BloomMasterySection } from './components/sections/BloomMasterySection';
 export { ConversionFaqSection } from './components/sections/ConversionFaqSection';
 export { FloatingSocraticMascot } from './components/mascot/FloatingSocraticMascot';
 export { TiltCard } from './components/shared/TiltCard';
+export { AtmosphericHorizonBackdrop } from './components/shared/AtmosphericHorizonBackdrop';
+export { useSceneScrollVars } from './hooks/useSceneScrollVars';
 export type * from './types';
