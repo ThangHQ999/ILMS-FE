@@ -1,9 +1,29 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
-import { TeacherCreateQuizStudioView } from '@/features/assignments';
+
+const TeacherCreateQuizStudioView = dynamic(
+  () =>
+    import('@/features/assignments').then(
+      (mod) => mod.TeacherCreateQuizStudioView
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-screen items-center justify-center bg-[#F6FAFE] dark:bg-[#131314]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
+          <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
+            Đang tải không gian tạo đề thi...
+          </p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 export default function CreateQuizPage() {
   const router = useRouter();
@@ -32,4 +52,3 @@ export default function CreateQuizPage() {
     />
   );
 }
-

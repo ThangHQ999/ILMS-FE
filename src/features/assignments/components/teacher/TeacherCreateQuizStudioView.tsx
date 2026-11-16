@@ -139,6 +139,11 @@ export function TeacherCreateQuizStudioView({
     return teachingOnly.length > 0 ? teachingOnly : merged;
   }, [propTeacherClasses, classesData]);
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const [targetClassId, setTargetClassId] = useState<string>(() => {
     return initialClassId || searchParams.get('classId') || '';
   });
@@ -146,12 +151,23 @@ export function TeacherCreateQuizStudioView({
   const activeClass = useMemo(() => {
     if (targetClassId) {
       const found = availableClasses.find(
-        (c) => String(c.id) === targetClassId || c.name === targetClassId
+        (c) =>
+          String(c.id).toLowerCase() === targetClassId.toLowerCase() ||
+          c.name?.toLowerCase() === targetClassId.toLowerCase() ||
+          c.code?.toLowerCase() === targetClassId.toLowerCase()
       );
       if (found) return found;
+
+      return {
+        id: targetClassId,
+        name: initialClassName || targetClassId,
+        title: initialClassName || targetClassId,
+        code: targetClassId,
+        classCode: targetClassId,
+      };
     }
     return availableClasses[0];
-  }, [availableClasses, targetClassId]);
+  }, [availableClasses, targetClassId, initialClassName]);
 
   const activeClassId = activeClass ? String(activeClass.id) : (targetClassId || 'cs-202');
 
@@ -870,6 +886,17 @@ export function TeacherCreateQuizStudioView({
     showToast(`Đã thêm chuẩn ${newTag}`);
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-slate-500 font-medium">Đang chuẩn bị phòng thi và đồng bộ môn học...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] text-[#171c1f] dark:text-[#E3E3E3] flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors">
       {/* Ẩn input file để phục vụ tính năng Nhập Word / Excel */}
@@ -970,7 +997,10 @@ export function TeacherCreateQuizStudioView({
                         Thông tin tổng quan bài trắc nghiệm
                       </span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-xs font-bold">
+                    <span
+                      className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-xs font-bold"
+                      suppressHydrationWarning
+                    >
                       ID: {subjectInfo.defaultQuizCode}
                     </span>
                   </div>
@@ -1007,7 +1037,7 @@ export function TeacherCreateQuizStudioView({
                         school
                       </span>
                       <span className="font-medium">
-                        Lớp áp dụng: <strong className="text-slate-900 dark:text-white font-semibold">{appliedClassLabel}</strong>
+                        Lớp áp dụng: <strong className="text-slate-900 dark:text-white font-semibold" suppressHydrationWarning>{appliedClassLabel}</strong>
                       </span>
                       <span className="material-symbols-outlined text-[14px] text-slate-400 ml-0.5">
                         lock

@@ -77,6 +77,11 @@ export function TeacherExamManagementView({
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 1. Data from "Lớp học của tôi" (/classes) - Classes managed by teacher
   const { data: classesData, isLoading: isClassesLoading } = useClasses();
@@ -468,6 +473,17 @@ export function TeacherExamManagementView({
     );
     return complaintItems.reduce((acc, curr) => acc + (curr.complaintCount || 1), 0);
   }, [isDefaultDemoClass, mergedExams]);
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-slate-500 font-medium">Đang tải danh sách bài thi và lớp học...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (viewMode === 'create') {
     return (
