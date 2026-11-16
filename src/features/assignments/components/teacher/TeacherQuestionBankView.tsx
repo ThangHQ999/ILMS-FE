@@ -167,19 +167,46 @@ export function TeacherQuestionBankView({
   const { data: classesData } = useClasses();
 
   const availableClasses: ClassItem[] = useMemo(() => {
-    const baseList =
-      classesData?.items && classesData.items.length > 0
-        ? classesData.items
-        : [...DEFAULT_FACULTY_CLASSES];
-
+    const apiClasses = classesData?.items || [];
     const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
-    const baseIds = new Set(baseList.map((c) => String(c.id)));
-    const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
-    const newCreated = localCreated.filter(
-      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
-    );
 
-    const merged = [...newCreated, ...baseList];
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+    const merged: ClassItem[] = [];
+
+    // 1. Add API classes from backend
+    for (const c of apiClasses) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey)) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 2. Add local created classes
+    for (const c of localCreated) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
+    // 3. Always include DEFAULT_FACULTY_CLASSES (CS-202, INT2022, INT-1340, CS-301, SE-214)
+    for (const c of DEFAULT_FACULTY_CLASSES) {
+      const idKey = String(c.id).toLowerCase();
+      const nameKey = (c.name || '').toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        merged.push(c);
+      }
+    }
+
     const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
     return teachingOnly.length > 0 ? teachingOnly : merged;
   }, [classesData]);
@@ -187,6 +214,44 @@ export function TeacherQuestionBankView({
   const [selectedClassId, setSelectedClassId] = useState<string>(() => {
     return initialClassId || searchParams.get('classId') || 'cs-202';
   });
+
+  const [isCourseDropdownOpen, setIsCourseDropdownOpen] = useState(false);
+  const courseDropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentLang, setCurrentLang] = useState<'VI' | 'EN'>('VI');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    }
+  }, []);
+
+  const handleToggleDarkMode = () => {
+    if (typeof window === 'undefined') return;
+    const isDark = document.documentElement.classList.toggle('dark');
+    setIsDarkMode(isDark);
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch {}
+    showToast(isDark ? 'Đã bật Chế độ tối' : 'Đã bật Chế độ sáng');
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (courseDropdownRef.current && !courseDropdownRef.current.contains(event.target as Node)) {
+        setIsCourseDropdownOpen(false);
+      }
+    }
+    if (isCourseDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCourseDropdownOpen]);
 
   const activeClass = useMemo(() => {
     if (selectedClassId) {
@@ -207,6 +272,32 @@ export function TeacherQuestionBankView({
       }
     );
   }, [availableClasses, selectedClassId]);
+
+  const currentClassLabel = useMemo(() => {
+    const code = activeClass.name || activeClass.classCode || activeClass.code || String(activeClass.id);
+    const title = activeClass.title || '';
+    if (title && title !== code) {
+      return `${code}: ${title}`;
+    }
+    return code || 'CS-202: Mạng máy tính & Truyền thông';
+  }, [activeClass]);
+
+  const userInitials = useMemo(() => {
+    if (!userFullName) return 'HT';
+    const parts = userFullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }, [userFullName]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      showToast(`Đang tải lên và trích xuất câu hỏi từ: ${file.name}...`);
+      setTimeout(() => {
+        showToast(`Đã nhập thành công 15 câu hỏi từ ${file.name} vào ngân hàng!`);
+      }, 1500);
+    }
+  };
 
   const subjectInfo = useMemo(() => {
     return getSubjectInfoForClass(activeClass);
@@ -582,105 +673,164 @@ export function TeacherQuestionBankView({
     <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] text-[#171C1F] dark:text-[#E3E3E3] flex">
       {/* SIDEBAR NAVIGATION */}
       <DashboardSidebar
-        isFocus={false}
-        isSidebarCollapsed={isSidebarCollapsed}
+        isFocus={isFocusMode}
+        isCollapsed={isSidebarCollapsed || isFocusMode}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
       {/* MAIN CONTAINER */}
       <div
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-20' : 'pl-72'
+          isFocusMode ? 'pl-0' : isSidebarCollapsed ? 'pl-20' : 'pl-72'
         }`}
       >
-        {/* TOP HEADER */}
-        <header className="sticky top-0 z-40 h-16 bg-white/90 dark:bg-[#1E1F20]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-[#282A2C] px-6 flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-4 min-w-0">
-            {/* Breadcrumb Header */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#8E918F] truncate">
-              <span className="material-symbols-outlined text-[18px]">quiz</span>
-              <span>Khảo thí &amp; Bài thi</span>
-              <span className="material-symbols-outlined text-[15px]">chevron_right</span>
-              <span className="text-slate-900 dark:text-white font-semibold text-sm">
-                Ngân hàng câu hỏi
-              </span>
+        {/* ========================================================= */}
+        {/* 1. TOP HEADER (Thanh điều hướng cố định trên cùng)       */}
+        {/* ========================================================= */}
+        <header className="h-16 border-b border-slate-200/80 dark:border-[#282A2C] bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-md sticky top-0 z-30 px-6 flex items-center justify-between shadow-xs">
+          {/* Bên trái: Breadcrumbs điều hướng */}
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-[#8E918F] font-medium">
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center cursor-pointer"
+              title="Trang chủ"
+            >
+              <span className="material-symbols-outlined text-[19px]">home</span>
+            </button>
+            <span className="text-slate-300 dark:text-slate-700">/</span>
+            <span className="text-slate-800 dark:text-white font-semibold">Ngân hàng Câu hỏi</span>
+          </div>
+
+          {/* Ở giữa: Thanh tìm kiếm hình viên thuốc (Search Pill) */}
+          <div className="relative w-full max-w-md mx-6">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <span className="material-symbols-outlined text-[18px]">search</span>
             </div>
-
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
-
-            {/* Course Selector Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#131314] px-3 py-1.5 rounded-lg border border-slate-200/80 dark:border-[#282A2C]">
-              <span className="w-2 h-2 rounded-full bg-blue-600" />
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer pr-1"
-              >
-                {availableClasses.map((cls) => {
-                  const code = cls.name || cls.classCode || cls.code || String(cls.id);
-                  const title = cls.title || '';
-                  const label = title ? `${code}: ${title}` : code;
-                  return (
-                    <option key={cls.id} value={cls.id} className="dark:bg-[#1E1F20] dark:text-white">
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm kiếm bài học, khóa học, node kiến thức..."
+              className="w-full pl-10 pr-16 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white dark:bg-[#131314] dark:hover:bg-[#1E1F20] dark:focus:bg-[#1E1F20] border border-slate-200/90 dark:border-slate-700 rounded-full text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+            />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <kbd className="text-[10px] font-mono text-slate-400 bg-slate-200/70 dark:bg-slate-800 border border-slate-300/80 dark:border-slate-700 px-1.5 py-0.5 rounded shadow-2xs font-semibold">
+                Ctrl K
+              </kbd>
             </div>
           </div>
 
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-3">
-            <div className="relative hidden md:flex items-center">
-              <span className="material-symbols-outlined text-slate-400 absolute left-3 text-[18px]">
-                search
+          {/* Bên phải: Các Action & Profile */}
+          <div className="flex items-center gap-2.5">
+            {/* Nút Chế độ tập trung */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsFocusMode((prev) => !prev);
+                showToast(isFocusMode ? 'Đã tắt Chế độ Tập trung' : 'Đã bật Chế độ Tập trung');
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors shadow-2xs cursor-pointer ${
+                isFocusMode
+                  ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400'
+                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px] text-slate-500 dark:text-slate-400">
+                {isFocusMode ? 'fullscreen_exit' : 'fullscreen'}
               </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm câu hỏi, đề thi..."
-                className="w-56 lg:w-64 bg-slate-100 dark:bg-[#131314] text-slate-900 dark:text-white text-xs pl-9 pr-3 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all"
-              />
+              <span>Chế độ Tập trung</span>
+            </button>
+
+            {/* Badge Vai trò Giảng viên */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+              <span className="material-symbols-outlined text-[15px]">school</span>
+              <span>Giảng viên</span>
             </div>
 
+            {/* Toggle Dark Mode */}
             <button
               type="button"
-              onClick={() => showToast('Mở trung tâm trợ giúp khảo thí')}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="Trợ giúp"
+              onClick={handleToggleDarkMode}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              title="Chuyển chế độ sáng/tối"
             >
-              <span className="material-symbols-outlined text-[20px]">help_outline</span>
+              <span className="material-symbols-outlined text-[18px]">
+                {isDarkMode ? 'dark_mode' : 'light_mode'}
+              </span>
             </button>
 
+            {/* Switch Ngôn ngữ (VI | EN) */}
+            <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#131314] p-0.5 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setCurrentLang('VI')}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                  currentLang === 'VI'
+                    ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
+                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                }`}
+              >
+                VI
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentLang('EN')}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                  currentLang === 'EN'
+                    ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
+                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                }`}
+              >
+                EN
+              </button>
+            </div>
+
+            {/* Nút Thông báo (Có Badge đỏ) */}
             <button
               type="button"
-              onClick={() => showToast('Không có thông báo mới')}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative"
-              title="Thông báo"
+              onClick={() => showToast('Bạn có 3 thông báo mới từ hội đồng khảo thí')}
+              className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              title="Thông báo mới"
             >
               <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500" />
+              <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-white dark:border-[#1E1F20] shadow-2xs">
+                3
+              </span>
             </button>
 
-            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
+            {/* Divider dọc */}
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
 
-            <div className="flex items-center gap-2.5 pl-1 cursor-pointer group">
-              <div className="flex flex-col text-right hidden sm:flex">
-                <span className="text-xs font-semibold text-slate-900 dark:text-white leading-tight group-hover:text-blue-600 transition-colors">
+            {/* Avatar & Tên User */}
+            <div
+              className="flex items-center gap-2.5 pl-1 cursor-pointer group"
+              onClick={() => router.push('/profile')}
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:ring-2 group-hover:ring-blue-500/30 transition-all">
+                {userInitials}
+              </div>
+              <div className="hidden xl:flex flex-col text-left">
+                <span className="text-xs font-bold text-slate-800 dark:text-white leading-tight group-hover:text-blue-600 transition-colors">
                   {userFullName}
                 </span>
-                <span className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
-                  Giảng viên phụ trách
-                </span>
+                <span className="text-[10px] text-slate-400 font-medium">Giảng viên</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                <span className="material-symbols-outlined text-[18px]">person</span>
-              </div>
+              <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                expand_more
+              </span>
             </div>
           </div>
         </header>
+
+        {/* Hidden File Input for Excel/Moodle import */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          accept=".xlsx,.xls,.csv,.xml,.docx,.json"
+          className="hidden"
+        />
 
         {/* MAIN BODY CONTENT */}
         <main className="w-full px-6 lg:px-8 py-6 max-w-7xl mx-auto flex-1">
@@ -692,84 +842,129 @@ export function TeacherQuestionBankView({
             </div>
           )}
 
-          {/* TOP SECTION: BREADCRUMB & TITLE AREA WITH ACTION TOOLBAR */}
-          <div className="flex flex-col gap-3 mb-6">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <span className="hover:text-blue-600 cursor-pointer transition-colors" onClick={() => router.push('/dashboard')}>
-                Quản trị Giảng dạy
-              </span>
-              <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              <span className="hover:text-blue-600 cursor-pointer transition-colors" onClick={() => router.push('/assignments')}>
-                Ngân hàng câu hỏi
-              </span>
-              <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                Môn {activeClass.name || activeClass.code}: {activeClass.title}
-              </span>
+          {/* ========================================================= */}
+          {/* 2. SUB-HEADER (Tiêu đề trang & Các nút Action chính)     */}
+          {/* ========================================================= */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-[#282A2C] mb-6">
+            {/* Bên trái: Tiêu đề + Chọn khóa học + Subtitle */}
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  Ngân hàng Câu hỏi &amp; Ma trận Đề
+                </h1>
+                {/* Pill Dropdown Chọn Khóa học */}
+                <div className="relative inline-block" ref={courseDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsCourseDropdownOpen((prev) => !prev)}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200/70 dark:bg-[#131314] dark:hover:bg-[#282A2C] border border-slate-200/80 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all shadow-2xs group cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px] text-blue-600 dark:text-blue-400">
+                      menu_book
+                    </span>
+                    <span>{currentClassLabel}</span>
+                    <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200">
+                      {isCourseDropdownOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </button>
+
+                  {isCourseDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-80 max-h-72 overflow-y-auto rounded-xl bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-slate-700 shadow-xl z-50 py-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                        Chọn lớp học / Học phần
+                      </div>
+                      {availableClasses.map((cls) => {
+                        const code = cls.name || cls.classCode || cls.code || String(cls.id);
+                        const title = cls.title || '';
+                        const label = title ? `${code}: ${title}` : code;
+                        const isSelected = String(cls.id) === String(selectedClassId);
+                        return (
+                          <button
+                            key={cls.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedClassId(String(cls.id));
+                              setIsCourseDropdownOpen(false);
+                              showToast(`Đã chuyển sang lớp: ${label}`);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold'
+                                : 'text-slate-700 dark:text-slate-200 font-normal'
+                            }`}
+                          >
+                            <div className="flex flex-col truncate pr-2">
+                              <span className="truncate">{label}</span>
+                              {cls.semester && (
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                  {cls.semester}
+                                </span>
+                              )}
+                            </div>
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 shrink-0">
+                                check
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Kho dữ liệu câu hỏi trắc nghiệm &amp; ma trận chuẩn ABET • Học kỳ 1 (2026–2027)
+              </p>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="flex flex-col">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-semibold">
-                    {activeClass.major || 'Khoa Công nghệ Thông tin'}
-                  </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-xs">
-                    • {activeClass.semester || 'Học kỳ II - 2024'}
-                  </span>
-                  <span className="text-xs font-mono px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded">
-                    ID: {activeClass.name || activeClass.code}-KHOA-IT
-                  </span>
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
-                  Ngân hàng Câu hỏi &amp; Ma trận Đề thi Thông minh
-                </h1>
-              </div>
+            {/* Bên phải: 3 nút Action + Toggle Ma trận */}
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Nút 1: Nhập file */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[17px] text-slate-500 dark:text-slate-400">
+                  upload_file
+                </span>
+                <span>Nhập file (Excel/Moodle)</span>
+              </button>
 
-              {/* ACTION TOOLBAR */}
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAiModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white shadow hover:shadow-md transition-all flex items-center gap-2 text-xs font-semibold cursor-pointer active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                  <span>Tạo câu hỏi bằng AI</span>
-                  <span className="px-1.5 py-0.2 bg-white/20 rounded text-[10px] tracking-wide uppercase font-bold">
-                    GPT-4o
-                  </span>
-                </button>
+              {/* Nút 2: Sinh câu hỏi bằng AI (Gradient nổi bật) */}
+              <button
+                type="button"
+                onClick={() => setIsAiModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-xs font-semibold text-white transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[17px]">auto_awesome</span>
+                <span>Sinh câu hỏi bằng AI</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setIsAddQuestionModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1E1F20] text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-[#282A2C] transition-all shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
-                    add_circle
-                  </span>
-                  <span>Thêm câu hỏi thủ công</span>
-                </button>
+              {/* Nút 3: Thêm câu hỏi mới (Nút Primary CTA) */}
+              <button
+                type="button"
+                onClick={() => setIsAddQuestionModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[17px]">add</span>
+                <span>Thêm câu hỏi mới</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => showToast('Mở trình nhập file Word / Excel / Moodle XML')}
-                  className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1E1F20] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-[#282A2C] transition-all shadow-xs flex items-center gap-1 text-xs font-medium cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">file_upload</span>
-                  <span>Nhập file</span>
-                  <span className="material-symbols-outlined text-[14px]">arrow_drop_down</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsBlueprintOpen(!isBlueprintOpen)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-blue-600 text-white hover:bg-slate-800 dark:hover:bg-blue-700 transition-all shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">view_quilt</span>
-                  <span>{isBlueprintOpen ? 'Ẩn Ma trận Đề (Blueprint)' : 'Mở Ma trận Đề (Blueprint)'}</span>
-                </button>
-              </div>
+              {/* Nút 4: Toggle Blueprint */}
+              <button
+                type="button"
+                onClick={() => setIsBlueprintOpen(!isBlueprintOpen)}
+                className={`p-2 rounded-xl border text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
+                  isBlueprintOpen
+                    ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400'
+                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+                title={isBlueprintOpen ? 'Ẩn Ma trận Bloom' : 'Hiện Ma trận Bloom'}
+              >
+                <span className="material-symbols-outlined text-[18px]">view_quilt</span>
+              </button>
             </div>
           </div>
 

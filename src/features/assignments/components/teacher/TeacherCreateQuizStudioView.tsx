@@ -296,14 +296,19 @@ export function TeacherCreateQuizStudioView({
     if (rawDraft) {
       try {
         const parsed = JSON.parse(rawDraft);
+        const draftQuestionsText = Array.isArray(parsed.questions)
+          ? JSON.stringify(parsed.questions).toLowerCase()
+          : '';
+
         // Kiểm tra nghiêm ngặt: Nếu bản nháp chứa nội dung thuộc môn khác (vd môn khác nhưng có Tầng Mạng / OSPF / Cây nhị phân / SQL...)
         const hasCrossSubjectLeak =
+          (parsed.classId && String(parsed.classId).toLowerCase() !== activeClassId.toLowerCase()) ||
           (parsed.subjectKey && parsed.subjectKey !== subjectInfo.key) ||
-          (subjectInfo.key !== 'mangMayTinh' && (parsed.quizTitle?.includes('Tầng Mạng') || parsed.quizTitle?.includes('OSPF') || parsed.selectedModule?.includes('Tầng Mạng'))) ||
-          (subjectInfo.key !== 'giaiTich2' && (parsed.quizTitle?.includes('Giải tích') || parsed.quizTitle?.includes('Tích phân') || parsed.selectedModule?.includes('Chuỗi số'))) ||
-          (subjectInfo.key !== 'cauTrucDuLieu' && (parsed.quizTitle?.includes('Cây nhị phân') || parsed.quizTitle?.includes('Giải thuật'))) ||
-          (subjectInfo.key !== 'coSoDuLieu' && (parsed.quizTitle?.includes('CSDL') || parsed.quizTitle?.includes('Dạng chuẩn'))) ||
-          (subjectInfo.key !== 'congNghePhanMem' && (parsed.quizTitle?.includes('UML') || parsed.quizTitle?.includes('Scrum')));
+          (subjectInfo.key !== 'mangMayTinh' && (parsed.quizTitle?.includes('Tầng Mạng') || parsed.quizTitle?.includes('OSPF') || parsed.selectedModule?.includes('Tầng Mạng') || draftQuestionsText.includes('ospf') || draftQuestionsText.includes('dijkstra'))) ||
+          (subjectInfo.key !== 'giaiTich2' && (parsed.quizTitle?.includes('Giải tích') || parsed.quizTitle?.includes('Tích phân') || parsed.selectedModule?.includes('Chuỗi số') || draftQuestionsText.includes('tích phân') || draftQuestionsText.includes('đạo hàm riêng'))) ||
+          (subjectInfo.key !== 'cauTrucDuLieu' && (parsed.quizTitle?.includes('Cây nhị phân') || parsed.quizTitle?.includes('Giải thuật') || draftQuestionsText.includes('avl') || draftQuestionsText.includes('quicksort'))) ||
+          (subjectInfo.key !== 'coSoDuLieu' && (parsed.quizTitle?.includes('CSDL') || parsed.quizTitle?.includes('Dạng chuẩn') || draftQuestionsText.includes('sql') || draftQuestionsText.includes('bcnf'))) ||
+          (subjectInfo.key !== 'congNghePhanMem' && (parsed.quizTitle?.includes('UML') || parsed.quizTitle?.includes('Scrum') || draftQuestionsText.includes('agile')));
 
         if (!hasCrossSubjectLeak) {
           if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
