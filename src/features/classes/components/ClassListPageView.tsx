@@ -11,6 +11,7 @@ import { ClassFilterToolbar } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
 import { ClassListView } from './ClassListView';
 import { StudentClassListView } from './StudentClassListView';
+import { FacultyClassListView } from './FacultyClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -490,12 +491,19 @@ export function ClassListPageView({
                 </div>
               </div>
 
-              {/* Class Presentation (Student List View vs Grid / Faculty) */}
+              {/* Class Presentation (Student List View vs Faculty List View vs Grid) */}
               {workspaceMode === 'student' && viewMode === 'list' ? (
                 <StudentClassListView
                   items={items}
                   copiedCode={copiedCode}
                   onCopyCode={handleCopyCode}
+                />
+              ) : workspaceMode === 'faculty' && viewMode === 'list' ? (
+                <FacultyClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
                 />
               ) : (
                 <ClassCardGrid

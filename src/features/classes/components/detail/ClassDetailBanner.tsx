@@ -34,10 +34,10 @@ export function ClassDetailBanner({
   const t = useTranslations('classes.detail');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Streamlined 5 tabs as requested in user mockup
+  // Streamlined 5 tabs: Tổng quan, Môn học liên kết, Bài tập, Thành viên, Cài đặt
   const tabs = [
     { id: 'stream', label: 'Tổng quan & Bảng tin', icon: 'forum' },
-    { id: 'modules', label: 'Chương trình học', icon: 'account_tree' },
+    { id: 'subjects', label: 'Môn học liên kết', icon: 'library_books', badge: subjectsCount || 4 },
     { id: 'assignments', label: 'Bài tập & Đánh giá', icon: 'assignment', badge: '2' },
     { id: 'people', label: 'Thành viên', icon: 'groups', badge: classInfo.enrolledCount || 48 },
     ...(currentRole !== 'student'

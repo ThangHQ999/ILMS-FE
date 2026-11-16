@@ -22,6 +22,7 @@ export * from './schemas/class-detail.schema';
 export * from './services/class-detail.service';
 export * from './components/ClassListPageView';
 export * from './components/StudentClassListView';
+export * from './components/FacultyClassListView';
 export * from './components/JoinClassModal';
 export * from './components/detail/ClassDetailPageView';
 export * from './components/detail/StudentDetailDrawer';

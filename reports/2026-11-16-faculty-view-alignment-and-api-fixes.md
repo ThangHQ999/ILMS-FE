@@ -59,3 +59,4 @@ Khi so sánh giữa View Học viên (Ảnh 1) và View Giảng viên (Ảnh 2):
 1. **TypeScript Typecheck:** `npx tsc --noEmit` $\rightarrow$ **0 lỗi** (`exited with code 0`).
 2. **Production Build:** `npm run build` $\rightarrow$ **Thành công 100%** (Biên dịch 26/26 routes trong 3.1s).
 3. **Trạng thái Git:** Cây thư mục sạch sẽ (`working tree clean`), không có conflict markers.
+

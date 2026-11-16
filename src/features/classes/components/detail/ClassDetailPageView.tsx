@@ -17,7 +17,6 @@ import { ClassMembersTab } from './ClassMembersTab';
 import { ClassSettingsTab } from './ClassSettingsTab';
 import { ClassMaterialsTab } from './ClassMaterialsTab';
 import { ClassStreamTab } from './ClassStreamTab';
-import { ClassModulesTab } from './ClassModulesTab';
 import { ClassAssignmentsTab } from './ClassAssignmentsTab';
 import { ClassAnalyticsSettingsTab } from './ClassAnalyticsSettingsTab';
 import {
@@ -400,12 +399,17 @@ export function ClassDetailPageView({
               />
             )}
 
-            {activeTab === 'modules' && (
-              <ClassModulesTab
+            {(activeTab === 'subjects' || activeTab === 'modules') && (
+              <ClassSubjectsTab
+                courses={courses}
                 currentRole={effectiveRole}
+                onAddExistingClick={() => setIsAddSubjectOpen(true)}
+                onCreateNewClick={() => setIsCreateSubjectOpen(true)}
+                onRemoveClick={(c) => setRemoveTarget(c)}
+                onAssignTeacherClick={(c) =>
+                  showToast(`Mở phân công giảng viên cho môn ${c.code}`)
+                }
                 onToast={showToast}
-                onViewSubjects={() => setActiveTab('subjects')}
-                subjectsCount={courses.length}
               />
             )}
 
@@ -433,20 +437,6 @@ export function ClassDetailPageView({
                 onApproveMember={handleApproveMember}
                 onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
                 onInviteClick={() => setIsInviteOpen(true)}
-                onToast={showToast}
-              />
-            )}
-
-            {activeTab === 'subjects' && (
-              <ClassSubjectsTab
-                courses={courses}
-                currentRole={effectiveRole}
-                onAddExistingClick={() => setIsAddSubjectOpen(true)}
-                onCreateNewClick={() => setIsCreateSubjectOpen(true)}
-                onRemoveClick={(c) => setRemoveTarget(c)}
-                onAssignTeacherClick={(c) =>
-                  showToast(`Mở phân công giảng viên cho môn ${c.code}`)
-                }
                 onToast={showToast}
               />
             )}
