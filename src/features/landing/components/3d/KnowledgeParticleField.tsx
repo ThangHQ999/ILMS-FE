@@ -26,16 +26,16 @@ export function KnowledgeParticleField({
     const col = new Float32Array(particleCount * 3);
 
     const paletteDark = [
-      new THREE.Color('#38BDF8'),
-      new THREE.Color('#60A5FA'),
-      new THREE.Color('#818CF8'),
-      new THREE.Color('#2DD4BF'),
+      new THREE.Color('#7DD3FC'),
+      new THREE.Color('#93C5FD'),
+      new THREE.Color('#C4B5FD'),
+      new THREE.Color('#FDE68A'),
     ];
     const paletteLight = [
       new THREE.Color('#0284C7'),
       new THREE.Color('#2563EB'),
       new THREE.Color('#4F46E5'),
-      new THREE.Color('#0D9488'),
+      new THREE.Color('#D97706'),
     ];
     const palette = isDark ? paletteDark : paletteLight;
 
@@ -127,10 +127,10 @@ export function KnowledgeParticleField({
           />
         </bufferGeometry>
         <pointsMaterial
-          size={isDark ? 0.085 : 0.075}
+          size={isDark ? 0.075 : 0.065}
           vertexColors
           transparent
-          opacity={isDark ? 0.78 : 0.48}
+          opacity={isDark ? 0.64 : 0.36}
           sizeAttenuation
           depthWrite={false}
         />

@@ -34,7 +34,7 @@ export function TiltCard({
       style={transformStyle}
       onClick={onClick}
       {...handlers}
-      className={`relative overflow-hidden rounded-3xl transition-shadow duration-300 select-none ${
+      className={`ilms-world-glass relative overflow-hidden rounded-3xl transition-shadow duration-300 select-none ${
         onClick ? 'cursor-pointer' : ''
       } ${className}`}
     >

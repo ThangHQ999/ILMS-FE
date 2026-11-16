@@ -10,65 +10,87 @@ export interface ScrollConstellationRailProps {
   onSelectScene: (sceneId: string) => void;
 }
 
+/**
+ * Whisper-quiet Left-Edge Depth Gauge (inspired by englishcoach.io.vn's `.dive_gauge`):
+ * A 1px vertical filament with glowing constellation nodes on the far-left edge,
+ * freeing the right viewport edge so the world feels completely unboxed.
+ */
 export function ScrollConstellationRail({
   activeSceneIndex,
   scrollProgress,
   onSelectScene,
 }: ScrollConstellationRailProps) {
   const t = useTranslations('landing.story');
+  const clampedProgress = Math.min(1, Math.max(0.02, scrollProgress));
 
   return (
     <>
-      {/* Top Laser Progress Bar (visible on both Mobile & Desktop) */}
+      {/* Top 2px Horizon Progress Filament */}
       <div
-        className="fixed top-16 left-0 right-0 z-40 h-0.5 bg-slate-200/40 dark:bg-slate-800/50 pointer-events-none"
+        className="fixed top-16 left-0 right-0 z-40 h-[2px] bg-slate-300/25 dark:bg-sky-950/40 pointer-events-none"
         aria-hidden="true"
       >
         <div
-          className="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-500 transition-all duration-150"
-          style={{ width: `${Math.min(100, Math.max(2, scrollProgress * 100))}%` }}
+          className="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-400 shadow-[0_0_12px_rgba(56,189,248,0.75)] transition-all duration-150"
+          style={{ width: `${clampedProgress * 100}%` }}
         />
       </div>
 
-      {/* Desktop Right-side Constellation Station Rail */}
+      {/* Left-Edge Whisper Depth Gauge (Desktop xl+) */}
       <nav
         aria-label={t('stationNavLabel')}
-        className="hidden xl:flex fixed right-5 top-1/2 -translate-y-1/2 z-40 flex-col items-end gap-3.5"
+        className="hidden xl:block fixed left-5 top-1/2 -translate-y-1/2 z-40 select-none"
       >
-        {LANDING_SCENES.map((scene) => {
-          const isActive = activeSceneIndex === scene.index;
-          const isPassed = activeSceneIndex > scene.index;
+        <ol className="relative grid gap-5 pl-0">
+          {/* Background 1px Track */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-[5px] top-1.5 bottom-1.5 w-px bg-slate-400/35 dark:bg-sky-200/20"
+          />
+          {/* Active Scroll Fill Filament */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-[5px] top-1.5 bottom-1.5 w-px bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-400 origin-top transition-transform duration-200"
+            style={{ transform: `scaleY(${clampedProgress})` }}
+          />
 
-          return (
-            <button
-              key={scene.id}
-              type="button"
-              onClick={() => onSelectScene(scene.id)}
-              aria-label={t(scene.labelKey)}
-              className="group flex items-center gap-2.5 focus:outline-none cursor-pointer"
-            >
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? 'opacity-100 translate-x-0 bg-blue-600 text-white dark:bg-sky-400 dark:text-slate-950 shadow-sm'
-                    : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 bg-white/90 dark:bg-[#1E1F20]/95 text-slate-700 dark:text-slate-200'
-                }`}
-              >
-                {t(scene.labelKey)}
-              </span>
+          {LANDING_SCENES.map((scene) => {
+            const isActive = activeSceneIndex === scene.index;
+            const isPassed = activeSceneIndex > scene.index;
 
-              <span
-                className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
-                  isActive
-                    ? 'w-4 h-4 bg-blue-600 dark:bg-sky-400 ring-4 ring-blue-500/25 dark:ring-sky-400/25 scale-110'
-                    : isPassed
-                    ? 'w-2.5 h-2.5 bg-blue-500/70 dark:bg-sky-400/70 hover:scale-125'
-                    : 'w-2.5 h-2.5 bg-slate-400/50 dark:bg-slate-600 hover:bg-blue-500 dark:hover:bg-sky-400 hover:scale-125'
-                }`}
-              />
-            </button>
-          );
-        })}
+            return (
+              <li key={scene.id} className="relative">
+                <button
+                  type="button"
+                  onClick={() => onSelectScene(scene.id)}
+                  aria-label={t(scene.labelKey)}
+                  aria-current={isActive ? 'step' : undefined}
+                  className="group relative flex items-center gap-3 text-left focus:outline-none cursor-pointer"
+                >
+                  <span
+                    className={`relative z-10 w-[11px] h-[11px] rounded-full border transition-all duration-300 ${
+                      isActive
+                        ? 'bg-sky-400 border-white dark:border-sky-200 scale-125 shadow-[0_0_14px_rgba(56,189,248,0.95)]'
+                        : isPassed
+                        ? 'bg-blue-600/80 dark:bg-sky-400/75 border-blue-300/60 dark:border-sky-300/50 group-hover:scale-110'
+                        : 'bg-white/80 dark:bg-[#0b2f78] border-slate-400/60 dark:border-sky-200/45 group-hover:border-sky-400 group-hover:scale-110'
+                    }`}
+                  />
+
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide whitespace-nowrap transition-all duration-300 ${
+                      isActive
+                        ? 'opacity-100 translate-x-0 text-blue-950 dark:text-white bg-white/80 dark:bg-sky-400/20 backdrop-blur-md shadow-xs'
+                        : 'opacity-0 -translate-x-1.5 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 text-slate-700 dark:text-sky-100 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md'
+                    }`}
+                  >
+                    {t(scene.labelKey)}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
       </nav>
     </>
   );

@@ -6,8 +6,8 @@ import type { LandingRolePerspective } from '../types';
 import { useScrollSectionProgress } from '../hooks/useScrollSectionProgress';
 import { LandingHeader } from './LandingHeader';
 import { LandingFooter } from './LandingFooter';
-import { LandingTechStack } from './LandingTechStack';
 import { ScrollConstellationRail } from './shared/ScrollConstellationRail';
+import { AtmosphericHorizonBackdrop } from './shared/AtmosphericHorizonBackdrop';
 import { LandingHeroSection } from './sections/LandingHeroSection';
 import { SocraticDialecticSection } from './sections/SocraticDialecticSection';
 import { SmartClassroomSection } from './sections/SmartClassroomSection';
@@ -32,33 +32,27 @@ export function LandingPageView() {
   } = useScrollSectionProgress();
 
   return (
-    <div className="relative min-h-screen bg-[#E8EEF5] dark:bg-[#0D1117] text-slate-900 dark:text-[#E3E3E3] antialiased transition-colors overflow-x-hidden">
-      {/* Ambient Cyber-Academic Background Radial Glows */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-      >
-        <div className="absolute -top-40 left-1/4 w-[520px] h-[520px] rounded-full bg-blue-500/10 dark:bg-sky-500/12 blur-[120px]" />
-        <div className="absolute top-1/2 -right-32 w-[460px] h-[460px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/12 blur-[120px]" />
-      </div>
+    <div className="relative min-h-screen w-full text-slate-900 dark:text-[#EEF6FF] antialiased selection:bg-sky-400/30 selection:text-blue-950 dark:selection:text-white overflow-x-hidden">
+      {/* Layer 0: Full-Bleed (100vw x 100vh) Living Horizon, Volumetric Light Rays & Drifting Nebulae */}
+      <AtmosphericHorizonBackdrop scrollProgress={scrollProgress} />
 
-      {/* Layer 1: Three.js WebGL Interactive Particle Universe */}
+      {/* Layer 1: Three.js WebGL Interactive Synaptic & Starlight Field */}
       <KnowledgeParticleCanvas
         scrollProgress={scrollProgress}
         pointerNormalized={pointerNormalized}
       />
 
-      {/* Sticky Glassmorphic Navigation Header */}
+      {/* Layer 2: Translucent Full-Bleed Horizon Header */}
       <LandingHeader />
 
-      {/* Constellation Station Progress Rail */}
+      {/* Layer 3: Left-Edge Whisper Constellation Gauge */}
       <ScrollConstellationRail
         activeSceneIndex={activeSceneIndex}
         scrollProgress={scrollProgress}
         onSelectScene={scrollToScene}
       />
 
-      {/* Main 5-Scene Interactive Storytelling Journey */}
+      {/* Layer 4: Continuous Full-Bleed 5-Scene Spatial Journey */}
       <main className="relative z-10 w-full pt-16">
         <LandingHeroSection
           role={role}
@@ -71,8 +65,6 @@ export function LandingPageView() {
         <SmartClassroomSection role={role} />
 
         <BloomMasterySection />
-
-        {/* <LandingTechStack /> */}
 
         <ConversionFaqSection />
       </main>

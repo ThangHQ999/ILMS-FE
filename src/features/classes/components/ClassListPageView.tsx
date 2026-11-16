@@ -25,7 +25,6 @@ import { useArchiveClass } from '../hooks/useArchiveClass';
 import {
   EmptyState,
   ErrorState,
-  StatePreviewToolbar,
   Button,
 } from '@/components/shared';
 import type {
@@ -38,8 +37,6 @@ import type {
 } from '../types';
 
 import { getLocalCreatedClasses } from '../services/class.service';
-
-type StatePreviewMode = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
 
 interface ClassListPageViewProps {
   userFullName?: string;
@@ -71,9 +68,6 @@ export function ClassListPageView({
 
   // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
-
-  // State Previews sandbox
-  const [previewState, setPreviewState] = useState<StatePreviewMode>('normal');
   const [isClient, setIsClient] = useState(false);
 
   React.useEffect(() => {
@@ -101,7 +95,7 @@ export function ClassListPageView({
     }),
     [filters, effectiveRole]
   );
-  const { data: responseData, isLoading, isError, refetch } = useClasses(queryFilters);
+  const { data: responseData, isLoading, isFetching, isError, error, refetch } = useClasses(queryFilters);
   const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
 
@@ -364,31 +358,51 @@ export function ClassListPageView({
             onClearKpi={() => setActiveKpi(null)}
           />
 
-          {/* Dynamic Content Display based on State Preview Sandbox or Normal View */}
-          {previewState === 'skeleton' || (isLoading && previewState === 'normal') ? (
+          {/* Dynamic Content Lifecycle Driven by Real API States (7-State Matrix) */}
+          {isLoading ? (
             <ClassLoadingSkeleton />
-          ) : isError && previewState === 'normal' ? (
+          ) : isError ? (
             <ErrorState
-              title="Không thể tải danh sách lớp học"
-              description="Đã xảy ra sự cố khi kết nối tới máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc nhấn nút thử lại bên dưới."
+              title={t('errorLoadTitle')}
+              description={t('errorLoadDesc')}
+              error={error}
               onRetry={() => refetch()}
             />
-          ) : previewState === 'empty' || (previewState === 'normal' && items.length === 0 && !hasActiveFilters) ? (
+          ) : items.length === 0 && hasActiveFilters ? (
+            <ClassSearchNotFoundState
+              onClearFilters={() => {
+                handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
+                setActiveKpi(null);
+              }}
+            />
+          ) : items.length === 0 && filters.status === 'ARCHIVED' ? (
+            <EmptyState
+              variant="archived"
+              title={t('emptyArchivedTitle')}
+              description={t('emptyArchivedDesc')}
+              action={
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleFilterUpdate({ status: 'ACTIVE', page: 0 })}
+                >
+                  {t('backToActiveBtn')}
+                </Button>
+              }
+            />
+          ) : items.length === 0 ? (
             <ClassEmptyState
               workspaceMode={workspaceMode}
               onCreateClick={() => setIsCreateOpen(true)}
               onJoinClick={() => setIsJoinOpen(true)}
             />
-          ) : previewState === 'notfound' || (previewState === 'normal' && items.length === 0 && hasActiveFilters) ? (
-            <ClassSearchNotFoundState
-              onClearFilters={() => {
-                setPreviewState('normal');
-                handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
-                setActiveKpi(null);
-              }}
-            />
           ) : (
-            <div>
+            <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
+              {isFetching && !isLoading && (
+                <div className="h-0.5 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-950 mb-3">
+                  <div className="h-full w-1/3 bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse rounded-full" />
+                </div>
+              )}
               {/* Class Presentation (Student List View vs Grid / Faculty) */}
               {workspaceMode === 'student' && viewMode === 'list' ? (
                 <StudentClassListView
@@ -411,74 +425,57 @@ export function ClassListPageView({
           )}
 
           {/* 4. Pagination */}
-          <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {totalElements === 0 ? (
-                <span>Không có lớp học nào</span>
-              ) : (
-                <>
-                  Hiển thị{' '}
-                  <strong className="font-semibold text-slate-900 dark:text-white">
-                    {filters.page * pageSize + 1} - {Math.min((filters.page + 1) * pageSize, totalElements)}
-                  </strong>{' '}
-                  trên{' '}
-                  <strong className="font-semibold text-slate-900 dark:text-white">
-                    {totalElements}
-                  </strong>{' '}
-                  lớp học
-                </>
-              )}
-            </div>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => handlePageSelect(currentPageDisplay - 1)}
-                  disabled={currentPageDisplay <= 1}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-                  <span>Trước</span>
-                </button>
-                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    type="button"
-                    onClick={() => handlePageSelect(pageNum)}
-                    className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      currentPageDisplay === pageNum
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => handlePageSelect(currentPageDisplay + 1)}
-                  disabled={currentPageDisplay >= totalPages}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
-                >
-                  <span>Tiếp theo</span>
-                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                </button>
+          {!isLoading && !isError && items.length > 0 && (
+            <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Hiển thị{' '}
+                <strong className="font-semibold text-slate-900 dark:text-white">
+                  {filters.page * pageSize + 1} - {Math.min((filters.page + 1) * pageSize, totalElements)}
+                </strong>{' '}
+                trên{' '}
+                <strong className="font-semibold text-slate-900 dark:text-white">
+                  {totalElements}
+                </strong>{' '}
+                lớp học
               </div>
-            )}
-          </nav>
-
-          {/* 5. STATE PREVIEWS TOOLBAR */}
-          <StatePreviewToolbar
-            activeState={previewState}
-            onStateChange={(state) => setPreviewState(state as StatePreviewMode)}
-            options={[
-              { key: 'normal', label: 'Danh sách hiện tại' },
-              { key: 'skeleton', label: 'Skeleton Loading' },
-              { key: 'empty', label: 'Trống (Chưa có lớp)' },
-              { key: 'notfound', label: 'Không tìm thấy theo lọc' },
-              { key: 'archived', label: 'Tab Đã lưu trữ' },
-            ]}
-          />
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePageSelect(currentPageDisplay - 1)}
+                    disabled={currentPageDisplay <= 1}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                    <span>Trước</span>
+                  </button>
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => handlePageSelect(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        currentPageDisplay === pageNum
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handlePageSelect(currentPageDisplay + 1)}
+                    disabled={currentPageDisplay >= totalPages}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
+                  >
+                    <span>Tiếp theo</span>
+                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                  </button>
+                </div>
+              )}
+            </nav>
+          )}
         </div>
       </main>
 

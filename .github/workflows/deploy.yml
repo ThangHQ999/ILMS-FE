@@ -1,0 +1,65 @@
+name: Deploy Next.js Frontend to VPS
+
+on:
+  push:
+    branches:
+      - test # Lắng nghe sự kiện push lên nhánh test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Cài đặt môi trường Node.js trên GitHub Runner để build Next.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Chọn phiên bản Node.js phù hợp với dự án của bạn
+          cache: 'npm'
+
+      # 2. Cài đặt dependencies và build project Next.js
+      - name: Install dependencies and Build
+        run: |
+          npm install
+          npm run build
+
+      # 3. Kết nối vào VPS và đồng bộ file build qua SSH
+      - name: Copy build files to VPS and Restart PM2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Tạo thư mục chứa frontend trên VPS nếu chưa có (ví dụ: /var/www/ilms-fe)
+            cd /var/www/ilms-fe
+            
+            # Cập nhật code mới nhất từ nhánh test
+            git fetch origin test
+            git reset --hard origin/test
+            
+            # --- KIỂM TRA VÀ TỰ ĐỘNG CÀI ĐẶT NODE.JS & NPM NẾU CHƯA CÓ ---
+            if ! command -v node &> /dev/null; then
+                echo "Node.js chưa được cài đặt, đang tiến hành cài đặt Node.js và npm..."
+                curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+                sudo apt-get install -y nodejs
+            fi
+            
+            # --- KIỂM TRA VÀ CÀI ĐẶT PM2 NẾU CHƯA CÓ ---
+            if ! command -v pm2 &> /dev/null; then
+                echo "PM2 chưa có, đang tiến hành cài đặt toàn cục..."
+                sudo npm install -g pm2
+            fi
+
+            # Cài đặt dependencies và build trực tiếp trên VPS (hoặc bạn có thể dùng rsync để đồng bộ thư mục .next từ github runner)
+            npm install
+            npm run build
+            
+            # Khởi động lại ứng dụng Next.js bằng PM2 (đổi 'ilms-fe' thành tên process của bạn)
+            pm2 restart ilms-fe || pm2 start npm --name "ilms-fe" -- start
+            
+            # Lưu lại trạng thái PM2
+            pm2 save

@@ -38,7 +38,7 @@ export function FloatingSocraticMascot({
 }: FloatingSocraticMascotProps) {
   const { elementRef, state, transformStyle, handlers } = useMouse3DTilt({
     maxTilt: 14,
-    scaleOnHover: 1.03,
+    scaleOnHover: 1.035,
   });
 
   const [quoteIdx, setQuoteIdx] = useState(0);
@@ -64,12 +64,12 @@ export function FloatingSocraticMascot({
       ? Compass
       : Award;
 
-  const shiftX = state.rotateY * 1.1;
-  const shiftY = -state.rotateX * 1.1;
+  const shiftX = state.rotateY * 1.15;
+  const shiftY = -state.rotateX * 1.15;
 
   return (
     <div className="relative flex flex-col items-center justify-center w-full select-none">
-      {/* Interactive 2.5D Multi-Plane Stage */}
+      {/* Unboxed Free-Floating 3D Character Stage (no dashed border cage) */}
       <div
         ref={elementRef}
         style={transformStyle}
@@ -84,70 +84,64 @@ export function FloatingSocraticMascot({
             cycleQuote();
           }
         }}
-        className="relative flex items-center justify-center w-72 h-72 sm:w-88 sm:h-88 lg:w-96 lg:h-96 cursor-pointer focus:outline-none group"
+        className="relative flex items-center justify-center w-76 h-76 sm:w-92 sm:h-92 lg:w-[410px] lg:h-[410px] cursor-pointer focus:outline-none group"
       >
-        {/* Plane -1: Ambient Cyber-Academic Aura & Rotating Halo */}
+        {/* Soft Volumetric Light Pool Behind Mascot */}
         <div
           aria-hidden="true"
-          className="absolute inset-4 rounded-full bg-gradient-to-tr from-blue-600/20 via-sky-400/25 to-indigo-500/20 dark:from-blue-500/25 dark:via-sky-400/30 dark:to-indigo-500/25 blur-2xl transition-transform duration-500 group-hover:scale-110"
+          className="absolute inset-2 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.32)_0%,rgba(59,130,246,0.14)_48%,transparent_72%)] dark:bg-[radial-gradient(circle,rgba(56,189,248,0.38)_0%,rgba(99,102,241,0.18)_48%,transparent_72%)] blur-2xl transition-transform duration-500 group-hover:scale-110"
           style={{
             transform: `translate3d(${-shiftX * 0.6}px, ${-shiftY * 0.6}px, -30px)`,
           }}
         />
 
-        <div
-          aria-hidden="true"
-          className="absolute inset-6 rounded-full border-2 border-dashed border-sky-400/35 dark:border-sky-400/30 animate-spin"
-          style={{ animationDuration: '28s' }}
-        />
-
-        {/* Click / External Trigger Expanding Energy Ring */}
+        {/* Click / Step Change Expanding Sonic Ripple */}
         {(clickPulseId > 0 || externalPulse > 0) && (
           <div
             key={`${clickPulseId}-${externalPulse}`}
             aria-hidden="true"
-            className="pointer-events-none absolute inset-10 rounded-full border-2 border-sky-400/60 dark:border-sky-300/60 animate-ping"
+            className="pointer-events-none absolute inset-10 rounded-full border border-sky-400/60 dark:border-sky-300/60 animate-ping"
             style={{ animationDuration: '750ms' }}
           />
         )}
 
-        {/* Plane +1: Main 3D Pixar Socratic Owl Mascot */}
+        {/* Main 3D Pixar Socratic Owl Mascot Floating in Open Space */}
         <img
           src={MASCOT_IMAGE_MAP[pose]}
           alt={altText}
           draggable={false}
-          className={`relative z-20 w-64 h-64 sm:w-80 sm:h-80 lg:w-88 lg:h-88 object-contain drop-shadow-[0_20px_35px_rgba(14,165,233,0.28)] transition-transform duration-300 ${
+          className={`ilms-zero-g-float relative z-20 w-68 h-68 sm:w-84 sm:h-84 lg:w-96 lg:h-96 object-contain drop-shadow-[0_24px_44px_rgba(8,47,114,0.28)] dark:drop-shadow-[0_28px_52px_rgba(2,12,42,0.75)] transition-transform duration-300 ${
             isBouncing ? 'scale-108 -translate-y-2' : 'scale-100'
           }`}
           style={{
-            transform: `translate3d(${shiftX * 0.5}px, ${shiftY * 0.5}px, 25px)`,
+            transform: `translate3d(${shiftX * 0.55}px, ${shiftY * 0.55}px, 28px)`,
           }}
         />
 
-        {/* Plane +2: Foreground Floating Parallax Props */}
+        {/* Floating Parallax World Glass Chips */}
         <div
-          className="absolute top-3 left-0 sm:-left-2 z-30 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-blue-700 dark:text-sky-300 text-xs font-bold shadow-md shadow-blue-950/10 whitespace-nowrap"
+          className="ilms-world-glass absolute top-4 left-0 sm:-left-3 z-30 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-blue-900 dark:text-sky-200 text-xs font-bold whitespace-nowrap"
           style={{
             transform: `translate3d(${shiftX * 1.2}px, ${shiftY * 1.2}px, 50px)`,
           }}
         >
-          <PoseIcon className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+          <PoseIcon className="w-3.5 h-3.5 text-blue-600 dark:text-sky-300" />
           <span>{floatingTagTop}</span>
         </div>
 
         <div
-          className="absolute bottom-4 right-0 sm:-right-2 z-30 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 text-white dark:bg-sky-400 dark:text-slate-950 text-xs font-bold shadow-md shadow-blue-600/25 whitespace-nowrap"
+          className="absolute bottom-5 right-0 sm:-right-3 z-30 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-sky-300 dark:to-cyan-200 text-white dark:text-slate-950 text-xs font-bold shadow-[0_12px_28px_-8px_rgba(37,99,235,0.7)] dark:shadow-[0_12px_28px_-8px_rgba(56,189,248,0.65)] whitespace-nowrap"
           style={{
             transform: `translate3d(${-shiftX * 1.1}px, ${-shiftY * 1.1}px, 55px)`,
           }}
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-300 dark:bg-emerald-950 animate-ping" />
+          <span className="w-2 h-2 rounded-full bg-emerald-300 dark:bg-emerald-900 animate-ping" />
           <span>{floatingTagBottom}</span>
         </div>
       </div>
 
       {/* Interactive Socratic Speech Bubble Below Mascot */}
-      <div className="mt-2 w-full flex justify-center px-2">
+      <div className="mt-1 w-full flex justify-center px-2">
         <SocraticSpeechBubble
           badgeText={badgeText}
           message={currentQuote}

@@ -3,8 +3,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 
-const SHOWCASE_IMG_URL =
-  'https://lh3.googleusercontent.com/aida/AEtjO1W-ZzpMO6raM3-SNWM4CV44zZoy_xeMzikzoqYGoUSwK4IcCEG_7J1NZrUHsBAeaT8rkE017HE98Ki0tQYcgNVlMU_pdL8_ITYkuT-XC5sD8peRX7kG7hX8zb-VSpKGzChuAHrHZmD4v7Hr0YoigTPEmMMSwRbGXf3U7_MXgMzIuKNT_tvtwRSvS6gspOPNZjPmbW2MRxOSazlQq_sipoOXtBeesjdwjPvLfWgR6iIK1X8PH5_lVYGXo9v3';
+const SHOWCASE_IMG_URL = '/images/auth/login-showcase.png';
 
 export function LoginShowcase() {
   const t = useTranslations('auth.showcase');
@@ -40,11 +39,17 @@ export function LoginShowcase() {
         </div>
 
         {/* Center 3D Illustration */}
-        <div className="w-full aspect-[4/3] rounded-3xl overflow-hidden bg-white/70 dark:bg-[#1E1F20] border-none shadow-none p-4 md:p-6 flex items-center justify-center">
+        <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden bg-white/80 dark:bg-[#1E1F20] border-none shadow-none p-5 md:p-7 flex items-center justify-center">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-6 rounded-full bg-[radial-gradient(circle_at_55%_45%,rgba(37,99,235,0.16),rgba(6,182,212,0.08)_45%,transparent_75%)] dark:bg-[radial-gradient(circle_at_55%_45%,rgba(59,130,246,0.22),rgba(6,182,212,0.10)_45%,transparent_75%)] blur-xl"
+          />
           <img
             alt={t('imageAlt')}
-            className="w-full h-full object-contain rounded-2xl select-none pointer-events-none"
+            className="relative z-10 w-full h-full object-contain rounded-2xl select-none pointer-events-none drop-shadow-[0_14px_28px_rgba(15,23,42,0.12)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.45)]"
             src={SHOWCASE_IMG_URL}
+            loading="eager"
+            decoding="async"
           />
         </div>
 
