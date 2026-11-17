@@ -3,13 +3,14 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { getSafeRedirectPath } from '@/lib/auth-redirect';
 import { useLogin } from './useLogin';
 import { loginInputSchema } from '../schemas/auth.schema';
 import { LoginFormState, LoginFormErrors } from '../types';
 
 const INITIAL_FORM_STATE: LoginFormState = {
-  identifier: 'tunganh9876544@gmail.com',
-  password: 'Password123@',
+  identifier: '',
+  password: '',
   rememberMe: true,
 };
 
@@ -64,7 +65,11 @@ export function useLoginForm() {
 
     try {
       await loginMutation.mutateAsync(validationResult.data);
-      router.push('/dashboard');
+      const rawRedirect =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('redirect')
+          : null;
+      router.push(getSafeRedirectPath(rawRedirect, '/dashboard'));
     } catch (err: unknown) {
       let errorMessage = tErrors('loginFailed');
       if (err instanceof Error && err.message) {

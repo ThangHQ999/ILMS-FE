@@ -64,7 +64,7 @@ export function DashboardPageView() {
       {/* Main Container */}
       <div
         className={`transition-all duration-300 ${
-          isFocus || isSidebarCollapsed ? 'pl-20' : 'pl-72'
+          isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         {/* Dynamic Header */}

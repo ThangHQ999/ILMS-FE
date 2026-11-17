@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { ClassHeroSection } from './ClassHeroSection';
@@ -9,6 +10,8 @@ import { ClassKpiStatsBar } from './ClassKpiStatsBar';
 import { ClassFilterToolbar } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
 import { ClassListView } from './ClassListView';
+import { StudentClassListView } from './StudentClassListView';
+import { FacultyClassListView } from './FacultyClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -18,8 +21,13 @@ import { MobileFilterBottomSheet } from './MobileFilterBottomSheet';
 import { CreateClassModal } from './CreateClassModal';
 import { ArchiveClassModal } from './ArchiveClassModal';
 import { JoinClassModal } from './JoinClassModal';
-import { useClasses } from '../hooks/useClasses';
+import { useClasses, useClassKpiSummary } from '../hooks/useClasses';
 import { useArchiveClass } from '../hooks/useArchiveClass';
+import {
+  EmptyState,
+  ErrorState,
+  Button,
+} from '@/components/shared';
 import type {
   ClassFilters,
   ClassViewMode,
@@ -29,13 +37,7 @@ import type {
   WorkspaceRoleMode,
 } from '../types';
 
-import {
-  DEFAULT_FACULTY_CLASSES,
-  DEFAULT_STUDENT_CLASSES,
-} from '../constants';
 import { getLocalCreatedClasses } from '../services/class.service';
-
-type StatePreviewMode = 'normal' | 'skeleton' | 'empty' | 'notfound' | 'archived';
 
 interface ClassListPageViewProps {
   userFullName?: string;
@@ -50,10 +52,11 @@ export function ClassListPageView({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Workspace Role Mode: Default to 'faculty' (Chế độ Giảng dạy như yêu cầu hiện tại)
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceRoleMode>('faculty');
+  // Workspace Role Mode: Synchronized with app-wide global role
+  const { isTeacher, switchRole } = useUserRole();
+  const workspaceMode: WorkspaceRoleMode = isTeacher ? 'faculty' : 'student';
 
-  // Filters & View State (in Faculty mode, default view is list / 1-column bento)
+  // Filters & View State (default view is grid)
   const [filters, setFilters] = useState<ClassFilters>({
     search: '',
     status: 'ACTIVE',
@@ -62,16 +65,10 @@ export function ClassListPageView({
     page: 0,
     size: 12,
   });
-  const [viewMode, setViewMode] = useState<ClassViewMode>('list');
-
-  // Active page state for pagination demo
-  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<ClassViewMode>('grid');
 
   // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
-
-  // State Previews sandbox
-  const [previewState, setPreviewState] = useState<StatePreviewMode>('normal');
   const [isClient, setIsClient] = useState(false);
 
   React.useEffect(() => {
@@ -91,7 +88,16 @@ export function ClassListPageView({
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Data Query
-  const { data: responseData, isLoading, refetch } = useClasses(filters);
+  const effectiveRole = workspaceMode === 'faculty' ? 'TEACHER' : 'STUDENT';
+  const queryFilters = useMemo(
+    () => ({
+      ...filters,
+      role: effectiveRole,
+    }),
+    [filters, effectiveRole]
+  );
+  const { data: responseData, isLoading, isFetching, isError, error, refetch } = useClasses(queryFilters);
+  const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
 
   const showToast = useCallback((msg: string) => {
@@ -122,7 +128,7 @@ export function ClassListPageView({
       setActiveKpi((prev) => (prev === type ? null : type));
 
       if (type === 'teaching') {
-        showToast('Hiển thị tất cả 12 lớp học đang giảng dạy!');
+        showToast('Hiển thị danh sách lớp học đang giảng dạy!');
       } else if (type === 'students') {
         showToast('Hiển thị danh sách sắp xếp theo quy mô học viên!');
       } else if (type === 'pending') {
@@ -139,44 +145,34 @@ export function ClassListPageView({
   );
 
   const handleToggleWorkspace = useCallback(() => {
-    setWorkspaceMode((prev) => {
-      const next = prev === 'faculty' ? 'student' : 'faculty';
-      setViewMode(next === 'faculty' ? 'list' : 'grid');
-      showToast(next === 'faculty' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
-      return next;
-    });
-  }, [showToast]);
+    const nextRole = isTeacher ? 'STUDENT' : 'TEACHER';
+    switchRole(nextRole);
+    showToast(nextRole === 'TEACHER' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
+  }, [isTeacher, switchRole, showToast]);
 
   const handleViewModeChange = useCallback((mode: ClassViewMode) => {
     setViewMode(mode);
     showToast(mode === 'list' ? 'Đã chuyển sang chế độ hiển thị Danh sách' : 'Đã chuyển sang chế độ hiển thị Dạng lưới thẻ');
   }, [showToast]);
 
-  // Filtered Items Computation
+  // Filtered Items Computation (No mock data fallback - real API data only)
   const items = useMemo(() => {
     let list: ClassItem[] = [];
+    const apiItems = responseData?.items ? [...responseData.items] : [];
 
     if (workspaceMode === 'student') {
-      const studentApiItems = responseData?.items?.filter((x) => x.teachingRole === 'STUDENT');
-      list =
-        studentApiItems && studentApiItems.length > 0
-          ? studentApiItems
-          : [...DEFAULT_STUDENT_CLASSES];
+      const studentApiItems = apiItems.filter((x) => x.teachingRole === 'STUDENT');
+      list = studentApiItems.length > 0 ? studentApiItems : apiItems;
     } else {
-      const baseList =
-        responseData?.items && responseData.items.length > 0
-          ? responseData.items
-          : [...DEFAULT_FACULTY_CLASSES];
-
       // Merge locally created classes at top (guarantees newly created classes persist across F5 refresh)
       const localCreated = isClient ? getLocalCreatedClasses() : [];
-      const baseIds = new Set(baseList.map((c) => String(c.id)));
-      const baseNames = new Set(baseList.map((c) => c.name?.toLowerCase()));
+      const baseIds = new Set(apiItems.map((c) => String(c.id)));
+      const baseNames = new Set(apiItems.map((c) => c.name?.toLowerCase()));
       const newCreated = localCreated.filter(
         (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
       );
 
-      list = [...newCreated, ...baseList];
+      list = [...newCreated, ...apiItems];
     }
 
     // Filter by status tab
@@ -228,29 +224,65 @@ export function ClassListPageView({
     isClient,
   ]);
 
-  // Compute Faculty KPI Stats
+  // Compute Faculty KPI Stats from API
   const facultyKpiStats: ClassKpiStats = useMemo(() => {
-    return {
-      activeClassesCount: 12,
-      totalStudentsCount: 368,
-      needsAttentionCount: 7,
-    };
-  }, []);
+    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
+    const studentsFromItems = items.reduce((acc, c) => acc + (c.enrolledCount || 0), 0);
+    const pendingFromItems = items.reduce((acc, c) => acc + (c.stats?.pendingRequestsCount || 0), 0);
 
-  // Compute Student KPI Stats
+    return {
+      activeClassesCount: kpiData?.activeClassesCount ?? activeFromItems,
+      totalStudentsCount: kpiData?.totalStudentsCount ?? studentsFromItems,
+      needsAttentionCount: kpiData?.pendingRequestsCount ?? pendingFromItems,
+    };
+  }, [kpiData, items]);
+
+  // Compute Student KPI Stats from API
   const studentKpiStats: StudentClassKpiStats = useMemo(() => {
+    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
     return {
-      enrolledClassesCount: 4,
-      upcomingAssignmentsCount: 2,
-      avgProgressPercent: 88,
+      enrolledClassesCount: activeFromItems,
+      upcomingAssignmentsCount: kpiData?.ungradedAssignmentsCount ?? 0,
+      avgProgressPercent: 0,
     };
-  }, []);
+  }, [kpiData, items]);
 
-  const activeCount = 12;
-  const enrolledCount = 4;
-  const archivedCount = 3;
-  const allCount = workspaceMode === 'student' ? 4 : 12;
-  const displayedCount = workspaceMode === 'student' ? items.length : (previewState === 'normal' ? 6 : items.length);
+  // Dynamic tab counts derived from API response
+  const totalElements = responseData?.totalElements ?? items.length;
+  const activeCount = useMemo(() => {
+    if (filters.status === 'ACTIVE' && responseData?.totalElements !== undefined) {
+      return responseData.totalElements;
+    }
+    return (responseData?.items ?? items).filter((c) => c.status === 'ACTIVE' && !c.deletedAt).length;
+  }, [responseData, items, filters.status]);
+
+  const enrolledCount = activeCount;
+
+  const archivedCount = useMemo(() => {
+    if (filters.status === 'ARCHIVED' && responseData?.totalElements !== undefined) {
+      return responseData.totalElements;
+    }
+    return (responseData?.items ?? items).filter((c) => c.status === 'ARCHIVED' || Boolean(c.deletedAt)).length;
+  }, [responseData, items, filters.status]);
+
+  const allCount = totalElements;
+  const displayedCount = items.length;
+
+  const hasActiveFilters = Boolean(
+    filters.search?.trim() ||
+    (filters.major && filters.major !== 'all') ||
+    (filters.role && filters.role !== 'ALL') ||
+    activeKpi
+  );
+
+  const pageSize = filters.size || 12;
+  const totalPages = Math.max(1, responseData?.totalPages ?? Math.ceil(totalElements / pageSize));
+  const currentPageDisplay = (filters.page ?? 0) + 1;
+
+  const handlePageSelect = useCallback((page: number) => {
+    const targetPage = Math.max(0, Math.min(page - 1, totalPages - 1));
+    handleFilterUpdate({ page: targetPage });
+  }, [totalPages, handleFilterUpdate]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
@@ -262,31 +294,31 @@ export function ClassListPageView({
         workspaceMode={workspaceMode}
       />
 
-      {/* 2. Top Header */}
-      <DashboardHeader
-        isFocus={isFocusMode}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleMode={() => setIsFocusMode(!isFocusMode)}
-        userFullName={userFullName}
-        workspaceMode={workspaceMode}
-        onToggleWorkspaceMode={handleToggleWorkspace}
-      />
-
-      {/* 3. Main Workspace Content */}
-      <main
-        className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto ${
-          isFocusMode
-            ? 'pl-24'
-            : isSidebarCollapsed
-            ? 'pl-24'
-            : 'lg:pl-[280px]'
+      {/* Main Container offset for Sidebar */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isFocusMode || isSidebarCollapsed ? 'pl-20' : 'pl-72'
         }`}
       >
-        <div className="space-y-6">
+        {/* 2. Top Header */}
+        <DashboardHeader
+          isFocus={isFocusMode}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleMode={() => setIsFocusMode(!isFocusMode)}
+          userFullName={userFullName}
+          workspaceMode={workspaceMode}
+          onToggleWorkspaceMode={handleToggleWorkspace}
+        />
+
+        {/* 3. Main Workspace Content */}
+        <main className="w-full flex-1 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] mx-auto">
+          <div className="space-y-6">
           {/* Hero Section */}
           <ClassHeroSection
             workspaceMode={workspaceMode}
-            onToggleWorkspaceMode={setWorkspaceMode}
+            onToggleWorkspaceMode={(mode) => {
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
+            }}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
             onExportClick={() => {
@@ -310,8 +342,7 @@ export function ClassListPageView({
           <ClassFilterToolbar
             workspaceMode={workspaceMode}
             onWorkspaceModeChange={(mode) => {
-              setWorkspaceMode(mode);
-              setViewMode(mode === 'faculty' ? 'list' : 'grid');
+              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
             }}
             filters={filters}
             onFilterChange={handleFilterUpdate}
@@ -327,273 +358,134 @@ export function ClassListPageView({
             onClearKpi={() => setActiveKpi(null)}
           />
 
-          {/* Dynamic Content Display based on State Preview Sandbox or Normal View */}
-          {previewState === 'skeleton' ? (
-            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 shadow-2xs">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-                {[1, 2, 3].map((k) => (
-                  <div key={k} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-3">
-                    <div className="h-32 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-4 w-1/2 rounded bg-slate-100 dark:bg-slate-850" />
-                    <div className="h-9 rounded-xl bg-slate-100 dark:bg-slate-850 mt-2" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-center text-xs text-slate-400 mt-4">
-                Đang đồng bộ dữ liệu các lớp học từ máy chủ...
-              </p>
-            </div>
-          ) : previewState === 'empty' ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[32px]">
-                  {workspaceMode === 'student' ? 'school' : 'menu_book'}
-                </span>
-              </div>
-              <h4 className="font-display font-bold text-slate-900 dark:text-white text-base mb-1">
-                {workspaceMode === 'student' ? 'Chưa tham gia lớp học nào' : 'Chưa có lớp giảng dạy'}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                {workspaceMode === 'student'
-                  ? 'Bạn chưa ghi danh vào lớp học nào trong học kỳ này. Hãy nhập mã mời từ giảng viên để bắt đầu hành trình học tập.'
-                  : 'Bạn chưa được phân công hoặc tạo lớp học nào trong học kỳ này. Hãy bắt đầu bằng cách tạo lớp học mới hoặc liên hệ phòng đào tạo.'}
-              </p>
-              {workspaceMode === 'student' ? (
-                <button
-                  type="button"
-                  onClick={() => setIsJoinOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
+          {/* Dynamic Content Lifecycle Driven by Real API States (7-State Matrix) */}
+          {isLoading ? (
+            <ClassLoadingSkeleton />
+          ) : isError ? (
+            <ErrorState
+              title={t('errorLoadTitle')}
+              description={t('errorLoadDesc')}
+              error={error}
+              onRetry={() => refetch()}
+            />
+          ) : items.length === 0 && hasActiveFilters ? (
+            <ClassSearchNotFoundState
+              onClearFilters={() => {
+                handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
+                setActiveKpi(null);
+              }}
+            />
+          ) : items.length === 0 && filters.status === 'ARCHIVED' ? (
+            <EmptyState
+              variant="archived"
+              title={t('emptyArchivedTitle')}
+              description={t('emptyArchivedDesc')}
+              action={
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleFilterUpdate({ status: 'ACTIVE', page: 0 })}
                 >
-                  <span className="material-symbols-outlined text-[18px]">key</span>
-                  <span>Tham gia lớp học ngay</span>
-                </button>
+                  {t('backToActiveBtn')}
+                </Button>
+              }
+            />
+          ) : items.length === 0 ? (
+            <ClassEmptyState
+              workspaceMode={workspaceMode}
+              onCreateClick={() => setIsCreateOpen(true)}
+              onJoinClick={() => setIsJoinOpen(true)}
+            />
+          ) : (
+            <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
+              {isFetching && !isLoading && (
+                <div className="h-0.5 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-950 mb-3">
+                  <div className="h-full w-1/3 bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse rounded-full" />
+                </div>
+              )}
+              {/* Class Presentation (Student List View vs Faculty List View vs Grid) */}
+              {workspaceMode === 'student' && viewMode === 'list' ? (
+                <StudentClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
+              ) : workspaceMode === 'faculty' && viewMode === 'list' ? (
+                <FacultyClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
+                />
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsCreateOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  <span>Tạo lớp học đầu tiên</span>
-                </button>
+                <ClassCardGrid
+                  items={items}
+                  workspaceMode={workspaceMode}
+                  viewMode={viewMode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
+                  onRestoreClick={(item) => restoreClass(item.id)}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                />
               )}
             </div>
-          ) : previewState === 'notfound' ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[32px]">search_off</span>
-              </div>
-              <h4 className="font-display font-bold text-slate-900 dark:text-white text-base mb-1">
-                Không tìm thấy kết quả phù hợp
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                Không tìm thấy lớp học nào khớp với từ khóa tìm kiếm hoặc các tiêu chí bộ lọc đã chọn.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setPreviewState('normal');
-                  handleFilterUpdate({ search: '', major: undefined, role: 'ALL' });
-                }}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">refresh</span>
-                <span>Xóa bộ lọc & Tải lại</span>
-              </button>
-            </div>
-          ) : previewState === 'archived' ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                <span className="font-display font-bold text-slate-900 dark:text-white text-sm">
-                  Lớp học đã lưu trữ (Học kỳ trước)
-                </span>
-                <span className="text-xs text-slate-500">Chế độ chỉ đọc • 3 lớp học</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { code: 'CSDL-K21-01', title: 'Cơ sở dữ liệu (HK2 23-24)', students: 44 },
-                  { code: 'WEB-K22-03', title: 'Phát triển ứng dụng Web', students: 50 },
-                  { code: 'DSA-K21-02', title: 'Thuật toán nâng cao', students: 35 },
-                ].map((c) => (
-                  <div key={c.code} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900 flex flex-col justify-between gap-3 shadow-2xs">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 font-semibold">
-                          {c.code}
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
-                          Đã lưu trữ
-                        </span>
-                      </div>
-                      <h5 className="font-display font-bold text-slate-900 dark:text-white text-sm">
-                        {c.title}
-                      </h5>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">{c.students} học viên</span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-2">
-                      <button
-                        type="button"
-                        className="flex-1 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Xem lớp
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => showToast('Khôi phục lớp thành công!')}
-                        className="py-1.5 px-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
-                        title="Khôi phục lớp"
-                      >
-                        Khôi phục
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <ClassCardGrid
-              items={items}
-              workspaceMode={workspaceMode}
-              viewMode={viewMode}
-              onArchiveClick={(item) => setArchiveTarget(item)}
-              onRestoreClick={(item) => restoreClass(item.id)}
-              copiedCode={copiedCode}
-              onCopyCode={handleCopyCode}
-            />
           )}
 
-          {/* 4. Pagination */}
-          <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {workspaceMode === 'student' ? (
-                <>Hiển thị <strong className="font-semibold text-slate-900 dark:text-white">1 - 4</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">4</strong> lớp học</>
-              ) : (
-                <>Hiển thị trang <strong className="font-semibold text-slate-900 dark:text-white">{currentPage}</strong> trên <strong className="font-semibold text-slate-900 dark:text-white">2</strong> (tổng 12 lớp)</>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-                <span>Trước</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentPage === 1
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
-                }`}
-              >
-                1
-              </button>
-              {workspaceMode !== 'student' && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage(2)}
-                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    currentPage === 2
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
-                  }`}
-                >
-                  2
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setCurrentPage(2)}
-                disabled={currentPage === 2 || workspaceMode === 'student'}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
-              >
-                <span>Tiếp theo</span>
-                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-              </button>
-            </div>
-          </nav>
-
-          {/* 5. STATE PREVIEWS & SANDBOX (Matches user's template) */}
-          <section className="mt-4 p-5 rounded-2xl bg-slate-100/70 dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600 text-[20px]">
-                  developer_mode
-                </span>
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Chế độ kiểm thử trạng thái giao diện (State Previews)
-                </h4>
+          {/* 4. Real Pagination */}
+          {!isLoading && !isError && items.length > 0 && (
+            <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Hiển thị{' '}
+                <strong className="font-semibold text-slate-900 dark:text-white">
+                  {filters.page * pageSize + 1} - {Math.min((filters.page + 1) * pageSize, totalElements)}
+                </strong>{' '}
+                trên{' '}
+                <strong className="font-semibold text-slate-900 dark:text-white">
+                  {totalElements}
+                </strong>{' '}
+                lớp học
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                Nhấp để thử nghiệm các kịch bản thực tế
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setPreviewState('normal')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  previewState === 'normal'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Danh sách hiện tại
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('skeleton')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'skeleton'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Skeleton Loading
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('empty')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'empty'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Trống (Chưa có lớp)
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('notfound')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'notfound'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Không tìm thấy theo lọc
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewState('archived')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                  previewState === 'archived'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                Tab Đã lưu trữ (3 lớp)
-              </button>
-            </div>
-          </section>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePageSelect(currentPageDisplay - 1)}
+                    disabled={currentPageDisplay <= 1}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                    <span>Trước</span>
+                  </button>
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => handlePageSelect(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        currentPageDisplay === pageNum
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handlePageSelect(currentPageDisplay + 1)}
+                    disabled={currentPageDisplay >= totalPages}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 disabled:opacity-50 transition-colors cursor-pointer"
+                  >
+                    <span>Tiếp theo</span>
+                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                  </button>
+                </div>
+              )}
+            </nav>
+          )}
         </div>
       </main>
+      </div>
 
       {/* 6. Modals */}
       <CreateClassModal

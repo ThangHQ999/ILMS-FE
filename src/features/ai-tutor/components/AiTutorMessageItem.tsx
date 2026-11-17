@@ -83,9 +83,13 @@ export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
 
   // Socratic AI Message
   return (
-    <div className="flex justify-start gap-4 items-start">
-      <div className="w-8 h-8 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] border-none text-[#041E49] dark:text-[#A8C7FA] flex items-center justify-center shrink-0 mt-1 shadow-none">
-        <span className="material-symbols-outlined text-[19px]">psychology</span>
+    <div className="flex justify-start gap-3.5 items-start">
+      <div className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+        <img
+          src="/socratic_mascot.png"
+          alt="Socratic AI"
+          className="w-8 h-8 object-contain select-none"
+        />
       </div>
 
       <div className="flex-1 space-y-4 max-w-2xl text-[15px] text-slate-800 dark:text-[#E3E3E3] leading-relaxed min-w-0">

@@ -6,6 +6,7 @@ export const classKeys = {
   list: (filters?: Partial<ClassFilters>) => [...classKeys.lists(), filters ?? {}] as const,
   details: () => [...classKeys.all, 'detail'] as const,
   detail: (id: string) => [...classKeys.details(), id] as const,
+  kpiSummary: () => [...classKeys.all, 'kpi-summary'] as const,
 };
 
 export const AVAILABLE_MAJORS = [

@@ -3,11 +3,13 @@ import Script from 'next/script';
 import { Suspense } from 'react';
 import { Outfit, Plus_Jakarta_Sans, Roboto_Mono, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
+import { getMessages, getLocale, getTranslations } from 'next-intl/server';
+import { SITE_URL, SITE_NAME, buildMetadata } from '@/lib/seo';
 import { Providers } from '@/providers';
 import { BrowserLocaleSync } from '@/components/shared/BrowserLocaleSync';
 import { DesignSystemSync } from '@/components/shared/DesignSystemSync';
 import { RouteProgressBar } from '@/components/shared/RouteProgressBar';
+import { GlobalSocraticCoach } from '@/components/shared/GlobalSocraticCoach';
 import './globals.css';
 
 const outfit = Outfit({
@@ -53,17 +55,38 @@ const beVietnamPro = Be_Vietnam_Pro({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: 'ILMS - Hệ thống quản lý học tập thông minh tích hợp AI',
-  description: 'Design System Customizer & Settings',
-  icons: {
-    icon: [
-      { url: '/logo-short.png', type: 'image/png' },
-    ],
-    shortcut: '/logo-short.png',
-    apple: '/logo-short.png',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations('seo'),
+  ]);
+
+  const base = buildMetadata({
+    title: t('siteTitle'),
+    description: t('siteDescription'),
+    path: '/',
+    locale,
+  });
+
+  return {
+    ...base,
+    metadataBase: new URL(SITE_URL),
+    applicationName: SITE_NAME,
+    title: {
+      default: t('siteTitle'),
+      template: t('siteTitleTemplate'),
+    },
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+        { url: '/logo-short.png', type: 'image/png', sizes: '512x512' },
+      ],
+      shortcut: '/favicon.ico',
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -82,8 +105,9 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="icon" href="/logo-short.png" type="image/png" sizes="any" />
-        <link rel="apple-touch-icon" href="/logo-short.png" />
+        <link rel="icon" href="/logo-short.png?v=5" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=5" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -130,7 +154,10 @@ export default async function RootLayout({
           </Suspense>
           <BrowserLocaleSync currentLocale={locale} />
           <DesignSystemSync />
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            <GlobalSocraticCoach />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

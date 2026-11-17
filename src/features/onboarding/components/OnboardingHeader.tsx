@@ -20,7 +20,7 @@ export function OnboardingHeader() {
             <img
               alt="ILMS Logo"
               className="h-9 sm:h-10 w-auto object-contain"
-              src="/logo.png"
+              src="/logo-full.png"
             />
           </Link>
         </div>

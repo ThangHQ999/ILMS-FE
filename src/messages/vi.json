@@ -1,4 +1,23 @@
 {
+  "seo": {
+    "siteTitle": "ILMS — Hệ thống quản lý học tập thông minh tích hợp AI",
+    "siteTitleTemplate": "%s | ILMS",
+    "siteDescription": "Nền tảng học tập thông minh tích hợp Gia sư AI Socratic, Đồ thị Tri thức RAG và đánh giá năng lực 6 bậc Bloom dành cho Sinh viên & Giảng viên.",
+    "homeTitle": "ILMS — Học tập Thông minh với Gia sư AI Socratic",
+    "homeDescription": "Khơi mở tư duy phản biện từng bước cùng Cú Socrate AI, khám phá Đồ thị Tri thức RAG trực quan và làm chủ lộ trình học tập 6 bậc Bloom tại ilms.page.",
+    "pricingTitle": "Bảng giá & Gói cước",
+    "pricingDescription": "Khám phá các gói Cơ bản, Plus, Pro và Doanh nghiệp với thanh toán VietQR 24/7 cho Gia sư AI Socratic & Cloud Storage trên ILMS.",
+    "loginTitle": "Đăng nhập",
+    "loginDescription": "Đăng nhập vào không gian học tập thông minh ILMS để tiếp tục lộ trình cùng Gia sư AI Socratic.",
+    "registerTitle": "Đăng ký tài khoản",
+    "registerDescription": "Tạo tài khoản ILMS miễn phí để trải nghiệm Gia sư AI Socratic, Đồ thị Tri thức và lớp học tương tác.",
+    "termsTitle": "Điều khoản dịch vụ",
+    "termsDescription": "Quy định sử dụng nền tảng học tập thông minh ILMS (EduTech Innovations).",
+    "privacyTitle": "Chính sách bảo mật",
+    "privacyDescription": "Chính sách bảo vệ dữ liệu học tập và tuân thủ bảo mật của hệ thống ILMS.",
+    "aboutTitle": "Về chúng tôi",
+    "aboutDescription": "Tìm hiểu sứ mệnh của ILMS (EduTech Innovations) trong việc kết hợp Gia sư AI Socratic, Đồ thị tri thức và khung năng lực Bloom."
+  },
   "common": {
     "save": "Lưu",
     "cancel": "Hủy",
@@ -112,7 +131,7 @@
     "githubLogin": "GitHub",
     "googleLogin": "Google",
     "connecting": "Đang kết nối...",
-    "oauthFailed": "Đăng nhập bằng tài khoản liên kết không thành công. Vui lòng thử lại.",
+    "oauthFailed": "Đăng nhập bằng tài khoản liên kết không thành công hoặc đã bị hủy. Vui lòng thử lại.",
     "oauthSuccess": "Đăng nhập bằng tài khoản liên kết thành công!",
     "noAccountPrompt": "Chưa có tài khoản ILMS?",
     "registerNow": "Đăng ký ngay",
@@ -245,6 +264,24 @@
       "openEmailApp": "Mở ứng dụng Email",
       "resendCountdown": "Gửi lại email ({seconds}s)",
       "resendNow": "Gửi lại email ngay"
+    },
+    "resetPasswordPage": {
+      "backToPlatform": "Quay lại Nền tảng",
+      "supportAssistance": "Hỗ trợ & Trợ giúp",
+      "securityBadge": "Bảo mật",
+      "formTitle": "Đặt lại mật khẩu mới",
+      "formDescription": "Vui lòng nhập mật khẩu mới có tối thiểu 8 ký tự để bảo vệ tài khoản của bạn.",
+      "newPasswordLabel": "Mật khẩu mới",
+      "newPasswordPlaceholder": "Tối thiểu 8 ký tự",
+      "confirmPasswordLabel": "Xác nhận mật khẩu mới",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+      "submitButton": "Cập nhật mật khẩu",
+      "submitting": "Đang cập nhật...",
+      "successTitle": "Đổi mật khẩu thành công!",
+      "successDescription": "Mật khẩu của bạn đã được cập nhật thành công. Bạn có thể sử dụng mật khẩu mới để đăng nhập ngay bây giờ.",
+      "loginNow": "Đăng nhập ngay",
+      "missingToken": "Thiếu mã xác thực (token) trong liên kết đặt lại mật khẩu. Vui lòng kiểm tra lại liên kết trong email.",
+      "backToLogin": "Quay lại Đăng nhập"
     }
   },
   "onboarding": {
@@ -495,6 +532,239 @@
       "terms": "Điều khoản",
       "privacy": "Chính sách bảo mật",
       "contact": "Liên hệ"
+    },
+    "story": {
+      "stationNavLabel": "Điều hướng các trạm tri thức",
+      "scenes": {
+        "hero": "01 • Trạm Khởi đầu",
+        "socratic": "02 • Vấn đáp Socrate",
+        "classroom": "03 • Lớp học & Đồ thị",
+        "bloom": "04 • Tháp Năng lực Bloom",
+        "action": "05 • Bắt đầu ngay"
+      },
+      "roleSwitcher": {
+        "label": "Chọn góc nhìn trải nghiệm",
+        "student": "Góc nhìn Học viên",
+        "teacher": "Góc nhìn Giảng viên"
+      },
+      "hero": {
+        "studentTitle1": "Học tập Sâu sắc cùng",
+        "studentTitleHighlight": "Gia sư Cú AI Socrate.",
+        "teacherTitle1": "Kiến tạo Lớp học Số với",
+        "teacherTitleHighlight": "Đồ thị Tri thức & AI.",
+        "studentSub": "Không chỉ đưa đáp án sẵn — Cú thông thái dẫn dắt bạn tự bóc tách từng bài toán, lấp đầy lỗ hổng kiến thức trên đồ thị 3D thời gian thực.",
+        "teacherSub": "Tự động bóc tách giáo trình thành thực thể tri thức, theo dõi xung nhịp hiểu bài EduPulse và khởi tạo học liệu chuẩn thang đo Bloom trong 3 giây.",
+        "playgroundTitle": "Thử thách Cú Socrate ngay tại đây",
+        "playgroundHint": "Chạm vào chủ đề hoặc gõ câu hỏi bất kỳ",
+        "askOwlBtn": "Hỏi Cú AI",
+        "explore3DBtn": "Khám phá Hành trình 3D",
+        "mascotBadge": "Cú Socrate AI • Đang trực tuyến",
+        "nextHintBtn": "Đổi gợi ý",
+        "tagTop": "Gợi mở tư duy 24/7",
+        "tagBottom": "Không giải hộ thụ động",
+        "mascotDefaultQuote": "Chào bạn! Hãy chạm vào mình hoặc chọn một bài tập bên trái để xem cách mình dẫn dắt tư duy nhé!",
+        "customReply": "Câu hỏi rất hay về \"{query}\"! Trước khi đi tìm công thức cuối cùng, theo bạn biến số nào đang quyết định trạng thái đầu vào của bài toán này?",
+        "samples": {
+          "calculus": {
+            "subject": "📐 Toán Giải tích",
+            "question": "Tại sao phương trình bậc 2 có Δ = 0 lại sinh ra nghiệm kép?",
+            "hint": "Hãy nhìn vào khoảng cách giữa hai giao điểm trên trục hoành khi đỉnh Parabol chạm đúng trục Ox: khoảng cách √Δ lúc đó bằng bao nhiêu?",
+            "followUp": "Chính xác! Khi √Δ = 0, hai nhánh đối xứng hội tụ về duy nhất hoành độ đỉnh x = -b / (2a)."
+          },
+          "physics": {
+            "subject": "⚡ Vật lý Cơ năng",
+            "question": "Làm sao tính vận tốc vật chạm đất mà không cần biết thời gian rơi?",
+            "hint": "Khi vật ở độ cao cực đại h_max, toàn bộ năng lượng nằm ở thế năng. Khi chạm đất (h = 0), lượng thế năng đó đã chuyển hóa đi đâu?",
+            "followUp": "Tuyệt vời! Cho thế năng cực đại bằng động năng chạm đất, khối lượng m tự triệt tiêu và ta có ngay v = √(2gh)."
+          },
+          "algorithms": {
+            "subject": "💻 Thuật toán Đồ thị",
+            "question": "Vì sao mảng lưu trữ Segment Tree cần cấp phát tối đa 4*N phần tử?",
+            "hint": "Một cây nhị phân đầy đủ có N lá sẽ có chiều cao h = ⌈log₂N⌉. Bạn thử tính tổng số node tối đa của cây nhị phân có chiều cao h + 1 xem sao?",
+            "followUp": "Chuẩn xác! Số node tối đa là 2^(⌈log₂N⌉ + 1) - 1, luôn nhỏ hơn 4N trong mọi trường hợp."
+          }
+        }
+      },
+      "socratic": {
+        "badge": "Trạm 02 • Phương pháp Socratic Dialectic",
+        "title": "Không giải hộ thụ động — Đánh thức tư duy gốc rễ",
+        "subtitle": "Thay vì đưa sẵn lời giải khiến người học chép máy móc, Cú Socrate đặt câu hỏi gợi mở từng bước để học viên tự khám phá bản chất.",
+        "traditionalTitle": "AI Chatbot truyền thống",
+        "traditionalDesc": "Trả thẳng lời giải dài dòng trong 1 giây → Học sinh sao chép thụ động, không hiểu nguyên lý gốc và quên ngay 80% kiến thức sau kỳ thi.",
+        "traditionalFormulaNote": "v = √(2gh) → Chép đáp án sẵn, quên bản chất sau 24h",
+        "ilmsTitle": "Gia sư Cú Socrate ILMS",
+        "ilmsDesc": "Bóc tách bài tập thành chuỗi câu hỏi gợi mở 3 bước → Kích hoạt vùng tư duy phản biện, giúp ghi nhớ sâu 94% và tự giải được mọi bài toán biến thể.",
+        "ilmsFormulaNote": "ΔE_p ⇔ ΔE_k → Tự suy luận & khắc sâu vĩnh viễn",
+        "owlSpeakerName": "Cú Socrate",
+        "labTitle": "Phòng Thực hành Vấn đáp 3 Bước",
+        "clickStepHint": "Chạm vào từng bước để mở khóa suy luận",
+        "stepLabel": "Bước 0{num}",
+        "studentTag": "Học viên",
+        "nextStepBtn": "Chuyển sang bước tiếp theo",
+        "tagTop": "Phân tích từng bước",
+        "tagBottom": "Tăng 94% độ nhớ sâu",
+        "mascotQuote2": "Mỗi câu hỏi đúng còn quý giá hơn mười câu trả lời có sẵn!",
+        "mascotQuote3": "Cứ bình tĩnh phân tích từng đại lượng, bạn đã đi đúng 80% quãng đường rồi!",
+        "steps": {
+          "s1": {
+            "title": "Bóc tách trạng thái biên",
+            "student": "Em bị kẹt ở bài toán con lắc đơn: làm sao tìm vận tốc tại vị trí cân bằng ạ?",
+            "owl": "Khoan dùng công thức vội! Tại điểm cao nhất khi con lắc vừa đổi chiều chuyển động, vận tốc tức thời của nó bằng bao nhiêu?",
+            "badge": "Bước 1 • Xác định điểm tựa"
+          },
+          "s2": {
+            "title": "Kết nối định luật bảo toàn",
+            "student": "À, ở vị trí cao nhất thì vận tốc bằng 0 nên động năng bằng 0 ạ!",
+            "owl": "Rất nhạy bén! Vậy khi con lắc trượt xuống vị trí thấp nhất, độ giảm thế năng Δh đã biến đổi hoàn toàn thành đại lượng nào?",
+            "badge": "Bước 2 • Chuyển hóa năng lượng"
+          },
+          "s3": {
+            "title": "Tự làm chủ công thức",
+            "student": "Nó chuyển hết thành động năng ½mv²! Vậy em rút gọn m hai vế là ra ngay v = √(2g·Δh)!",
+            "owl": "Xuất sắc! Chính bạn vừa tự chứng minh xong công thức độc lập thời gian mà không cần học vẹt bất kỳ dòng nào!",
+            "badge": "Bước 3 • Chinh phục bản chất"
+          }
+        }
+      },
+      "classroom": {
+        "badge": "Trạm 03 • Không gian Lớp học Số & Đồ thị Tri thức",
+        "title": "Quét X-quang Năng lực với Mạng lưới Đồ thị 3D",
+        "subtitle": "Mọi khái niệm trong giáo trình được liên kết thành một chòm sao tri thức sống động. Chạm vào bất kỳ mắt xích nào để chẩn đoán lỗ hổng tức thì.",
+        "graphCardTitle": "Bản đồ Chòm sao Tri thức Tương tác",
+        "clickNodeHint": "Chạm vào từng Node trên đồ thị để xem chẩn đoán",
+        "kpi1Teacher": "Điểm danh & Đồng bộ AI tự động",
+        "kpi1Student": "Độ phủ mắt xích kiến thức",
+        "kpi2": "Tốc độ lấp đầy lỗ hổng học tập",
+        "kpi3": "Đồng hành gợi mở cá nhân hóa",
+        "tagTop": "Neo4j Graph Engine",
+        "tagBottom": "28+ Thực thể kết nối",
+        "mascotQuote2": "Khi một node nâng cao bị đỏ, mình sẽ dẫn bạn quay lại đúng node nền tảng bị hổng!",
+        "mascotQuote3": "Toàn bộ tài liệu PDF giảng viên tải lên đều được tự động bóc tách thành mạng lưới này!",
+        "nodes": {
+          "recursion": {
+            "title": "Đệ quy",
+            "category": "Node Nền tảng • Đã thành thạo",
+            "diagnostic": "Bạn đã nắm vững điều kiện dừng và ngăn xếp lời gọi hàm (Call Stack).",
+            "action": "Sẵn sàng học Quy hoạch động"
+          },
+          "pointers": {
+            "title": "Con trỏ & Bộ nhớ",
+            "category": "Phát hiện Lỗ hổng • Cần củng cố",
+            "diagnostic": "Cảnh báo: Nhầm lẫn khi cấp phát mảng động và truyền tham chiếu vào cây nhị phân.",
+            "action": "Làm 3 bài Lab bù đắp ngay"
+          },
+          "dp": {
+            "title": "Quy hoạch động",
+            "category": "Node Trọng tâm • Đã thành thạo",
+            "diagnostic": "Tối ưu hóa tốt bài toán con gối nhau và bảng phương án 2 chiều.",
+            "action": "Thử thách bài toán ICPC"
+          },
+          "segmentTree": {
+            "title": "Cây phân đoạn",
+            "category": "Node Đang học • Tiến độ 74%",
+            "diagnostic": "Đã hiểu truy vấn đoạn O(log N), cần hoàn thiện kỹ thuật Lazy Propagation.",
+            "action": "Tiếp tục bài tập Lazy Update"
+          },
+          "dijkstra": {
+            "title": "Đồ thị Dijkstra",
+            "category": "Node Nâng cao • Đã thành thạo",
+            "diagnostic": "Triển khai chuẩn hàng đợi ưu tiên (Priority Queue) tìm đường đi ngắn nhất.",
+            "action": "Xem chứng nhận kỹ năng"
+          },
+          "fenwick": {
+            "title": "Cây Fenwick",
+            "category": "Phát hiện Lỗ hổng • Cần ôn tập",
+            "diagnostic": "Chưa thuần thục phép toán bit nhị phân tách bit cuối (idx & -idx).",
+            "action": "Mở hướng dẫn Socratic Bitwise"
+          }
+        }
+      },
+      "bloom": {
+        "badge": "Trạm 04 • Tháp Chinh phục Năng lực Chuẩn Quốc tế",
+        "title": "Leo đỉnh Tháp Nhận thức Bloom 6 Tầng",
+        "subtitle": "Hệ thống tự động đo lường và nâng tầm tư duy của bạn từ mức độ Ghi nhớ cơ bản lên tới Đánh giá phản biện và Sáng tạo giải pháp mới.",
+        "towerTitle": "Tháp 6 Bậc Nhận thức Bloom & Radar 6 Trục",
+        "clickTierHint": "Chạm vào từng tầng tháp để xem biến thiên Radar",
+        "tagTop": "Chuẩn Bloom Quốc tế",
+        "tagBottom": "Đánh giá đa chiều",
+        "mascotQuoteDefault": "Đích đến cao nhất của việc học không phải là nhớ lại, mà là tự tay kiến tạo giải pháp mới!",
+        "levels": {
+          "l1": {
+            "name": "Ghi nhớ (Remember)",
+            "badge": "Bậc 1 • Nền tảng Khái niệm",
+            "desc": "Nhận diện và gọi tên chính xác các định nghĩa, hằng số và cấu trúc cơ bản.",
+            "sample": "Câu hỏi mẫu L1: Nêu định nghĩa và độ phức tạp không gian của cây nhị phân tìm kiếm?"
+          },
+          "l2": {
+            "name": "Thông hiểu (Understand)",
+            "badge": "Bậc 2 • Diễn giải Bản chất",
+            "desc": "Giải thích được ý nghĩa nguyên lý bằng ngôn từ cá nhân và lấy ví dụ minh họa.",
+            "sample": "Câu hỏi mẫu L2: Tại sao tìm kiếm nhị phân lại yêu cầu mảng đầu vào phải được sắp xếp trước?"
+          },
+          "l3": {
+            "name": "Vận dụng (Apply)",
+            "badge": "Bậc 3 • Giải quyết Bài toán",
+            "desc": "Áp dụng linh hoạt định lý và thuật toán vào các bài tập thực hành cụ thể.",
+            "sample": "Câu hỏi mẫu L3: Hãy cài đặt thuật toán Dijkstra tìm đường đi ngắn nhất trên mạng giao thông 1000 đỉnh."
+          },
+          "l4": {
+            "name": "Phân tích (Analyze)",
+            "badge": "Bậc 4 • Bóc tách & So sánh",
+            "desc": "Mổ xẻ cấu trúc vấn đề, phát hiện điểm nghẽn hiệu năng và mối liên hệ ẩn.",
+            "sample": "Câu hỏi mẫu L4: Phân tích vì sao QuickSort suy biến thành O(N²) khi chọn chốt (pivot) không phù hợp?"
+          },
+          "l5": {
+            "name": "Đánh giá (Evaluate)",
+            "badge": "Bậc 5 • Phản biện Tối ưu",
+            "desc": "Đặt lên bàn cân các phương án giải quyết, bảo vệ lựa chọn kiến trúc tối ưu nhất.",
+            "sample": "Câu hỏi mẫu L5: Giữa Segment Tree và Fenwick Tree, cấu trúc nào tối ưu bộ nhớ hơn cho bài toán tổng tiền tố động?"
+          },
+          "l6": {
+            "name": "Sáng tạo (Create)",
+            "badge": "Bậc 6 • Đỉnh cao Kiến tạo",
+            "desc": "Tổng hợp tri thức liên ngành để thiết kế mô hình, thuật toán hoặc sản phẩm hoàn toàn mới.",
+            "sample": "Thử thách L6: Thiết kế cấu trúc dữ liệu lai ghép phục vụ truy vấn đồ thị thời gian thực cho 1 triệu học viên!"
+          }
+        }
+      },
+      "conversion": {
+        "stats": {
+          "s1": "Học viên & Giảng viên tích cực",
+          "s2": "Phiên đối thoại Socratic AI",
+          "s3": "Trường đại học & Tổ chức",
+          "s4": "Tỉ lệ cải thiện tư duy sâu"
+        },
+        "faqBadge": "Giải đáp Thắc mắc Thường gặp",
+        "faqTitle": "Mọi điều bạn cần biết trước khi cất cánh",
+        "ctaBadge": "Sẵn sàng cho Kỷ nguyên Giáo dục AI 3.0",
+        "ctaTitle": "Khởi tạo Không gian Học tập Thông minh của bạn ngay hôm nay",
+        "ctaSub": "Tham gia cùng hơn 120.000+ học viên và giảng viên đang chinh phục tri thức cùng Gia sư Cú Socrate 24/7.",
+        "ctaPrimaryBtn": "Tạo tài khoản Miễn phí ngay",
+        "ctaSecondaryBtn": "Xem chi tiết các Gói cước & Bảng giá",
+        "ctaGuarantee": "Miễn phí trọn đời gói Cơ bản • Bảo mật chuẩn ISO 27001 • Hỗ trợ 24/7",
+        "faqs": {
+          "q1": {
+            "tag": "Phương pháp AI",
+            "q": "Gia sư Cú Socrate trên ILMS khác gì so với ChatGPT hay các AI thông thường?",
+            "a": "Các AI thông thường đưa sẵn toàn bộ lời giải khiến người học thụ động sao chép. Ngược lại, Cú Socrate của ILMS được huấn luyện theo phương pháp sư phạm Socratic: chẩn đoán đúng bước bạn đang vướng mắc và đặt câu hỏi gợi mở kèm công thức trực quan để chính bạn tự tìm ra đáp án."
+          },
+          "q2": {
+            "tag": "Dành cho Giảng viên",
+            "q": "Giảng viên tải tài liệu PDF/Slide lên thì hệ thống xử lý như thế nào?",
+            "a": "Chỉ sau vài giây tải giáo trình lên, cụm AI Worker của ILMS sẽ tự động bóc tách các thực thể tri thức, dựng sơ đồ Đồ thị Tri thức (Knowledge Graph) cho lớp học và tự động sinh ngân hàng câu hỏi trắc nghiệm phân tầng theo 6 bậc thang đo Bloom."
+          },
+          "q3": {
+            "tag": "Đa thiết bị",
+            "q": "Nền tảng có hoạt động mượt mà trên điện thoại và máy tính bảng không?",
+            "a": "Hoàn toàn mượt mà! Toàn bộ giao diện lớp học, khung chat công thức toán LaTeX, biểu đồ năng lực và hiệu ứng tương tác 3D đều được tối ưu hóa cảm ứng đa điểm (Mobile Touch) ở tốc độ 60 FPS."
+          },
+          "q4": {
+            "tag": "Chi phí",
+            "q": "Tôi có thể bắt đầu trải nghiệm miễn phí trong bao lâu?",
+            "a": "Bạn có thể khởi tạo tài khoản và sử dụng Gói Cơ bản (Free) hoàn toàn miễn phí không giới hạn thời gian với 1.0 GB bộ nhớ Cloud Lab và hạn mức hỏi đáp AI Socrate mỗi ngày mà không cần thẻ tín dụng."
+          }
+        }
+      }
     }
   },
   "dashboard": {
@@ -511,7 +781,7 @@
     "home": "Trang chủ",
     "algorithms": "Thuật toán",
     "learningSpace": "Không gian học tập",
-    "searchPlaceholder": "Tìm kiếm bài học, khóa học, node kiến thức...",
+    "searchPlaceholder": "Tìm lớp học, bài giảng, tài liệu...",
     "learningArea": "Khu vực học tập",
     "navOverview": "Tổng quan",
     "navCourses": "Lớp học của tôi",
@@ -602,7 +872,6 @@
     "quickPrompts": "Gợi ý tư duy nhanh",
     "quickPrompt1": "💡 Giải thích thao tác xoay trái AVL",
     "quickPrompt2": "🎯 Xem lại câu hỏi Quiz hôm qua",
-    "quickPrompt3": "📐 Tóm tắt định lý cân bằng cây",
     "inputPlaceholder": "Đặt câu hỏi, dán mã code C++ hoặc công thức toán... (Shift + Enter để xuống dòng)",
     "attachFileTooltip": "Đính kèm tệp hoặc tài liệu",
     "insertCodeTooltip": "Chèn khối mã nguồn",
@@ -1004,9 +1273,9 @@
     "tabSupportTitle": "Trợ giúp & Thông tin",
     "tabSupportSubtitle": "Tài liệu, liên hệ CSKH, phiên bản",
     "menuCategoriesTitle": "Danh mục thiết lập",
-    "quotaExpiresAt": "Hạn đến 15/12/2025",
+    "quotaExpiresAt": "Gói vĩnh viễn",
     "cloudQuotaTitle": "Bộ nhớ Cloud Sandbox Lab",
-    "usedPercentage": "Đã dùng 78%",
+    "usedPercentage": "Đã dùng {percent}%",
     "btnExpandStorage": "Mở rộng dung lượng",
     "badgeHeaderTag": "Hệ thống & Tài khoản",
     "mainPageTitle": "Cài đặt & Tùy chọn hệ thống",
@@ -1313,6 +1582,11 @@
     "stateEmpty": "Trống (Chưa có lớp)",
     "stateNotFound": "Không tìm thấy theo lọc",
     "stateArchived": "Tab Đã lưu trữ",
+    "emptyArchivedTitle": "Chưa có lớp học nào được lưu trữ",
+    "emptyArchivedDesc": "Các lớp học đã kết thúc hoặc được lưu trữ sẽ xuất hiện tại đây để bạn tra cứu khi cần.",
+    "backToActiveBtn": "Quay lại lớp đang hoạt động",
+    "errorLoadTitle": "Không thể tải danh sách lớp học",
+    "errorLoadDesc": "Đã xảy ra sự cố khi kết nối tới máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc nhấn nút thử lại bên dưới.",
     "workspaceModeFaculty": "Chế độ Giảng dạy",
     "workspaceModeStudent": "Chế độ Học viên",
     "tabEnrolled": "Đang theo học",
@@ -1438,6 +1712,551 @@
     },
     "errors": {
       "loadFailed": "Không thể tải danh sách bài tập & quiz"
+    }
+  },
+  "courses": {
+    "detail": {
+      "backToClasses": "Quay lại danh sách môn học",
+      "breadcrumbSubject": "Không gian môn học",
+      "statusActive": "Đang giảng dạy",
+      "statusCompleted": "Đã hoàn thành",
+      "statusDraft": "Bản nháp",
+      "credits": "{count} Tín chỉ",
+      "instructor": "Giảng viên phụ trách",
+      "semester": "Học kỳ",
+      "teachingProgress": "Tiến độ bài giảng",
+      "knowledgeNodes": "Node Tri thức",
+      "chaptersCount": "Chương học",
+      "lessonsCount": "Bài học & Học liệu",
+      "btnAddChapter": "Thêm chương mới",
+      "btnAddLesson": "Thêm bài học",
+      "btnOpenAiTutor": "Trợ lý AI Socratic",
+      "tabSyllabus": "Đề cương & Bài học",
+      "tabMaterials": "Tài liệu & Học liệu",
+      "tabKnowledgeGraph": "Đồ thị tri thức",
+      "tabAiTutor": "Trợ lý AI Socratic",
+      "searchLessonPlaceholder": "Tìm kiếm bài học, chủ đề...",
+      "filterTypeAll": "Tất cả định dạng",
+      "filterTypeTheory": "Lý thuyết",
+      "filterTypeVideo": "Video bài giảng",
+      "filterTypeQuiz": "Trắc nghiệm / Đánh giá",
+      "filterTypeAssignment": "Bài tập lớn / Lab",
+      "expandAll": "Mở rộng tất cả",
+      "collapseAll": "Thu gọn tất cả",
+      "chapter": "Chương {index}: {title}",
+      "lessonsInChapter": "{count} bài học",
+      "lessonDuration": "{minutes} phút",
+      "lessonType": {
+        "THEORY": "Lý thuyết",
+        "VIDEO": "Video bài giảng",
+        "QUIZ": "Trắc nghiệm",
+        "ASSIGNMENT": "Bài tập / Lab",
+        "DOCUMENT": "Tài liệu đọc"
+      },
+      "lessonStatus": {
+        "COMPLETED": "Đã hoàn thành",
+        "IN_PROGRESS": "Đang học",
+        "NOT_STARTED": "Chưa học"
+      },
+      "actionLearn": "Học ngay",
+      "actionPreview": "Xem bài học",
+      "materialsTitle": "Kho tài liệu học phần",
+      "materialsDesc": "Tài liệu giáo trình, slide bài giảng và học liệu bóc tách bởi AI",
+      "btnUploadMaterial": "Tải lên tài liệu",
+      "btnAiExtract": "Bóc tách AI",
+      "emptyLessons": "Chưa có bài học nào trong chương này",
+      "emptyChapters": "Chưa có chương học nào trong đề cương môn học",
+      "emptySearch": "Không tìm thấy bài học phù hợp với từ khóa",
+      "modalCreateChapterTitle": "Thêm chương học mới",
+      "modalCreateChapterDesc": "Tạo một chương mới để phân bổ các bài học và học liệu",
+      "chapterTitleLabel": "Tên chương học",
+      "chapterTitlePlaceholder": "Ví dụ: Chương 3: Cấu trúc Cây và Cây AVL",
+      "chapterDescLabel": "Mô tả chương (Tùy chọn)",
+      "chapterDescPlaceholder": "Tóm tắt mục tiêu và nội dung cốt lõi của chương...",
+      "modalCreateLessonTitle": "Thêm bài học mới",
+      "modalCreateLessonDesc": "Thêm bài học lý thuyết, video hoặc trắc nghiệm vào chương",
+      "lessonTitleLabel": "Tên bài học",
+      "lessonTitlePlaceholder": "Ví dụ: Thuật toán cân bằng Cây AVL và phép xoay",
+      "lessonTypeLabel": "Hình thức bài học",
+      "lessonDurationLabel": "Thời lượng ước tính (phút)",
+      "lessonContentLabel": "Nội dung bài học (Tùy chọn)",
+      "lessonContentPlaceholder": "Nội dung bài học hoặc hướng dẫn tự học...",
+      "btnCancel": "Hủy",
+      "btnSave": "Lưu thay đổi",
+      "btnCreate": "Tạo mới",
+      "toastChapterCreated": "Đã tạo chương học thành công!",
+      "toastLessonCreated": "Đã thêm bài học thành công!",
+      "toastAiPrompt": "Trợ lý AI đã ghi nhận câu hỏi của bạn!",
+      "kgSummary": "Đồ thị tri thức môn học",
+      "kgDesc": "Mạng lưới các khái niệm cốt lõi và mối liên kết phụ thuộc (Prerequisite) trong học phần",
+      "btnExploreKg": "Mở toàn màn hình Đồ thị tri thức",
+      "aiTutorTitle": "Trợ lý ảo AI Socratic",
+      "aiTutorSubtitle": "Gia sư ảo phân tích tài liệu và gợi mở tư duy sinh viên 24/7",
+      "aiTutorPlaceholder": "Đặt câu hỏi hoặc yêu cầu AI giải thích khái niệm trong môn học...",
+      "aiSend": "Gửi câu hỏi"
+    }
+  },
+  "timetable": {
+    "backToOverview": "Trở về Tổng quan giảng dạy",
+    "termPill": "Học kỳ 1 • 2024-2025",
+    "instructorBadge": "Giảng viên: {name}",
+    "weeklyTitle": "Thời khóa biểu tuần",
+    "weekBadge": "Tuần {week}",
+    "weeklySubtitle": "Học kỳ 1 (2024-2025) • {range} • {faculty}",
+    "todayBtn": "Hôm nay",
+    "prevWeek": "Tuần trước",
+    "nextWeek": "Tuần kế tiếp",
+    "weekRangeDisplay": "Tuần {week}: {range}",
+    "currentWeekStatusToast": "Đang ở Tuần {week} (Tuần hiện tại)",
+    "navigatedWeekToast": "Đã chuyển sang Tuần {week}",
+    "exportScheduleBtn": "Xuất lịch (.ics/PDF)",
+    "swapRoomBtn": "Đăng ký dạy bù / đổi phòng",
+    "filters": {
+      "all": "Tất cả các lớp ({count})",
+      "theory": "Lý thuyết",
+      "lab": "Thực hành / Lab",
+      "exam": "Có ca thi / Kiểm tra"
+    },
+    "kpis": {
+      "totalSessionsTitle": "Tổng ca dạy tuần này",
+      "totalSessionsValue": "{sessions} Ca",
+      "totalSessionsSub": "({periods} Tiết)",
+      "labRoomsTitle": "Phòng Lab thực hành",
+      "labRoomsValue": "{count} Buổi",
+      "labRoomsSub": "• 100% Máy sẵn sàng",
+      "peakHourTitle": "Giờ cao điểm",
+      "peakHourValue": "Thứ 4",
+      "peakHourSub": "• 3 ca liên tiếp",
+      "syncStatusTitle": "Trạng thái đồng bộ",
+      "syncStatusValue": "Google Calendar & Đào tạo",
+      "syncStatusSub": "Vừa đồng bộ 5 phút trước"
+    },
+    "days": {
+      "monday": "Thứ 2",
+      "tuesday": "Thứ 3",
+      "wednesday": "Thứ 4",
+      "thursday": "Thứ 5",
+      "friday": "Thứ 6",
+      "saturday": "Thứ 7",
+      "sunday": "Chủ nhật",
+      "today": "Hôm nay",
+      "sessionCount": "{count} ca",
+      "dayOff": "Nghỉ",
+      "noSessionsTitle": "Không có ca dạy",
+      "noSessionsDesc": "Thời gian nghỉ ngơi, nghiên cứu học thuật & soạn giáo án tuần sau"
+    },
+    "session": {
+      "studentsCount": "{count} SV",
+      "completed": "Đã dạy xong",
+      "viewDetail": "Xem chi tiết →",
+      "viewMeetingLink": "Xem link họp →",
+      "trackLeaderboard": "Theo dõi bảng điểm →",
+      "takeAttendanceNow": "Điểm danh ngay",
+      "takeAttendance": "Điểm danh"
+    },
+    "legend": {
+      "title": "Chú thích:",
+      "theory": "Lý thuyết thông thường",
+      "lab": "Thực hành Lab máy",
+      "exam": "Có kiểm tra / Mock Contest",
+      "today": "Ca hiện tại / Hôm nay",
+      "downloadWeeklyMaterials": "Tải tài liệu tuần",
+      "scrollToTop": "Lên đầu trang",
+      "downloadingToast": "Đang chuẩn bị gói tài liệu học tập & giáo trình tuần..."
+    },
+    "modal": {
+      "detailTitle": "Chi tiết ca học (Lesson Session)",
+      "timeLabel": "Thời gian học",
+      "roomLabel": "Phòng học",
+      "enrolledStudents": "Sĩ số sinh viên đăng ký:",
+      "studentsUnit": "{count} sinh viên",
+      "notesTitle": "Ghi chú buổi dạy & Nội dung bài học:",
+      "closeBtn": "Đóng",
+      "openQrAttendance": "Mở QR Điểm danh trực tiếp"
+    },
+    "swapModal": {
+      "title": "Đăng ký Dạy bù / Đổi phòng học",
+      "sessionLabel": "Chọn ca học cần điều chỉnh",
+      "requestType": "Hình thức đăng ký",
+      "makeup": "Dạy bù",
+      "swap": "Đổi phòng học",
+      "proposedDate": "Ngày đề xuất",
+      "proposedTime": "Khung giờ đề xuất",
+      "proposedRoom": "Phòng học mong muốn",
+      "reason": "Lý do điều chỉnh",
+      "reasonPlaceholder": "Nhập lý do gửi Phòng Đào tạo (VD: Trùng lịch bảo vệ đề tài, phòng máy cần bảo trì...)",
+      "cancel": "Hủy bỏ",
+      "submit": "Gửi yêu cầu phê duyệt",
+      "successToast": "Đã gửi yêu cầu đăng ký dạy bù / đổi phòng tới Phòng Đào tạo"
+    },
+    "exportModal": {
+      "title": "Xuất thời khóa biểu giảng dạy",
+      "description": "Lựa chọn định dạng để đồng bộ với ứng dụng lịch cá nhân hoặc in ấn:",
+      "icsOption": "Định dạng iCalendar (.ics)",
+      "icsDesc": "Đồng bộ tự động với Google Calendar, Apple Calendar, Outlook",
+      "pdfOption": "Định dạng tài liệu in (.pdf)",
+      "pdfDesc": "Tải bản in chất lượng cao A4 ngang cho tuần hiện tại",
+      "downloadBtn": "Tải về",
+      "cancel": "Đóng",
+      "exportingToast": "Đang tải xuống tệp thời khóa biểu..."
+    },
+    "studentsModal": {
+      "title": "Danh sách sinh viên",
+      "searchPlaceholder": "Tìm kiếm sinh viên theo tên hoặc mã số...",
+      "studentCount": "Sĩ số: {count} sinh viên",
+      "colIndex": "STT",
+      "colCode": "Mã sinh viên",
+      "colName": "Họ và tên",
+      "colEmail": "Email sinh viên",
+      "colClass": "Lớp học phần",
+      "emptySearch": "Không tìm thấy sinh viên phù hợp",
+      "close": "Đóng"
+    }
+  },
+  "sidebar": {
+    "generalGroup": "KHÔNG GIAN CHUNG",
+    "aiGroup": "TƯƠNG TÁC & AI",
+    "navOverview": "Tổng quan",
+    "navMyClasses": "Lớp học của tôi",
+    "navMaterials": "Kho học liệu",
+    "navSchedule": "Lịch trình",
+    "navAssignments": "Bài tập & Quiz",
+    "navGraph": "Đồ thị tri thức",
+    "navAiTutor": "Trợ lý AI",
+    "navDiscussions": "Thảo luận",
+    "navHelp": "Trợ giúp",
+    "navSettings": "Cài đặt tài khoản",
+    "semesterBadge": "Học kỳ II - 2024",
+    "systemVersion": "v2.5",
+    "collapseSidebar": "Thu gọn menu",
+    "expandSidebar": "Mở rộng menu",
+    "navCompetency": "Năng lực",
+    "navPloMatrix": "Ma trận PLO"
+  },
+  "pricing": {
+    "header": {
+      "courses": "Khóa học",
+      "knowledgeGraph": "Đồ thị tri thức",
+      "pricing": "Bảng giá",
+      "aiTutor": "Gia sư AI",
+      "streakDays": "{days} Ngày streak",
+      "notifications": "Thông báo",
+      "login": "Đăng nhập",
+      "register": "Bắt đầu miễn phí",
+      "userAvatar": "Tài khoản",
+      "dashboard": "Bảng điều khiển"
+    },
+    "hero": {
+      "chip": "ILMS Platform • Gói thành viên & Nâng cấp",
+      "title": "Khai phóng sức mạnh AI Socratic & Đồ thị tri thức",
+      "subtitle": "Nâng cấp dung lượng lưu trữ, mở khóa mô hình phân tích sâu và tương tác đồ thị đa tầng phục vụ dạy và học hiệu quả.",
+      "currentPlan": "Gói hiện tại:",
+      "defaultPlan": "Cơ bản (Miễn phí)",
+      "dailyResetHint": "Làm mới hạn mức mỗi ngày lúc 00:00 (GMT+7)",
+      "storage": "Lưu trữ",
+      "aiSocratic": "AI Socratic"
+    },
+    "billingToggle": {
+      "monthly": "Hàng tháng",
+      "yearly": "Theo năm",
+      "savePercent": "Tiết kiệm 20%"
+    },
+    "cards": {
+      "monthlyUnit": "/ tháng",
+      "yearlyUnit": "/ tháng",
+      "lifetimeUnit": "/ Trọn đời",
+      "currentPlanBtn": "Gói hiện tại",
+      "freePlanBtn": "Gói miễn phí",
+      "upgradePlusBtn": "Nâng cấp lên Plus",
+      "chooseProBtn": "Chọn gói Pro",
+      "chooseEnterpriseBtn": "Đăng ký gói Doanh nghiệp",
+      "recommendedBadge": "Khuyên dùng",
+      "free": {
+        "badge": "Cá nhân",
+        "name": "Gói Cơ bản",
+        "description": "Làm quen nền tảng học tập thông minh ILMS.",
+        "features": [
+          "1 GB dung lượng lưu trữ cloud",
+          "Tối đa 3 khóa học song song",
+          "20 lượt hỏi Trợ lý AI / ngày",
+          "Tạo 5 đồ thị tri thức cơ bản",
+          "Không có tạo bài kiểm tra tự động"
+        ]
+      },
+      "plus": {
+        "badge": "Học viên & Giảng viên",
+        "name": "Gói Nâng cao (Plus)",
+        "description": "Đầy đủ tính năng AI Socratic và đồ thị tri thức đa tầng.",
+        "features": [
+          "15 GB lưu trữ tài liệu & video HD",
+          "Tạo tối đa 15 khóa học",
+          "300 lượt hỏi AI Socratic / ngày",
+          "30 Đồ thị tri thức tương tác",
+          "Tự động tạo Quiz từ PDF, Slide"
+        ]
+      },
+      "pro": {
+        "badge": "Chuyên nghiệp",
+        "name": "Gói Pro",
+        "description": "Dành cho giảng viên chính, chuyên gia nghiên cứu.",
+        "features": [
+          "50 GB dung lượng lưu trữ SSD",
+          "Quản lý 50 khóa học & nhóm",
+          "1.000 lượt AI Deep Reasoning",
+          "150 Đồ thị tri thức & Vector Search",
+          "Chấm điểm tự luận tự động bằng AI"
+        ]
+      },
+      "enterprise": {
+        "badge": "Tổ chức",
+        "name": "Gói Doanh nghiệp",
+        "description": "Giải pháp quy mô lớn cho trường học và tổ chức EdTech.",
+        "features": [
+          "200 GB+ lưu trữ chuyên dụng",
+          "Không giới hạn khóa học & sinh viên",
+          "Không giới hạn AI Socratic",
+          "Tùy biến tên miền riêng & Logo",
+          "Hỗ trợ SLA 99.9% 24/7"
+        ]
+      }
+    },
+    "table": {
+      "title": "So sánh chi tiết tính năng",
+      "subtitle": "Thông số kỹ thuật và tài nguyên chi tiết từng gói cước.",
+      "columns": {
+        "feature": "Tính năng",
+        "free": "Cơ bản",
+        "plus": "Plus",
+        "pro": "Pro",
+        "enterprise": "Enterprise"
+      },
+      "rows": {
+        "storage": "Dung lượng ổ lưu trữ",
+        "aiInteractions": "Lượt tương tác Trợ lý AI / ngày",
+        "knowledgeGraphs": "Đồ thị tri thức tương tác",
+        "quizGeneration": "Tự động phát sinh Quiz AI từ tài liệu",
+        "courseLimit": "Số lượng khóa học quản lý",
+        "essayGrading": "Tự động chấm bài tự luận bằng AI",
+        "customDomain": "Tên miền riêng & Thương hiệu tổ chức",
+        "supportLevel": "Hỗ trợ kỹ thuật"
+      },
+      "unlimited": "Không giới hạn",
+      "standardSupport": "Tiêu chuẩn (Email)",
+      "priorityTicket": "Ưu tiên (Ticket 24h)",
+      "prioritySla": "Hỗ trợ 1-1 (SLA 4h)",
+      "dedicatedSla": "Chuyên biệt 24/7 (SLA 99.9%)"
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "subtitle": "Chính sách sử dụng và thanh toán dịch vụ ILMS.",
+      "items": [
+        {
+          "q": "Tôi có thể vừa làm Giảng viên vừa làm Học viên trong cùng một gói không?",
+          "a": "Có. Tài khoản ILMS của bạn được đồng bộ linh hoạt giữa cả vai trò Giảng dạy và Học tập trong cùng một gói đăng ký mà không phát sinh thêm chi phí."
+        },
+        {
+          "q": "Dữ liệu và Đồ thị tri thức có bị xóa nếu tôi hết hạn gói?",
+          "a": "Không. Dữ liệu của bạn được lưu an toàn ở chế độ chỉ đọc (Read-only). Bạn vẫn xem và tải xuống các đồ thị cũng như tài liệu đã tạo bất cứ lúc nào."
+        },
+        {
+          "q": "Các phương thức thanh toán nào được hỗ trợ?",
+          "a": "Hệ thống hỗ trợ chuyển khoản ngân hàng qua VietQR (Napas 24/7 kích hoạt tự động sau 5 giây), ví điện tử MoMo, ZaloPay và thẻ thanh toán quốc tế Visa/Mastercard."
+        },
+        {
+          "q": "Tôi có được xuất hóa đơn VAT điện tử hợp pháp không?",
+          "a": "Có. Toàn bộ giao dịch nâng cấp tài khoản đều được tự động xuất hóa đơn VAT điện tử gửi về email đăng ký tài khoản của bạn ngay khi giao dịch thành công."
+        }
+      ]
+    },
+    "modal": {
+      "title": "Thanh toán {planName}",
+      "badgeMonthly": "{planName} • 30 ngày",
+      "badgeYearly": "{planName} • 365 ngày",
+      "step1": {
+        "badge": "Bước 1 / 2",
+        "title": "Chọn phương thức thanh toán",
+        "vietqr": "Chuyển khoản VietQR",
+        "vietqrDesc": "Quét mã bằng app ngân hàng bất kỳ",
+        "auto247": "Tự động 24/7",
+        "momo": "Ví MoMo / ZaloPay",
+        "momoDesc": "Cổng thanh toán ví điện tử",
+        "orderSummary": "Tóm tắt đơn hàng",
+        "listedPrice": "Giá niêm yết:",
+        "discount": "Chiết khấu theo năm (20%):",
+        "total": "Tổng thanh toán:",
+        "continueBtn": "Tiếp tục thanh toán"
+      },
+      "step2": {
+        "backToStep1": "Đổi phương thức thanh toán",
+        "waitingStatus": "Đang chờ xác nhận giao dịch...",
+        "bank": "Ngân hàng thụ hưởng:",
+        "bankName": "MB Bank (Quân Đội)",
+        "accountHolder": "Chủ tài khoản:",
+        "accountHolderName": "CONG TY EDUTECH INNOVATIONS",
+        "accountNumber": "Số tài khoản:",
+        "amount": "Số tiền:",
+        "transferNote": "Nội dung chuyển khoản:",
+        "copy": "Sao chép",
+        "copied": "Đã chép!",
+        "autoNote": "Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống tự động kích hoạt gói trong 5 giây sau khi nhận tiền.",
+        "completeBtn": "Tôi đã chuyển khoản thành công",
+        "completingBtn": "Đang xác thực hệ thống...",
+        "successTitle": "Nâng cấp gói thành công!",
+        "successDesc": "Tài khoản của bạn đã được nâng cấp lên {planName} thành công."
+      }
+    },
+    "authPrompt": {
+      "title": "Yêu cầu đăng nhập",
+      "description": "Vui lòng đăng nhập tài khoản ILMS để tiếp tục đăng ký {planName}. Sau khi đăng nhập thành công, hệ thống sẽ đưa bạn quay lại trang Bảng giá.",
+      "cancelBtn": "Hủy",
+      "confirmBtn": "Đồng ý, đăng nhập"
+    },
+    "footer": {
+      "copyright": "© 2025 ILMS EduTech Platform. Thiết kế chuẩn Material Design 3.",
+      "soc2": "SOC2 Type II",
+      "ssl": "256-Bit SSL/TLS"
+    }
+  },
+  "about": {
+    "hero": {
+      "chip": "Về ILMS • EduTech Innovations",
+      "title": "Kiến tạo tư duy tự chủ cho người học kỷ nguyên AI",
+      "subtitle": "ILMS là hệ thống quản lý học tập thông minh kết hợp phương pháp gợi mở Socratic, Đồ thị tri thức tương tác và khung đánh giá 6 bậc Bloom — giúp người học hiểu sâu bản chất thay vì chỉ chép đáp án.",
+      "primaryCta": "Bắt đầu học miễn phí",
+      "secondaryCta": "Xem bảng giá"
+    },
+    "pillars": {
+      "title": "Ba trụ cột công nghệ tại ILMS",
+      "subtitle": "Mọi tính năng đều được thiết kế xoay quanh khả năng tư duy và tiến bộ đo lường được.",
+      "items": {
+        "socratic": {
+          "title": "Gia sư AI Socratic",
+          "description": "Không trả lời hộ bài tập. AI đặt câu hỏi dẫn dắt từng bước giúp bạn tự khám phá lời giải và nhớ lâu hơn."
+        },
+        "graph": {
+          "title": "Đồ thị Tri thức Trực quan",
+          "description": "Kết nối các khái niệm môn học thành mạng lưới rõ ràng, chỉ ra lỗ hổng kiến thức và lộ trình ôn tập tối ưu."
+        },
+        "bloom": {
+          "title": "Chuẩn đầu ra 6 bậc Bloom",
+          "description": "Theo dõi năng lực từ mức Ghi nhớ đến Sáng tạo theo chuẩn PLO, hỗ trợ giảng viên bám sát từng lớp học."
+        }
+      }
+    },
+    "story": {
+      "badge": "Câu chuyện & Triết lý",
+      "title": "Vì sao chúng tôi xây dựng ILMS",
+      "paragraph1": "Trong thời đại công cụ AI bùng nổ, việc có được một đáp án đúng chỉ mất vài giây — nhưng khả năng đặt câu hỏi đúng, phản biện và liên kết kiến thức lại ngày càng hiếm.",
+      "paragraph2": "Đội ngũ ILMS (EduTech Innovations) xây dựng một không gian học tập tối giản, nơi giảng viên dễ dàng tổ chức học liệu, ca học, chuẩn đầu ra PLO, còn sinh viên có một người bạn đồng hành AI biết khơi gợi tư duy thay vì làm thay."
+    },
+    "values": {
+      "title": "Giá trị cốt lõi",
+      "items": {
+        "active": {
+          "title": "Học chủ động",
+          "description": "Khuyến khích tự suy luận qua đối thoại Socratic."
+        },
+        "clarity": {
+          "title": "Minh bạch tri thức",
+          "description": "Trực quan hóa mọi khái niệm và tiến độ trên đồ thị."
+        },
+        "privacy": {
+          "title": "An toàn dữ liệu",
+          "description": "Tôn trọng quyền riêng tư và bảo vệ dữ liệu học tập."
+        },
+        "simplicity": {
+          "title": "Trải nghiệm tối giản",
+          "description": "Giao diện gọn gàng, tập trung hoàn toàn vào việc học."
+        }
+      }
+    },
+    "contact": {
+      "badge": "Đội ngũ ILMS • EduTech Innovations",
+      "title": "Đồng hành cùng lớp học & tổ chức của bạn",
+      "description": "Cần tư vấn triển khai cho trường học, trung tâm đào tạo hoặc đóng góp ý kiến cho sản phẩm? Liên hệ trực tiếp với đội ngũ phát triển ILMS."
+    },
+    "footer": {
+      "pricing": "Bảng giá",
+      "terms": "Điều khoản",
+      "privacy": "Bảo mật"
+    }
+  },
+  "legal": {
+    "common": {
+      "backHome": "Về trang chủ",
+      "termsTab": "Điều khoản dịch vụ",
+      "privacyTab": "Chính sách bảo mật",
+      "organization": "ILMS • EduTech Innovations",
+      "tocLabel": "Mục lục nhanh",
+      "contactTitle": "Cần giải đáp thêm về điều khoản hoặc quyền riêng tư?",
+      "contactDescription": "Liên hệ trực tiếp với bộ phận hỗ trợ của ILMS để được giải thích chi tiết.",
+      "aboutLink": "Về chúng tôi",
+      "pricingLink": "Bảng giá",
+      "loginLink": "Đăng nhập"
+    },
+    "terms": {
+      "badge": "Văn bản pháp lý • Điều khoản",
+      "title": "Điều khoản dịch vụ ILMS",
+      "summary": "Quy định quyền, nghĩa vụ và nguyên tắc sử dụng nền tảng học tập thông minh tích hợp AI ILMS dành cho học viên, giảng viên và tổ chức đào tạo.",
+      "updatedAt": "Cập nhật lần cuối: 17/11/2026",
+      "sections": {
+        "s1": {
+          "title": "Phạm vi áp dụng & Chấp nhận điều khoản",
+          "body": "Khi đăng ký tài khoản hoặc truy cập các dịch vụ trên ilms.page (bao gồm Lớp học, Đồ thị tri thức, Gia sư AI Socratic và Lưu trữ học liệu), bạn đồng ý tuân thủ các điều khoản được nêu tại đây."
+        },
+        "s2": {
+          "title": "Tài khoản & Trách nhiệm bảo mật",
+          "body": "Người dùng chịu trách nhiệm bảo mật thông tin đăng nhập, mật khẩu và các phiên OAuth2 liên kết. Vui lòng thông báo ngay cho đội ngũ ILMS khi phát hiện truy cập trái phép vào tài khoản của bạn."
+        },
+        "s3": {
+          "title": "Quy tắc sử dụng Gia sư AI Socratic",
+          "body": "Gia sư AI của ILMS được thiết kế để gợi mở tư duy và hỗ trợ học tập trung thực. Nghiêm cấm sử dụng hệ thống để tấn công, khai thác lỗ hổng, phát tán mã độc hoặc vi phạm chuẩn mực liêm chính học thuật."
+        },
+        "s4": {
+          "title": "Học liệu & Quyền sở hữu trí tuệ",
+          "body": "Giảng viên và người học giữ quyền sở hữu đối với tài liệu, bài giảng và ghi chú tự tải lên. Giao diện, mã nguồn, thương hiệu ILMS và cấu trúc thuật toán thuộc quyền sở hữu của EduTech Innovations."
+        },
+        "s5": {
+          "title": "Gói dịch vụ, Hạn mức & Thanh toán",
+          "body": "Các gói Cơ bản (Free), Plus, Pro và Doanh nghiệp được áp dụng hạn mức lưu trữ và lượt AI tương ứng trên trang Bảng giá. Giao dịch nâng cấp qua VietQR được ghi nhận và kích hoạt theo chu kỳ đã chọn."
+        },
+        "s6": {
+          "title": "Thay đổi điều khoản & Chấm dứt",
+          "body": "ILMS có quyền cập nhật điều khoản để phù hợp với quy định pháp luật và tính năng mới. Mọi thay đổi quan trọng sẽ được thông báo công khai trên trang này trước khi có hiệu lực."
+        }
+      }
+    },
+    "privacy": {
+      "badge": "Bảo vệ dữ liệu • Quyền riêng tư",
+      "title": "Chính sách bảo mật ILMS",
+      "summary": "Cam kết của ILMS trong việc thu thập tối thiểu, mã hóa an toàn và bảo vệ quyền riêng tư đối với dữ liệu cá nhân cũng như hồ sơ học tập của bạn.",
+      "updatedAt": "Cập nhật lần cuối: 17/11/2026",
+      "sections": {
+        "s1": {
+          "title": "Thông tin chúng tôi thu thập",
+          "body": "Chúng tôi chỉ thu thập các thông tin cần thiết để vận hành lớp học và cá nhân hóa học tập, bao gồm họ tên, email, vai trò học tập, tùy chọn giao diện, tiến độ khóa học và tệp học liệu bạn chủ động tải lên."
+        },
+        "s2": {
+          "title": "Mục đích xử lý dữ liệu",
+          "body": "Dữ liệu được dùng để xác thực tài khoản, đồng bộ tiến độ năng lực Bloom/PLO, vận hành Gia sư AI Socratic theo ngữ cảnh bài học và hiển thị dung lượng lưu trữ Cloud của riêng bạn."
+        },
+        "s3": {
+          "title": "Bảo mật truyền tải & Lưu trữ",
+          "body": "Toàn bộ kết nối tới ilms.page và api.ilms.page đều được mã hóa qua HTTPS/TLS. Phiên đăng nhập sử dụng cookie bảo mật và cơ chế kiểm soát quyền truy cập theo vai trò (RBAC)."
+        },
+        "s4": {
+          "title": "Xử lý AI & Chia sẻ với bên thứ ba",
+          "body": "ILMS không bán hoặc cho thuê dữ liệu cá nhân của người học cho bên thứ ba. Dữ liệu hội thoại AI chỉ phục vụ trả lời câu hỏi học tập và lưu lịch sử phiên của chính tài khoản bạn."
+        },
+        "s5": {
+          "title": "Quyền của người dùng đối với dữ liệu",
+          "body": "Bạn có toàn quyền xem, chỉnh sửa hồ sơ cá nhân, quản lý hoặc xóa tệp học liệu trên Cloud Storage, đổi ngôn ngữ/giao diện và yêu cầu xóa vĩnh viễn tài khoản bất kỳ lúc nào trong phần Cài đặt."
+        },
+        "s6": {
+          "title": "Lưu trữ Cookie & Liên hệ bảo mật",
+          "body": "Hệ thống sử dụng cookie thiết yếu cho phiên đăng nhập và tùy chọn ngôn ngữ (`NEXT_LOCALE`). Nếu có thắc mắc về bảo mật dữ liệu, vui lòng liên hệ support@ilms.page."
+        }
+      }
     }
   }
 }

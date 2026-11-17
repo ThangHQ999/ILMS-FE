@@ -3,8 +3,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 
-const SHOWCASE_IMG_URL =
-  'https://lh3.googleusercontent.com/aida/AEtjO1W-ZzpMO6raM3-SNWM4CV44zZoy_xeMzikzoqYGoUSwK4IcCEG_7J1NZrUHsBAeaT8rkE017HE98Ki0tQYcgNVlMU_pdL8_ITYkuT-XC5sD8peRX7kG7hX8zb-VSpKGzChuAHrHZmD4v7Hr0YoigTPEmMMSwRbGXf3U7_MXgMzIuKNT_tvtwRSvS6gspOPNZjPmbW2MRxOSazlQq_sipoOXtBeesjdwjPvLfWgR6iIK1X8PH5_lVYGXo9v3';
+const SHOWCASE_IMG_URL = '/images/auth/register-showcase.png';
 
 export function RegisterShowcase() {
   const t = useTranslations('auth.registerShowcase');
@@ -12,14 +11,20 @@ export function RegisterShowcase() {
   return (
     <div className="hidden lg:flex lg:col-span-5 flex-col justify-between relative pl-2 h-full">
       <div className="w-full h-full relative rounded-3xl overflow-hidden bg-white/70 dark:bg-[#1E1F20] border-none shadow-none flex flex-col justify-between p-6">
-        {/* Background Showcase Image with Soft Overlay */}
-        <div className="absolute inset-0 z-0">
+        {/* Background Showcase Image with Soft Atmospheric Glow & Overlay */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center px-4 pt-12 pb-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-10 rounded-full bg-[radial-gradient(circle_at_60%_42%,rgba(37,99,235,0.18),rgba(99,102,241,0.10)_45%,transparent_75%)] dark:bg-[radial-gradient(circle_at_60%_42%,rgba(59,130,246,0.24),rgba(139,92,246,0.12)_45%,transparent_75%)] blur-2xl"
+          />
           <img
             alt={t('imageAlt')}
-            className="w-full h-full object-contain rounded-2xl select-none pointer-events-none transform scale-100 hover:scale-105 transition-transform duration-700 ease-out"
+            className="relative z-0 w-full h-full object-contain object-center rounded-2xl select-none pointer-events-none transform scale-100 hover:scale-105 transition-transform duration-700 ease-out drop-shadow-[0_14px_28px_rgba(15,23,42,0.12)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.5)]"
             src={SHOWCASE_IMG_URL}
+            loading="eager"
+            decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-100/90 dark:from-[#0B0F19]/90 via-transparent to-white/40 dark:to-[#161F33]/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-100/80 dark:from-[#0B0F19]/80 via-transparent to-white/30 dark:to-[#161F33]/30 pointer-events-none" />
         </div>
 
         {/* Top Floating Glass Badge 1: AI Assistant Score */}

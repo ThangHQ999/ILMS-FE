@@ -9,6 +9,7 @@ export * from './hooks/useStudentPerformance';
 export * from './hooks/useClassHubInfo';
 export * from './hooks/useQuizzes';
 export { AssignmentsTabView } from './components/AssignmentsTabView';
+export { ClassCourseMatrixView } from './components/ClassCourseMatrixView';
 export { ClassHubHeader } from './components/ClassHubHeader';
 export { AssignmentFilterToolbar } from './components/AssignmentFilterToolbar';
 export { AssignmentActiveCluster } from './components/AssignmentActiveCluster';

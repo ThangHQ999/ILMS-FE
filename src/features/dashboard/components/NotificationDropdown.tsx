@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useNotifications } from '../hooks/useNotifications';
 import { NotificationTab } from '../types';
@@ -88,13 +89,14 @@ export function NotificationDropdown() {
                 <span className="material-symbols-outlined text-[16px]">done_all</span>
                 <span>{t('markAllRead')}</span>
               </button>
-              <button
-                className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none"
+              <Link
+                href="/settings?tab=tab-notifications&section=notification-channels#notification-channels"
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-full text-[#747775] hover:text-[#1F1F1F] hover:bg-[#F0F4F9] dark:text-[#8E918F] dark:hover:text-[#E3E3E3] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none flex items-center justify-center"
                 title={t('notificationSettings')}
-                type="button"
               >
                 <span className="material-symbols-outlined text-[18px]">settings</span>
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -194,13 +196,14 @@ export function NotificationDropdown() {
 
           {/* Footer Dropdown */}
           <div className="p-3 bg-[#F0F4F9] dark:bg-[#282A2C]/60 flex items-center justify-center border-none">
-            <a
-              className="text-[#0B57D0] hover:bg-[#E1E5EA] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1 border-none"
-              href="#"
+            <Link
+              className="text-[#0B57D0] hover:bg-[#E1E5EA] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1 border-none cursor-pointer"
+              href="/settings?tab=tab-notifications"
+              onClick={() => setIsOpen(false)}
             >
               <span>{t('viewAllNotifications')}</span>
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-            </a>
+            </Link>
           </div>
         </div>
       )}

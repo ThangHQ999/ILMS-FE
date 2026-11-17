@@ -1,10 +1,21 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { RegisterPageView } from '@/features/auth';
+import { buildMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Đăng ký tài khoản - ILMS',
-  description: 'Bắt đầu hành trình học tập và bứt phá kỹ năng công nghệ cùng trợ lý AI tại ILMS.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations('seo'),
+  ]);
+
+  return buildMetadata({
+    title: t('registerTitle'),
+    description: t('registerDescription'),
+    path: '/register',
+    locale,
+  });
+}
 
 export default function RegisterPage() {
   return <RegisterPageView />;

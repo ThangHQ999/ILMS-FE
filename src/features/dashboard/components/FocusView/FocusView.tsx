@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { ZenHeaderBanner } from './ZenHeaderBanner';
 import { HeroLearningCard } from './HeroLearningCard';
 import { AITaskChecklist } from './AITaskChecklist';
-import { SocraticAICoach } from './SocraticAICoach';
 import { AITaskItem } from '../../types';
 
 interface FocusViewProps {
@@ -15,14 +14,11 @@ interface FocusViewProps {
 
 export function FocusView({ userFullName = 'Nhật Minh', aiTasks }: FocusViewProps) {
   const t = useTranslations('dashboard');
-  // AI Coach Column width (default 380px, resizable up to 40% of window width)
-  const [aiWidth, setAiWidth] = useState(380);
-  const [isAiMinimized, setIsAiMinimized] = useState(false);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-6 lg:py-8">
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* CỘT CHÍNH (Chiếm toàn bộ không gian còn lại, co giãn mượt mà khi AI Coach resize) */}
+      <div className="flex flex-col gap-6 items-start">
+        {/* CỘT CHÍNH */}
         <section className="flex-1 min-w-0 flex flex-col gap-6 w-full">
           {/* Zen Header Status Banner */}
           <ZenHeaderBanner />
@@ -43,15 +39,6 @@ export function FocusView({ userFullName = 'Nhật Minh', aiTasks }: FocusViewPr
           {/* Checklist Nhiệm vụ do AI đề xuất hôm nay */}
           <AITaskChecklist initialTasks={aiTasks} />
         </section>
-
-        {/* CỘT PHỤ (Socratic AI Coach - Resizable up to 40% window width) */}
-        <SocraticAICoach
-          userFullName={userFullName}
-          width={aiWidth}
-          onWidthChange={setAiWidth}
-          isMinimized={isAiMinimized}
-          onToggleMinimize={() => setIsAiMinimized((prev) => !prev)}
-        />
       </div>
     </div>
   );

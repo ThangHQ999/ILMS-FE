@@ -22,9 +22,11 @@ export function SocraticAiMentorPanel({
       {/* Header Badge */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[20px] text-indigo-600 dark:text-indigo-400 animate-pulse">
-            psychology
-          </span>
+          <img
+            src="/socratic_mascot.png"
+            alt="Socratic AI"
+            className="w-5 h-5 object-contain"
+          />
           <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
             {t('panels.socraticTitle')}
           </span>

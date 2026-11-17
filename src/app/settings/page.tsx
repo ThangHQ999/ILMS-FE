@@ -16,5 +16,37 @@ export default function SettingsPage() {
     }
   }, [isLoading, isError, user, router]);
 
-  return <SettingsPageView />;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
+          <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
+            Đang tải cài đặt hệ thống...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !user) {
+    return null;
+  }
+
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
+            <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
+              Đang tải cài đặt hệ thống...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <SettingsPageView />
+    </React.Suspense>
+  );
 }

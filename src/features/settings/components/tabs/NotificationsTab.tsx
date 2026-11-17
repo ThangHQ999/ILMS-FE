@@ -16,7 +16,20 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
   const { data: settings, isLoading } = useNotificationSettings();
   const updateMutation = useUpdateNotificationSettings(onSuccessToast);
 
-  if (isLoading || !settings) {
+  const channels = settings?.channels ?? {
+    push: true,
+    email: true,
+    sms: false,
+  };
+
+  const categories = settings?.categories ?? {
+    tutorAndAiMessages: true,
+    deadlineReminders: true,
+    streaksAndRankings: true,
+    webinarsAndPromotions: false,
+  };
+
+  if (isLoading && !settings) {
     return (
       <div className="p-8 flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary border-t-transparent" />
@@ -27,8 +40,8 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
   const toggleChannel = (channelKey: 'push' | 'email' | 'sms') => {
     updateMutation.mutate({
       channels: {
-        ...settings.channels,
-        [channelKey]: !settings.channels[channelKey],
+        ...channels,
+        [channelKey]: !channels[channelKey],
       },
     });
   };
@@ -42,15 +55,18 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
   ) => {
     updateMutation.mutate({
       categories: {
-        ...settings.categories,
-        [catKey]: !settings.categories[catKey],
+        ...categories,
+        [catKey]: !categories[catKey],
       },
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none flex flex-col gap-5">
+      <div
+        id="notification-channels"
+        className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none flex flex-col gap-5 scroll-mt-24 transition-all duration-500"
+      >
         <div className="flex flex-col">
           <h2 className="text-lg font-bold text-slate-900 dark:text-[#E3E3E3]">
             {t('notifChannelsTitle')}
@@ -82,17 +98,17 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             <button
               onClick={() => toggleChannel('push')}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                settings.channels.push
+                channels.push
                   ? 'bg-secondary'
                   : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
-              aria-checked={settings.channels.push}
+              aria-checked={channels.push}
             >
               <span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  settings.channels.push ? 'translate-x-5' : 'translate-x-0'
+                  channels.push ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
@@ -118,17 +134,17 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             <button
               onClick={() => toggleChannel('email')}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                settings.channels.email
+                channels.email
                   ? 'bg-secondary'
                   : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
-              aria-checked={settings.channels.email}
+              aria-checked={channels.email}
             >
               <span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  settings.channels.email ? 'translate-x-5' : 'translate-x-0'
+                  channels.email ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
@@ -152,17 +168,17 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
             <button
               onClick={() => toggleChannel('sms')}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                settings.channels.sms
+                channels.sms
                   ? 'bg-secondary'
                   : 'bg-slate-300 dark:bg-[#282A2C]'
               }`}
               type="button"
               role="switch"
-              aria-checked={settings.channels.sms}
+              aria-checked={channels.sms}
             >
               <span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  settings.channels.sms ? 'translate-x-5' : 'translate-x-0'
+                  channels.sms ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
@@ -187,7 +203,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               </div>
               <input
                 type="checkbox"
-                checked={settings.categories.tutorAndAiMessages}
+                checked={categories.tutorAndAiMessages ?? true}
                 onChange={() => toggleCategory('tutorAndAiMessages')}
                 className="w-5 h-5 accent-secondary cursor-pointer"
               />
@@ -205,7 +221,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               </div>
               <input
                 type="checkbox"
-                checked={settings.categories.deadlineReminders}
+                checked={categories.deadlineReminders ?? true}
                 onChange={() => toggleCategory('deadlineReminders')}
                 className="w-5 h-5 accent-secondary cursor-pointer"
               />
@@ -223,7 +239,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               </div>
               <input
                 type="checkbox"
-                checked={settings.categories.streaksAndRankings}
+                checked={categories.streaksAndRankings ?? true}
                 onChange={() => toggleCategory('streaksAndRankings')}
                 className="w-5 h-5 accent-secondary cursor-pointer"
               />
@@ -241,7 +257,7 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               </div>
               <input
                 type="checkbox"
-                checked={settings.categories.webinarsAndPromotions}
+                checked={categories.webinarsAndPromotions ?? false}
                 onChange={() => toggleCategory('webinarsAndPromotions')}
                 className="w-5 h-5 accent-secondary cursor-pointer"
               />

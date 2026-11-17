@@ -7,6 +7,7 @@ import {
   getClassStudents,
   getLessonSessions,
   getRooms,
+  getTeacherTodaySessions,
   saveAttendances,
 } from '../services/lesson-session.service';
 import { lessonSessionKeys } from '../constants';
@@ -36,6 +37,14 @@ export function useAttendances(classId: string, sessionId?: string) {
   });
 }
 
+export function useTeacherTodaySessions() {
+  return useQuery({
+    queryKey: lessonSessionKeys.today(),
+    queryFn: () => getTeacherTodaySessions(),
+    staleTime: 30 * 1000,
+  });
+}
+
 export function useRooms() {
   return useQuery({
     queryKey: ['rooms-list'],
@@ -52,6 +61,9 @@ export function useCreateLessonSession(classId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: lessonSessionKeys.lists(classId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.today(),
       });
     },
   });
@@ -81,7 +93,9 @@ export function useSaveAttendances(classId: string, sessionId: string) {
       queryClient.invalidateQueries({
         queryKey: lessonSessionKeys.lists(classId),
       });
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.today(),
+      });
     },
   });
 }
-

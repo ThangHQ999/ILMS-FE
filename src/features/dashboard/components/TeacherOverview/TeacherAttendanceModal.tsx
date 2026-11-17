@@ -6,20 +6,11 @@ import {
   useAttendances,
   useClassStudents,
   useSaveAttendances,
-} from '@/features/lesson-sessions/hooks/useLessonSessions';
-import { AttendanceStatus } from '@/features/lesson-sessions/types';
+  type AttendanceStatus,
+  type TodaySessionItem,
+} from '@/features/lesson-sessions';
 
-export interface TodaySessionItem {
-  id: string;
-  timeSlot: string;
-  subjectTitle: string;
-  subjectCode: string;
-  roomName: string;
-  studentsCount: number;
-  classId: string;
-  attendedCount?: number;
-  status?: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED';
-}
+export type { TodaySessionItem };
 
 interface TeacherAttendanceModalProps {
   isOpen: boolean;
@@ -70,9 +61,9 @@ export function TeacherAttendanceModal({
     }
 
     students.forEach((stu) => {
-      const localRec = localSaved.find((a) => a.studentId === stu.studentId);
       const apiRec = existingAttendances.find((a) => a.studentId === stu.studentId);
-      const chosen = localRec || apiRec;
+      const localRec = localSaved.find((a) => a.studentId === stu.studentId);
+      const chosen = apiRec || localRec;
 
       initialMap[stu.studentId] = {
         status: chosen && chosen.status ? (chosen.status as AttendanceStatus) : null,

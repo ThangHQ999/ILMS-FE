@@ -45,10 +45,19 @@ export function AiTutorWelcomeCanvas({
         <div className="hidden lg:block shrink-0 h-4" />
 
         <div className="w-full flex flex-col items-center text-center my-auto max-w-3xl">
+          {/* Socratic Mascot */}
+          <div className="relative mb-3 group">
+            <img
+              src="/socratic_mascot.png"
+              alt="Socratic AI Mascot"
+              className="w-24 h-24 sm:w-28 sm:h-28 object-contain filter drop-shadow-[0_8px_20px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_8px_24px_rgba(168,199,250,0.3)] select-none transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+
           {/* Socratic Persona Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] mb-6 border-none">
-            <div className="w-5 h-5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F] whitespace-nowrap flex items-center justify-center">
-              <span className="material-symbols-outlined text-[13px]">psychology</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] mb-5 border-none">
+            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0">
+              <img src="/socratic_mascot.png" alt="Socratic AI" className="w-full h-full object-contain" />
             </div>
             <span className="text-xs text-[#041E49] dark:text-[#D3E3FD] font-medium">
               {t('subtitle')}

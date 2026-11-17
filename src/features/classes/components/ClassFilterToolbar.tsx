@@ -28,11 +28,11 @@ export function ClassFilterToolbar({
   onFilterChange,
   viewMode,
   onViewModeChange,
-  activeCount = 12,
-  enrolledCount = 4,
-  archivedCount = 3,
-  allCount = 12,
-  displayedCount = 6,
+  activeCount = 0,
+  enrolledCount = 0,
+  archivedCount = 0,
+  allCount = 0,
+  displayedCount = 0,
   onOpenMobileFilter,
   activeKpi,
   onClearKpi,
@@ -65,63 +65,33 @@ export function ClassFilterToolbar({
     <section className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3.5">
       {/* Top row: Tabs & View switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Modern pill tabs */}
+        {/* Modern pill tabs (2 tabs dynamically tailored by role) */}
         <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60" role="tablist">
-          {/* Tab: Đang giảng dạy */}
+          {/* Active Tab: Đang giảng dạy (Faculty) or Đang theo học (Student) */}
           <button
             type="button"
             role="tab"
-            aria-selected={workspaceMode === 'faculty' && filters.status === 'ACTIVE'}
-            onClick={() => {
-              if (onWorkspaceModeChange) onWorkspaceModeChange('faculty');
-              onFilterChange({ status: 'ACTIVE', page: 0 });
-            }}
+            aria-selected={filters.status === 'ACTIVE'}
+            onClick={() => onFilterChange({ status: 'ACTIVE', page: 0 })}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              workspaceMode === 'faculty' && filters.status === 'ACTIVE'
+              filters.status === 'ACTIVE'
                 ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <span>Đang giảng dạy</span>
+            <span>{workspaceMode === 'faculty' ? 'Đang giảng dạy' : 'Đang theo học'}</span>
             <span
               className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                workspaceMode === 'faculty' && filters.status === 'ACTIVE'
+                filters.status === 'ACTIVE'
                   ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
-              {activeCount}
+              {workspaceMode === 'faculty' ? activeCount : enrolledCount}
             </span>
           </button>
 
-          {/* Tab: Đang theo học */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={workspaceMode === 'student' && filters.status === 'ACTIVE'}
-            onClick={() => {
-              if (onWorkspaceModeChange) onWorkspaceModeChange('student');
-              onFilterChange({ status: 'ACTIVE', page: 0 });
-            }}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              workspaceMode === 'student' && filters.status === 'ACTIVE'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <span>Đang theo học</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                workspaceMode === 'student' && filters.status === 'ACTIVE'
-                  ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {enrolledCount}
-            </span>
-          </button>
-
-          {/* Tab: Đã lưu trữ */}
+          {/* Archived/Completed Tab: Đã lưu trữ (Faculty) or Đã hoàn thành (Student) */}
           <button
             type="button"
             role="tab"
@@ -133,7 +103,7 @@ export function ClassFilterToolbar({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <span>{workspaceMode === 'student' ? 'Đã hoàn thành / Lưu trữ' : 'Đã lưu trữ'}</span>
+            <span>{workspaceMode === 'faculty' ? 'Đã lưu trữ' : 'Đã hoàn thành'}</span>
             <span
               className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                 filters.status === 'ARCHIVED'

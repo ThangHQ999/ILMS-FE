@@ -141,7 +141,6 @@ export function BackgroundTasksPageView() {
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        workspaceMode="faculty"
       />
 
       {/* Header Navigation */}
@@ -150,17 +149,12 @@ export function BackgroundTasksPageView() {
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleMode={() => setIsFocusMode(!isFocusMode)}
         userFullName="TS. Nguyễn Văn An"
-        workspaceMode="faculty"
       />
 
       {/* Main Content Area */}
       <main
         className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-7xl w-full mx-auto ${
-          isFocusMode
-            ? 'pl-24'
-            : isSidebarCollapsed
-            ? 'pl-24'
-            : 'lg:pl-[284px]'
+          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         <div className="flex flex-col gap-6">

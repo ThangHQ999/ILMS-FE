@@ -39,7 +39,7 @@ export function RegisterHeader() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center focus:outline-none">
             <img
-              src="/logo.png"
+              src="/logo-full.png"
               alt="ILMS Logo"
               className="h-9 w-auto object-contain"
             />
@@ -50,7 +50,7 @@ export function RegisterHeader() {
         <div className="flex items-center gap-3 sm:gap-6">
           <nav className="hidden sm:flex items-center gap-2">
             <Link
-              href="/#overview"
+              href="/about"
               className="px-4 py-2 rounded-full text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-[#F0F4F9] dark:text-[#C4C7C5] dark:hover:text-white dark:hover:bg-[#282A2C] transition-colors"
             >
               {t('about')}
@@ -90,11 +90,6 @@ export function RegisterHeader() {
                 <span className="material-symbols-outlined text-[18px]">dark_mode</span>
               )}
             </button>
-
-            {/* User Avatar Placeholder */}
-            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-700 dark:text-[#A8C7FA] border-none">
-              <span className="material-symbols-outlined text-[18px]">person</span>
-            </div>
           </div>
         </div>
       </div>

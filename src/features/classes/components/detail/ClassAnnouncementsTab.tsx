@@ -10,7 +10,7 @@ import {
 interface ClassAnnouncementsTabProps {
   classId?: string;
   announcements?: ClassAnnouncement[];
-  currentRole?: 'owner' | 'teacher';
+  currentRole?: 'owner' | 'teacher' | 'student';
   onPublishAnnouncement?: (announcement: ClassAnnouncement) => void;
   onPostClick?: () => void;
   onToast?: (message: string) => void;
@@ -210,16 +210,26 @@ export function ClassAnnouncementsTab({
             <button
               type="button"
               onClick={() => {
-                document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' });
+                if (onPostClick) {
+                  onPostClick();
+                } else {
+                  document.getElementById('quick-composer')?.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[19px]">add_circle</span>
+              <span className="material-symbols-outlined text-[19px]">campaign</span>
               <span>+ Tạo thông báo mới</span>
             </button>
             <button
               type="button"
-              onClick={() => notify('Đã mở hộp thoại lên lịch phát tin tự động')}
+              onClick={() => {
+                if (onPostClick) {
+                  onPostClick();
+                } else {
+                  notify('Đã mở hộp thoại lên lịch phát tin tự động');
+                }
+              }}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs backdrop-blur-md transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[19px]">schedule_send</span>
@@ -236,7 +246,7 @@ export function ClassAnnouncementsTab({
           {/* Quick Announcement Composer */}
           <section
             id="quick-composer"
-            className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col gap-4 transition-all"
+            className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col gap-4 transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -455,7 +465,7 @@ export function ClassAnnouncementsTab({
               return (
                 <article
                   key={item.id}
-                  className={`bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col gap-4 relative overflow-hidden transition-all ${
+                  className={`bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col gap-4 relative overflow-hidden transition-all ${
                     isArchived ? 'opacity-85 hover:opacity-100' : ''
                   }`}
                 >
@@ -804,7 +814,7 @@ export function ClassAnnouncementsTab({
         {/* RIGHT COLUMN: Sidebar Analytics & Urgent Dispatch Widgets (4 cols) */}
         <div className="lg:col-span-4 flex flex-col gap-6">
           {/* Widget 1: Thống kê tương tác thông báo */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col gap-4">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[22px]">
@@ -909,7 +919,7 @@ export function ClassAnnouncementsTab({
           </section>
 
           {/* Widget 2: Kênh liên lạc khẩn cấp & Ban cán sự */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col gap-4">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-rose-500 text-[22px]">
@@ -1038,7 +1048,7 @@ export function ClassAnnouncementsTab({
           </section>
 
           {/* Widget 3: Quick Filter by Subject / Tag */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col gap-3">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs flex flex-col gap-3">
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
               Lọc theo học phần phụ trách
             </h4>
@@ -1095,7 +1105,7 @@ export function ClassAnnouncementsTab({
       {/* 3. MODAL BÁO CÁO TƯƠNG TÁC TỪNG CÁ NHÂN */}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 shadow-2xl animate-scaleUp">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-[3px] border-slate-300 dark:border-slate-700 max-w-lg w-full p-6 space-y-4 shadow-2xl animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center">

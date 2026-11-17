@@ -12,6 +12,7 @@ interface ClassGradebookTabProps {
   aiAnalysis: GradebookAiAnalysis;
   onSendAiSuggestion: () => void;
   onInterveneClick: (student: GradebookStudent) => void;
+  onToast?: (msg: string) => void;
 }
 
 export function ClassGradebookTab({
@@ -19,12 +20,43 @@ export function ClassGradebookTab({
   aiAnalysis,
   onSendAiSuggestion,
   onInterveneClick,
+  onToast,
 }: ClassGradebookTabProps) {
   const t = useTranslations('classes.detail');
-  const [selectedCourse, setSelectedCourse] = useState('CS-202');
-  const [selectedColumn, setSelectedColumn] = useState('all');
+
+  // Filters & State
+  const [selectedCourse, setSelectedCourse] = useState(
+    'CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)'
+  );
+  const [evaluationFilter, setEvaluationFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('final_desc');
+  const [viewMode, setViewMode] = useState<'scores' | 'plo'>('scores');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState('20');
+
+  // Interactive Modals
+  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isCustomQuizModalOpen, setIsCustomQuizModalOpen] = useState(false);
+  const [selectedStudentForProfile, setSelectedStudentForProfile] =
+    useState<GradebookStudent | null>(null);
+
+  // Weight Configuration State
+  const [weights, setWeights] = useState({
+    attendance: 10,
+    quiz: 15,
+    lab: 20,
+    midterm: 20,
+    final: 35,
+  });
+
+  const notify = (msg: string) => {
+    if (onToast) {
+      onToast(msg);
+    } else {
+      alert(msg);
+    }
+  };
 
   // Filtered students
   const filteredStudents = useMemo(() => {
@@ -38,486 +70,844 @@ export function ClassGradebookTab({
           s.email.toLowerCase().includes(q)
       );
     }
-
-    if (sortBy === 'final_desc') {
-      list.sort((a, b) => b.finalScore - a.finalScore);
-    } else if (sortBy === 'name_asc') {
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === 'plo_asc') {
-      list.sort((a, b) => a.ploPercent - b.ploPercent);
-    } else if (sortBy === 'code_asc') {
-      list.sort((a, b) => a.studentCode.localeCompare(b.studentCode));
-    }
     return list;
-  }, [students, searchTerm, sortBy]);
+  }, [students, searchTerm]);
+
+  // Checkbox handlers
+  const isAllSelected =
+    filteredStudents.length > 0 &&
+    selectedStudentIds.length === filteredStudents.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedStudentIds([]);
+    } else {
+      setSelectedStudentIds(filteredStudents.map((s) => s.id));
+    }
+  };
+
+  const handleToggleStudent = (id: string) => {
+    setSelectedStudentIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // Export handlers
+  const handleExportExcel = () => {
+    notify('Đang xuất bảng điểm chi tiết định dạng Excel (.xlsx)...');
+  };
+
+  const handleExportPdf = () => {
+    notify('Đang khởi tạo báo cáo Ma trận Chuẩn đầu ra PLO (PDF)...');
+  };
+
+  const handleAiAutoGrade = () => {
+    notify('Đang kích hoạt trợ lý AI Chấm bài & Đối soát điểm tự động...');
+  };
+
+  const handleApplyAiRecommendation = () => {
+    notify(
+      'Đã tự động gửi bộ đề Quiz 20 câu phục hồi PLO-03 cho 2 SV và kích hoạt mô hình Đôi bạn cùng tiến!'
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header & Main Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[22px]">
-              fact_check
+      {/* =========================================================================
+          1. BENTO GRID: TOP ANALYTICS & AI EXAM ASSISTANT
+          Zero borders, flat MD3 Elevated Cards
+          ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        {/* Card 1: Điểm trung bình lớp CS-202 */}
+        <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col justify-between gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
+              Điểm trung bình (CS-202)
             </span>
-            {t('gradebookTitle')}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-            {t('gradebookDesc')}
-          </p>
-        </div>
-
-        {/* 3 Standardized Buttons (Point 3.2): 1 Primary, 2 Secondary */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Secondary 1 */}
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-xs"
-          >
-            <span className="material-symbols-outlined text-[17px] text-slate-500 dark:text-slate-400">
-              file_download
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">grade</span>
             </span>
-            <span>{t('exportGradebook')}</span>
-          </button>
+          </div>
 
-          {/* Secondary 2 */}
-          <button
-            type="button"
-            onClick={() => alert('Đang đồng bộ dữ liệu với hệ thống Đào tạo...')}
-            className="px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-xs"
-          >
-            <span className="material-symbols-outlined text-[17px] text-slate-500 dark:text-slate-400">
-              sync
-            </span>
-            <span>{t('syncTraining')}</span>
-          </button>
-
-          {/* Primary */}
-          <button
-            type="button"
-            onClick={onSendAiSuggestion}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow transition-all flex items-center gap-1.5 active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[17px]">psychology</span>
-            <span>{t('aiGradeAnalysis')}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 KPI Cards - Expanded Padding & Spacing (Point 1.2) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Điểm TB toàn lớp */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {t('kpiAvgScore')}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-blue-600 dark:text-[#A8C7FA]">
+                {aiAnalysis.averageScore || 8.24}
               </span>
-              <span className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">insights</span>
+              <span className="text-sm font-semibold text-gray-500 dark:text-[#8E918F]">
+                / 10.0
+              </span>
+              <span className="ml-auto inline-flex items-center text-[11px] font-semibold text-blue-700 dark:text-[#A8C7FA] bg-[#D3E3FD]/40 dark:bg-[#A8C7FA]/20 px-2.5 py-0.5 rounded-full border-none">
+                +0.4 so kỳ trước
               </span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-                {aiAnalysis.averageScore}
+
+            <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-xs text-gray-600 dark:text-[#C4C7C5]">
+              <span>
+                Cao nhất: <strong className="text-gray-900 dark:text-[#E3E3E3] font-bold">9.8</strong>
               </span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">/ 10.0</span>
+              <span>
+                Thấp nhất: <strong className="text-red-700 dark:text-[#F28B82] font-bold">4.2</strong>
+              </span>
             </div>
-          </div>
-          <div className="mt-3.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs">
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[12px]">trending_up</span>
-              +0.4
-            </span>
-            <span className="text-slate-600 dark:text-slate-400 font-medium">
-              so với kỳ trước • Khá-Giỏi
-            </span>
           </div>
         </div>
 
-        {/* Card 2: Tỷ lệ đạt chuẩn PLO */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {t('kpiPloRate')}
-              </span>
-              <span className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">verified</span>
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
-                {aiAnalysis.ploPassRate}%
-              </span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                ({aiAnalysis.ploPassedCount}/{aiAnalysis.totalStudents} SV)
-              </span>
-            </div>
+        {/* Card 2: Tỷ lệ đạt chuẩn đầu ra PLO */}
+        <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col justify-between gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
+              Tỷ lệ đạt chuẩn PLO
+            </span>
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">verified</span>
+            </span>
           </div>
-          <div className="mt-3.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5">
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <span className="text-3xl font-extrabold text-gray-900 dark:text-[#E3E3E3]">
+                {aiAnalysis.ploPassRate || 88.1}%
+              </span>
+              <span className="text-xs font-semibold text-gray-500 dark:text-[#8E918F]">
+                {aiAnalysis.ploPassedCount || 37} / {aiAnalysis.totalStudents || 42} sinh viên
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full h-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
               <div
-                className="bg-emerald-500 h-2 rounded-full"
-                style={{ width: `${aiAnalysis.ploPassRate}%` }}
+                className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full transition-all duration-500"
+                style={{ width: `${aiAnalysis.ploPassRate || 88.1}%` }}
               />
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium text-right">
-              Mục tiêu học kỳ: 85%
-            </div>
+
+            <p className="text-[12px] text-gray-600 dark:text-[#C4C7C5] mt-2.5 flex items-center gap-1.5 font-medium">
+              <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">
+                check_circle
+              </span>
+              Vượt chỉ tiêu tối thiểu khoa đề ra (80%)
+            </p>
           </div>
         </div>
 
-        {/* Card 3: Tiến độ chấm điểm */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {t('kpiGradingProgress')}
-              </span>
-              <span className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">
-                  assignment_turned_in
-                </span>
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-                {aiAnalysis.gradingProgress}
-              </span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">bài đánh giá</span>
-            </div>
-          </div>
-          <div className="mt-3.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-medium">
-            <span className="font-bold text-blue-600 dark:text-blue-400">
-              {aiAnalysis.gradingPercent}% đã nhập điểm
+        {/* Card 3: Phân loại học lực */}
+        <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col justify-between gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
+              Phân loại học lực
             </span>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">Còn 2 bài Lab</span>
+            <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px]">pie_chart</span>
+            </span>
+          </div>
+
+          <div>
+            {/* Multi-segment progress visual */}
+            <div className="flex h-2.5 rounded-full overflow-hidden gap-1 bg-[#E1E5EA] dark:bg-[#282A2C] mb-3">
+              <div
+                className="bg-[#007BFF] dark:bg-[#A8C7FA] h-full rounded-l"
+                style={{ width: '52.4%' }}
+                title="Xuất sắc & Giỏi: 52.4%"
+              />
+              <div
+                className="bg-blue-300 dark:bg-blue-400 h-full"
+                style={{ width: '28.6%' }}
+                title="Khá: 28.6%"
+              />
+              <div
+                className="bg-gray-400 dark:bg-gray-500 h-full"
+                style={{ width: '14.3%' }}
+                title="Trung bình: 14.3%"
+              />
+              <div
+                className="bg-red-400 h-full rounded-r"
+                style={{ width: '4.7%' }}
+                title="Nguy cơ: 4.7%"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[12px]">
+              <div className="flex items-center gap-1.5 text-gray-800 dark:text-[#C4C7C5]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#007BFF] dark:bg-[#A8C7FA] shrink-0" />
+                <span>Giỏi/XS: <strong>22 (52.4%)</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-800 dark:text-[#C4C7C5]">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-300 dark:bg-blue-400 shrink-0" />
+                <span>Khá: <strong>12 (28.6%)</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-600 dark:text-[#8E918F]">
+                <span className="w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-gray-500 shrink-0" />
+                <span>TB: <strong>6 (14.3%)</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-red-700 dark:text-[#F28B82] font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
+                <span>Nguy cơ: <strong>2 (4.7%)</strong></span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Card 4: Cần can thiệp sớm */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {t('kpiEarlySupport')}
-              </span>
-              <span className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">
-                  notification_important
-                </span>
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-rose-600 dark:text-rose-400">
-                {aiAnalysis.earlyInterventionCount}
-              </span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">học viên</span>
-            </div>
+        {/* Card 4: Trợ lý AI Khảo thí & Cảnh báo Sớm (High-Tech Alert Card) */}
+        <div className="bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] rounded-3xl p-6 shadow-sm dark:shadow-none border-none flex flex-col justify-between gap-3 relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] text-[11px] font-semibold">
+              <span className="material-symbols-outlined text-[14px]">psychology</span>
+              AI Khảo thí cảnh báo
+            </span>
+            <span className="text-[11px] font-mono text-gray-600 dark:text-[#C4C7C5] bg-[#E1E5EA] dark:bg-[#282A2C] px-2.5 py-0.5 rounded-full">
+              Real-time
+            </span>
           </div>
-          <div className="mt-3.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-400 font-medium">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>Hổng kiến thức: Cây & Đồ thị</span>
+
+          <div>
+            <p className="text-[13px] text-gray-700 dark:text-[#C4C7C5] leading-snug">
+              Phát hiện <strong className="text-red-700 dark:text-[#F28B82] font-semibold">2 SV</strong> (Phạm Văn Hùng, Vũ Đức Long) bị hổng nặng chuẩn{' '}
+              <strong className="text-amber-700 dark:text-[#FFB784]">PLO-03 (Cây AVL &amp; Cây Đỏ - Đen)</strong>, cần kích hoạt bài test phục hồi điểm.
+            </p>
+            <button
+              type="button"
+              onClick={onSendAiSuggestion}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline transition-colors group cursor-pointer border-none bg-transparent"
+            >
+              <span>Xem lộ trình can thiệp AI</span>
+              <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Filter and Search Bar for Gradebook - Perfectly Baseline-Aligned (Point 2.2) */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Left Side: Selectors */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
-              Môn học:
-            </label>
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="h-10 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
-            >
-              <option value="CS-202">CS-202: Cấu trúc dữ liệu và giải thuật</option>
-              <option value="CS-201">CS-201: Cơ sở dữ liệu</option>
-              <option value="CS-203">CS-203: Lập trình hướng đối tượng</option>
-              <option value="CS-204">CS-204: Nhập môn trí tuệ nhân tạo</option>
-            </select>
+      {/* =========================================================================
+          2. CONTROL & FILTER BAR (GRADEBOOK CONTROL BAR)
+          Zero borders, flat MD3 layout
+          ========================================================================= */}
+      <div className="bg-white dark:bg-[#1E1F20] p-5 sm:p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col gap-4">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+          {/* Search & Course Selector */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[240px]">
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">
+                search
+              </span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Tìm theo tên học viên, MSSV hoặc email..."
+                className="w-full bg-[#F0F4F8] dark:bg-[#131314] pl-10 pr-4 py-2.5 rounded-full text-xs sm:text-sm text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] border-none outline-none transition-all"
+              />
+            </div>
+
+            {/* Course Select */}
+            <div className="flex items-center bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-2.5 rounded-full border-none gap-2 shrink-0">
+              <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[20px]">
+                menu_book
+              </span>
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value)}
+                className="bg-transparent text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer max-w-[280px] truncate"
+              >
+                <option value="CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)">
+                  CS-202: Cấu trúc dữ liệu &amp; Giải thuật nâng cao (Trọng tâm)
+                </option>
+                <option value="CS-301: Thiết kế & Phân tích thuật toán">
+                  CS-301: Thiết kế &amp; Phân tích thuật toán
+                </option>
+                <option value="IT-101: Nhập môn Kỹ thuật Lập trình">
+                  IT-101: Nhập môn Kỹ thuật Lập trình
+                </option>
+                <option value="CS-205: Cơ sở dữ liệu quan hệ">
+                  CS-205: Cơ sở dữ liệu quan hệ
+                </option>
+                <option value="Tất cả các môn (4 môn tổng hợp)">
+                  Tất cả các môn (4 môn tổng hợp)
+                </option>
+              </select>
+            </div>
+
+            {/* Evaluation Filter */}
+            <div className="flex items-center bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-2.5 rounded-full border-none gap-2 shrink-0">
+              <span className="material-symbols-outlined text-gray-400 text-[20px]">
+                filter_list
+              </span>
+              <select
+                value={evaluationFilter}
+                onChange={(e) => setEvaluationFilter(e.target.value)}
+                className="bg-transparent text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer"
+              >
+                <option value="all">Cả học kỳ (Tổng kết điểm &amp; PLO)</option>
+                <option value="quiz">Chuyên cần &amp; Quiz tự học</option>
+                <option value="lab">Bài tập lớn &amp; Lab thực hành</option>
+                <option value="exam">Thi giữa kỳ &amp; Thi kết thúc môn</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
-              Cột điểm:
-            </label>
-            <select
-              value={selectedColumn}
-              onChange={(e) => setSelectedColumn(e.target.value)}
-              className="h-10 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
-            >
-              <option value="all">Tất cả cột (CC 10%, Quiz 20%, Lab 30%, GK 40%)</option>
-              <option value="cc">Chuyên cần (10%)</option>
-              <option value="quiz">Quiz trắc nghiệm tuần (20%)</option>
-              <option value="lab">Thực hành Lab (30%)</option>
-              <option value="gk">Thi giữa kỳ (40%)</option>
-            </select>
+          {/* View Toggle Mode & Main Actions */}
+          <div className="flex items-center justify-between xl:justify-end gap-3 flex-wrap">
+            {/* View Toggle Pills */}
+            <div className="p-1 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full flex items-center border-none">
+              <button
+                type="button"
+                onClick={() => setViewMode('scores')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${
+                  viewMode === 'scores'
+                    ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                    : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[17px]">table_chart</span>
+                Điểm số &amp; Thành phần
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('plo')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${
+                  viewMode === 'plo'
+                    ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                    : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[17px]">hub</span>
+                Ma trận PLO (Bloom)
+              </button>
+            </div>
+
+            {/* Action Buttons & Primary CTAs */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] border-none bg-transparent text-xs font-semibold transition-colors cursor-pointer"
+                title="Xuất dữ liệu Excel (.xlsx)"
+              >
+                <span className="material-symbols-outlined text-[17px] text-emerald-600 dark:text-emerald-400">
+                  table_view
+                </span>
+                <span className="hidden sm:inline">Xuất Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportPdf}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] border-none bg-transparent text-xs font-semibold transition-colors cursor-pointer"
+                title="Xuất báo cáo PDF Ma trận chuẩn đầu ra"
+              >
+                <span className="material-symbols-outlined text-[17px] text-red-600 dark:text-[#F28B82]">
+                  picture_as_pdf
+                </span>
+                <span className="hidden sm:inline">Báo cáo PLO</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAiAutoGrade}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all cursor-pointer border-none"
+              >
+                <span className="material-symbols-outlined text-[17px]">smart_toy</span>
+                <span>Chấm &amp; Nhập điểm AI</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsWeightModalOpen(true)}
+                className="w-9 h-9 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center transition-colors cursor-pointer border-none"
+                title="Cấu hình trọng số điểm (%)"
+              >
+                <span className="material-symbols-outlined text-[19px]">settings_input_component</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Side: Search & Sorter */}
-        <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-          <div className="relative min-w-[240px] flex-1 sm:flex-initial">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-              search
+        {/* Active Filter Badges & Formula Summary */}
+        <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-200 dark:border-slate-800 flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-500 dark:text-slate-400 font-bold">
+              Công thức trọng số:
             </span>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm học viên theo tên, MSSV..."
-              className="h-10 w-full pl-9 pr-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all"
-            />
+            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold border border-slate-200/80 dark:border-slate-700">
+              Chuyên cần ({weights.attendance}%)
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold border border-slate-200/80 dark:border-slate-700">
+              Quiz AI ({weights.quiz}%)
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold border border-slate-200/80 dark:border-slate-700">
+              Lab Coding ({weights.lab}%)
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold border border-slate-200/80 dark:border-slate-700">
+              Giữa kỳ ({weights.midterm}%)
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold border border-slate-200/80 dark:border-slate-700">
+              Cuối kỳ ({weights.final}%)
+            </span>
           </div>
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="h-10 px-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer whitespace-nowrap"
-          >
-            <option value="final_desc">Sắp xếp: Điểm tổng kết giảm dần</option>
-            <option value="name_asc">Sắp xếp: Họ tên A–Z</option>
-            <option value="plo_asc">Sắp xếp: Tỷ lệ đạt PLO thấp đến cao</option>
-            <option value="code_asc">Sắp xếp: MSSV tăng dần</option>
-          </select>
+          <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+            <span>
+              Hiển thị: <strong className="text-slate-900 dark:text-slate-100 font-bold">{filteredStudents.length} / {aiAnalysis.totalStudents || 42}</strong> sinh viên
+            </span>
+            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+              Cập nhật 15 phút trước bởi TS. Nguyễn Văn An
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Gradebook Table with Enhanced Text Contrast (Point 1.1) and Uniform Row Heights (Point 2.1) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/90 text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="px-4 py-3.5 text-center w-12">STT</th>
-                <th className="px-5 py-3.5">Học viên & MSSV</th>
-                <th className="px-4 py-3.5 text-center">
-                  Chuyên cần
-                  <br />
-                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">
-                    (10%)
+      {/* =========================================================================
+          3. COMPREHENSIVE GRADEBOOK TABLE & PLO COMPETENCY MATRIX
+          Zero borders, flat MD3 layout
+          ========================================================================= */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none overflow-hidden flex flex-col">
+        {/* Table Header Toolbar */}
+        <div className="px-6 py-4 bg-[#F0F4F8] dark:bg-[#131314] flex items-center justify-between gap-4 flex-wrap border-none">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs font-semibold text-gray-800 dark:text-[#E3E3E3] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={handleSelectAll}
+                className="w-4 h-4 rounded text-blue-600 accent-blue-600 cursor-pointer"
+              />
+              <span>Chọn tất cả lớp ({filteredStudents.length} SV)</span>
+            </label>
+            <span className="text-gray-500 dark:text-[#8E918F] text-xs hidden sm:inline">
+              | Đã chọn: <strong className="text-gray-900 dark:text-[#E3E3E3]">{selectedStudentIds.length}</strong> SV
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1.5 text-gray-600 dark:text-[#C4C7C5] font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#007BFF] dark:bg-[#A8C7FA]" /> GPA &ge; 8.5 (Giỏi)
+            </span>
+            <span className="flex items-center gap-1.5 text-gray-600 dark:text-[#C4C7C5] font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-300 dark:bg-blue-400" /> 7.0 - 8.4 (Khá)
+            </span>
+            <span className="flex items-center gap-1.5 text-red-700 dark:text-[#F28B82] font-semibold">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-400" /> &lt; 5.0 (Cảnh báo)
+            </span>
+          </div>
+        </div>
+
+        {/* Table Container with Horizontal Scroll */}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[1280px]">
+            <thead>
+              <tr className="bg-[#F0F4F8] dark:bg-[#131314] text-gray-500 dark:text-[#8E918F] font-semibold text-[11px] uppercase tracking-wider border-none select-none">
+                <th className="py-4 px-4 w-12 text-center align-middle sticky left-0 bg-[#F0F4F8] dark:bg-[#131314] z-20">
+                  #
+                </th>
+                <th className="py-4 px-4 min-w-[260px] align-middle sticky left-12 bg-[#F0F4F8] dark:bg-[#131314] z-20">
+                  Sinh viên
+                </th>
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Chuyên cần<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    {weights.attendance}%
                   </span>
                 </th>
-                <th className="px-4 py-3.5 text-center">
-                  Quiz TB
-                  <br />
-                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">
-                    (20%)
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Quiz AI<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    {weights.quiz}%
                   </span>
                 </th>
-                <th className="px-4 py-3.5 text-center">
-                  Lab 01-04
-                  <br />
-                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">
-                    (30%)
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Lab Thực hành<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    {weights.lab}%
                   </span>
                 </th>
-                <th className="px-4 py-3.5 text-center">
-                  Giữa kỳ
-                  <br />
-                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">
-                    (40%)
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Giữa kỳ<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    {weights.midterm}%
                   </span>
                 </th>
-                <th className="px-4 py-3.5 text-center">
-                  Tổng kết
-                  <br />
-                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">
-                    (Hệ 10 / Chữ)
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Cuối kỳ<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    {weights.final}%
                   </span>
                 </th>
-                <th className="px-5 py-3.5 text-center">Chuẩn đầu ra PLO</th>
-                <th className="px-4 py-3.5 text-right">Thao tác</th>
+                <th className="py-4 px-4 w-24 min-w-[85px] text-center align-middle font-bold text-blue-600 dark:text-[#A8C7FA]">
+                  Tổng kết 10<br />
+                  <span className="text-[10px] font-normal text-blue-600/70 dark:text-[#A8C7FA]/70">
+                    Hệ 10
+                  </span>
+                </th>
+                <th className="py-4 px-3 w-20 min-w-[75px] text-center align-middle">
+                  Điểm chữ
+                </th>
+
+                {/* PLO Matrix Headers */}
+                <th
+                  className="py-4 px-4 w-28 min-w-[110px] text-center align-middle"
+                  title="Tư duy Thuật toán & Đánh giá Độ phức tạp (Big-O)"
+                >
+                  PLO-01<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    Tư duy TT
+                  </span>
+                </th>
+                <th
+                  className="py-4 px-4 w-28 min-w-[110px] text-center align-middle"
+                  title="Cài đặt cấu trúc dữ liệu nâng cao (Tree, Graph)"
+                >
+                  PLO-02<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    Cài đặt Cấu trúc
+                  </span>
+                </th>
+                <th
+                  className="py-4 px-4 w-28 min-w-[110px] text-center align-middle"
+                  title="Tối ưu hóa & Cây cân bằng AVL/Red-Black"
+                >
+                  PLO-03<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    Cây AVL/Đỏ-Đen
+                  </span>
+                </th>
+                <th
+                  className="py-4 px-4 w-28 min-w-[110px] text-center align-middle"
+                  title="Giải quyết bài toán thực tế thực thi thuật toán"
+                >
+                  PLO-04<br />
+                  <span className="text-[10px] text-gray-400 dark:text-[#8E918F] font-normal">
+                    Giải quyết TT
+                  </span>
+                </th>
+
+                <th className="py-4 px-4 w-28 min-w-[110px] text-right align-middle sticky right-0 bg-[#F0F4F8] dark:bg-[#131314] z-20">
+                  Thao tác
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-              {filteredStudents.map((s) => {
-                const isNeedsSupport = s.ploStatus === 'NEEDS_SUPPORT';
-                const isExcellent = s.ploStatus === 'EXCELLENT';
+            <tbody className="text-xs sm:text-sm text-gray-800 dark:text-[#E3E3E3] font-medium border-none">
+              {filteredStudents.map((s, idx) => {
+                const isSelected = selectedStudentIds.includes(s.id);
+                const isWarning =
+                  s.ploStatus === 'NEEDS_SUPPORT' ||
+                  Boolean(s.warning) ||
+                  (s.totalGpa && s.totalGpa < 5.0) ||
+                  s.finalScore < 5.0;
+                const isRowFailingPlo3 = Boolean(s.plo3?.isHole);
+
                 return (
                   <tr
                     key={s.id}
-                    className={`transition-colors h-16 ${
-                      isNeedsSupport
-                        ? 'bg-rose-50/40 dark:bg-rose-950/20 hover:bg-rose-50/70 dark:hover:bg-rose-950/30'
-                        : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
+                    className={`transition-colors group border-none ${
+                      isWarning
+                        ? 'hover:bg-red-50/50 dark:hover:bg-[#3C1919]/30'
+                        : isSelected
+                        ? 'bg-blue-50/40 dark:bg-[#1A2E4D]/30 hover:bg-blue-50/60 dark:hover:bg-[#1A2E4D]/50'
+                        : 'hover:bg-black/[0.03] dark:hover:bg-[#282A2C]'
                     }`}
                   >
-                    <td className="px-4 py-3 text-center text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
-                      {s.stt}
+                    {/* Checkbox sticky */}
+                    <td
+                      className={`py-5 px-4 text-center align-middle sticky left-0 z-10 transition-colors ${
+                        isWarning
+                          ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
+                          : isSelected
+                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleStudent(s.id)}
+                        className={`w-4 h-4 rounded cursor-pointer ${
+                          isWarning ? 'accent-red-600' : 'accent-blue-600'
+                        }`}
+                      />
                     </td>
-                    <td className="px-5 py-3">
+
+                    {/* Student Info sticky */}
+                    <td
+                      className={`py-5 px-4 align-middle sticky left-12 z-10 transition-colors ${
+                        isWarning
+                          ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
+                          : isSelected
+                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                      }`}
+                    >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-9 h-9 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs ${s.avatarColor}`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ${
+                            isWarning
+                              ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-800 dark:text-[#F28B82]'
+                              : s.avatarColor || 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
+                          }`}
                         >
-                          {s.avatar}
+                          {s.avatar || 'SV'}
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer flex items-center gap-1.5">
-                            <span className="truncate">{s.name}</span>
-                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                              {s.studentCode}
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span
+                              onClick={() => setSelectedStudentForProfile(s)}
+                              className="font-semibold text-gray-900 dark:text-[#E3E3E3] hover:text-blue-600 dark:hover:text-[#A8C7FA] cursor-pointer truncate text-sm"
+                            >
+                              {s.name}
                             </span>
-
-                            {/* Warning Tooltip (Point 2.1) - keeps uniform row height */}
-                            {s.warning && (
-                              <div className="group/warn relative inline-flex items-center">
-                                <span
-                                  className="material-symbols-outlined text-[17px] text-rose-500 hover:text-rose-600 cursor-help animate-pulse"
-                                  title={s.warning}
-                                >
-                                  warning
-                                </span>
-                                <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/warn:flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-900 dark:bg-slate-800 text-white px-2.5 py-1 text-[11px] font-medium shadow-xl z-30 border border-slate-700">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                                  <span>{s.warning}</span>
-                                </div>
-                              </div>
+                            {isWarning && (
+                              <span className="whitespace-nowrap px-2 py-0.5 rounded-full bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82] font-semibold text-[10px] uppercase shrink-0">
+                                Cảnh báo
+                              </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate">
-                            {s.email}
+                          <div className="flex items-center gap-1.5 text-gray-500 dark:text-[#8E918F] text-xs">
+                            <span className="font-mono font-medium">
+                              {s.studentCode}
+                            </span>
+                            <span>•</span>
+                            <span className="truncate">{s.email}</span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center font-mono font-bold text-slate-900 dark:text-slate-100 text-xs">
+
+                    {/* Component Scores */}
+                    <td className="py-5 px-3 text-center align-middle font-mono font-bold text-gray-800 dark:text-[#E3E3E3]">
                       {s.attendanceScore.toFixed(1)}
                     </td>
                     <td
-                      className={`px-4 py-3 text-center font-mono font-bold text-xs ${
-                        s.quizScore < 6
-                          ? 'text-rose-600 dark:text-rose-400 font-extrabold'
-                          : 'text-slate-900 dark:text-slate-100'
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
+                        s.quizScore < 5.0
+                          ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
+                          : 'text-gray-800 dark:text-[#E3E3E3]'
                       }`}
                     >
                       {s.quizScore.toFixed(1)}
                     </td>
-                    <td className="px-4 py-3 text-center font-mono font-bold text-slate-900 dark:text-slate-100 text-xs">
+                    <td
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
+                        s.labScore < 5.0
+                          ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
+                          : 'text-gray-800 dark:text-[#E3E3E3]'
+                      }`}
+                    >
                       {s.labScore.toFixed(1)}
                     </td>
                     <td
-                      className={`px-4 py-3 text-center font-mono font-bold text-xs ${
-                        s.midtermScore < 6
-                          ? 'text-rose-600 dark:text-rose-400 font-extrabold'
-                          : 'text-slate-900 dark:text-slate-100'
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
+                        s.midtermScore < 5.0
+                          ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
+                          : 'text-gray-800 dark:text-[#E3E3E3]'
                       }`}
                     >
                       {s.midtermScore.toFixed(1)}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <div
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-bold ${
-                          isNeedsSupport
-                            ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border-rose-200 dark:border-rose-800'
-                            : isExcellent
-                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                            : 'bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                    <td
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
+                        s.finalScore < 5.0
+                          ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
+                          : 'text-gray-800 dark:text-[#E3E3E3]'
+                      }`}
+                    >
+                      {s.finalScore.toFixed(1)}
+                    </td>
+
+                    {/* Total 10 Highlight Cell */}
+                    <td
+                      className={`py-5 px-4 text-center align-middle font-mono font-bold text-sm ${
+                        isWarning
+                          ? 'text-red-700 dark:text-[#F28B82]'
+                          : 'text-blue-600 dark:text-[#A8C7FA]'
+                      }`}
+                    >
+                      {(s.totalGpa ?? s.finalScore).toFixed(2)}
+                    </td>
+
+                    {/* Letter Grade */}
+                    <td className="py-5 px-3 text-center align-middle">
+                      <span
+                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full font-semibold text-xs ${
+                          isWarning
+                            ? 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
+                            : (s.totalGpa ?? s.finalScore) >= 8.5
+                            ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                            : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]'
                         }`}
                       >
-                        <span className="text-xs font-mono">{s.finalScore.toFixed(1)}</span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.2 rounded font-extrabold ${
-                            isNeedsSupport
-                              ? 'bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100'
-                              : isExcellent
-                              ? 'bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100'
-                              : 'bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                          }`}
-                        >
-                          {s.letterGrade}
-                        </span>
-                      </div>
+                        {s.letterGrade}
+                      </span>
                     </td>
-                    <td className="px-5 py-3 min-w-[170px]">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span
-                            className={`font-extrabold ${
-                              isNeedsSupport
-                                ? 'text-rose-600 dark:text-rose-400'
-                                : isExcellent
-                                ? 'text-emerald-700 dark:text-emerald-400'
-                                : 'text-blue-600 dark:text-blue-400'
-                            }`}
-                          >
-                            {s.ploPercent}%
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
-                              isNeedsSupport
-                                ? 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
-                                : isExcellent
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
-                                : 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
-                            }`}
-                          >
-                            {isNeedsSupport
-                              ? 'Cần hỗ trợ ⚠️'
-                              : isExcellent
-                              ? 'Xuất sắc ⭐'
-                              : 'Đạt chuẩn'}
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+
+                    {/* PLO-01 */}
+                    <td className="py-5 px-4 align-middle">
+                      <div className="flex flex-col gap-1 items-center">
+                        <span className="whitespace-nowrap font-mono text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                          {s.plo1?.status || `${s.ploPercent}% Đạt`}
+                        </span>
+                        <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
                           <div
-                            className={`h-1.5 rounded-full ${
-                              isNeedsSupport
-                                ? 'bg-rose-500'
-                                : isExcellent
-                                ? 'bg-emerald-500'
-                                : 'bg-blue-600'
+                            className={`h-full rounded-full ${
+                              (s.plo1?.percent ?? s.ploPercent) >= 80
+                                ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                                : (s.plo1?.percent ?? s.ploPercent) >= 50
+                                ? 'bg-gray-400 dark:bg-gray-500'
+                                : 'bg-red-500 dark:bg-[#F28B82]'
                             }`}
-                            style={{ width: `${s.ploPercent}%` }}
+                            style={{
+                              width: `${s.plo1?.percent ?? s.ploPercent}%`,
+                            }}
                           />
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {isNeedsSupport ? (
-                          <button
-                            type="button"
-                            onClick={() => onInterveneClick(s)}
-                            className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">
-                              support_agent
-                            </span>
-                            Hỗ trợ
-                          </button>
+
+                    {/* PLO-02 */}
+                    <td className="py-5 px-4 align-middle">
+                      <div className="flex flex-col gap-1 items-center">
+                        <span className="whitespace-nowrap font-mono text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                          {s.plo2?.status || `${Math.max(s.ploPercent - 3, 45)}% Đạt`}
+                        </span>
+                        <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              (s.plo2?.percent ?? s.ploPercent) >= 80
+                                ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                                : (s.plo2?.percent ?? s.ploPercent) >= 50
+                                ? 'bg-gray-400 dark:bg-gray-500'
+                                : 'bg-red-500 dark:bg-[#F28B82]'
+                            }`}
+                            style={{
+                              width: `${s.plo2?.percent ?? Math.max(s.ploPercent - 3, 45)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* PLO-03 (Warning Check) */}
+                    <td className="py-5 px-4 align-middle">
+                      <div className="flex flex-col gap-1 items-center">
+                        {isRowFailingPlo3 ? (
+                          <span className="whitespace-nowrap font-mono text-[11px] font-semibold text-red-700 dark:text-[#F28B82] flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">warning</span>
+                            {s.plo3?.status || '32% Hổng'}
+                          </span>
+                        ) : (
+                          <span className="whitespace-nowrap font-mono text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                            {s.plo3?.status || `${Math.max(s.ploPercent - 5, 50)}% Đạt`}
+                          </span>
+                        )}
+                        <div
+                          className={`w-16 h-1.5 rounded-full overflow-hidden ${
+                            isRowFailingPlo3
+                              ? 'bg-red-200 dark:bg-red-950'
+                              : 'bg-[#E1E5EA] dark:bg-[#282A2C]'
+                          }`}
+                        >
+                          <div
+                            className={`h-full rounded-full ${
+                              isRowFailingPlo3
+                                ? 'bg-red-500 dark:bg-[#F28B82]'
+                                : (s.plo3?.percent ?? s.ploPercent) >= 80
+                                ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                                : 'bg-gray-400 dark:bg-gray-500'
+                            }`}
+                            style={{
+                              width: `${s.plo3?.percent ?? (isRowFailingPlo3 ? 32 : 88)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* PLO-04 */}
+                    <td className="py-5 px-4 align-middle">
+                      <div className="flex flex-col gap-1 items-center">
+                        <span className="whitespace-nowrap font-mono text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                          {s.plo4?.status || `${Math.max(s.ploPercent - 2, 45)}% Đạt`}
+                        </span>
+                        <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              (s.plo4?.percent ?? s.ploPercent) >= 80
+                                ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                                : (s.plo4?.percent ?? s.ploPercent) >= 50
+                                ? 'bg-gray-400 dark:bg-gray-500'
+                                : 'bg-red-500 dark:bg-[#F28B82]'
+                            }`}
+                            style={{
+                              width: `${s.plo4?.percent ?? Math.max(s.ploPercent - 2, 45)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Action sticky right */}
+                    <td
+                      className={`py-5 px-4 text-right align-middle sticky right-0 z-10 transition-colors ${
+                        isWarning
+                          ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
+                          : isSelected
+                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-end gap-1 text-gray-500 dark:text-[#8E918F]">
+                        {isWarning ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => onInterveneClick(s)}
+                              className="p-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all cursor-pointer border-none"
+                              title="Tạo bài test gỡ điểm AI"
+                            >
+                              <span className="material-symbols-outlined text-[17px]">build</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => notify(`Đã gửi nhắc nhở khẩn cấp tới ${s.name} qua email và SMS`)}
+                              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-red-600 dark:text-[#F28B82] transition-colors cursor-pointer border-none bg-transparent"
+                              title="Gửi nhắc nhở khẩn cấp"
+                            >
+                              <span className="material-symbols-outlined text-[17px]">
+                                notification_important
+                              </span>
+                            </button>
+                          </>
                         ) : (
                           <>
                             <button
                               type="button"
-                              onClick={() => alert(`Xem chi tiết bài thi của ${s.name}`)}
-                              title="Xem chi tiết bài thi"
-                              className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              onClick={() => setSelectedStudentForProfile(s)}
+                              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 dark:text-[#C4C7C5] hover:text-blue-600 dark:hover:text-[#A8C7FA] transition-colors cursor-pointer border-none bg-transparent"
+                              title="Xem hồ sơ năng lực cá nhân"
                             >
-                              <span className="material-symbols-outlined text-[18px]">
-                                assignment
+                              <span className="material-symbols-outlined text-[17px]">
+                                account_box
                               </span>
                             </button>
                             <button
                               type="button"
-                              onClick={() => alert(`Gửi nhận xét tới ${s.name}`)}
-                              title="Gửi nhận xét"
-                              className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              onClick={() => notify(`Mở khung nhận xét học tập cho sinh viên: ${s.name}`)}
+                              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 dark:text-[#C4C7C5] hover:text-blue-600 dark:hover:text-[#A8C7FA] transition-colors cursor-pointer border-none bg-transparent"
+                              title="Gửi thông báo / Nhận xét"
                             >
-                              <span className="material-symbols-outlined text-[18px]">
-                                comment
+                              <span className="material-symbols-outlined text-[17px]">
+                                chat_bubble_outline
                               </span>
                             </button>
                           </>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => notify(`Xem thêm tùy chọn cho: ${s.name}`)}
+                          className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 hover:text-gray-700 dark:hover:text-[#E3E3E3] transition-colors cursor-pointer border-none bg-transparent"
+                        >
+                          <span className="material-symbols-outlined text-[17px]">more_vert</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -527,219 +917,653 @@ export function ClassGradebookTab({
           </table>
         </div>
 
-        {/* Pagination Footer */}
-        <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
-          <div>
-            Hiển thị <span className="font-bold text-slate-900 dark:text-slate-100">1 - {filteredStudents.length}</span> trong số <span className="font-bold text-slate-900 dark:text-slate-100">42</span> học viên
+        {/* Table Footer Pagination & Batch Actions */}
+        <div className="px-6 py-4 bg-white dark:bg-[#1E1F20] flex items-center justify-between border-none flex-wrap gap-3">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-[#8E918F]">
+            <span>
+              Hiển thị <strong className="text-gray-900 dark:text-[#E3E3E3]">{filteredStudents.length}</strong> / 42 học viên (Trang {currentPage}/5)
+            </span>
+            <div className="flex items-center gap-1.5 bg-[#F0F4F8] dark:bg-[#131314] px-3 py-1 rounded-full border-none">
+              <span>Xem mỗi trang:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(e.target.value)}
+                className="bg-transparent font-semibold text-gray-900 dark:text-[#E3E3E3] outline-none cursor-pointer border-none"
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="all">Tất cả</option>
+              </select>
+            </div>
           </div>
+
           <div className="flex items-center gap-1">
             <button
               type="button"
-              disabled
-              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 flex items-center justify-center disabled:opacity-50"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
+              className="p-2 rounded-full text-gray-500 dark:text-[#8E918F] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed border-none bg-transparent"
             >
-              <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+              <span className="material-symbols-outlined text-[18px]">first_page</span>
             </button>
             <button
               type="button"
-              className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center shadow-xs"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="p-2 rounded-full text-gray-500 dark:text-[#8E918F] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed border-none bg-transparent"
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
+                currentPage === 1
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
+              }`}
             >
               1
             </button>
             <button
               type="button"
-              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium flex items-center justify-center"
+              onClick={() => setCurrentPage(2)}
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
+                currentPage === 2
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
+              }`}
             >
               2
             </button>
             <button
               type="button"
-              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium flex items-center justify-center"
+              onClick={() => setCurrentPage(3)}
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
+                currentPage === 3
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
+              }`}
             >
               3
             </button>
+
             <button
               type="button"
-              className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium flex items-center justify-center"
+              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
+              className="p-2 rounded-full text-gray-500 dark:text-[#8E918F] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer border-none bg-transparent"
             >
-              <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage(5)}
+              className="p-2 rounded-full text-gray-500 dark:text-[#8E918F] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer border-none bg-transparent"
+            >
+              <span className="material-symbols-outlined text-[18px]">last_page</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* AI Intelligence Card with Structured Bullet Points (Point 3.3) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl">psychology</span>
-            </div>
+      {/* =========================================================================
+          4. BOTTOM SECTION: PLO COMPETENCY DEEP-DIVE & AI PEDAGOGICAL RECOMMENDATIONS
+          Zero borders, flat MD3 Elevated Cards
+          ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Left: 5 PLOs Radar/Bar Distribution Analytics (7 Cols) */}
+        <div className="lg:col-span-7 bg-white dark:bg-[#1E1F20] p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col justify-between gap-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                {t('aiAssistantTitle')}
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-                  ILMS Intelligence
-                </span>
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Phát hiện bất thường và cá nhân hóa lộ trình hỗ trợ cho học viên chưa đạt chuẩn.
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                Mức độ đáp ứng Chuẩn đầu ra (PLO Benchmark)
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-[#8E918F] mt-0.5">
+                Đối chiếu chuẩn kiểm định quốc tế ABET &amp; CDIO đối với môn CS-202
               </p>
             </div>
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]">
+              Kỳ II 2024-2025
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={onSendAiSuggestion}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <span className="material-symbols-outlined text-[16px]">send</span>
-            {t('aiSendSuggestion')}
-          </button>
+
+          {/* Competency Visual Matrix Bars */}
+          <div className="flex flex-col gap-4">
+            {/* PLO-01 */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                  PLO-01: Phân tích độ phức tạp thời gian &amp; không gian thuật toán (Big-O)
+                </span>
+                <span className="font-mono font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                  91.4% (38/42 Đạt)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                <div className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full" style={{ width: '91.4%' }} />
+              </div>
+            </div>
+
+            {/* PLO-02 */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                  PLO-02: Thiết kế &amp; Cài đặt cấu trúc dữ liệu tuyến tính và phi tuyến tính
+                </span>
+                <span className="font-mono font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                  88.5% (37/42 Đạt)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                <div className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full" style={{ width: '88.5%' }} />
+              </div>
+            </div>
+
+            {/* PLO-03 (Chỉ tiêu thấp nhất cần can thiệp) - Highlighted in red alert box */}
+            <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-red-50 dark:bg-[#3C1919] border-none text-red-900 dark:text-[#F28B82]">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-semibold text-red-700 dark:text-[#F28B82] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[17px]">error</span>
+                  PLO-03: Tối ưu hoá cân bằng cây AVL, Cây Đỏ - Đen &amp; B-Tree
+                </span>
+                <span className="font-mono font-bold text-red-700 dark:text-[#F28B82]">
+                  71.4% (30/42 Đạt - Dưới chuẩn 80%)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-red-100 dark:bg-red-950 overflow-hidden">
+                <div className="h-full bg-red-500 dark:bg-[#F28B82] rounded-full" style={{ width: '71.4%' }} />
+              </div>
+            </div>
+
+            {/* PLO-04 */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                  PLO-04: Vận dụng cấu trúc Đồ thị (Dijkstra, Bellman-Ford, Kruskal) giải bài toán thực tiễn
+                </span>
+                <span className="font-mono font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                  85.7% (36/42 Đạt)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                <div className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full" style={{ width: '85.7%' }} />
+              </div>
+            </div>
+
+            {/* PLO-05 */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                  PLO-05: Kỹ năng gỡ lỗi (Debugging), Viết Unit Test và Tối ưu mã nguồn C++
+                </span>
+                <span className="font-mono font-semibold text-blue-600 dark:text-[#A8C7FA]">
+                  92.8% (39/42 Đạt)
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
+                <div className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full" style={{ width: '92.8%' }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-black/5 dark:border-white/5 text-xs text-gray-500 dark:text-[#8E918F] flex-wrap gap-2">
+            <span>
+              Ngưỡng chuẩn kiểm định Khoa: <strong className="text-gray-900 dark:text-[#E3E3E3] font-bold">&ge; 80.0%</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => notify('Đang tải xuống Ma trận đối chiếu tương thích CDIO (.xlsx)...')}
+              className="text-blue-600 dark:text-[#A8C7FA] hover:underline font-semibold flex items-center gap-1 cursor-pointer border-none bg-transparent"
+            >
+              Tải ma trận tương thích CDIO (.xlsx)
+              <span className="material-symbols-outlined text-[16px]">download</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Distribution Column */}
-          <div className="space-y-2">
-            <div>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                Phân phối phổ điểm học phần:
-              </span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Tập trung chủ yếu ở mức điểm khá (B/B+)
+        {/* Right: AI Pedagogical Intervention & Remedial Quiz Generator (5 Cols) */}
+        <div className="lg:col-span-5 bg-white dark:bg-[#1E1F20] p-6 rounded-3xl border-none shadow-sm dark:shadow-none flex flex-col justify-between gap-5">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[20px]">psychology_alt</span>
+                </span>
+                <div>
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-[#E3E3E3]">
+                    Khuyến nghị Sư phạm AI Socratic
+                  </h3>
+                  <p className="text-[11px] text-gray-500 dark:text-[#8E918F] font-medium">
+                    Tối ưu hóa năng lực thích ứng
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-[11px] font-semibold border-none">
+                Khả thi 94%
               </span>
             </div>
-            <div className="space-y-2 pt-1">
-              {/* Loại A */}
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Loại A (8.5 - 10):
-                  </span>
-                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {aiAnalysis.distribution.gradeA.percent}% ({aiAnalysis.distribution.gradeA.count} SV)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mt-1">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${aiAnalysis.distribution.gradeA.percent}%` }}
-                  />
+
+            {/* Recommendation Items */}
+            <div className="flex flex-col gap-3">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px] shrink-0 mt-0.5">
+                  quiz
+                </span>
+                <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <strong className="font-bold text-slate-900 dark:text-slate-100">
+                    Mở đợt Quiz phục hồi PLO-03:
+                  </strong>{' '}
+                  Hệ thống đã tự động soạn bộ đề thích ứng 20 câu tập trung vào phép xoay kép (Double Rotation) của cây AVL cho 5 SV điểm dưới 5.0.
                 </div>
               </div>
 
-              {/* Loại B */}
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Loại B (7.0 - 8.4):
-                  </span>
-                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                    {aiAnalysis.distribution.gradeB.percent}% ({aiAnalysis.distribution.gradeB.count} SV)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mt-1">
-                  <div
-                    className="bg-emerald-500 h-2 rounded-full"
-                    style={{ width: `${aiAnalysis.distribution.gradeB.percent}%` }}
-                  />
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px] shrink-0 mt-0.5">
+                  group_add
+                </span>
+                <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <strong className="font-bold text-slate-900 dark:text-slate-100">
+                    Mô hình Học nhóm Đôi bạn cùng tiến:
+                  </strong>{' '}
+                  Đề xuất ghép cặp <strong>Phạm Văn Hùng</strong> với{' '}
+                  <strong>Trần Nhật Minh</strong> (A+) trong 2 buổi phụ đạo Lab thuật toán cuối tuần.
                 </div>
               </div>
 
-              {/* Loại C */}
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Loại C (5.5 - 6.9):
-                  </span>
-                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
-                    {aiAnalysis.distribution.gradeC.percent}% ({aiAnalysis.distribution.gradeC.count} SV)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mt-1">
-                  <div
-                    className="bg-amber-500 h-2 rounded-full"
-                    style={{ width: `${aiAnalysis.distribution.gradeC.percent}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Loại D/F */}
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Loại D/F (&lt; 5.5):
-                  </span>
-                  <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
-                    {aiAnalysis.distribution.gradeDF.percent}% ({aiAnalysis.distribution.gradeDF.count} SV)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mt-1">
-                  <div
-                    className="bg-rose-500 h-2 rounded-full"
-                    style={{ width: `${aiAnalysis.distribution.gradeDF.percent}%` }}
-                  />
+              <div className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-start gap-3">
+                <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[20px] shrink-0 mt-0.5">
+                  tune
+                </span>
+                <div className="text-xs text-gray-700 dark:text-[#C4C7C5] leading-relaxed">
+                  <strong className="font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                    Điều chỉnh trọng số đồ án:
+                  </strong>{' '}
+                  Tăng trọng số bài tập thực hành Lab để bù đắp điểm thi giữa kỳ cho các sinh viên có tiến bộ đột phá qua đồ thị năng lực.
                 </div>
               </div>
             </div>
           </div>
 
-          {/* AI Recommendation Column - Scannable Bullet Points */}
-          <div className="md:col-span-2 p-5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/80 space-y-3.5">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 flex items-center justify-center flex-shrink-0 font-bold">
-                <span className="material-symbols-outlined text-[18px]">tips_and_updates</span>
-              </div>
-              <div className="space-y-2 flex-1">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Khuyến nghị can thiệp kiến thức trọng tâm
-                </h4>
-
-                {/* Structured Scannable Bullet Points */}
-                <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                    <span>
-                      Nhận diện <strong className="text-slate-900 dark:text-slate-100">3 học viên</strong> đang gặp khó khăn ở bài <strong>Quiz 05 (Cây phân đoạn - Segment Tree)</strong>.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                    <span>
-                      Thực hành giải thuật tìm đường đi ngắn nhất (<strong>Dijkstra</strong>) có điểm trung bình thấp hơn <strong className="text-rose-600 dark:text-rose-400">32%</strong> so với toàn khóa.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                    <span>
-                      Cần kích hoạt lộ trình gợi ý ôn tập Socratic AI hoặc tạo phiên luyện tập trọng tâm trước kỳ thi cuối kỳ.
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-amber-200/60 dark:border-amber-800/60">
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                Đề xuất hành động tức thì:
-              </span>
-              <button
-                type="button"
-                onClick={() => alert('Đã khởi tạo phiên Flash Practice 10 câu trắc nghiệm trọng tâm')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
-              >
-                Mở phiên luyện tập Flash Practice (10 câu)
-              </button>
-              <button
-                type="button"
-                onClick={() => alert('Đã tạo bài tập bổ trợ cá nhân hóa cho học viên cần hỗ trợ')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-xs"
-              >
-                Giao bài tập bổ trợ cá nhân hóa
-              </button>
-            </div>
+          {/* Remedial Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={handleApplyAiRecommendation}
+              className="w-full sm:flex-1 py-2.5 px-5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs text-center transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer border-none"
+            >
+              <span className="material-symbols-outlined text-[18px]">bolt</span>
+              Áp dụng khuyến nghị AI ngay
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCustomQuizModalOpen(true)}
+              className="w-full sm:w-auto py-2.5 px-5 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] font-semibold text-xs transition-colors cursor-pointer border-none bg-transparent"
+            >
+              Tùy chỉnh đề test
+            </button>
           </div>
         </div>
       </div>
+
+      {/* =========================================================================
+          5. MODALS & POPUPS
+          ========================================================================= */}
+      {/* Weight Configuration Modal */}
+      {isWeightModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-md rounded-3xl border-none shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 text-xl">
+                  settings_input_component
+                </span>
+                <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                  Cấu hình trọng số điểm môn học
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWeightModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-slate-700 dark:text-slate-300">
+              <div className="flex items-center justify-between">
+                <span>Chuyên cần:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={weights.attendance}
+                    onChange={(e) =>
+                      setWeights({ ...weights, attendance: Number(e.target.value) })
+                    }
+                    className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-800 border rounded font-mono font-bold text-right"
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Quiz trắc nghiệm AI:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={weights.quiz}
+                    onChange={(e) =>
+                      setWeights({ ...weights, quiz: Number(e.target.value) })
+                    }
+                    className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-800 border rounded font-mono font-bold text-right"
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Lab Thực hành:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={weights.lab}
+                    onChange={(e) =>
+                      setWeights({ ...weights, lab: Number(e.target.value) })
+                    }
+                    className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-800 border rounded font-mono font-bold text-right"
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Thi giữa kỳ:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={weights.midterm}
+                    onChange={(e) =>
+                      setWeights({ ...weights, midterm: Number(e.target.value) })
+                    }
+                    className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-800 border rounded font-mono font-bold text-right"
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span>Thi kết thúc môn:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    value={weights.final}
+                    onChange={(e) =>
+                      setWeights({ ...weights, final: Number(e.target.value) })
+                    }
+                    className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-800 border rounded font-mono font-bold text-right"
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t flex justify-between font-bold text-sm">
+                <span>Tổng trọng số:</span>
+                <span
+                  className={
+                    weights.attendance +
+                      weights.quiz +
+                      weights.lab +
+                      weights.midterm +
+                      weights.final ===
+                    100
+                      ? 'text-emerald-600'
+                      : 'text-rose-600'
+                  }
+                >
+                  {weights.attendance +
+                    weights.quiz +
+                    weights.lab +
+                    weights.midterm +
+                    weights.final}
+                  %
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsWeightModalOpen(false)}
+                className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsWeightModalOpen(false);
+                  notify('Đã cập nhật công thức trọng số thành công!');
+                }}
+                className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all cursor-pointer border-none shadow-xs"
+              >
+                Lưu cấu hình
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Quiz Modal */}
+      {isCustomQuizModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-lg rounded-3xl border-none shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 text-xl">
+                  tune
+                </span>
+                <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                  Tùy chỉnh đề test phục hồi năng lực AI
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCustomQuizModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-700 dark:text-slate-300">
+              <div>
+                <label className="font-bold block mb-1">Mục tiêu chuẩn đầu ra (PLO):</label>
+                <select className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium">
+                  <option>PLO-03: Cây AVL, Cây Đỏ - Đen & Cây B-Tree (Khuyến nghị)</option>
+                  <option>PLO-01: Phân tích độ phức tạp thời gian Big-O</option>
+                  <option>PLO-02: Cấu trúc dữ liệu tuyến tính</option>
+                  <option>PLO-04: Cấu trúc Đồ thị & Dijkstra</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1">Số lượng câu hỏi thích ứng:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-300 font-bold text-blue-700 dark:text-blue-300"
+                  >
+                    20 câu (Chuẩn)
+                  </button>
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border font-medium"
+                  >
+                    30 câu (Sâu)
+                  </button>
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border font-medium"
+                  >
+                    10 câu (Nhanh)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1">Đối tượng áp dụng:</label>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-1.5 border">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" defaultChecked className="accent-blue-600" />
+                    <span>Phạm Văn Hùng (22028204 - 32% PLO-03)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" defaultChecked className="accent-blue-600" />
+                    <span>Vũ Đức Long (22028215 - 35% PLO-03)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsCustomQuizModalOpen(false)}
+                className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCustomQuizModalOpen(false);
+                  notify('Đã tạo và gửi đề thi phục hồi thích ứng AI tới học viên!');
+                }}
+                className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all flex items-center gap-1.5 cursor-pointer border-none shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[16px]">bolt</span>
+                Kích hoạt ngay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Profile Quick View Modal */}
+      {selectedStudentForProfile && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-md rounded-3xl border-none shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                    selectedStudentForProfile.avatarColor || 'bg-blue-100 text-blue-700'
+                  }`}
+                >
+                  {selectedStudentForProfile.avatar}
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                    {selectedStudentForProfile.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-mono">
+                    {selectedStudentForProfile.studentCode} • {selectedStudentForProfile.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedStudentForProfile(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                  <div className="text-slate-500 text-[10px]">Điểm TB (GPA)</div>
+                  <div className="font-mono font-bold text-base text-blue-600">
+                    {(selectedStudentForProfile.totalGpa ?? selectedStudentForProfile.finalScore).toFixed(2)}
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                  <div className="text-slate-500 text-[10px]">Điểm chữ</div>
+                  <div className="font-bold text-base text-slate-900 dark:text-slate-100">
+                    {selectedStudentForProfile.letterGrade}
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                  <div className="text-slate-500 text-[10px]">Chuẩn PLO</div>
+                  <div className="font-mono font-bold text-base text-emerald-600">
+                    {selectedStudentForProfile.ploPercent}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-2 border">
+                <span className="font-bold text-slate-800 dark:text-slate-200 block">
+                  Đánh giá năng lực theo chuẩn đầu ra (PLO):
+                </span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <span>PLO-01 (Tư duy thuật toán):</span>
+                    <span className="font-bold font-mono">
+                      {selectedStudentForProfile.plo1?.status || `${selectedStudentForProfile.ploPercent}%`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PLO-02 (Cấu trúc dữ liệu):</span>
+                    <span className="font-bold font-mono">
+                      {selectedStudentForProfile.plo2?.status || `${selectedStudentForProfile.ploPercent}%`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PLO-03 (Cây AVL / Đỏ-Đen):</span>
+                    <span
+                      className={`font-bold font-mono ${
+                        selectedStudentForProfile.plo3?.isHole ? 'text-rose-600' : ''
+                      }`}
+                    >
+                      {selectedStudentForProfile.plo3?.status || `${selectedStudentForProfile.ploPercent}%`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PLO-04 (Thuật toán đồ thị):</span>
+                    <span className="font-bold font-mono">
+                      {selectedStudentForProfile.plo4?.status || `${selectedStudentForProfile.ploPercent}%`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedStudentForProfile(null)}
+                className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const student = selectedStudentForProfile;
+                  setSelectedStudentForProfile(null);
+                  onInterveneClick(student);
+                }}
+                className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all cursor-pointer border-none shadow-xs"
+              >
+                Hỗ trợ học tập cá nhân
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

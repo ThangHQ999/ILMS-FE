@@ -105,6 +105,11 @@ export const gradebookStudentSchema = z.object({
   ploPercent: z.number(),
   ploStatus: ploStatusSchema,
   warning: z.string().optional(),
+  totalGpa: z.number().optional(),
+  plo1: z.object({ percent: z.number(), status: z.string() }).optional(),
+  plo2: z.object({ percent: z.number(), status: z.string() }).optional(),
+  plo3: z.object({ percent: z.number(), status: z.string(), isHole: z.boolean().optional() }).optional(),
+  plo4: z.object({ percent: z.number(), status: z.string() }).optional(),
 });
 export type GradebookStudent = z.infer<typeof gradebookStudentSchema>;
 

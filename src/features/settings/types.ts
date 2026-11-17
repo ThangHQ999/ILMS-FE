@@ -26,12 +26,38 @@ export interface UserProfileDto {
 }
 
 export interface UserPreferencesDto {
-  theme: 'light' | 'dark' | 'system';
-  language: 'vi' | 'en';
-  timezone: string;
-  dateFormat: string;
-  fontSize: '100%' | '115%' | '125%';
-  highContrast: boolean;
+  themeMode?: 'light' | 'dark' | 'system';
+  theme?: 'light' | 'dark' | 'system';
+  primaryColor?: string;
+  secondaryColor?: string;
+  tertiaryColor?: string;
+  neutralColor?: string;
+  fontFamily?: string;
+  fontSize?: '100%' | '115%' | '125%' | string;
+  highContrast?: boolean;
+  defaultDashboardMode?: 'analytics' | 'focus';
+  sidebarCollapsed?: boolean;
+  language?: 'vi' | 'en';
+  timezone?: string;
+  dateFormat?: string;
+  aiPersona?: string;
+  aiResponseDepth?: string;
+  targetWeeklyStudyHours?: number;
+  dailyStreakGoal?: number;
+  notificationSettings?: {
+    channels?: { push?: boolean; email?: boolean; sms?: boolean };
+    categories?: {
+      tutorAndAiMessages?: boolean;
+      deadlineReminders?: boolean;
+      streaksAndRankings?: boolean;
+      webinarsAndPromotions?: boolean;
+    };
+  };
+  privacySettings?: {
+    scoreVisibility?: 'classmates_only' | 'public' | 'private';
+    searchableByEmail?: boolean;
+  };
+  updatedAt?: string;
 }
 
 export interface NotificationSettingsDto {
@@ -109,9 +135,11 @@ export interface SystemInfoDto {
 
 export interface UpdateProfileInput {
   displayName: string;
-  username: string;
-  birthDate: string;
-  bio: string;
+  phone?: string;
+  birthDate?: string;
+  bio?: string;
+  username?: string;
+  avatarUrl?: string;
 }
 
 export interface ChangePasswordInput {

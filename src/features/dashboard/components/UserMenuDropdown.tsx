@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useCurrentUser, logout as authLogout } from '@/features/auth';
+import { useCurrentUser, useLogout } from '@/features/auth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 import { SubAccountItem } from '../types';
@@ -40,6 +40,7 @@ export function UserMenuDropdown({
   const t = useTranslations('dashboard.userMenu');
   const router = useRouter();
   const { data: currentUser } = useCurrentUser();
+  const { mutate: performLogout } = useLogout();
   const { roleBadge } = useUserRole();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -102,28 +103,17 @@ export function UserMenuDropdown({
   const displayInitials = isMounted ? initials : getInitials(userFullName);
 
   // Actions
-  const handleLogout = async () => {
-    try {
-      await authLogout();
-    } catch {
-      // ignore
-    } finally {
-      setIsOpen(false);
-      router.push('/login');
-    }
+  const handleLogout = () => {
+    setIsOpen(false);
+    performLogout();
   };
 
-  const handleLogoutAll = async () => {
+  const handleLogoutAll = () => {
     showToast(t('loggingOutAll'));
-    setTimeout(async () => {
-      try {
-        await authLogout();
-      } catch {
-        // ignore
-      }
+    setTimeout(() => {
       setIsOpen(false);
-      router.push('/login');
-    }, 1000);
+      performLogout();
+    }, 800);
   };
 
   const handleSwitchAccount = (account: SubAccountItem) => {
