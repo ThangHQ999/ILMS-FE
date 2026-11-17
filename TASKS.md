@@ -14,6 +14,9 @@
 2. Xây dựng trang Đặt lại mật khẩu (Reset Password) với token (`/reset-password`).
 
 ## Done
+- [x] 2026-11-17 — Xây dựng trang Điều khoản dịch vụ (`/terms`) và Chính sách bảo mật (`/privacy`) theo phong cách tối giản Material 3, dùng chung `PublicHeader`, mục lục nhanh, chuyển tab qua lại giữa `/terms` ↔ `/privacy`, hỗ trợ Light/Dark và đa ngôn ngữ đối xứng `vi`/`en` — chi tiết xem `reports/2026-11-17-terms-and-privacy-pages.md`
+- [x] 2026-11-17 — Xây dựng trang Về chúng tôi (`/about`) theo phong cách tối giản Material 3, đưa header trang chủ thành `PublicHeader` dùng chung cho `/`, `/about` và `/pricing`, cập nhật SEO (`sitemap.ts`, `robots.ts`, JSON-LD `AboutPage`, tối ưu `icons` trong `layout.tsx`) và đa ngôn ngữ đối xứng `vi`/`en` — chi tiết xem `reports/2026-11-17-about-page-and-shared-public-header.md`
+- [x] 2026-11-17 — Triển khai luồng kiểm tra đăng nhập & chuyển hướng `?redirect=` an toàn cho Hỏi Cú AI trên Trang chủ (`/` → `/ai-tutor`) và Đăng ký gói Pricing (`/pricing`), hỗ trợ cả đăng nhập Email/Mật khẩu, tự động chuyển hướng khi đã có phiên và OAuth2 (`/auth/callback`) — chi tiết xem `reports/2026-11-17-auth-redirect-guard-ai-tutor-pricing.md`
 - [x] 2026-11-16 — Triển khai hoàn chỉnh giao diện Không gian Môn học (`/courses/[id]`) chuẩn xác theo 2 mẫu HTML (Student View & Teacher View) mà người dùng cung cấp:
   1. Header & Navigation: `CourseWorkspaceHeader.tsx` (Logo ILMS, breadcrumb điều hướng linh hoạt, bộ nút chuyển đổi vai trò [Học viên | Giảng viên], chuông thông báo, avatar) và `CourseWorkspaceSidebar.tsx` (Sidebar w-72 cố định với thẻ nhận diện môn `CS-202 - Mạng máy tính`, điều hướng 5 tab chi tiết).
   2. Hero Banner đa chế độ (`CourseHeroBanner.tsx`): Học viên hiển thị Dark Hero banner với họa tiết radial, chips, vai trò học viên; Giảng viên hiển thị Thanh chỉ số Lab H6-302, tiến độ lớp 64.2%, 5 chương, 22 bài, quyền biên tập giáo trình; cùng thanh Tab điều hướng 5 mục.

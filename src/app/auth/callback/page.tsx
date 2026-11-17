@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { exchangeOAuthCode, getMe, OAuthProvider } from '@/features/auth';
+import { consumePostLoginRedirect } from '@/lib/auth-redirect';
 
 function OAuthCallbackContent() {
   const router = useRouter();
@@ -42,8 +43,9 @@ function OAuthCallbackContent() {
 
         if (isSubscribed) {
           setStatusText('Đăng nhập thành công! Đang chuyển hướng...');
+          const targetPath = consumePostLoginRedirect('/dashboard');
           setTimeout(() => {
-            router.replace('/dashboard');
+            router.replace(targetPath);
           }, 600);
         }
       } catch (err: unknown) {

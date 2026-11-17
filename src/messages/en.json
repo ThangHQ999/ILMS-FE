@@ -14,7 +14,9 @@
     "termsTitle": "Terms of Service",
     "termsDescription": "Terms of service for the ILMS smart learning platform (EduTech Innovations).",
     "privacyTitle": "Privacy Policy",
-    "privacyDescription": "Information security and learner privacy policy for the ILMS platform."
+    "privacyDescription": "Information security and learner privacy policy for the ILMS platform.",
+    "aboutTitle": "About Us",
+    "aboutDescription": "Learn how ILMS (EduTech Innovations) combines Socratic AI Tutoring, Knowledge Graphs, and Bloom mastery tracking."
   },
   "common": {
     "save": "Save",
@@ -1964,6 +1966,7 @@
       "yearlyUnit": "/ month",
       "lifetimeUnit": "/ Lifetime",
       "currentPlanBtn": "Current Plan",
+      "freePlanBtn": "Free Plan",
       "upgradePlusBtn": "Upgrade to Plus",
       "chooseProBtn": "Choose Pro",
       "chooseEnterpriseBtn": "Get Enterprise",
@@ -2102,10 +2105,158 @@
         "successDesc": "Your account has been upgraded to {planName}."
       }
     },
+    "authPrompt": {
+      "title": "Sign in required",
+      "description": "Please sign in to your ILMS account to subscribe to {planName}. You will be redirected back to Pricing after signing in.",
+      "cancelBtn": "Cancel",
+      "confirmBtn": "Continue to Sign In"
+    },
     "footer": {
       "copyright": "© 2025 ILMS EduTech Platform. Designed with Material Design 3.",
       "soc2": "SOC2 Type II",
       "ssl": "256-Bit SSL/TLS"
+    }
+  },
+  "about": {
+    "hero": {
+      "chip": "About ILMS • EduTech Innovations",
+      "title": "Empowering independent thinking for the AI-era learner",
+      "subtitle": "ILMS is an intelligent learning management platform uniting Socratic AI tutoring, interactive Knowledge Graphs, and 6-tier Bloom mastery tracking — built for deep understanding over passive answers.",
+      "primaryCta": "Start learning free",
+      "secondaryCta": "View pricing"
+    },
+    "pillars": {
+      "title": "Three core pillars of ILMS",
+      "subtitle": "Every capability is crafted around active reasoning and measurable progress.",
+      "items": {
+        "socratic": {
+          "title": "Socratic AI Tutor",
+          "description": "Instead of handing out shortcuts, our AI guides you step by step with targeted questions so concepts stick."
+        },
+        "graph": {
+          "title": "Visual Knowledge Graph",
+          "description": "Connect course concepts into a clear map that highlights gaps and suggests the fastest path forward."
+        },
+        "bloom": {
+          "title": "6-Tier Bloom Mastery",
+          "description": "Measure competency from Remembering to Creating aligned with PLOs, helping instructors support every class."
+        }
+      }
+    },
+    "story": {
+      "badge": "Story & Philosophy",
+      "title": "Why we built ILMS",
+      "paragraph1": "In an era of instant AI answers, getting a solution takes seconds — yet knowing how to reason, question assumptions, and connect ideas across topics matters more than ever.",
+      "paragraph2": "The ILMS team (EduTech Innovations) designed a calm, focused workspace where instructors manage courses, sessions, and PLOs effortlessly, while learners work alongside an AI coach that sparks thinking."
+    },
+    "values": {
+      "title": "Core values",
+      "items": {
+        "active": {
+          "title": "Active learning",
+          "description": "Encourage independent deduction through Socratic dialogue."
+        },
+        "clarity": {
+          "title": "Knowledge clarity",
+          "description": "Visualize concepts, prerequisites, and progress on a graph."
+        },
+        "privacy": {
+          "title": "Data protection",
+          "description": "Respect learner privacy and safeguard academic records."
+        },
+        "simplicity": {
+          "title": "Minimalist focus",
+          "description": "A distraction-free interface built to keep attention on learning."
+        }
+      }
+    },
+    "contact": {
+      "badge": "ILMS Team • EduTech Innovations",
+      "title": "Partner with us for your classes & institution",
+      "description": "Looking to deploy ILMS for a university, training center, or share product feedback? Reach out directly to our engineering & education team."
+    },
+    "footer": {
+      "pricing": "Pricing",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    }
+  },
+  "legal": {
+    "common": {
+      "backHome": "Back to Home",
+      "termsTab": "Terms of Service",
+      "privacyTab": "Privacy Policy",
+      "organization": "ILMS • EduTech Innovations",
+      "tocLabel": "Quick navigation",
+      "contactTitle": "Questions about our terms or privacy?",
+      "contactDescription": "Reach out directly to the ILMS support team for clarification.",
+      "aboutLink": "About Us",
+      "pricingLink": "Pricing",
+      "loginLink": "Sign In"
+    },
+    "terms": {
+      "badge": "Legal Document • Terms",
+      "title": "ILMS Terms of Service",
+      "summary": "Guidelines governing rights, responsibilities, and acceptable use of the ILMS AI-powered learning platform for learners, instructors, and institutions.",
+      "updatedAt": "Last updated: Nov 17, 2026",
+      "sections": {
+        "s1": {
+          "title": "Scope & Acceptance of Terms",
+          "body": "By creating an account or accessing services on ilms.page (including Classes, Knowledge Graphs, Socratic AI Tutor, and Cloud Materials), you agree to abide by these Terms of Service."
+        },
+        "s2": {
+          "title": "Accounts & Security Responsibility",
+          "body": "Users are responsible for safeguarding their login credentials and linked OAuth2 sessions. Please notify the ILMS team immediately if you suspect unauthorized access to your account."
+        },
+        "s3": {
+          "title": "Acceptable Use of Socratic AI Tutor",
+          "body": "ILMS AI Tutor is built to foster critical reasoning and academic integrity. Misuse of the platform for automated abuse, vulnerability probing, or academic dishonesty is strictly prohibited."
+        },
+        "s4": {
+          "title": "Learning Materials & Intellectual Property",
+          "body": "Instructors and learners retain ownership of the slides, notes, and documents they upload. Platform UI, source code, ILMS branding, and core algorithms belong to EduTech Innovations."
+        },
+        "s5": {
+          "title": "Subscription Plans, Quotas & Billing",
+          "body": "Free, Plus, Pro, and Enterprise tiers carry specific cloud storage and daily AI quotas as listed on the Pricing page. Upgrades via VietQR are activated for the selected billing cycle."
+        },
+        "s6": {
+          "title": "Updates & Termination",
+          "body": "ILMS may update these terms to reflect legal requirements or new platform capabilities. Material updates will be posted clearly on this page before taking effect."
+        }
+      }
+    },
+    "privacy": {
+      "badge": "Data Protection • Privacy",
+      "title": "ILMS Privacy Policy",
+      "summary": "Our commitment to minimal data collection, encrypted transport, and strong privacy protection for your personal and academic records.",
+      "updatedAt": "Last updated: Nov 17, 2026",
+      "sections": {
+        "s1": {
+          "title": "Information We Collect",
+          "body": "We collect only the information needed to run classes and personalize learning: your name, email, learning role, appearance preferences, course progress, and materials you upload."
+        },
+        "s2": {
+          "title": "How We Use Your Data",
+          "body": "Data is used to authenticate sessions, track Bloom/PLO mastery progress, ground Socratic AI Tutor responses in your lesson context, and calculate your Cloud Storage quota."
+        },
+        "s3": {
+          "title": "Transport & Storage Security",
+          "body": "All traffic between your browser, ilms.page, and api.ilms.page is encrypted over HTTPS/TLS. Sessions rely on secure cookies and role-based access control (RBAC)."
+        },
+        "s4": {
+          "title": "AI Processing & Third-Party Sharing",
+          "body": "ILMS never sells or rents learner personal data to third parties. AI chat prompts are processed solely to deliver tutoring responses and maintain your private session history."
+        },
+        "s5": {
+          "title": "Your Data Rights",
+          "body": "You can view or update your profile, delete uploaded files in Cloud Storage, switch UI/language preferences, or permanently delete your account anytime in Settings."
+        },
+        "s6": {
+          "title": "Essential Cookies & Security Contact",
+          "body": "We use essential cookies for authentication and locale persistence (`NEXT_LOCALE`). For privacy inquiries or data requests, please contact support@ilms.page."
+        }
+      }
     }
   }
 }
