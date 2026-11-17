@@ -115,10 +115,10 @@ export function DashboardSidebar({
             !pathname.includes('tab=bank'),
         },
         {
-          href: '/assignments',
+          href: '/assignments/proctoring',
           icon: 'visibility',
           label: 'Giám sát phòng thi',
-          active: pathname.includes('proctoring'),
+          active: pathname.startsWith('/assignments/proctoring') || pathname.includes('proctoring'),
           badge: (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FCE8E6] dark:bg-[#3C1919] text-[#C5221F] dark:text-[#F28B82] flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#C5221F] dark:bg-[#F28B82] animate-pulse" />

@@ -790,7 +790,7 @@ export function TeacherExamManagementView({
                     <button
                       type="button"
                       onClick={() => {
-                        showToast(`Phòng thi ${liveExamItem?.title || ''}: Đang kết nối giám sát trực tiếp`);
+                        router.push('/assignments/proctoring');
                       }}
                       className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
                     >
@@ -1274,7 +1274,7 @@ export function TeacherExamManagementView({
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => showToast(`Mở phòng Giám sát trực tiếp: ${exam.title}`)}
+                            onClick={() => router.push('/assignments/proctoring')}
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-[16px]">visibility</span>

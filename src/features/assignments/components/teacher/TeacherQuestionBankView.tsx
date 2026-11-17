@@ -570,7 +570,7 @@ export function TeacherQuestionBankView({
             try {
               const parsed = JSON.parse(existingDraftRaw);
               if (Array.isArray(parsed.questions)) existingQuestions = parsed.questions;
-            } catch {}
+            } catch { }
           }
 
           const newStudioQuestions = effectiveSelectedQuestions.map((q, idx) => ({
@@ -630,7 +630,7 @@ export function TeacherQuestionBankView({
             savedAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
           };
           localStorage.setItem(newDraftKey, JSON.stringify(newDraft));
-        } catch {}
+        } catch { }
       }
 
       showToast(`Đang chuyển tới phòng tạo đề với ${selectedCount} câu hỏi...`);
@@ -2451,11 +2451,10 @@ export function TeacherQuestionBankView({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Option 1: Thêm vào đề thi có sẵn */}
                   <label
-                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${
-                      pushTargetMethod === 'EXISTING'
-                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40'
-                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                    }`}
+                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${pushTargetMethod === 'EXISTING'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40'
+                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      }`}
                   >
                     <input
                       type="radio"
@@ -2481,11 +2480,10 @@ export function TeacherQuestionBankView({
 
                   {/* Option 2: Tạo đề thi mới */}
                   <label
-                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${
-                      pushTargetMethod === 'NEW'
+                    className={`p-3 rounded-xl border-2 cursor-pointer flex items-start gap-2.5 transition-all shadow-xs ${pushTargetMethod === 'NEW'
                         ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40'
                         : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
