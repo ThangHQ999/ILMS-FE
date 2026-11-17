@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { savePostLoginRedirect } from '@/lib/auth-redirect';
 import { OAuthProvider } from '../types';
 import { getOAuthUrlPublic } from '../services/auth.service';
 
@@ -14,6 +15,12 @@ export function useOAuthLogin() {
     try {
       setLoadingProvider(provider);
       setError(null);
+
+      const rawRedirect =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('redirect')
+          : null;
+      savePostLoginRedirect(rawRedirect);
 
       // Fetch OAuth URL without credentials to avoid stale cookie issues
       const targetUrl = await getOAuthUrlPublic(provider);

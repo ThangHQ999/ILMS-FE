@@ -14,7 +14,9 @@
     "termsTitle": "Điều khoản dịch vụ",
     "termsDescription": "Quy định sử dụng nền tảng học tập thông minh ILMS (EduTech Innovations).",
     "privacyTitle": "Chính sách bảo mật",
-    "privacyDescription": "Chính sách bảo vệ dữ liệu học tập và tuân thủ bảo mật của hệ thống ILMS."
+    "privacyDescription": "Chính sách bảo vệ dữ liệu học tập và tuân thủ bảo mật của hệ thống ILMS.",
+    "aboutTitle": "Về chúng tôi",
+    "aboutDescription": "Tìm hiểu sứ mệnh của ILMS (EduTech Innovations) trong việc kết hợp Gia sư AI Socratic, Đồ thị tri thức và khung năng lực Bloom."
   },
   "common": {
     "save": "Lưu",
@@ -1964,6 +1966,7 @@
       "yearlyUnit": "/ tháng",
       "lifetimeUnit": "/ Trọn đời",
       "currentPlanBtn": "Gói hiện tại",
+      "freePlanBtn": "Gói miễn phí",
       "upgradePlusBtn": "Nâng cấp lên Plus",
       "chooseProBtn": "Chọn gói Pro",
       "chooseEnterpriseBtn": "Đăng ký gói Doanh nghiệp",
@@ -2102,10 +2105,158 @@
         "successDesc": "Tài khoản của bạn đã được nâng cấp lên {planName} thành công."
       }
     },
+    "authPrompt": {
+      "title": "Yêu cầu đăng nhập",
+      "description": "Vui lòng đăng nhập tài khoản ILMS để tiếp tục đăng ký {planName}. Sau khi đăng nhập thành công, hệ thống sẽ đưa bạn quay lại trang Bảng giá.",
+      "cancelBtn": "Hủy",
+      "confirmBtn": "Đồng ý, đăng nhập"
+    },
     "footer": {
       "copyright": "© 2025 ILMS EduTech Platform. Thiết kế chuẩn Material Design 3.",
       "soc2": "SOC2 Type II",
       "ssl": "256-Bit SSL/TLS"
+    }
+  },
+  "about": {
+    "hero": {
+      "chip": "Về ILMS • EduTech Innovations",
+      "title": "Kiến tạo tư duy tự chủ cho người học kỷ nguyên AI",
+      "subtitle": "ILMS là hệ thống quản lý học tập thông minh kết hợp phương pháp gợi mở Socratic, Đồ thị tri thức tương tác và khung đánh giá 6 bậc Bloom — giúp người học hiểu sâu bản chất thay vì chỉ chép đáp án.",
+      "primaryCta": "Bắt đầu học miễn phí",
+      "secondaryCta": "Xem bảng giá"
+    },
+    "pillars": {
+      "title": "Ba trụ cột công nghệ tại ILMS",
+      "subtitle": "Mọi tính năng đều được thiết kế xoay quanh khả năng tư duy và tiến bộ đo lường được.",
+      "items": {
+        "socratic": {
+          "title": "Gia sư AI Socratic",
+          "description": "Không trả lời hộ bài tập. AI đặt câu hỏi dẫn dắt từng bước giúp bạn tự khám phá lời giải và nhớ lâu hơn."
+        },
+        "graph": {
+          "title": "Đồ thị Tri thức Trực quan",
+          "description": "Kết nối các khái niệm môn học thành mạng lưới rõ ràng, chỉ ra lỗ hổng kiến thức và lộ trình ôn tập tối ưu."
+        },
+        "bloom": {
+          "title": "Chuẩn đầu ra 6 bậc Bloom",
+          "description": "Theo dõi năng lực từ mức Ghi nhớ đến Sáng tạo theo chuẩn PLO, hỗ trợ giảng viên bám sát từng lớp học."
+        }
+      }
+    },
+    "story": {
+      "badge": "Câu chuyện & Triết lý",
+      "title": "Vì sao chúng tôi xây dựng ILMS",
+      "paragraph1": "Trong thời đại công cụ AI bùng nổ, việc có được một đáp án đúng chỉ mất vài giây — nhưng khả năng đặt câu hỏi đúng, phản biện và liên kết kiến thức lại ngày càng hiếm.",
+      "paragraph2": "Đội ngũ ILMS (EduTech Innovations) xây dựng một không gian học tập tối giản, nơi giảng viên dễ dàng tổ chức học liệu, ca học, chuẩn đầu ra PLO, còn sinh viên có một người bạn đồng hành AI biết khơi gợi tư duy thay vì làm thay."
+    },
+    "values": {
+      "title": "Giá trị cốt lõi",
+      "items": {
+        "active": {
+          "title": "Học chủ động",
+          "description": "Khuyến khích tự suy luận qua đối thoại Socratic."
+        },
+        "clarity": {
+          "title": "Minh bạch tri thức",
+          "description": "Trực quan hóa mọi khái niệm và tiến độ trên đồ thị."
+        },
+        "privacy": {
+          "title": "An toàn dữ liệu",
+          "description": "Tôn trọng quyền riêng tư và bảo vệ dữ liệu học tập."
+        },
+        "simplicity": {
+          "title": "Trải nghiệm tối giản",
+          "description": "Giao diện gọn gàng, tập trung hoàn toàn vào việc học."
+        }
+      }
+    },
+    "contact": {
+      "badge": "Đội ngũ ILMS • EduTech Innovations",
+      "title": "Đồng hành cùng lớp học & tổ chức của bạn",
+      "description": "Cần tư vấn triển khai cho trường học, trung tâm đào tạo hoặc đóng góp ý kiến cho sản phẩm? Liên hệ trực tiếp với đội ngũ phát triển ILMS."
+    },
+    "footer": {
+      "pricing": "Bảng giá",
+      "terms": "Điều khoản",
+      "privacy": "Bảo mật"
+    }
+  },
+  "legal": {
+    "common": {
+      "backHome": "Về trang chủ",
+      "termsTab": "Điều khoản dịch vụ",
+      "privacyTab": "Chính sách bảo mật",
+      "organization": "ILMS • EduTech Innovations",
+      "tocLabel": "Mục lục nhanh",
+      "contactTitle": "Cần giải đáp thêm về điều khoản hoặc quyền riêng tư?",
+      "contactDescription": "Liên hệ trực tiếp với bộ phận hỗ trợ của ILMS để được giải thích chi tiết.",
+      "aboutLink": "Về chúng tôi",
+      "pricingLink": "Bảng giá",
+      "loginLink": "Đăng nhập"
+    },
+    "terms": {
+      "badge": "Văn bản pháp lý • Điều khoản",
+      "title": "Điều khoản dịch vụ ILMS",
+      "summary": "Quy định quyền, nghĩa vụ và nguyên tắc sử dụng nền tảng học tập thông minh tích hợp AI ILMS dành cho học viên, giảng viên và tổ chức đào tạo.",
+      "updatedAt": "Cập nhật lần cuối: 17/11/2026",
+      "sections": {
+        "s1": {
+          "title": "Phạm vi áp dụng & Chấp nhận điều khoản",
+          "body": "Khi đăng ký tài khoản hoặc truy cập các dịch vụ trên ilms.page (bao gồm Lớp học, Đồ thị tri thức, Gia sư AI Socratic và Lưu trữ học liệu), bạn đồng ý tuân thủ các điều khoản được nêu tại đây."
+        },
+        "s2": {
+          "title": "Tài khoản & Trách nhiệm bảo mật",
+          "body": "Người dùng chịu trách nhiệm bảo mật thông tin đăng nhập, mật khẩu và các phiên OAuth2 liên kết. Vui lòng thông báo ngay cho đội ngũ ILMS khi phát hiện truy cập trái phép vào tài khoản của bạn."
+        },
+        "s3": {
+          "title": "Quy tắc sử dụng Gia sư AI Socratic",
+          "body": "Gia sư AI của ILMS được thiết kế để gợi mở tư duy và hỗ trợ học tập trung thực. Nghiêm cấm sử dụng hệ thống để tấn công, khai thác lỗ hổng, phát tán mã độc hoặc vi phạm chuẩn mực liêm chính học thuật."
+        },
+        "s4": {
+          "title": "Học liệu & Quyền sở hữu trí tuệ",
+          "body": "Giảng viên và người học giữ quyền sở hữu đối với tài liệu, bài giảng và ghi chú tự tải lên. Giao diện, mã nguồn, thương hiệu ILMS và cấu trúc thuật toán thuộc quyền sở hữu của EduTech Innovations."
+        },
+        "s5": {
+          "title": "Gói dịch vụ, Hạn mức & Thanh toán",
+          "body": "Các gói Cơ bản (Free), Plus, Pro và Doanh nghiệp được áp dụng hạn mức lưu trữ và lượt AI tương ứng trên trang Bảng giá. Giao dịch nâng cấp qua VietQR được ghi nhận và kích hoạt theo chu kỳ đã chọn."
+        },
+        "s6": {
+          "title": "Thay đổi điều khoản & Chấm dứt",
+          "body": "ILMS có quyền cập nhật điều khoản để phù hợp với quy định pháp luật và tính năng mới. Mọi thay đổi quan trọng sẽ được thông báo công khai trên trang này trước khi có hiệu lực."
+        }
+      }
+    },
+    "privacy": {
+      "badge": "Bảo vệ dữ liệu • Quyền riêng tư",
+      "title": "Chính sách bảo mật ILMS",
+      "summary": "Cam kết của ILMS trong việc thu thập tối thiểu, mã hóa an toàn và bảo vệ quyền riêng tư đối với dữ liệu cá nhân cũng như hồ sơ học tập của bạn.",
+      "updatedAt": "Cập nhật lần cuối: 17/11/2026",
+      "sections": {
+        "s1": {
+          "title": "Thông tin chúng tôi thu thập",
+          "body": "Chúng tôi chỉ thu thập các thông tin cần thiết để vận hành lớp học và cá nhân hóa học tập, bao gồm họ tên, email, vai trò học tập, tùy chọn giao diện, tiến độ khóa học và tệp học liệu bạn chủ động tải lên."
+        },
+        "s2": {
+          "title": "Mục đích xử lý dữ liệu",
+          "body": "Dữ liệu được dùng để xác thực tài khoản, đồng bộ tiến độ năng lực Bloom/PLO, vận hành Gia sư AI Socratic theo ngữ cảnh bài học và hiển thị dung lượng lưu trữ Cloud của riêng bạn."
+        },
+        "s3": {
+          "title": "Bảo mật truyền tải & Lưu trữ",
+          "body": "Toàn bộ kết nối tới ilms.page và api.ilms.page đều được mã hóa qua HTTPS/TLS. Phiên đăng nhập sử dụng cookie bảo mật và cơ chế kiểm soát quyền truy cập theo vai trò (RBAC)."
+        },
+        "s4": {
+          "title": "Xử lý AI & Chia sẻ với bên thứ ba",
+          "body": "ILMS không bán hoặc cho thuê dữ liệu cá nhân của người học cho bên thứ ba. Dữ liệu hội thoại AI chỉ phục vụ trả lời câu hỏi học tập và lưu lịch sử phiên của chính tài khoản bạn."
+        },
+        "s5": {
+          "title": "Quyền của người dùng đối với dữ liệu",
+          "body": "Bạn có toàn quyền xem, chỉnh sửa hồ sơ cá nhân, quản lý hoặc xóa tệp học liệu trên Cloud Storage, đổi ngôn ngữ/giao diện và yêu cầu xóa vĩnh viễn tài khoản bất kỳ lúc nào trong phần Cài đặt."
+        },
+        "s6": {
+          "title": "Lưu trữ Cookie & Liên hệ bảo mật",
+          "body": "Hệ thống sử dụng cookie thiết yếu cho phiên đăng nhập và tùy chọn ngôn ngữ (`NEXT_LOCALE`). Nếu có thắc mắc về bảo mật dữ liệu, vui lòng liên hệ support@ilms.page."
+        }
+      }
     }
   }
 }

@@ -9,3 +9,5 @@ export * from './RoleGuard';
 export * from './CustomSelect';
 export * from './GlobalSocraticCoach';
 export * from './LatexFormulaPicker';
+export * from './PublicHeader';
+export * from './PublicMinimalFooter';

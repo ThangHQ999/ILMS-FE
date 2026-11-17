@@ -3,6 +3,7 @@
 import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { getSafeRedirectPath } from '@/lib/auth-redirect';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { AuthHeader } from './AuthHeader';
 import { LoginForm } from './LoginForm';
@@ -44,7 +45,8 @@ export function LoginPageView() {
 
   useEffect(() => {
     if (isSuccess && user) {
-      router.replace('/dashboard');
+      const rawRedirect = new URLSearchParams(window.location.search).get('redirect');
+      router.replace(getSafeRedirectPath(rawRedirect, '/dashboard'));
     }
   }, [isSuccess, user, router]);
 

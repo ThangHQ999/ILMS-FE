@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/features/auth';
 import { useMySubscription } from '@/features/settings';
 
 interface PricingCardsProps {
@@ -11,9 +12,12 @@ interface PricingCardsProps {
 
 export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
   const t = useTranslations('pricing.cards');
+  const { data: user } = useCurrentUser();
   const { data: subscription } = useMySubscription();
 
-  const currentPlanCode = subscription?.planCode || 'FREE';
+  const currentPlanCode = user
+    ? (subscription?.planCode || 'FREE').toUpperCase()
+    : null;
 
   const billingUnit = isYearly ? t('yearlyUnit') : t('monthlyUnit');
 
@@ -81,12 +85,12 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
           className={`mt-6 w-full py-2.5 px-4 rounded-full text-xs font-medium border flex items-center justify-center gap-1.5 transition-colors ${
             currentPlanCode === 'FREE'
               ? 'bg-slate-100 dark:bg-[#282a2c] text-slate-400 dark:text-[#8e918f] cursor-not-allowed border-slate-200 dark:border-[#3c4043]'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#282a2c] dark:hover:bg-[#323639] text-slate-800 dark:text-[#e3e3e3] border-slate-200 dark:border-[#3c4043] cursor-pointer'
+              : 'bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-[#8e918f] cursor-default border-slate-200 dark:border-[#3c4043]'
           }`}
-          disabled={currentPlanCode === 'FREE'}
+          disabled
           type="button"
         >
-          {currentPlanCode === 'FREE' ? t('currentPlanBtn') : t('currentPlanBtn')}
+          {currentPlanCode === 'FREE' ? t('currentPlanBtn') : t('freePlanBtn')}
         </button>
       </div>
 

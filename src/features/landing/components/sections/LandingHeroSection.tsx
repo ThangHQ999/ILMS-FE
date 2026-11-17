@@ -2,7 +2,10 @@
 
 import React, { useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/features/auth';
+import { buildLoginRedirectUrl } from '@/lib/auth-redirect';
 import {
   ArrowRight,
   Sparkles,
@@ -29,11 +32,26 @@ export function LandingHeroSection({
   onChangeRole,
   onExploreScene,
 }: LandingHeroSectionProps) {
+  const router = useRouter();
+  const { data: user } = useCurrentUser();
   const t = useTranslations('landing.story');
   const tHero = useTranslations('landing.hero');
   const demo = useInteractivePromptDemo();
   const sectionRef = useRef<HTMLElement>(null);
   useSceneScrollVars(sectionRef);
+
+  const handleAskOwlSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const trimmed = demo.customInput.trim();
+    const targetUrl = trimmed
+      ? `/ai-tutor?prompt=${encodeURIComponent(trimmed)}`
+      : '/ai-tutor';
+    if (!user) {
+      router.push(buildLoginRedirectUrl(targetUrl));
+      return;
+    }
+    router.push(targetUrl);
+  };
 
   const activeQuotes = demo.submittedCustomQuestion
     ? [
@@ -52,23 +70,6 @@ export function LandingHeroSection({
       id="hero-station"
       className="ilms-scroll-scene relative w-full min-h-[calc(100vh-4rem)] flex items-center pt-6 pb-20 lg:pt-10 lg:pb-28 overflow-visible"
     >
-      {/* Zero-Gravity Astro-Owl Companion Gliding Across Upper Cosmic Horizon */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none hidden md:block absolute left-[5%] xl:left-[3%] -top-8 lg:top-6 z-20"
-        style={{
-          transform:
-            'translate3d(calc(var(--s, 0.2) * -85px), calc(var(--s, 0.2) * -28px), 0)',
-        }}
-      >
-        <img
-          src="/images/landing/companion-astro-owl.png"
-          alt=""
-          draggable={false}
-          className="ilms-zero-g-float w-28 h-28 lg:w-36 lg:h-36 xl:w-44 xl:h-44 object-contain drop-shadow-[0_18px_36px_rgba(14,165,233,0.38)]"
-        />
-      </div>
-
       {/* Wide Full-Bleed Fluid Stage (frees content from cramped max-w-7xl box) */}
       <div className="relative z-10 w-full max-w-[1560px] mx-auto px-5 sm:px-8 lg:px-14 xl:px-20">
         {/* Top Horizon Bar: Live Status Pill + Role Perspective Switcher */}
@@ -171,7 +172,7 @@ export function LandingHeroSection({
 
               {/* Live Input Bar */}
               <form
-                onSubmit={demo.handleSubmitCustom}
+                onSubmit={handleAskOwlSubmit}
                 className="flex items-center gap-2.5"
               >
                 <input

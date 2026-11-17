@@ -77,11 +77,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: '/logo-short.png?v=5', type: 'image/png', sizes: 'any' },
-        { url: '/favicon.ico?v=5', sizes: 'any' },
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+        { url: '/logo-short.png', type: 'image/png', sizes: '512x512' },
       ],
-      shortcut: '/logo-short.png?v=5',
-      apple: '/apple-touch-icon.png?v=5',
+      shortcut: '/favicon.ico',
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
     },
   };
 }

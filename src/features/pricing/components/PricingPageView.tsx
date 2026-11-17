@@ -1,18 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { PricingHeader } from './PricingHeader';
+import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/features/auth';
+import { buildLoginRedirectUrl } from '@/lib/auth-redirect';
+import { PublicHeader, PublicMinimalFooter } from '@/components/shared';
 import { PricingHero } from './PricingHero';
 import { PricingCards } from './PricingCards';
 import { PricingComparisonTable } from './PricingComparisonTable';
 import { PricingFaq } from './PricingFaq';
+import { PricingAuthPromptModal } from './PricingAuthPromptModal';
 import { VietQrCheckoutModal } from './VietQrCheckoutModal';
 
 export function PricingPageView() {
-  const tFooter = useTranslations('pricing.footer');
+  const router = useRouter();
+  const { data: user } = useCurrentUser();
 
   const [isYearly, setIsYearly] = useState(false);
+  const [authPromptModal, setAuthPromptModal] = useState<{
+    isOpen: boolean;
+    planName: string;
+  }>({
+    isOpen: false,
+    planName: '',
+  });
   const [checkoutModal, setCheckoutModal] = useState<{
     isOpen: boolean;
     planCode: string;
@@ -26,12 +37,28 @@ export function PricingPageView() {
   });
 
   const handleSelectPlan = (planCode: string, planName: string, price: number) => {
+    if (!user) {
+      setAuthPromptModal({
+        isOpen: true,
+        planName,
+      });
+      return;
+    }
     setCheckoutModal({
       isOpen: true,
       planCode,
       planName,
       price,
     });
+  };
+
+  const handleConfirmAuthRedirect = () => {
+    setAuthPromptModal((prev) => ({ ...prev, isOpen: false }));
+    router.push(buildLoginRedirectUrl('/pricing'));
+  };
+
+  const handleCloseAuthPrompt = () => {
+    setAuthPromptModal((prev) => ({ ...prev, isOpen: false }));
   };
 
   const handleCloseModal = () => {
@@ -41,7 +68,7 @@ export function PricingPageView() {
   return (
     <div className="bg-[#f8fafd] dark:bg-[#131314] text-slate-900 dark:text-[#e3e3e3] antialiased min-h-screen flex flex-col relative selection:bg-blue-600/20 dark:selection:bg-[#a8c7fa]/20 selection:text-blue-700 dark:selection:text-[#a8c7fa] transition-colors">
       {/* Header */}
-      <PricingHeader />
+      <PublicHeader />
 
       {/* Main Container */}
       <main className="w-full pt-24 pb-20 relative z-10 flex-1 flex flex-col items-center">
@@ -61,34 +88,15 @@ export function PricingPageView() {
       </main>
 
       {/* Minimal Footer */}
-      <footer className="w-full border-t border-slate-200 dark:border-[#3c4043] bg-white dark:bg-[#131314] relative z-10 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-            <img
-              src="/logo-full.png"
-              alt="ILMS Logo"
-              className="h-6 w-auto object-contain opacity-80"
-            />
-            <p className="text-xs text-slate-500 dark:text-[#8e918f]">
-              {tFooter('copyright')}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 dark:text-[#8e918f]">
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1e1f20] border border-slate-200 dark:border-[#3c4043]">
-              <span className="material-symbols-outlined text-blue-600 dark:text-[#a8c7fa] text-[14px]">
-                verified_user
-              </span>
-              <span>{tFooter('soc2')}</span>
-            </div>
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1e1f20] border border-slate-200 dark:border-[#3c4043]">
-              <span className="material-symbols-outlined text-blue-600 dark:text-[#a8c7fa] text-[14px]">
-                lock
-              </span>
-              <span>{tFooter('ssl')}</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <PublicMinimalFooter />
+
+      {/* Auth Prompt Modal */}
+      <PricingAuthPromptModal
+        isOpen={authPromptModal.isOpen}
+        planName={authPromptModal.planName}
+        onConfirm={handleConfirmAuthRedirect}
+        onClose={handleCloseAuthPrompt}
+      />
 
       {/* VietQR Checkout Modal */}
       <VietQrCheckoutModal
