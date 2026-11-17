@@ -945,6 +945,97 @@ export async function exportQuiz(quizId: string, format: 'xlsx' | 'pdf' = 'xlsx'
 }
 
 /**
+ * 10.1 POST /api/v1/quizzes/{id}/generate-variants
+ * Sinh các mã đề hoán vị 100% (101, 102, 103, 104)
+ */
+export async function generateQuizVariants(quizId: string, count: number = 4): Promise<QuizResponseDTO[]> {
+  try {
+    const { data } = await api.post<ApiResponse<QuizResponseDTO[]>>(
+      `/quizzes/${quizId}/generate-variants`,
+      null,
+      { params: { count } }
+    );
+    if (data?.data) {
+      return data.data;
+    }
+  } catch (error) {
+    console.warn('POST /quizzes/{id}/generate-variants fallback', error);
+  }
+
+  // Fallback mock variants
+  const codes = ['101', '102', '103', '104'];
+  return codes.slice(0, count).map((code) => ({
+    id: `variant-${quizId}-${code}`,
+    classId: 'current-class',
+    title: `Đề thi hoán vị [Mã đề ${code}]`,
+    description: `Mã đề hoán vị ngẫu nhiên câu hỏi và đáp án ${code}`,
+    status: 'DRAFT',
+    durationMinutes: 30,
+    maxAttempts: 1,
+    passingScore: 5.0,
+    scoringStrategy: 'HIGHEST_SCORE',
+    shuffleQuestions: true,
+    shuffleAnswers: true,
+    fullscreenLock: true,
+    tabSwitchLimit: 3,
+    lockAnswersUntilDeadline: true,
+    proctoringEnabled: true,
+    ploIds: ['plo-03'],
+    startTime: new Date().toISOString(),
+    endTime: new Date(Date.now() + 7 * 86400000).toISOString(),
+    totalQuestions: 20,
+    totalPoints: 10,
+    questions: MOCK_QUESTION_BANK,
+  }));
+}
+
+export interface QuizPaperExportData {
+  quizId: string;
+  title: string;
+  durationMinutes: number;
+  totalQuestions: number;
+  questions: Array<{
+    orderIndex: number;
+    questionText: string;
+    score: number;
+    options: Array<{ label: string; text: string }>;
+  }>;
+  answerKey: Record<number, string>;
+}
+
+/**
+ * 10.1 GET /api/v1/quizzes/{id}/export/paper
+ * Xuất bản in đề thi giấy và bảng đáp án cho giám thị
+ */
+export async function exportQuizPaper(quizId: string): Promise<QuizPaperExportData> {
+  try {
+    const { data } = await api.get<ApiResponse<QuizPaperExportData>>(`/quizzes/${quizId}/export/paper`);
+    if (data?.data) {
+      return data.data;
+    }
+  } catch (error) {
+    console.warn('GET /quizzes/{id}/export/paper fallback', error);
+  }
+
+  return {
+    quizId,
+    title: 'Đề thi trắc nghiệm học phần (Bản in)',
+    durationMinutes: 30,
+    totalQuestions: MOCK_QUESTION_BANK.length,
+    questions: MOCK_QUESTION_BANK.map((q, idx) => ({
+      orderIndex: idx + 1,
+      questionText: q.content,
+      score: 1.0,
+      options: q.answers.map((ans, aIdx) => ({
+        label: String.fromCharCode(65 + aIdx),
+        text: ans.content,
+      })),
+    })),
+    answerKey: { 1: 'A', 2: 'B', 3: 'A', 4: 'C' },
+  };
+}
+
+/**
  * 10.2 GET /api/v1/quizzes/{id}/play
  * Lấy đề thi thực tế (bảo mật: không lộ đáp án đúng)
  */

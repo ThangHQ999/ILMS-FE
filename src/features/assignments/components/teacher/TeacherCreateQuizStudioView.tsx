@@ -300,19 +300,14 @@ export function TeacherCreateQuizStudioView({
           ? JSON.stringify(parsed.questions).toLowerCase()
           : '';
 
-        // Kiểm tra nghiêm ngặt: Nếu bản nháp chứa nội dung thuộc môn khác (vd môn khác nhưng có Tầng Mạng / OSPF / Cây nhị phân / SQL...)
-        const hasCrossSubjectLeak =
-          (parsed.classId && String(parsed.classId).toLowerCase() !== activeClassId.toLowerCase()) ||
-          (parsed.subjectKey && parsed.subjectKey !== subjectInfo.key) ||
-          (subjectInfo.key !== 'mangMayTinh' && (parsed.quizTitle?.includes('Tầng Mạng') || parsed.quizTitle?.includes('OSPF') || parsed.selectedModule?.includes('Tầng Mạng') || draftQuestionsText.includes('ospf') || draftQuestionsText.includes('dijkstra'))) ||
-          (subjectInfo.key !== 'giaiTich2' && (parsed.quizTitle?.includes('Giải tích') || parsed.quizTitle?.includes('Tích phân') || parsed.selectedModule?.includes('Chuỗi số') || draftQuestionsText.includes('tích phân') || draftQuestionsText.includes('đạo hàm riêng'))) ||
-          (subjectInfo.key !== 'cauTrucDuLieu' && (parsed.quizTitle?.includes('Cây nhị phân') || parsed.quizTitle?.includes('Giải thuật') || draftQuestionsText.includes('avl') || draftQuestionsText.includes('quicksort'))) ||
-          (subjectInfo.key !== 'coSoDuLieu' && (parsed.quizTitle?.includes('CSDL') || parsed.quizTitle?.includes('Dạng chuẩn') || draftQuestionsText.includes('sql') || draftQuestionsText.includes('bcnf'))) ||
-          (subjectInfo.key !== 'congNghePhanMem' && (parsed.quizTitle?.includes('UML') || parsed.quizTitle?.includes('Scrum') || draftQuestionsText.includes('agile')));
+        // Kiểm tra bản nháp: Nếu bản nháp thuộc đúng lớp học hiện tại (classId) thì khôi phục toàn vẹn
+        const isSameClass =
+          !parsed.classId ||
+          String(parsed.classId).toLowerCase().trim() === activeClassId.toLowerCase().trim();
 
-        if (!hasCrossSubjectLeak) {
+        if (isSameClass) {
           if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
-          if (parsed.selectedModule && subjectInfo.chapters.includes(parsed.selectedModule)) {
+          if (parsed.selectedModule) {
             setSelectedModule(parsed.selectedModule);
           } else {
             setSelectedModule(subjectInfo.defaultChapter);
@@ -322,7 +317,7 @@ export function TeacherCreateQuizStudioView({
           } else {
             setPloTags(subjectInfo.ploTags);
           }
-          if (parsed.instructions) setInstructions(parsed.instructions);
+          if (parsed.instructions !== undefined) setInstructions(parsed.instructions);
           if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
             setQuestions(parsed.questions);
           } else {
@@ -335,11 +330,6 @@ export function TeacherCreateQuizStudioView({
           if (parsed.endTime) setEndTime(parsed.endTime);
           if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
           loadedFromDraft = true;
-        } else {
-          // Xóa triệt để bản nháp bị nhiễm chéo từ môn khác
-          try {
-            localStorage.removeItem(storageKey);
-          } catch {}
         }
       } catch (err) {
         console.warn('Could not parse saved draft:', err);

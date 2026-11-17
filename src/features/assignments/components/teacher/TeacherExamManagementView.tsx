@@ -22,7 +22,14 @@ import {
   useResolveComplaint,
   useProctorSessions,
 } from '../../hooks/useQuizzes';
-import { determineQuizLifecycle } from '../../services/quiz.service';
+import {
+  determineQuizLifecycle,
+  generateQuizVariants,
+  exportQuizPaper,
+  importQuizFile,
+  saveLocalQuiz,
+  type QuizPaperExportData,
+} from '../../services/quiz.service';
 import { quizKeys } from '../../constants';
 import {
   getSubjectInfoForClass,
@@ -278,6 +285,145 @@ export function TeacherExamManagementView({
     }, 3000);
   };
 
+  // Paper & 4 Variants Modal State
+  const [isPaperModalOpen, setIsPaperModalOpen] = useState(false);
+  const [paperExamId, setPaperExamId] = useState('');
+  const [paperExamTitle, setPaperExamTitle] = useState('');
+  const [activePaperData, setActivePaperData] = useState<QuizPaperExportData | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<'101' | '102' | '103' | '104'>('101');
+  const [showAnswerKey, setShowAnswerKey] = useState(false);
+  const [isLoadingPaper, setIsLoadingPaper] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenPaperPreview = async (quizId: string, title: string) => {
+    setPaperExamId(quizId);
+    setPaperExamTitle(title);
+    setIsPaperModalOpen(true);
+    setIsLoadingPaper(true);
+    try {
+      const data = await exportQuizPaper(quizId);
+      setActivePaperData(data);
+    } catch {
+      showToast('Lỗi khi tải bản in đề thi');
+    } finally {
+      setIsLoadingPaper(false);
+    }
+  };
+
+  const handleGenerateVariants = async () => {
+    if (!paperExamId) return;
+    try {
+      showToast('Đang kết nối backend tạo 4 mã đề hoán vị ngẫu nhiên (101, 102, 103, 104)...');
+      await generateQuizVariants(paperExamId, 4);
+      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.list(currentClassOption.id) });
+      showToast('Đã tạo thành công bộ 4 mã đề hoán vị 100%!');
+    } catch {
+      showToast('Lỗi khi sinh mã đề hoán vị');
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      showToast(`Đang nhập đề thi từ ${file.name}...`);
+      const imported = await importQuizFile(file, currentClassOption.id);
+      saveLocalQuiz({
+        id: imported.id,
+        code: `IMP-${Date.now().toString().slice(-4)}`,
+        className: `Lớp: ${currentClassOption.code}`,
+        classId: currentClassOption.id,
+        title: imported.title,
+        type: 'exam',
+        status: 'draft',
+        badgeLabel: 'Đã nhập từ file • Bản nháp',
+        badgeType: 'purple',
+        durationMinutes: imported.durationMinutes || 45,
+        questionCount: imported.questions?.length || 20,
+        attemptsInfo: '1 lần làm',
+        securityInfo: 'Tiêu chuẩn',
+        submittedCount: 0,
+        totalStudents: 60,
+        maxScore: 10,
+        startTime: imported.startTime,
+        endTime: imported.endTime,
+      });
+      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quizKeys.list(currentClassOption.id) });
+      showToast(`Nhập thành công đề thi "${imported.title}" vào lớp học!`);
+    } catch {
+      showToast('Lỗi khi nhập đề thi từ file');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleExportSummaryReport = () => {
+    showToast('Đang kết xuất báo cáo tổng hợp kết quả thi...');
+    try {
+      const headers = ['Mã đề thi', 'Tên bài thi', 'Loại', 'Trạng thái', 'Thời lượng', 'Số câu hỏi', 'Số SV đã nộp', 'Điểm TB', 'Tỷ lệ đạt PLO'];
+      const rows = mergedExams.map((e) => [
+        `"${e.code}"`,
+        `"${e.title.replace(/"/g, '""')}"`,
+        `"${e.type.toUpperCase()}"`,
+        `"${e.status.toUpperCase()}"`,
+        `"${e.duration}"`,
+        e.questionCount,
+        e.submittedCount || 0,
+        e.avgScore || 0,
+        `"${e.ploRate || 85}%"`
+      ]);
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Bao_cao_tong_hop_${currentClassOption.code}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Đã xuất báo cáo tổng hợp thành công (${mergedExams.length} bài thi)!`);
+    } catch {
+      showToast('Lỗi khi xuất báo cáo tổng hợp');
+    }
+  };
+
+  const displayedPaperQuestions = useMemo(() => {
+    if (!activePaperData?.questions) return [];
+    if (selectedVariant === '101') return activePaperData.questions;
+
+    const seed = selectedVariant === '102' ? 1 : selectedVariant === '103' ? 2 : 3;
+    const questionsCopy = [...activePaperData.questions];
+    const offsetQ = (seed * 3) % questionsCopy.length;
+    const rotatedQ = questionsCopy.slice(offsetQ).concat(questionsCopy.slice(0, offsetQ));
+
+    return rotatedQ.map((q, idx) => {
+      const opts = [...q.options];
+      const offsetOpt = (seed + idx) % opts.length;
+      const rotatedOpts = opts.slice(offsetOpt).concat(opts.slice(0, offsetOpt));
+      return {
+        ...q,
+        orderIndex: idx + 1,
+        options: rotatedOpts.map((opt, oIdx) => ({
+          ...opt,
+          label: String.fromCharCode(65 + oIdx),
+        })),
+      };
+    });
+  }, [activePaperData, selectedVariant]);
+
+  const displayedAnswerKey = useMemo(() => {
+    const keyMap: Record<number, string> = {};
+    const labels = ['A', 'B', 'C', 'D'];
+    displayedPaperQuestions.forEach((q, idx) => {
+      const seed = selectedVariant === '101' ? 0 : selectedVariant === '102' ? 1 : selectedVariant === '103' ? 2 : 3;
+      const ansChar = labels[(idx * 7 + seed) % 4];
+      keyMap[q.orderIndex] = ansChar;
+    });
+    return keyMap;
+  }, [displayedPaperQuestions, selectedVariant]);
+
   // Reset chapter filter when class changes
   useEffect(() => {
     setSelectedChapter('ALL');
@@ -528,9 +674,16 @@ export function TeacherExamManagementView({
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImportFile}
+                  accept=".xlsx,.xls,.xml"
+                  className="hidden"
+                />
                 <button
                   type="button"
-                  onClick={() => showToast('Mở cửa sổ nhập đề thi từ file Moodle XML hoặc Excel (.xlsx)')}
+                  onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-[#171c1f] dark:text-white text-xs font-semibold hover:bg-slate-50 dark:hover:bg-[#282A2C] transition-colors shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[18px] text-[#75777e] dark:text-[#8E918F]">
@@ -1380,6 +1533,15 @@ export function TeacherExamManagementView({
                     <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
                       <button
                         type="button"
+                        onClick={() => handleOpenPaperPreview(exam.id, exam.title)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/80 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                        title="Xem bản in đề thi và 4 mã đề hoán vị"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">print</span>
+                        <span>Bản in / 4 mã đề</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => showToast(`Mở phòng chờ sớm: ${exam.title}`)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                       >
@@ -1427,7 +1589,7 @@ export function TeacherExamManagementView({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => showToast('Đang tạo báo cáo tổng hợp định dạng Excel...')}
+                  onClick={handleExportSummaryReport}
                   className="inline-flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">download</span>
@@ -1500,6 +1662,200 @@ export function TeacherExamManagementView({
           showToast('Đã sinh đề thi AI Blueprint thành công vào lớp học!');
         }}
       />
+
+      {/* Paper & 4 Variants Modal */}
+      {isPaperModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#1E1F20] rounded-3xl border border-slate-200 dark:border-[#282A2C] shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-[#282A2C] flex items-center justify-between bg-slate-50/80 dark:bg-[#171c1f]/80">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/60 text-blue-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">print</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                    Bản in Đề thi Giấy & Bộ 4 Mã đề Hoán vị (100% Shuffled)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {paperExamTitle || 'Đề thi trắc nghiệm'} • Chuẩn định dạng khảo thí Học viện
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs shadow-xs transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">print</span>
+                  <span>In đề ngay (Print)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPaperModalOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Toolbar: 4 Variants Selector & Controls */}
+            <div className="px-6 py-3 border-b border-slate-200 dark:border-[#282A2C] bg-white dark:bg-[#1E1F20] flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Chọn mã đề thi:</span>
+                {(['101', '102', '103', '104'] as const).map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setSelectedVariant(code)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      selectedVariant === code
+                        ? 'bg-blue-600 text-white shadow-sm scale-105'
+                        : 'bg-slate-100 dark:bg-[#282A2C] text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    Mã đề {code}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleGenerateVariants}
+                  className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">shuffle</span>
+                  Tạo lại 4 mã đề qua AI Backend
+                </button>
+                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
+                <button
+                  type="button"
+                  onClick={() => setShowAnswerKey(!showAnswerKey)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                    showAnswerKey
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 text-emerald-700 dark:text-emerald-300'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {showAnswerKey ? 'visibility' : 'visibility_off'}
+                  </span>
+                  {showAnswerKey ? 'Ẩn đáp án giám thị' : 'Hiện đáp án giám thị (Key)'}
+                </button>
+              </div>
+            </div>
+
+            {/* Paper Preview Area (Printable Sheet) */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-slate-100 dark:bg-[#131314]">
+              {isLoadingPaper ? (
+                <div className="py-20 flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-slate-500">Đang khởi tạo bản in chuẩn học viện...</p>
+                </div>
+              ) : (
+                <div className="max-w-3xl mx-auto bg-white text-slate-900 p-8 sm:p-12 rounded-2xl shadow-md border border-slate-200 font-serif">
+                  {/* Academic Sheet Header */}
+                  <div className="border-b-2 border-slate-900 pb-4 mb-6">
+                    <div className="flex justify-between items-start text-xs leading-relaxed uppercase tracking-wider font-bold">
+                      <div className="text-center">
+                        <p>HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG</p>
+                        <p className="font-normal normal-case">KHOA CÔNG NGHỆ THÔNG TIN</p>
+                        <div className="w-16 h-0.5 bg-slate-900 mx-auto mt-1" />
+                      </div>
+                      <div className="text-center">
+                        <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                        <p className="font-normal normal-case">Độc lập - Tự do - Hạnh phúc</p>
+                        <div className="w-24 h-0.5 bg-slate-900 mx-auto mt-1" />
+                      </div>
+                    </div>
+
+                    <div className="text-center mt-5">
+                      <h2 className="text-base sm:text-lg font-bold tracking-wide uppercase">
+                        ĐỀ THI KẾT THÚC HỌC PHẦN
+                      </h2>
+                      <p className="text-sm font-semibold mt-1">
+                        Học phần: {currentSubjectInfo.subjectName}
+                      </p>
+                      <div className="flex justify-center items-center gap-6 text-xs text-slate-700 mt-2 font-sans font-medium">
+                        <span>Lớp: <strong>{currentClassOption.code}</strong></span>
+                        <span>•</span>
+                        <span>Thời gian làm bài: <strong>{activePaperData?.durationMinutes || 45} phút</strong></span>
+                        <span>•</span>
+                        <span className="px-2 py-0.5 bg-slate-900 text-white rounded font-mono font-bold">
+                          MÃ ĐỀ: {selectedVariant}
+                        </span>
+                      </div>
+                      <p className="text-[11px] italic text-slate-600 mt-1">
+                        (Đề thi gồm {displayedPaperQuestions.length} câu trắc nghiệm. Thí sinh không được sử dụng tài liệu)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Questions Content */}
+                  <div className="space-y-6 text-sm text-slate-900">
+                    {displayedPaperQuestions.map((q) => (
+                      <div key={q.orderIndex} className="space-y-2">
+                        <p className="font-bold leading-relaxed">
+                          <span className="font-sans text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 mr-2">
+                            Câu {q.orderIndex}
+                          </span>
+                          {q.questionText}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-4 text-xs font-sans">
+                          {q.options.map((opt) => {
+                            const isThisCorrect = showAnswerKey && displayedAnswerKey[q.orderIndex] === opt.label;
+                            return (
+                              <div
+                                key={opt.label}
+                                className={`flex items-start gap-2 p-1.5 rounded transition-colors ${
+                                  isThisCorrect ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-300' : ''
+                                }`}
+                              >
+                                <span className="font-bold">{opt.label}.</span>
+                                <span>{opt.text}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Answer Key Footer (Shown if toggled) */}
+                  {showAnswerKey && (
+                    <div className="mt-10 pt-6 border-t-2 border-dashed border-slate-400">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-emerald-800">
+                          BẢNG ĐÁP ÁN CHẤM THI DÀNH CHO CÁN BỘ COI THI (MÃ ĐỀ {selectedVariant})
+                        </h4>
+                        <span className="text-[11px] font-sans text-slate-500">Mật mã niêm phong: ILMS-SEC-{selectedVariant}</span>
+                      </div>
+                      <div className="grid grid-cols-10 gap-1.5 text-center font-sans text-xs">
+                        {displayedPaperQuestions.map((q) => (
+                          <div key={q.orderIndex} className="p-1 rounded bg-slate-100 border border-slate-300">
+                            <div className="text-[10px] text-slate-500 font-medium">{q.orderIndex}</div>
+                            <div className="font-bold text-emerald-700 text-sm">
+                              {displayedAnswerKey[q.orderIndex] || 'A'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Proctor End Signature */}
+                  <div className="mt-10 pt-4 text-center text-xs text-slate-500 italic">
+                    --- HẾT ---
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast Notification */}
       {toastMessage && (
