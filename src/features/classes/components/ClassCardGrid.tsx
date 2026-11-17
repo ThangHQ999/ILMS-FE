@@ -17,17 +17,22 @@ interface ClassCardGridProps {
 export function ClassCardGrid({
   items,
   workspaceMode = 'faculty',
-  viewMode = 'list',
+  viewMode = 'grid',
   onArchiveClick,
   onRestoreClick,
   copiedCode,
   onCopyCode,
 }: ClassCardGridProps) {
   // Container class dynamic based on student vs faculty and grid vs list
+  // 2-column grid gives high visual fidelity, balanced proportions & comfortable reading room
   const containerClass =
-    viewMode === 'list'
+    workspaceMode === 'student'
+      ? viewMode === 'list'
+        ? 'grid grid-cols-1 gap-6'
+        : 'grid grid-cols-1 md:grid-cols-2 gap-6'
+      : viewMode === 'list'
       ? 'grid grid-cols-1 gap-6'
-      : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+      : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6';
 
   return (
     <div className={containerClass} id="classes-grid-container">

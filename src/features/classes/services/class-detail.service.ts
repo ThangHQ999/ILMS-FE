@@ -50,7 +50,7 @@ export const MOCK_COURSES: ClassCourse[] = [
     currentWeek: 'Tuần 9/15',
     instructorName: 'TS. Nguyễn Văn An (CN)',
     instructorAvatar: 'NA',
-    instructorColor: 'bg-[#007BFF]',
+    instructorColor: 'bg-blue-600',
     hasAiTutor: true,
     lecturesCount: 38,
     knowledgeNodesCount: 142,
@@ -855,11 +855,20 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
 
   if (!isLocalGenerated) {
     try {
-      const { data: annRes } = await api.get<ApiResponse<ClassAnnouncement[]>>(
-        `/classes/class/${cleanId}/Announcements`
-      );
-      if (annRes?.data && Array.isArray(annRes.data) && annRes.data.length > 0) {
-        announcements = annRes.data;
+      let annResData: ClassAnnouncement[] | null = null;
+      try {
+        const res = await api.get<ApiResponse<ClassAnnouncement[]>>(
+          `/classes/${cleanId}/announcements`
+        );
+        annResData = res.data?.data || null;
+      } catch {
+        const res = await api.get<ApiResponse<ClassAnnouncement[]>>(
+          `/classes/class/${cleanId}/Announcements`
+        );
+        annResData = res.data?.data || null;
+      }
+      if (annResData && Array.isArray(annResData) && annResData.length > 0) {
+        announcements = annResData;
       }
     } catch {
       // Fallback to mock announcements
@@ -930,14 +939,18 @@ export async function removeCourseFromClass(
 
 /**
  * Post a new announcement.
- * Endpoint: POST /api/v1/classes/class/{classId}/Announcements
+ * Endpoint: POST /api/v1/classes/{classId}/announcements
  */
 export async function postClassAnnouncement(
   classId: string,
   payload: { title: string; content: string }
 ): Promise<void> {
   try {
-    await api.post<ApiResponse<unknown>>(`/classes/class/${classId}/Announcements`, payload);
+    try {
+      await api.post<ApiResponse<unknown>>(`/classes/${classId}/announcements`, payload);
+    } catch {
+      await api.post<ApiResponse<unknown>>(`/classes/class/${classId}/Announcements`, payload);
+    }
   } catch {
     // Local simulation fallback: ensure persisted in localStorage for offline/mock mode
     const existing = getLocalAnnouncements(classId);

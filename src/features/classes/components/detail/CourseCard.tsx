@@ -57,7 +57,7 @@ export function CourseCard({
   const courseId = propId || course?.id;
 
   return (
-    <div className="bg-[#FFFFFF] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col h-full min-h-[280px] border-none shadow-sm dark:shadow-none relative transition-transform hover:-translate-y-0.5 duration-200">
+    <div className="bg-[#FFFFFF] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col h-full min-h-[280px] border-2 border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 shadow-sm dark:shadow-none relative transition-all hover:-translate-y-0.5 duration-200">
       {/* Header: Badges & Options */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-2">

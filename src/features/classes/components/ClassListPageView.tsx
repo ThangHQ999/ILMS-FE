@@ -11,6 +11,7 @@ import { ClassFilterToolbar } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
 import { ClassListView } from './ClassListView';
 import { StudentClassListView } from './StudentClassListView';
+import { FacultyClassListView } from './FacultyClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -55,7 +56,7 @@ export function ClassListPageView({
   const { isTeacher, switchRole } = useUserRole();
   const workspaceMode: WorkspaceRoleMode = isTeacher ? 'faculty' : 'student';
 
-  // Filters & View State (in Faculty mode, default view is list / 1-column bento)
+  // Filters & View State (default view is grid)
   const [filters, setFilters] = useState<ClassFilters>({
     search: '',
     status: 'ACTIVE',
@@ -64,7 +65,7 @@ export function ClassListPageView({
     page: 0,
     size: 12,
   });
-  const [viewMode, setViewMode] = useState<ClassViewMode>('list');
+  const [viewMode, setViewMode] = useState<ClassViewMode>('grid');
 
   // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
@@ -146,7 +147,6 @@ export function ClassListPageView({
   const handleToggleWorkspace = useCallback(() => {
     const nextRole = isTeacher ? 'STUDENT' : 'TEACHER';
     switchRole(nextRole);
-    setViewMode(nextRole === 'TEACHER' ? 'list' : 'grid');
     showToast(nextRole === 'TEACHER' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
   }, [isTeacher, switchRole, showToast]);
 
@@ -285,7 +285,7 @@ export function ClassListPageView({
   }, [totalPages, handleFilterUpdate]);
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] text-gray-900 dark:text-[#E3E3E3] flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
@@ -294,29 +294,30 @@ export function ClassListPageView({
         workspaceMode={workspaceMode}
       />
 
-      {/* 2. Top Header */}
-      <DashboardHeader
-        isFocus={isFocusMode}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleMode={() => setIsFocusMode(!isFocusMode)}
-        userFullName={userFullName}
-        workspaceMode={workspaceMode}
-        onToggleWorkspaceMode={handleToggleWorkspace}
-      />
-
-      {/* 3. Main Workspace Content */}
-      <main
-        className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto ${
-          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
+      {/* Main Container offset for Sidebar */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isFocusMode || isSidebarCollapsed ? 'pl-20' : 'pl-72'
         }`}
       >
-        <div className="space-y-6">
+        {/* 2. Top Header */}
+        <DashboardHeader
+          isFocus={isFocusMode}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleMode={() => setIsFocusMode(!isFocusMode)}
+          userFullName={userFullName}
+          workspaceMode={workspaceMode}
+          onToggleWorkspaceMode={handleToggleWorkspace}
+        />
+
+        {/* 3. Main Workspace Content */}
+        <main className="w-full flex-1 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] mx-auto">
+          <div className="space-y-6">
           {/* Hero Section */}
           <ClassHeroSection
             workspaceMode={workspaceMode}
             onToggleWorkspaceMode={(mode) => {
               switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
-              setViewMode(mode === 'faculty' ? 'list' : 'grid');
             }}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
@@ -342,7 +343,6 @@ export function ClassListPageView({
             workspaceMode={workspaceMode}
             onWorkspaceModeChange={(mode) => {
               switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
-              setViewMode(mode === 'faculty' ? 'list' : 'grid');
             }}
             filters={filters}
             onFilterChange={handleFilterUpdate}
@@ -403,12 +403,19 @@ export function ClassListPageView({
                   <div className="h-full w-1/3 bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse rounded-full" />
                 </div>
               )}
-              {/* Class Presentation (Student List View vs Grid / Faculty) */}
+              {/* Class Presentation (Student List View vs Faculty List View vs Grid) */}
               {workspaceMode === 'student' && viewMode === 'list' ? (
                 <StudentClassListView
                   items={items}
                   copiedCode={copiedCode}
                   onCopyCode={handleCopyCode}
+                />
+              ) : workspaceMode === 'faculty' && viewMode === 'list' ? (
+                <FacultyClassListView
+                  items={items}
+                  copiedCode={copiedCode}
+                  onCopyCode={handleCopyCode}
+                  onArchiveClick={(item) => setArchiveTarget(item)}
                 />
               ) : (
                 <ClassCardGrid
@@ -424,7 +431,7 @@ export function ClassListPageView({
             </div>
           )}
 
-          {/* 4. Pagination */}
+          {/* 4. Real Pagination */}
           {!isLoading && !isError && items.length > 0 && (
             <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
               <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -478,6 +485,7 @@ export function ClassListPageView({
           )}
         </div>
       </main>
+      </div>
 
       {/* 6. Modals */}
       <CreateClassModal
@@ -515,7 +523,7 @@ export function ClassListPageView({
 
       {/* 7. Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#1E1F20] text-[#E3E3E3] shadow-2xl border-none text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-2xl border border-slate-700 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
           <span className="material-symbols-outlined text-[18px] text-emerald-400">
             check_circle
           </span>

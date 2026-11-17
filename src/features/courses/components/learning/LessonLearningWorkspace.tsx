@@ -152,7 +152,7 @@ export function LessonLearningWorkspace({
         {/* ======================================================= */}
         {/* 2. CENTER COLUMN: Main Content (Video & Academic Doc)   */}
         {/* ======================================================= */}
-        <div className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
+        <div className="flex-1 min-w-0 overflow-y-auto px-3 sm:px-4 lg:px-6 py-6 flex flex-col gap-8">
           {/* Interactive Video Player */}
           <LessonVideoPlayer instructorName="TS. Lê Hoàng Nam" onToast={showToast} />
 

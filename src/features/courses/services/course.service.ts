@@ -35,9 +35,17 @@ export function saveLocalChapters(courseId: string, chapters: Chapter[]): void {
 }
 
 export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
-  // 1. Check known mock courses
-  if (MOCK_COURSE_DETAILS[courseId]) {
-    return MOCK_COURSE_DETAILS[courseId];
+  const cleanId = decodeURIComponent(courseId || '').trim().toLowerCase();
+
+  // 1. Check known mock courses (flexible lookup by id or code)
+  const matchedKey = Object.keys(MOCK_COURSE_DETAILS).find(
+    (k) =>
+      k.toLowerCase() === cleanId ||
+      MOCK_COURSE_DETAILS[k]?.courseCode?.toLowerCase() === cleanId ||
+      k.toLowerCase().replace('course-', '') === cleanId.replace('course-', '')
+  );
+  if (matchedKey && MOCK_COURSE_DETAILS[matchedKey]) {
+    return MOCK_COURSE_DETAILS[matchedKey];
   }
 
   // 2. Check local class courses created by user
@@ -132,6 +140,8 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
 }
 
 export async function getCourseChapters(courseId: string): Promise<Chapter[]> {
+  const cleanId = decodeURIComponent(courseId || '').trim().toLowerCase();
+
   // 1. Check local storage changes
   const local = getLocalChapters(courseId);
   if (local && local.length > 0) {
@@ -165,8 +175,13 @@ export async function getCourseChapters(courseId: string): Promise<Chapter[]> {
     // API not connected or returned error
   }
 
-  // 3. Fallback to default mock chapters
-  const fallback = DEFAULT_MOCK_CHAPTERS[courseId] || DEFAULT_MOCK_CHAPTERS['course-cs-202'] || [];
+  // 3. Fallback to default mock chapters (flexible matching)
+  const matchedKey = Object.keys(DEFAULT_MOCK_CHAPTERS).find(
+    (k) =>
+      k.toLowerCase() === cleanId ||
+      k.toLowerCase().replace('course-', '') === cleanId.replace('course-', '')
+  );
+  const fallback = (matchedKey && DEFAULT_MOCK_CHAPTERS[matchedKey]) || DEFAULT_MOCK_CHAPTERS['course-cs-202'] || [];
   return fallback;
 }
 
