@@ -21,4 +21,5 @@ export { TeacherExamManagementView } from './components/teacher/TeacherExamManag
 export { TeacherCreateQuizStudioView } from './components/teacher/TeacherCreateQuizStudioView';
 export { TeacherQuizAnalyticsView } from './components/teacher/TeacherQuizAnalyticsView';
 export { TeacherQuestionBankView } from './components/teacher/TeacherQuestionBankView';
+export { AiExamBlueprintStudioModal } from './components/teacher/AiExamBlueprintStudioModal';
 

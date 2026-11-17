@@ -235,7 +235,7 @@ export function TeacherQuestionBankView({
     setIsDarkMode(isDark);
     try {
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    } catch {}
+    } catch { }
     showToast(isDark ? 'Đã bật Chế độ tối' : 'Đã bật Chế độ sáng');
   };
 
@@ -311,7 +311,7 @@ export function TeacherQuestionBankView({
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch {}
+        } catch { }
       }
     }
     return DEFAULT_QUESTIONS;
@@ -328,7 +328,7 @@ export function TeacherQuestionBankView({
           setQuestions(parsed);
           return;
         }
-      } catch {}
+      } catch { }
     }
 
     // Default sample questions for the selected subject
@@ -680,11 +680,11 @@ export function TeacherQuestionBankView({
       options:
         newQType === 'SINGLE_CHOICE'
           ? [
-              { id: 'opt-a', label: 'A', text: newOptA || 'Phương án A', isCorrect: newCorrectOpt === 'A' },
-              { id: 'opt-b', label: 'B', text: newOptB || 'Phương án B', isCorrect: newCorrectOpt === 'B' },
-              { id: 'opt-c', label: 'C', text: newOptC || 'Phương án C', isCorrect: newCorrectOpt === 'C' },
-              { id: 'opt-d', label: 'D', text: newOptD || 'Phương án D', isCorrect: newCorrectOpt === 'D' },
-            ]
+            { id: 'opt-a', label: 'A', text: newOptA || 'Phương án A', isCorrect: newCorrectOpt === 'A' },
+            { id: 'opt-b', label: 'B', text: newOptB || 'Phương án B', isCorrect: newCorrectOpt === 'B' },
+            { id: 'opt-c', label: 'C', text: newOptC || 'Phương án C', isCorrect: newCorrectOpt === 'C' },
+            { id: 'opt-d', label: 'D', text: newOptD || 'Phương án D', isCorrect: newCorrectOpt === 'D' },
+          ]
           : undefined,
       explanation: newQExplanation || 'Giải thích chuẩn từ giảng viên phụ trách học phần.',
       tags: newQTags.split(',').map((t) => t.trim()).filter(Boolean),
@@ -833,9 +833,8 @@ export function TeacherQuestionBankView({
 
       {/* MAIN CONTAINER */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          isFocusMode ? 'pl-0' : isSidebarCollapsed ? 'pl-20' : 'pl-72'
-        }`}
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isFocusMode ? 'pl-0' : isSidebarCollapsed ? 'pl-20' : 'pl-72'
+          }`}
       >
         {/* ========================================================= */}
         {/* 1. TOP HEADER (Thanh điều hướng cố định trên cùng)       */}
@@ -883,11 +882,10 @@ export function TeacherQuestionBankView({
                 setIsFocusMode((prev) => !prev);
                 showToast(isFocusMode ? 'Đã tắt Chế độ Tập trung' : 'Đã bật Chế độ Tập trung');
               }}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors shadow-2xs cursor-pointer ${
-                isFocusMode
-                  ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400'
-                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors shadow-2xs cursor-pointer ${isFocusMode
+                ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400'
+                : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
             >
               <span className="material-symbols-outlined text-[16px] text-slate-500 dark:text-slate-400">
                 {isFocusMode ? 'fullscreen_exit' : 'fullscreen'}
@@ -918,22 +916,20 @@ export function TeacherQuestionBankView({
               <button
                 type="button"
                 onClick={() => setCurrentLang('VI')}
-                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                  currentLang === 'VI'
-                    ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
-                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                }`}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${currentLang === 'VI'
+                  ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                  }`}
               >
                 VI
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentLang('EN')}
-                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                  currentLang === 'EN'
-                    ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
-                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                }`}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${currentLang === 'EN'
+                  ? 'bg-white dark:bg-[#282A2C] text-blue-600 dark:text-blue-400 shadow-2xs'
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                  }`}
               >
                 EN
               </button>
@@ -1040,11 +1036,10 @@ export function TeacherQuestionBankView({
                               setIsCourseDropdownOpen(false);
                               showToast(`Đã chuyển sang lớp: ${label}`);
                             }}
-                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold'
-                                : 'text-slate-700 dark:text-slate-200 font-normal'
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer ${isSelected
+                              ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold'
+                              : 'text-slate-700 dark:text-slate-200 font-normal'
+                              }`}
                           >
                             <div className="flex flex-col truncate pr-2">
                               <span className="truncate">{label}</span>
@@ -1109,11 +1104,10 @@ export function TeacherQuestionBankView({
               <button
                 type="button"
                 onClick={() => setIsBlueprintOpen(!isBlueprintOpen)}
-                className={`p-2 rounded-xl border text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
-                  isBlueprintOpen
-                    ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400'
-                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
-                }`}
+                className={`p-2 rounded-xl border text-xs font-semibold transition-all shadow-2xs cursor-pointer ${isBlueprintOpen
+                  ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400'
+                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  }`}
                 title={isBlueprintOpen ? 'Ẩn Ma trận Bloom' : 'Hiện Ma trận Bloom'}
               >
                 <span className="material-symbols-outlined text-[18px]">view_quilt</span>
@@ -1216,22 +1210,20 @@ export function TeacherQuestionBankView({
                   {/* Course Root */}
                   <div
                     onClick={() => setSelectedChapter('ALL')}
-                    className={`flex items-center justify-between px-2.5 py-2 rounded-xl font-medium text-xs cursor-pointer transition-all ${
-                      selectedChapter === 'ALL'
-                        ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-xl font-medium text-xs cursor-pointer transition-all ${selectedChapter === 'ALL'
+                      ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="material-symbols-outlined text-[16px]">folder_open</span>
                       <span className="truncate">Tất cả chương mục</span>
                     </div>
                     <span
-                      className={`text-[11px] font-mono px-1.5 py-0.2 rounded font-bold ${
-                        selectedChapter === 'ALL'
-                          ? 'bg-white/20 text-white'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                      }`}
+                      className={`text-[11px] font-mono px-1.5 py-0.2 rounded font-bold ${selectedChapter === 'ALL'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        }`}
                     >
                       340
                     </span>
@@ -1248,17 +1240,15 @@ export function TeacherQuestionBankView({
                           <button
                             type="button"
                             onClick={() => setSelectedChapter(chap)}
-                            className={`w-full text-left flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all group ${
-                              isSelected
-                                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                            }`}
+                            className={`w-full text-left flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all group ${isSelected
+                              ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold'
+                              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                              }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  isSelected ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
-                                }`}
+                                className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+                                  }`}
                               />
                               <span className="truncate">{chap}</span>
                             </div>
@@ -1438,11 +1428,10 @@ export function TeacherQuestionBankView({
                             prev.includes(plo) ? prev.filter((p) => p !== plo) : [...prev, plo]
                           );
                         }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-blue-600 text-white shadow-xs'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                        }`}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${isSelected
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                          }`}
                       >
                         <span>{labelMap[plo] || plo}</span>
                         {isSelected && <span className="material-symbols-outlined text-[14px]">check</span>}
@@ -1642,11 +1631,10 @@ export function TeacherQuestionBankView({
                     <button
                       type="button"
                       onClick={() => setViewMode(viewMode === 'CARD' ? 'TABLE' : 'CARD')}
-                      className={`p-2 rounded-xl transition-colors cursor-pointer ${
-                        viewMode === 'CARD'
-                          ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
-                          : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
+                      className={`p-2 rounded-xl transition-colors cursor-pointer ${viewMode === 'CARD'
+                        ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
                       title={viewMode === 'CARD' ? 'Xem dạng bảng' : 'Xem dạng thẻ'}
                     >
                       <span className="material-symbols-outlined text-[20px]">
@@ -1714,11 +1702,10 @@ export function TeacherQuestionBankView({
                     return (
                       <div
                         key={q.id}
-                        className={`bg-white dark:bg-[#1E1F20] rounded-2xl p-5 border transition-all relative overflow-hidden group shadow-xs hover:shadow-sm ${
-                          isSelected
-                            ? 'border-blue-500 ring-1 ring-blue-500/20'
-                            : 'border-slate-200/80 dark:border-[#282A2C] hover:border-slate-300 dark:hover:border-slate-700'
-                        }`}
+                        className={`bg-white dark:bg-[#1E1F20] rounded-2xl p-5 border transition-all relative overflow-hidden group shadow-xs hover:shadow-sm ${isSelected
+                          ? 'border-blue-500 ring-1 ring-blue-500/20'
+                          : 'border-slate-200/80 dark:border-[#282A2C] hover:border-slate-300 dark:hover:border-slate-700'
+                          }`}
                       >
                         {/* Top Card Info Bar */}
                         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -1808,11 +1795,10 @@ export function TeacherQuestionBankView({
                             {q.options.map((opt) => (
                               <div
                                 key={opt.id}
-                                className={`p-2.5 rounded-xl flex items-start gap-2 border transition-all ${
-                                  opt.isCorrect
-                                    ? 'bg-blue-50/70 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60 text-slate-900 dark:text-white font-medium'
-                                    : 'bg-slate-50 dark:bg-[#131314] border-slate-200/60 dark:border-[#282A2C] text-slate-600 dark:text-slate-400'
-                                }`}
+                                className={`p-2.5 rounded-xl flex items-start gap-2 border transition-all ${opt.isCorrect
+                                  ? 'bg-blue-50/70 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60 text-slate-900 dark:text-white font-medium'
+                                  : 'bg-slate-50 dark:bg-[#131314] border-slate-200/60 dark:border-[#282A2C] text-slate-600 dark:text-slate-400'
+                                  }`}
                               >
                                 {opt.isCorrect ? (
                                   <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 mt-0.5 shrink-0">
@@ -2290,11 +2276,10 @@ export function TeacherQuestionBankView({
                 {previewingQuestion.options.map((opt) => (
                   <div
                     key={opt.id}
-                    className={`p-3 rounded-xl border flex items-start gap-2 ${
-                      opt.isCorrect
-                        ? 'bg-blue-50/80 dark:bg-blue-950/60 border-blue-300 text-blue-900 dark:text-blue-200 font-semibold'
-                        : 'bg-slate-50 dark:bg-[#131314] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
-                    }`}
+                    className={`p-3 rounded-xl border flex items-start gap-2 ${opt.isCorrect
+                      ? 'bg-blue-50/80 dark:bg-blue-950/60 border-blue-300 text-blue-900 dark:text-blue-200 font-semibold'
+                      : 'bg-slate-50 dark:bg-[#131314] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                      }`}
                   >
                     <span>{opt.label}.</span>
                     <span>{opt.text}</span>

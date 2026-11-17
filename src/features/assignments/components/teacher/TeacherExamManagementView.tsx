@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { TeacherCreateQuizStudioView } from './TeacherCreateQuizStudioView';
+import { AiExamBlueprintStudioModal } from './AiExamBlueprintStudioModal';
 import { useClasses } from '@/features/classes/hooks/useClasses';
 import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
 import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
@@ -21,6 +23,7 @@ import {
   useProctorSessions,
 } from '../../hooks/useQuizzes';
 import { determineQuizLifecycle } from '../../services/quiz.service';
+import { quizKeys } from '../../constants';
 import {
   getSubjectInfoForClass,
   getMockExamsForSubject,
@@ -71,6 +74,9 @@ export function TeacherExamManagementView({
 }: TeacherExamManagementViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
+  const [isBlueprintStudioOpen, setIsBlueprintStudioOpen] = useState(false);
 
   // View Mode: 'list' (Exam & Quiz Management) or 'create' (Quiz Studio Builder)
   const [viewMode, setViewMode] = useState<'list' | 'create'>(() => {
@@ -535,32 +541,11 @@ export function TeacherExamManagementView({
 
                 <button
                   type="button"
-                  disabled={generateAiMutation.isPending}
-                  onClick={() => {
-                    showToast('Đang gọi AI Blueprint bóc tách ma trận câu hỏi...');
-                    generateAiMutation.mutate(
-                      {
-                        classId: currentClassOption.id,
-                        prompt: `Bóc tách đề thi ma trận môn ${currentClassOption.title || currentClassOption.code} theo chuẩn Bloom 1-4`,
-                        questionCount: 20,
-                      },
-                      {
-                        onSuccess: (data) => {
-                          showToast(`Đã sinh thành công đề thi AI Blueprint: ${data.title}!`);
-                        },
-                      }
-                    );
-                  }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                  onClick={() => setIsBlueprintStudioOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {generateAiMutation.isPending ? 'sync' : 'auto_awesome'}
-                  </span>
-                  <span>
-                    {generateAiMutation.isPending
-                      ? 'Đang sinh đề AI...'
-                      : 'Tạo đề bằng AI (Exam Blueprint)'}
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                  <span>Tạo đề bằng AI (Exam Blueprint)</span>
                 </button>
 
                 <button
@@ -1500,6 +1485,21 @@ export function TeacherExamManagementView({
         </div>
       </main>
     </div>
+
+      {/* AI Exam Blueprint Studio Modal */}
+      <AiExamBlueprintStudioModal
+        isOpen={isBlueprintStudioOpen}
+        onClose={() => setIsBlueprintStudioOpen(false)}
+        currentClassOption={currentClassOption}
+        classDropdownOptions={classDropdownOptions}
+        onClassChange={(newClassId) => {
+          setSelectedClassId(newClassId);
+        }}
+        onExamCreated={() => {
+          queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+          showToast('Đã sinh đề thi AI Blueprint thành công vào lớp học!');
+        }}
+      />
 
       {/* Floating Toast Notification */}
       {toastMessage && (
