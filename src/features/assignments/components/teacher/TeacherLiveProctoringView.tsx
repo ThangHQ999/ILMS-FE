@@ -33,7 +33,28 @@ export function TeacherLiveProctoringView({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Course Selector
-  const [selectedCourse, setSelectedCourse] = useState('CS-202: Mạng máy tính & Truyền thông (HK II - 2024)');
+  const [selectedCourse, setSelectedCourse] = useState('INT2022: Giải tích 2 (HK II - 2024)');
+
+  const { data: classesData } = useClasses();
+
+  const availableClasses = useMemo(() => {
+    const list = classesData?.items || [];
+    const merged = [...list, ...DEFAULT_FACULTY_CLASSES];
+    const seen = new Set<string>();
+    const options: Array<{ id: string; label: string }> = [];
+
+    for (const c of merged) {
+      const code = c.code || c.classCode || c.name || String(c.id);
+      const title = c.title || c.name || '';
+      const label = title && !title.includes(code) ? `${code}: ${title}` : code;
+      const key = label.toLowerCase().trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        options.push({ id: String(c.id), label });
+      }
+    }
+    return options;
+  }, [classesData]);
 
   // Pre-flight Checklist State (Interactive)
   const [checklist, setChecklist] = useState([
@@ -143,9 +164,50 @@ export function TeacherLiveProctoringView({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 mt-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white shrink-0">
                     Phòng Giám sát Thi Trực tuyến
                   </h1>
+
+                  {/* Course / Class Selector Dropdown placed right next to the title */}
+                  <div className="relative">
+                    <select
+                      value={selectedCourse}
+                      onChange={(e) => {
+                        setSelectedCourse(e.target.value);
+                        showToast(`Đã chuyển sang lớp: ${e.target.value}`);
+                      }}
+                      className="appearance-none bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-slate-800 dark:text-white text-xs font-semibold pl-3 pr-8 py-2 rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+                    >
+                      {availableClasses.map((c) => (
+                        <option key={c.id} value={c.label}>
+                          {c.label}
+                        </option>
+                      ))}
+                      {!availableClasses.some((c) => c.label.includes('INT2022')) && (
+                        <option value="INT2022: Giải tích 2 (HK II - 2024)">
+                          INT2022: Giải tích 2 (HK II - 2024)
+                        </option>
+                      )}
+                      {!availableClasses.some((c) => c.label.includes('CS-202')) && (
+                        <option value="CS-202: Mạng máy tính & Truyền thông (HK II - 2024)">
+                          CS-202: Mạng máy tính &amp; Truyền thông (HK II - 2024)
+                        </option>
+                      )}
+                      {!availableClasses.some((c) => c.label.includes('INT-1340')) && (
+                        <option value="INT-1340: Cấu trúc dữ liệu & Giải thuật">
+                          INT-1340: Cấu trúc dữ liệu &amp; Giải thuật
+                        </option>
+                      )}
+                      {!availableClasses.some((c) => c.label.includes('CS-301')) && (
+                        <option value="CS-301: Cơ sở dữ liệu">
+                          CS-301: Cơ sở dữ liệu
+                        </option>
+                      )}
+                    </select>
+                    <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
+                      arrow_drop_down
+                    </span>
+                  </div>
 
                   {/* Mode Badge based on current state */}
                   {proctorState === 'idle' ? (
@@ -199,31 +261,6 @@ export function TeacherLiveProctoringView({
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                     <span>Đang thi Live (3 Ca)</span>
                   </button>
-                </div>
-
-                {/* Course Selector Dropdown */}
-                <div className="relative">
-                  <select
-                    value={selectedCourse}
-                    onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="appearance-none bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-slate-800 dark:text-white text-xs font-medium pl-3 pr-8 py-2 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
-                  >
-                    <option value="CS-202: Mạng máy tính & Truyền thông (HK II - 2024)">
-                      CS-202: Mạng máy tính &amp; Truyền thông (HK II - 2024)
-                    </option>
-                    <option value="INT2022: Giải tích 2 (HK II - 2024)">
-                      INT2022: Giải tích 2 (HK II - 2024)
-                    </option>
-                    <option value="INT-1340: Cấu trúc dữ liệu & Giải thuật">
-                      INT-1340: Cấu trúc dữ liệu &amp; Giải thuật
-                    </option>
-                    <option value="CS-301: Cơ sở dữ liệu">
-                      CS-301: Cơ sở dữ liệu
-                    </option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                    arrow_drop_down
-                  </span>
                 </div>
 
                 <button
