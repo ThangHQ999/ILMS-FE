@@ -255,6 +255,7 @@ export function TeacherCreateQuizStudioView({
 
   // Dynamic Questions Studio State
   const [questions, setQuestions] = useState<StudioQuestionItem[]>(subjectInfo.sampleQuestions);
+  const [jumpQuestionInput, setJumpQuestionInput] = useState<string>('');
 
   // Right Panel Settings State
   const [durationMinutes, setDurationMinutes] = useState('30');
@@ -409,6 +410,30 @@ export function TeacherCreateQuizStudioView({
     };
     setQuestions((prev) => [...prev, newQuestion]);
     showToast(`Đã thêm câu hỏi số ${nextIndex} vào đề thi`);
+  };
+
+  // Handler for Jump to Question
+  const handleJumpToQuestion = (targetNum?: number) => {
+    const qNum = targetNum !== undefined ? targetNum : parseInt(jumpQuestionInput, 10);
+    if (!qNum || isNaN(qNum) || qNum < 1) {
+      showToast('Vui lòng nhập số thứ tự câu hỏi hợp lệ!');
+      return;
+    }
+
+    const targetElement =
+      (document.querySelector(`[data-question-number="${qNum}"]`) as HTMLElement) ||
+      document.getElementById(`question-card-${qNum}`) ||
+      (document.querySelector(`[data-question-number="${qNum - 1}"]`) as HTMLElement);
+
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetElement.classList.add('ring-2', 'ring-blue-500', 'shadow-xl', 'dark:ring-blue-400');
+      setTimeout(() => {
+        targetElement.classList.remove('ring-2', 'ring-blue-500', 'shadow-xl', 'dark:ring-blue-400');
+      }, 1800);
+    } else {
+      showToast(`Không tìm thấy câu hỏi số ${qNum}! (Đề hiện có ${questions.length} câu)`);
+    }
   };
 
   const handleDeleteQuestion = (questionId: string) => {
@@ -1307,13 +1332,57 @@ export function TeacherCreateQuizStudioView({
                       <span>Ngân hàng khoa (450 câu)</span>
                     </button>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs px-2">
+                {/* THANH ĐIỀU HƯỚNG & NHẢY NHANH ĐẾN CÂU HỎI (JUMP TO QUESTION BAR) */}
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 mb-4 shadow-xs">
+                  {/* Cụm bên trái: Nhập số câu để nhảy đến */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium text-[13px]">
+                      <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-sky-400">
+                        pin_drop
+                      </span>
+                      <span>Đến câu:</span>
+                    </div>
+
+                    {/* Ô nhập số nhỏ gọn (kích thước ~48px) */}
+                    <input
+                      type="number"
+                      id="jump-question-input"
+                      min={1}
+                      max={Math.max(questions.length, 1)}
+                      placeholder="1"
+                      value={jumpQuestionInput}
+                      onChange={(e) => setJumpQuestionInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleJumpToQuestion();
+                        }
+                      }}
+                      className="w-12 h-8 px-1.5 text-center font-bold text-[13.5px] rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+
+                    {/* Nút thực hiện nhảy */}
+                    <button
+                      type="button"
+                      id="btn-jump-question"
+                      onClick={() => handleJumpToQuestion()}
+                      className="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[12px] shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer"
+                    >
+                      <span>Đi</span>
+                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    </button>
+                  </div>
+
+                  {/* Cụm bên phải: Thống kê số lượng câu & Chuẩn hóa ma trận */}
+                  <div className="flex items-center gap-2 text-[13px] text-slate-600 dark:text-slate-300">
                     <span>
-                      Tổng: <strong className="text-[#171c1f] dark:text-white">{questions.length} câu</strong> ({totalPoints.toFixed(1)} điểm)
+                      Tổng: <strong className="text-slate-900 dark:text-white font-bold" id="total-questions-count">{questions.length} câu</strong> ({totalPoints.toFixed(1)} điểm)
                     </span>
-                    <span>•</span>
-                    <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[15px]">check_circle</span>
                       Đạt chuẩn 100% Ma trận
                     </span>
                   </div>
@@ -1322,11 +1391,14 @@ export function TeacherCreateQuizStudioView({
                 {/* DYNAMIC QUESTIONS LIST */}
                 {questions.map((q, qIndex) => {
                   const correctOption = q.options.find((opt) => opt.isCorrect)?.label || 'A';
+                  const displayOrder = q.orderIndex || qIndex + 1;
 
                   return (
                     <div
                       key={q.id}
-                      className="bg-white dark:bg-[#1E1F20] rounded-xl shadow-sm p-5 sm:p-6 flex flex-col gap-4 relative border border-slate-200/80 dark:border-[#282A2C] overflow-hidden transition-all"
+                      id={`question-card-${displayOrder}`}
+                      data-question-number={displayOrder}
+                      className="question-card bg-white dark:bg-[#1E1F20] rounded-xl shadow-sm p-5 sm:p-6 flex flex-col gap-4 relative border border-slate-200/80 dark:border-[#282A2C] overflow-hidden transition-all duration-300"
                     >
                       {/* Top Accent Indicator Bar */}
                       <div
