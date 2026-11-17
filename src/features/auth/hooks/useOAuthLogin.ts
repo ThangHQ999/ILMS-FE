@@ -24,10 +24,12 @@ export function useOAuthLogin() {
       }
 
       // Fallback to direct redirect endpoint if no URL returned
-      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login`;
+      const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
+      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login${originQuery}`;
     } catch {
       // Fallback to server-side redirect
-      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login`;
+      const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
+      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login${originQuery}`;
     }
   };
 
