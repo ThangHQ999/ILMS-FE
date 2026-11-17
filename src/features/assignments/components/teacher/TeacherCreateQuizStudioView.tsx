@@ -26,6 +26,8 @@ import type {
   QuestionResponseDTO,
   QuestionRequestDTO,
 } from '../../schemas/quiz.schema';
+import { AiRagQuestionGeneratorModal } from './AiRagQuestionGeneratorModal';
+import { ImportWordExcelModal } from './ImportWordExcelModal';
 
 export interface StudioOptionItem {
   id: string;
@@ -354,6 +356,24 @@ export function TeacherCreateQuizStudioView({
       status: 'PUBLISHED',
     });
   }, [startTime, endTime]);
+
+  // AI RAG Question Generator Modal State
+  const [isAiRagModalOpen, setIsAiRagModalOpen] = useState(false);
+
+  // Import Word / Excel Modal State
+  const [isImportWordExcelModalOpen, setIsImportWordExcelModalOpen] = useState(false);
+
+  // Handler for Injecting Questions from AI Modal
+  const handleInjectAiQuestions = (newAiQuestions: StudioQuestionItem[]) => {
+    setQuestions((prev) => [...prev, ...newAiQuestions]);
+    showToast(`Đã nạp thành công ${newAiQuestions.length} câu hỏi AI vào đề thi!`);
+  };
+
+  // Handler for Injecting Questions from Word/Excel Import Modal
+  const handleInjectImportedQuestions = (importedQuestions: StudioQuestionItem[]) => {
+    setQuestions((prev) => [...prev, ...importedQuestions]);
+    showToast(`Đã nhập thành công ${importedQuestions.length} câu hỏi từ file vào đề thi!`);
+  };
 
   // Question Bank Modal State
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
@@ -1301,7 +1321,7 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={handleGenerateAiQuestions}
+                      onClick={() => setIsAiRagModalOpen(true)}
                       className="h-9 px-3.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     >
                       <span className="material-symbols-outlined text-[18px] text-purple-600 dark:text-purple-400">
@@ -1312,7 +1332,7 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => setIsImportWordExcelModalOpen(true)}
                       className="h-9 px-3.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px] text-slate-500">
@@ -1768,7 +1788,7 @@ export function TeacherCreateQuizStudioView({
                   {/* AI Generate CTA Button */}
                   <button
                     type="button"
-                    onClick={handleGenerateAiQuestions}
+                    onClick={() => setIsAiRagModalOpen(true)}
                     className="w-full py-2.5 px-4 rounded-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
                   >
                     <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
@@ -2422,6 +2442,26 @@ export function TeacherCreateQuizStudioView({
           </div>
         </div>
       )}
+
+      {/* Modal 1: Sinh câu hỏi bằng AI (AI RAG Question Generator) */}
+      <AiRagQuestionGeneratorModal
+        isOpen={isAiRagModalOpen}
+        onClose={() => setIsAiRagModalOpen(false)}
+        onInjectQuestions={handleInjectAiQuestions}
+        currentQuestionsCount={questions.length}
+        subjectName={subjectInfo.subjectName}
+        subjectCode={activeClass?.code || subjectInfo.defaultQuizCode.split('-')[0] || 'CS-202'}
+      />
+
+      {/* Modal 2: Nhập câu hỏi từ file Word / Excel */}
+      <ImportWordExcelModal
+        isOpen={isImportWordExcelModalOpen}
+        onClose={() => setIsImportWordExcelModalOpen(false)}
+        onImportQuestions={handleInjectImportedQuestions}
+        currentQuestionsCount={questions.length}
+        subjectName={subjectInfo.subjectName}
+        subjectCode={activeClass?.code || subjectInfo.defaultQuizCode.split('-')[0] || 'CS-202'}
+      />
 
       {/* Floating Toast Notification */}
       {toastMessage && (

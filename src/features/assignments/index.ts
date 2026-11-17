@@ -23,4 +23,6 @@ export { TeacherQuizAnalyticsView } from './components/teacher/TeacherQuizAnalyt
 export { TeacherQuestionBankView } from './components/teacher/TeacherQuestionBankView';
 export { AiExamBlueprintStudioModal } from './components/teacher/AiExamBlueprintStudioModal';
 export { TeacherLiveProctoringView } from './components/teacher/TeacherLiveProctoringView';
+export { AiRagQuestionGeneratorModal } from './components/teacher/AiRagQuestionGeneratorModal';
+export { ImportWordExcelModal } from './components/teacher/ImportWordExcelModal';
 
