@@ -52,6 +52,45 @@ export interface StudioQuestionItem {
   diagramData?: string;
 }
 
+const getBankQuestionAnswers = (
+  bq: any
+): { id: string; content: string; isCorrect: boolean }[] => {
+  if (!bq) return [];
+  if (Array.isArray(bq.answers) && bq.answers.length > 0) {
+    return bq.answers.map((ans: any, idx: number) => ({
+      id: ans.id || `ans-${idx}`,
+      content: ans.content || ans.text || '',
+      isCorrect: Boolean(ans.isCorrect),
+    }));
+  }
+
+  if (Array.isArray(bq.options) && bq.options.length > 0) {
+    return bq.options.map((opt: any, idx: number) => ({
+      id: opt.id || `opt-${idx}`,
+      content: opt.text || opt.content || '',
+      isCorrect: Boolean(opt.isCorrect),
+    }));
+  }
+
+  const result: { id: string; content: string; isCorrect: boolean }[] = [];
+  const correct = String(bq.correctAnswer || '').trim().toUpperCase();
+
+  if (bq.optionA) result.push({ id: 'a', content: bq.optionA, isCorrect: correct === 'A' });
+  if (bq.optionB) result.push({ id: 'b', content: bq.optionB, isCorrect: correct === 'B' });
+  if (bq.optionC) result.push({ id: 'c', content: bq.optionC, isCorrect: correct === 'C' });
+  if (bq.optionD) result.push({ id: 'd', content: bq.optionD, isCorrect: correct === 'D' });
+  if (bq.optionE) result.push({ id: 'e', content: bq.optionE, isCorrect: correct === 'E' });
+
+  if (result.length > 0) return result;
+
+  return [
+    { id: 'a', content: 'Phương án A', isCorrect: true },
+    { id: 'b', content: 'Phương án B', isCorrect: false },
+    { id: 'c', content: 'Phương án C', isCorrect: false },
+    { id: 'd', content: 'Phương án D', isCorrect: false },
+  ];
+};
+
 const INITIAL_STUDIO_QUESTIONS: StudioQuestionItem[] = [
   {
     id: 'q-init-1',
@@ -659,25 +698,33 @@ export function TeacherCreateQuizStudioView({
 
     const labels: ('A' | 'B' | 'C' | 'D' | 'E' | 'F')[] = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-    const newStudioQuestions: StudioQuestionItem[] = selectedList.map((bq, idx) => ({
-      id: `q-bank-${Date.now()}-${idx}`,
-      bankQuestionId: bq.id,
-      orderIndex: questions.length + idx + 1,
-      type: 'SINGLE_CHOICE',
-      typeLabel: 'Ngân hàng khoa CNTT',
-      bloomLevel: bq.bloomLevel === 'REMEMBER' ? 'Nhận biết • Bloom 1' : bq.bloomLevel === 'APPLY' ? 'Vận dụng • Bloom 3' : 'Thông hiểu • Bloom 2',
-      difficultyLevel: bq.difficultyLevel || 'MEDIUM',
-      points: 1.0,
-      content: bq.content,
-      options: bq.answers.map((ans, aIdx) => ({
-        id: `opt-bank-${Date.now()}-${idx}-${aIdx}`,
-        label: labels[aIdx] || 'A',
-        text: ans.content,
-        isCorrect: ans.isCorrect ?? false,
-      })),
-      explanation: bq.explanation || 'Câu hỏi thẩm định từ ngân hàng khoa CNTT.',
-      isCollapsed: false,
-    }));
+    const newStudioQuestions: StudioQuestionItem[] = selectedList.map((bq, idx) => {
+      const answers = getBankQuestionAnswers(bq);
+      return {
+        id: `q-bank-${Date.now()}-${idx}`,
+        bankQuestionId: bq.id,
+        orderIndex: questions.length + idx + 1,
+        type: 'SINGLE_CHOICE',
+        typeLabel: 'Ngân hàng khoa CNTT',
+        bloomLevel:
+          bq.bloomLevel === 'REMEMBER'
+            ? 'Nhận biết • Bloom 1'
+            : bq.bloomLevel === 'APPLY'
+            ? 'Vận dụng • Bloom 3'
+            : 'Thông hiểu • Bloom 2',
+        difficultyLevel: bq.difficultyLevel || 'MEDIUM',
+        points: 1.0,
+        content: bq.content,
+        options: answers.map((ans, aIdx) => ({
+          id: `opt-bank-${Date.now()}-${idx}-${aIdx}`,
+          label: (labels[aIdx] || 'A') as 'A' | 'B' | 'C' | 'D' | 'E' | 'F',
+          text: ans.content,
+          isCorrect: ans.isCorrect ?? false,
+        })),
+        explanation: bq.explanation || 'Câu hỏi thẩm định từ ngân hàng khoa CNTT.',
+        isCollapsed: false,
+      };
+    });
 
     setQuestions((prev) => [...prev, ...newStudioQuestions]);
     setSelectedBankQuestionIds([]);
@@ -723,10 +770,11 @@ export function TeacherCreateQuizStudioView({
       setNewBankOptionD('');
 
       // Tự động thêm luôn vào danh sách câu hỏi đề thi hiện tại
+      const createdAnswers = getBankQuestionAnswers(created);
       handleAddNewQuestion({
         bankQuestionId: created.id,
         content: created.content,
-        options: created.answers.map((a, idx) => ({
+        options: createdAnswers.map((a, idx) => ({
           id: `opt-new-${idx}`,
           label: (['A', 'B', 'C', 'D'][idx] || 'A') as 'A' | 'B' | 'C' | 'D',
           text: a.content,
@@ -2382,7 +2430,7 @@ export function TeacherCreateQuizStudioView({
 
                           {/* Options Preview */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-7 pt-1">
-                            {bq.answers.map((ans, aIdx) => (
+                            {getBankQuestionAnswers(bq).map((ans, aIdx) => (
                               <div
                                 key={ans.id || aIdx}
                                 className={`text-xs p-2 rounded-lg flex items-center gap-2 border ${
