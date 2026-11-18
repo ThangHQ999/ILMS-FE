@@ -47,6 +47,11 @@ export function UserMenuDropdown({
   const [isAccountsOpen, setIsAccountsOpen] = useState(false);
   const [subAccounts, setSubAccounts] = useState<SubAccountItem[]>(defaultSubAccounts);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -94,6 +99,8 @@ export function UserMenuDropdown({
   };
 
   const initials = getInitials(fullName);
+  const displayFullName = isMounted ? fullName : userFullName;
+  const displayInitials = isMounted ? initials : getInitials(userFullName);
 
   // Actions
   const handleLogout = () => {
@@ -139,9 +146,10 @@ export function UserMenuDropdown({
           aria-expanded={isOpen}
           aria-haspopup="true"
           className="relative flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white font-bold text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8C7FA]/40 transition-transform cursor-pointer hover:scale-105 border-none"
-          title={fullName}
+          title={displayFullName}
+          suppressHydrationWarning
         >
-          <span>{initials}</span>
+          <span suppressHydrationWarning>{displayInitials}</span>
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#81C995]" />
         </button>
       ) : (
@@ -152,17 +160,18 @@ export function UserMenuDropdown({
           aria-expanded={isOpen}
           aria-haspopup="true"
           className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors bg-[#F0F4F9] dark:bg-[#1E1F20] text-[#1F1F1F] dark:text-[#E3E3E3] group cursor-pointer border-none shadow-none"
-          title={fullName}
+          title={displayFullName}
+          suppressHydrationWarning
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-              {initials}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs" suppressHydrationWarning>
+              {displayInitials}
             </div>
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
           </div>
           <div className="hidden md:flex flex-col text-left mr-0.5">
-            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]">
-              {fullName}
+            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]" suppressHydrationWarning>
+              {displayFullName}
             </span>
             <span className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium">
               {roleBadge}

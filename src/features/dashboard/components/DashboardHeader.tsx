@@ -26,6 +26,11 @@ const routeMap: Record<string, string> = {
   '/materials': 'Tài liệu & Học liệu',
   '/teacher/materials': 'Tài liệu & Học liệu',
   '/assignments': 'Quản lý Đề thi & Bài tập',
+  '/assignments/create': 'Tạo Quiz mới',
+  '/assignments/create-quiz': 'Tạo Quiz mới',
+  '/assignments/question-bank': 'Ngân hàng câu hỏi',
+  '/assignments/proctoring': 'Giám sát phòng thi',
+  '/question-bank': 'Ngân hàng câu hỏi',
   '/ai-tutor': 'Trợ lý AI Socratic',
   '/timetable': 'Thời khóa biểu theo tuần',
   '/teacher/timetable': 'Thời khóa biểu theo tuần',
@@ -77,6 +82,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
+  const isCreateQuiz = pathname?.startsWith('/assignments/create') || pathname?.startsWith('/assignments/create-quiz');
   const currentPageName = title || getPageTitle(pathname || '');
 
   if (isFocus) {
@@ -139,9 +145,25 @@ export function DashboardHeader({
           <span className="material-symbols-outlined text-[20px]">home</span>
         </Link>
         <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0 font-normal">/</span>
-        <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0 leading-none">
-          {currentPageName}
-        </span>
+        {isCreateQuiz ? (
+          <>
+            <Link
+              href="/assignments"
+              prefetch={true}
+              className="text-gray-500 hover:text-gray-900 dark:text-[#8E918F] dark:hover:text-[#E3E3E3] font-medium transition-colors truncate"
+            >
+              Quản lý Đề thi &amp; Quiz
+            </Link>
+            <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0 font-normal">/</span>
+            <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0 leading-none">
+              Tạo Quiz mới
+            </span>
+          </>
+        ) : (
+          <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0 leading-none">
+            {currentPageName}
+          </span>
+        )}
       </div>
 
       {/* 2. Center: Search Bar */}

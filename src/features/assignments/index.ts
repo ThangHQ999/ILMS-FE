@@ -1,11 +1,13 @@
 export * from './types';
 export * from './constants';
 export * from './services/assignment.service';
+export * from './services/quiz.service';
 export * from './hooks/useAssignments';
 export * from './hooks/useGradeProgress';
 export * from './hooks/useAiRecommendation';
 export * from './hooks/useStudentPerformance';
 export * from './hooks/useClassHubInfo';
+export * from './hooks/useQuizzes';
 export { AssignmentsTabView } from './components/AssignmentsTabView';
 export { ClassCourseMatrixView } from './components/ClassCourseMatrixView';
 export { ClassHubHeader } from './components/ClassHubHeader';
@@ -16,4 +18,12 @@ export { AssignmentUpcomingCluster } from './components/AssignmentUpcomingCluste
 export { GradeWeightsPanel } from './components/GradeWeightsPanel';
 export { SocraticAiMentorPanel } from './components/SocraticAiMentorPanel';
 export { PersonalPerformancePanel } from './components/PersonalPerformancePanel';
+export { TeacherExamManagementView } from './components/teacher/TeacherExamManagementView';
+export { TeacherCreateQuizStudioView } from './components/teacher/TeacherCreateQuizStudioView';
+export { TeacherQuizAnalyticsView } from './components/teacher/TeacherQuizAnalyticsView';
+export { TeacherQuestionBankView } from './components/teacher/TeacherQuestionBankView';
+export { AiExamBlueprintStudioModal } from './components/teacher/AiExamBlueprintStudioModal';
+export { TeacherLiveProctoringView } from './components/teacher/TeacherLiveProctoringView';
+export { AiRagQuestionGeneratorModal } from './components/teacher/AiRagQuestionGeneratorModal';
+export { ImportWordExcelModal } from './components/teacher/ImportWordExcelModal';
 
