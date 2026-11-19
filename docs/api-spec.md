@@ -9,7 +9,7 @@
 ## 1. Quy ước chung (Conventions & Envelope)
 
 ### 1.1. Base URL & Protocol
-- **Base URL:** Biến môi trường `NEXT_PUBLIC_API_URL` (Mặc định môi trường dev: `http://localhost:8080/api/v1`).
+- **Base URL:** Biến môi trường `NEXT_PUBLIC_API_URL` (Mặc định môi trường dev: `https://api.ilms.page/api/v1`).
 - **Format:** `application/json; charset=UTF-8` (Ngoại trừ các endpoint Upload/Tải file dùng `multipart/form-data` hoặc download stream).
 - **Mã định danh (ID):** UUID v4 dạng chuỗi chuẩn 36 ký tự (Ví dụ: `3fa85f64-5717-4562-b3fc-2c963f66afa6`).
 - **Thời gian (Date/Time):** Chuỗi ISO-8601 UTC (`yyyy-MM-dd'T'HH:mm:ss.SSS'Z'`).
