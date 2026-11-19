@@ -132,10 +132,10 @@ export function DashboardHeader({
     <header
       className={`fixed top-0 ${
         isSidebarCollapsed ? 'left-[72px]' : 'left-64'
-      } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-6 sm:px-8 flex items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
+      } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
     >
       {/* 1. Left: Breadcrumb */}
-      <div className="flex items-center gap-1.5 shrink-0 flex-nowrap select-none">
+      <div className="flex items-center gap-1.5 min-w-0 shrink select-none">
         <Link
           href="/dashboard"
           prefetch={true}
@@ -144,7 +144,7 @@ export function DashboardHeader({
         >
           <span className="material-symbols-outlined text-[20px]">home</span>
         </Link>
-        <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0 font-normal">/</span>
+        <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0 font-normal text-sm">/</span>
         {isCreateQuiz ? (
           <>
             <Link
@@ -160,25 +160,28 @@ export function DashboardHeader({
             </span>
           </>
         ) : (
-          <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0 leading-none">
+          <span
+            className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans truncate whitespace-nowrap min-w-0 leading-none"
+            title={currentPageName}
+          >
             {currentPageName}
           </span>
         )}
       </div>
 
       {/* 2. Center: Search Bar */}
-      <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md mx-3 sm:mx-6 min-w-0">
-        <div className="relative flex items-center">
+      <div className="flex-1 max-w-xs sm:max-w-sm lg:max-w-md mx-2 sm:mx-4 lg:mx-6 min-w-0">
+        <div className="relative flex items-center w-full">
           <span className="material-symbols-outlined absolute left-4 text-[20px] text-[#747775] dark:text-[#8E918F]">
             search
           </span>
           <input
-            className="w-full h-10 pl-11 pr-20 bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 focus:bg-white dark:focus:bg-[#282A2C] transition-all border-none"
+            className="w-full h-10 pl-11 pr-16 sm:pr-20 bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] placeholder:text-[#747775] dark:placeholder:text-[#8E918F] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 focus:bg-white dark:focus:bg-[#282A2C] transition-all border-none"
             placeholder={t('searchPlaceholder')}
             type="text"
             aria-label={t('searchPlaceholder')}
           />
-          <div className="absolute right-3 flex items-center pointer-events-none">
+          <div className="absolute right-3 hidden sm:flex items-center pointer-events-none">
             <kbd className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5]">
               Ctrl K
             </kbd>

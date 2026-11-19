@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useCurrentUser, useLogout } from '@/features/auth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
+import { isPreviewModeEnabled, setPreviewMode } from '@/lib/preview';
 import { SubAccountItem } from '../types';
 
 interface UserMenuDropdownProps {
@@ -83,12 +84,14 @@ export function UserMenuDropdown({
     };
   }, [isOpen]);
 
+  const effectiveUser = isMounted ? currentUser : null;
+
   const fullName =
-    currentUser?.firstName || currentUser?.lastName
-      ? `${currentUser.lastName || ''} ${currentUser.firstName || ''}`.trim()
+    effectiveUser?.firstName || effectiveUser?.lastName
+      ? `${effectiveUser.lastName || ''} ${effectiveUser.firstName || ''}`.trim()
       : userFullName;
 
-  const email = currentUser?.email || 'nhatminh.edu@gmail.com';
+  const email = effectiveUser?.email || 'nhatminh.edu@gmail.com';
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(/\s+/);
@@ -101,10 +104,20 @@ export function UserMenuDropdown({
   const initials = getInitials(fullName);
   const displayFullName = isMounted ? fullName : userFullName;
   const displayInitials = isMounted ? initials : getInitials(userFullName);
+  const displayRoleBadge = isMounted
+    ? roleBadge
+    : userFullName.includes('TS.') || userFullName.includes('ThS.') || userFullName.includes('Nam')
+    ? 'Giảng viên'
+    : 'Học sinh';
 
   // Actions
   const handleLogout = () => {
     setIsOpen(false);
+    if (isPreviewModeEnabled()) {
+      setPreviewMode(false);
+      router.push('/login');
+      return;
+    }
     performLogout();
   };
 
@@ -164,17 +177,26 @@ export function UserMenuDropdown({
           suppressHydrationWarning
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs" suppressHydrationWarning>
+            <div
+              className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs"
+              suppressHydrationWarning
+            >
               {displayInitials}
             </div>
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
           </div>
           <div className="hidden md:flex flex-col text-left mr-0.5">
-            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]" suppressHydrationWarning>
+            <span
+              className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]"
+              suppressHydrationWarning
+            >
               {displayFullName}
             </span>
-            <span className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium">
-              {roleBadge}
+            <span
+              className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium"
+              suppressHydrationWarning
+            >
+              {displayRoleBadge}
             </span>
           </div>
           <span
@@ -205,7 +227,10 @@ export function UserMenuDropdown({
           {/* 1. User Profile Header with Large Avatar & Pro Badge */}
           <div className="p-6 flex flex-col items-center text-center bg-white dark:bg-[#1E1F20]">
             <div className="relative mb-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-none">
+              <div
+                className="w-16 h-16 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-none"
+                suppressHydrationWarning
+              >
                 {initials}
               </div>
               <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#0D652D] dark:bg-[#81C995] flex items-center justify-center text-white">
@@ -214,14 +239,20 @@ export function UserMenuDropdown({
             </div>
 
             <div className="flex items-center gap-1.5 justify-center mb-1">
-              <h3 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight">
+              <h3
+                className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight"
+                suppressHydrationWarning
+              >
                 {fullName}
               </h3>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none">
-                {roleBadge}
+              <span
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none"
+                suppressHydrationWarning
+              >
+                {displayRoleBadge}
               </span>
             </div>
-            <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3">{email}</p>
+            <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3" suppressHydrationWarning>{email}</p>
 
             {/* Role Switcher for previewing teacher vs student view */}
             <div className="w-full mb-3">
@@ -379,7 +410,7 @@ export function UserMenuDropdown({
               <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#B3261E] dark:group-hover:text-[#F28B82] transition-colors">
                 logout
               </span>
-              <span>{t('logout')}</span>
+              <span>{isMounted && isPreviewModeEnabled() ? 'Thoát chế độ Xem trước' : t('logout')}</span>
             </button>
           </div>
 
