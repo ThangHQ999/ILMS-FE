@@ -6,3 +6,5 @@ package-lock.json
 *.tsbuildinfo
 impeccable
 ui-ux-pro-max
+# Keep Markdown reports local
+/reports/**/*.md
