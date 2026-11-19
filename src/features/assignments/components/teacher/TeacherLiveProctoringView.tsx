@@ -40,18 +40,30 @@ export function TeacherLiveProctoringView({
   const availableClasses = useMemo(() => {
     const list = classesData?.items || [];
     const merged = [...list, ...DEFAULT_FACULTY_CLASSES];
-    const seen = new Set<string>();
+    const seenIds = new Set<string>();
+    const seenCodes = new Set<string>();
+    const seenLabels = new Set<string>();
     const options: Array<{ id: string; label: string }> = [];
 
     for (const c of merged) {
-      const code = c.code || c.classCode || c.name || String(c.id);
-      const title = c.title || c.name || '';
+      if (!c) continue;
+      const id = String(c.id || '').trim();
+      const code = (c.code || c.classCode || c.name || id).trim();
+      const title = (c.title || c.name || '').trim();
       const label = title && !title.includes(code) ? `${code}: ${title}` : code;
-      const key = label.toLowerCase().trim();
-      if (!seen.has(key)) {
-        seen.add(key);
-        options.push({ id: String(c.id), label });
+      const idKey = id.toLowerCase();
+      const codeKey = code.toUpperCase();
+      const labelKey = label.toLowerCase().trim();
+
+      // Skip duplicate IDs, duplicate codes, or duplicate labels
+      if ((idKey && seenIds.has(idKey)) || (codeKey && seenCodes.has(codeKey)) || seenLabels.has(labelKey)) {
+        continue;
       }
+
+      if (idKey) seenIds.add(idKey);
+      if (codeKey) seenCodes.add(codeKey);
+      seenLabels.add(labelKey);
+      options.push({ id: id || `class-${options.length}`, label });
     }
     return options;
   }, [classesData]);
@@ -178,8 +190,8 @@ export function TeacherLiveProctoringView({
                       }}
                       className="appearance-none bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-[#282A2C] text-slate-800 dark:text-white text-xs font-semibold pl-3 pr-8 py-2 rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
                     >
-                      {availableClasses.map((c) => (
-                        <option key={c.id} value={c.label}>
+                      {availableClasses.map((c, idx) => (
+                        <option key={`${c.id}-${idx}`} value={c.label}>
                           {c.label}
                         </option>
                       ))}
