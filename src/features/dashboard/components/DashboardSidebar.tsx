@@ -44,7 +44,7 @@ export function DashboardSidebar({
 
   // Active route matching (includes teammate routes: /courses, /competency, /timetable)
   const isOverviewActive = pathname === '/dashboard';
-  const isClassesActive =
+const isClassesActive =
     (pathname.startsWith('/classes') || pathname.startsWith('/courses')) &&
     !pathname.includes('discussions') &&
     !pathname.includes('assignments');

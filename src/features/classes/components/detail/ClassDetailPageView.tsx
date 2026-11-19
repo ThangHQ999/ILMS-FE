@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useUserRole } from '@/hooks/useUserRole';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
@@ -11,14 +11,25 @@ import { useClassDetail } from '../../hooks/useClassDetail';
 import type { ClassCourse, ClassMember } from '../../schemas/class-detail.schema';
 import { ClassDetailBanner } from './ClassDetailBanner';
 import { ClassSubjectsTab } from './ClassSubjectsTab';
-import { ClassGradebookTab } from './ClassGradebookTab';
+import { TeacherGradeReportsTableView } from './TeacherGradeReportsTableView';
 import { ClassAnnouncementsTab } from './ClassAnnouncementsTab';
 import { ClassMembersTab } from './ClassMembersTab';
 import { ClassSettingsTab } from './ClassSettingsTab';
 import { ClassMaterialsTab } from './ClassMaterialsTab';
 import { ClassStreamTab } from './ClassStreamTab';
-import { ClassAssignmentsTab } from './ClassAssignmentsTab';
-import { ClassAnalyticsSettingsTab } from './ClassAnalyticsSettingsTab';
+import { StudentGradeReportView } from './StudentGradeReportView';
+import {
+  StudentAssignmentsTableView,
+  StudentExamDetailView,
+  TeacherAssignmentsTableView,
+  TeacherCreateAssignmentFormView,
+  TeacherEditAssignmentFormView,
+  TeacherCreateExamFormView,
+  TeacherEditExamFormView,
+  TeacherExamDetailView,
+  useClassAssignmentsWithSubmissions,
+  evaluateCanManageClassExams,
+} from '@/features/assignments';
 import {
   RemoveSubjectModal,
   ArchiveModal,
@@ -34,61 +45,102 @@ interface ClassDetailPageViewProps {
   userFullName?: string;
 }
 
+const VALID_CLASS_TABS = [
+  'stream',
+  'overview',
+  'subjects',
+  'assignments',
+  'announcements',
+  'people',
+  'members',
+  'gradebook',
+  'materials',
+  'settings',
+] as const;
+type ClassTabId = (typeof VALID_CLASS_TABS)[number];
+
 export function ClassDetailPageView({
   classId,
   userFullName = 'TS. Lê Hoàng Nam',
 }: ClassDetailPageViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations('classes.detail');
 
   // Global user role hook (real-time reactive across app)
-  const { activeRole, switchRole } = useUserRole();
+  const { user: currentUser, activeRole, switchRole, isLoading: isUserRoleLoading } = useUserRole();
 
   // Shell Layout State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Class detail state: synchronize with global activeRole
-  const [activeTab, setActiveTab] = useState('stream');
-  const [localTeacherRole, setLocalTeacherRole] = useState<'teacher' | 'owner'>('teacher');
+  // Local teacher sub-role state
+  const [localTeacherRole, setLocalTeacherRole] = useState<'teacher' | 'owner'>('owner');
 
   // Compute effectiveRole synchronously during render:
-  // When activeRole is STUDENT, effectiveRole is GUARANTEED to be 'student' (zero lag / no F5)
+  // When activeRole is STUDENT, effectiveRole is GUARANTEED to be 'student'
   // When activeRole is TEACHER, effectiveRole is localTeacherRole ('teacher' or 'owner')
   const effectiveRole: 'student' | 'teacher' | 'owner' =
     activeRole === 'STUDENT' ? 'student' : localTeacherRole;
 
+  const isStudent = effectiveRole === 'student';
+  const isClassManager = !isStudent;
+
+  // Class detail state: synchronize tab with query param
+  const tabFromQuery = searchParams.get('tab');
+  const isValidQueryTab = Boolean(
+    tabFromQuery && VALID_CLASS_TABS.includes(tabFromQuery as ClassTabId)
+  );
+  const [activeTab, setActiveTab] = useState<string>(
+    isValidQueryTab ? (tabFromQuery as string) : 'stream'
+  );
+
+  useEffect(() => {
+    if (tabFromQuery && VALID_CLASS_TABS.includes(tabFromQuery as ClassTabId)) {
+      setActiveTab(tabFromQuery);
+    }
+  }, [tabFromQuery]);
+
   // If switched to student while on teacher-only settings tab, redirect to stream tab
   useEffect(() => {
-    if (activeRole === 'STUDENT' && activeTab === 'settings') {
+    if (effectiveRole === 'student' && activeTab === 'settings') {
       setActiveTab('stream');
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', 'stream');
+      router.replace(`/classes/${classId}?${params.toString()}`, { scroll: false });
     }
-  }, [activeRole, activeTab]);
+  }, [effectiveRole, activeTab, classId, router, searchParams]);
 
-  // Socratic AI Tutor popover state
-  const [isAiPopoverOpen, setIsAiPopoverOpen] = useState(false);
-  const [aiChatMessages, setAiChatMessages] = useState<
-    Array<{ sender: 'ai' | 'user'; text: string }>
-  >([
-    {
-      sender: 'ai',
-      text: 'Xin chào! Tôi là Trợ giảng Socratic AI được đồng bộ với đề cương bài giảng của TS. Lê Hoàng Nam. Bạn đang vướng mắc ở phần nào trong Lab 01 hoặc kiến thức TCP/IP hôm nay?',
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      if (!VALID_CLASS_TABS.includes(newTab as ClassTabId)) return;
+      setActiveTab(newTab);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', newTab);
+      if (newTab !== 'assignments') {
+        params.delete('page');
+        params.delete('search');
+        params.delete('action');
+        params.delete('assignmentId');
+        params.delete('examId');
+      } else {
+        // If clicking assignments tab explicitly, clear action to return to list view
+        params.delete('action');
+      }
+      router.replace(`/classes/${classId}?${params.toString()}`, { scroll: false });
     },
-  ]);
-  const [aiInputText, setAiInputText] = useState('');
+    [classId, router, searchParams]
+  );
 
-  const handleAskAi = (question: string) => {
-    setAiChatMessages((prev) => [
-      ...prev,
-      { sender: 'user', text: question },
-      {
-        sender: 'ai',
-        text: question.includes('TCP')
-          ? 'TCP cần 3 bước bắt tay (SYN, SYN-ACK, ACK) để cả hai bên Máy khách và Máy chủ cùng xác nhận được khả năng Gửi và Nhận của nhau, đồng thời đồng bộ hóa số thứ tự Sequence Number ngẫu nhiên ban đầu (ISN), ngăn chặn các gói tin trùng lặp cũ từ phiên trước gây nhầm lẫn.'
-          : 'Thuật toán Dijkstra tìm cây đường đi ngắn nhất (SPF Tree) từ một router gốc đến toàn bộ mạng. Mỗi router chạy Dijkstra độc lập dựa trên cơ sở dữ liệu trạng thái liên kết (LSDB) nhận được từ các gói LSA trong vùng OSPF.',
-      },
-    ]);
-  };
+  const actionParam = searchParams.get('action');
+  const subtabParam = searchParams.get('subtab');
+
+  const isCreateAssignment =
+    activeTab === 'assignments' && actionParam === 'create' && subtabParam !== 'exams';
+  const isCreateExam =
+    activeTab === 'assignments' &&
+    (actionParam === 'create-exam' || (actionParam === 'create' && subtabParam === 'exams'));
+  const isCreateForm = isClassManager && (isCreateAssignment || isCreateExam);
 
   // Modals state
   const [removeTarget, setRemoveTarget] = useState<ClassCourse | null>(null);
@@ -101,12 +153,9 @@ export function ClassDetailPageView({
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2800);
   }, []);
 
-  // Data fetching hook
+  // Fetch Class Detail via TanStack Query
   const {
     data,
     isLoading,
@@ -120,53 +169,14 @@ export function ClassDetailPageView({
   } = useClassDetail(classId);
 
   const classInfo = data?.classInfo;
+  const resolvedClassId = classInfo?.id || classId;
+  const { assignments: classAssignmentsList } = useClassAssignmentsWithSubmissions(resolvedClassId);
+  const totalClassAssignmentsCount = classAssignmentsList?.length ?? 0;
+
   const courses = data?.courses || [];
   const announcements = data?.announcements || [];
-  const gradebookStudents = data?.gradebookStudents || [];
-  const gradebookAi = data?.gradebookAi || {
-    averageScore: 7.92,
-    ploPassRate: 88.1,
-    ploPassedCount: 37,
-    totalStudents: 42,
-    gradingProgress: '14/16',
-    gradingPercent: 95.8,
-    earlyInterventionCount: 3,
-    distribution: {
-      gradeA: { percent: 28, count: 12 },
-      gradeB: { percent: 45, count: 19 },
-      gradeC: { percent: 20, count: 8 },
-      gradeDF: { percent: 7, count: 3 },
-    },
-    recommendedTopic: 'Cây phân đoạn & Dijkstra',
-    recommendedDescription: 'Đang tải phân tích phổ điểm...',
-  };
   const members = data?.members || [];
   const materials = data?.materials || [];
-
-  const handleCopyCode = () => {
-    const code = classInfo?.enrollmentKey || classInfo?.name || classId;
-    navigator.clipboard.writeText(code).catch(() => {});
-    showToast(`Đã sao chép mã lớp "${code}" vào bộ nhớ tạm!`);
-  };
-
-  const handleRoleChange = (newRole: 'student' | 'teacher' | 'owner') => {
-    if (newRole === 'student') {
-      switchRole('STUDENT');
-      if (activeTab === 'settings') {
-        setActiveTab('stream');
-      }
-    } else {
-      setLocalTeacherRole(newRole);
-      switchRole('TEACHER');
-    }
-    showToast(
-      newRole === 'owner'
-        ? 'Đã chuyển sang vai trò: Chủ lớp (Đầy đủ quyền quản trị)'
-        : newRole === 'teacher'
-        ? 'Đã chuyển sang vai trò: Giảng viên (Quyền hạn tinh gọn)'
-        : 'Đã chuyển sang vai trò: Học viên (Giao diện học tập cá nhân)'
-    );
-  };
 
   const handleRemoveSubjectConfirm = (course: ClassCourse) => {
     removeCourseMutation.mutate(course.id, {
@@ -176,7 +186,7 @@ export function ClassDetailPageView({
       },
       onError: () => {
         setRemoveTarget(null);
-        showToast(`Đã gỡ môn học ${course.code} khỏi lớp thành công!`);
+        showToast(`Lỗi khi gỡ môn học ${course.name}!`);
       },
     });
   };
@@ -214,48 +224,204 @@ export function ClassDetailPageView({
     );
   };
 
+  const canManageClassExams = evaluateCanManageClassExams({
+    classId: resolvedClassId,
+    isStudentView: isStudent,
+    isDemoTeacherView: isClassManager,
+    isAuthLoading: isUserRoleLoading,
+    isClassLoading: isLoading,
+    isClassError: isError,
+    isClassInfoLive: data?.isClassInfoLive,
+    isMembersLive: data?.isMembersLive,
+    user: currentUser,
+    classInfo,
+    members,
+  });
+
+  const teacherClassSubtitle =
+    classInfo?.title && classInfo?.name && classInfo.title !== classInfo.name
+      ? `${classInfo.title} (${classInfo.name})`
+      : classInfo?.title || classInfo?.name || '';
+
+  // Synchronize document title with current create form or class view
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (isCreateAssignment) {
+        document.title = `Tạo bài tập | ILMS - ${classInfo?.title || classId}`;
+      } else if (isCreateExam) {
+        document.title = `Tạo bài thi | ILMS - ${classInfo?.title || classId}`;
+      } else if (classInfo?.title) {
+        document.title = `${classInfo.title} | ILMS`;
+      }
+    }
+  }, [isCreateAssignment, isCreateExam, classInfo?.title, classId]);
+
+  const handleCopyCode = () => {
+    const code = classInfo?.enrollmentKey || classInfo?.name || classId;
+    navigator.clipboard.writeText(code).catch(() => {});
+    showToast(`Đã sao chép mã lớp "${code}" vào bộ nhớ tạm!`);
+  };
+
+  const handleRoleChange = (newRole: 'student' | 'teacher' | 'owner') => {
+    if (newRole === 'student') {
+      switchRole('STUDENT');
+      if (activeTab === 'settings') {
+        handleTabChange('stream');
+      }
+    } else {
+      switchRole('TEACHER');
+      setLocalTeacherRole(newRole);
+    }
+    showToast(
+      newRole === 'owner'
+        ? 'Đã chuyển sang vai trò: Chủ lớp (Đầy đủ quyền quản trị)'
+        : newRole === 'teacher'
+        ? 'Đã chuyển sang vai trò: Giảng viên (Quyền hạn tinh gọn)'
+        : 'Đã chuyển sang vai trò: Học viên (Giao diện học tập cá nhân)'
+    );
+  };
+
+  // Socratic AI Tutor popover state
+  const [isAiPopoverOpen, setIsAiPopoverOpen] = useState(false);
+  const [aiChatMessages, setAiChatMessages] = useState<
+    Array<{ sender: 'ai' | 'user'; text: string }>
+  >([
+    {
+      sender: 'ai',
+      text: 'Xin chào! Tôi là Trợ giảng Socratic AI được đồng bộ với đề cương bài giảng của TS. Lê Hoàng Nam. Bạn đang vướng mắc ở phần nào trong Lab 01 hoặc kiến thức TCP/IP hôm nay?',
+    },
+  ]);
+  const [aiInputText, setAiInputText] = useState('');
+
+  const handleAskAi = (question: string) => {
+    setAiChatMessages((prev) => [
+      ...prev,
+      { sender: 'user', text: question },
+      {
+        sender: 'ai',
+        text: question.includes('TCP')
+          ? 'TCP cần 3 bước bắt tay (SYN, SYN-ACK, ACK) để cả hai bên Máy khách và Máy chủ cùng xác nhận được khả năng Gửi và Nhận của nhau, đồng thời đồng bộ hóa số thứ tự Sequence Number ngẫu nhiên ban đầu (ISN), ngăn chặn các gói tin trùng lặp cũ từ phiên trước gây nhầm lẫn.'
+          : 'Thuật toán Dijkstra tìm cây đường đi ngắn nhất (SPF Tree) từ một router gốc đến toàn bộ mạng. Mỗi router chạy Dijkstra độc lập dựa trên cơ sở dữ liệu trạng thái liên kết (LSDB) nhận được từ các gói LSA trong vùng OSPF.',
+      },
+    ]);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
-      {/* 1. App Shell Sidebar */}
+    <div className="min-h-screen bg-[#f8fafe] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased">
+      {/* 1. Left Sidebar Navigation */}
       <DashboardSidebar
         isFocus={isFocusMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        workspaceMode={effectiveRole === 'student' ? 'student' : 'faculty'}
       />
 
-      {/* Main Container offset for Sidebar */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
-          isFocusMode || isSidebarCollapsed ? 'pl-20' : 'pl-72'
+      {/* 2. Top Header with Breadcrumbs & Role Simulator */}
+      <DashboardHeader
+        isFocus={isFocusMode}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleMode={() => setIsFocusMode(!isFocusMode)}
+        userFullName={userFullName}
+        workspaceMode={effectiveRole === 'student' ? 'student' : 'faculty'}
+      />
+
+      {/* 3. Main Workspace Area */}
+      <main
+        className={`flex-1 min-w-0 transition-all duration-300 pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1440px] w-full mx-auto ${
+          isFocusMode
+            ? 'pl-24'
+            : isSidebarCollapsed
+            ? 'pl-24'
+            : 'lg:pl-[284px]'
         }`}
       >
-        {/* 2. Top Header with Breadcrumbs & Role Simulator */}
-        <DashboardHeader
-          isFocus={isFocusMode}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggleMode={() => setIsFocusMode(!isFocusMode)}
-          userFullName={userFullName}
-        />
-
-        {/* 3. Main Workspace Area */}
-        <main className="w-full flex-1 pt-20 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
         {/* Breadcrumbs & Role Switcher Sub-header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 min-w-0">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 min-w-0 flex-wrap">
             <Link
               href="/classes"
-              className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+              className="hover:text-blue-600 dark:hover:text-blue-400 font-semibold flex items-center gap-1 transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px] text-slate-400">
-                arrow_back
-              </span>
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
               <span>{t('backToClasses')}</span>
             </Link>
             <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              {classInfo?.title || classInfo?.name || 'Đang tải thông tin lớp...'}
-            </span>
+            {isCreateAssignment ? (
+              <>
+                <Link
+                  href={`/classes/${classId}?tab=assignments`}
+                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {classInfo?.title || 'Đang tải thông tin lớp...'}
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  Tạo bài tập
+                </span>
+              </>
+            ) : activeTab === 'assignments' && searchParams.get('action') === 'edit' ? (
+              <>
+                <Link
+                  href={`/classes/${classId}?tab=assignments`}
+                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {classInfo?.title || 'Đang tải thông tin lớp...'}
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  Sửa bài tập
+                </span>
+              </>
+            ) : isCreateExam ? (
+              <>
+                <Link
+                  href={`/classes/${classId}?tab=assignments&subtab=exams`}
+                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {classInfo?.title || 'Đang tải thông tin lớp...'}
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  Tạo bài thi
+                </span>
+              </>
+            ) : activeTab === 'assignments' && searchParams.get('action') === 'edit-exam' ? (
+              <>
+                <Link
+                  href={`/classes/${classId}?tab=assignments&subtab=exams`}
+                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {classInfo?.title || 'Đang tải thông tin lớp...'}
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  Sửa bài thi
+                </span>
+              </>
+            ) : activeTab === 'assignments' && searchParams.get('action') === 'exam-detail' ? (
+              <>
+                <Link
+                  href={`/classes/${classId}?tab=assignments&subtab=exams`}
+                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400 truncate flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {classInfo?.title || 'Đang tải thông tin lớp...'}
+                </Link>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  Chi tiết bài thi
+                </span>
+              </>
+            ) : (
+              <span className="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                {classInfo?.title || 'Đang tải thông tin lớp...'}
+              </span>
+            )}
           </div>
 
           {/* Role Simulator Switcher */}
@@ -299,99 +465,98 @@ export function ClassDetailPageView({
           </div>
         </div>
 
+        {/* Sub-Tab Toggle [Bài tập] vs [Bài thi] right under Breadcrumb on Create Assignment & Create Exam screens */}
+        {isCreateForm && (
+          <div className="flex items-center mb-6">
+            <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shadow-xs border border-slate-200/80 dark:border-slate-700/80">
+              <Link
+                href={`/classes/${classId}?tab=assignments&action=create`}
+                className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  !isCreateExam
+                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[17px]">assignment</span>
+                <span>Bài tập</span>
+              </Link>
+              <Link
+                href={`/classes/${classId}?tab=assignments&action=create&subtab=exams`}
+                className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isCreateExam
+                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[17px]">quiz</span>
+                <span>Bài thi</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Loading / Error States */}
         {isLoading ? (
-          <div className="space-y-6 animate-pulse">
-            <div className="h-48 rounded-2xl bg-slate-200 dark:bg-slate-800" />
-            <div className="h-64 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+          <div className="space-y-6">
+            <div className="h-48 rounded-2xl bg-slate-200 dark:bg-slate-850 animate-pulse" />
+            <div className="h-96 rounded-2xl bg-slate-200 dark:bg-slate-850 animate-pulse" />
           </div>
         ) : isError || !classInfo ? (
-          <div className="my-8 p-10 rounded-2xl bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/60 text-center space-y-3">
-            <span className="material-symbols-outlined text-[32px] text-red-500">
-              error_outline
-            </span>
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              Không thể tải thông tin lớp học
-            </p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/40 p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-2xl">error</span>
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {t('errorLoadingClass')}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {t('errorLoadingClassDesc')}
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => refetch()}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
-              Thử lại
+              {t('retryButton')}
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Multi-role Simulator Toggle (Student vs Teacher vs Owner) with 3px border */}
-            <div className="flex items-center justify-between flex-wrap gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <span className="material-symbols-outlined text-[20px] text-blue-600 dark:text-blue-400">
-                  switch_account
-                </span>
-                <span>Mô phỏng đa vai trò trong lớp:</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('student')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    effectiveRole === 'student'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">school</span>
-                  Học viên
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('teacher')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    effectiveRole === 'teacher'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">co_present</span>
-                  Giảng viên
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('owner')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    effectiveRole === 'owner'
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">verified</span>
-                  Chủ sở hữu
-                </button>
-              </div>
-            </div>
-
-            {/* Banner Section */}
-            <ClassDetailBanner
-              classInfo={classInfo}
-              currentRole={effectiveRole}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              subjectsCount={courses.length}
-              instructorsCount={3}
-              onCopyCode={handleCopyCode}
-              onInviteClick={() => setIsInviteOpen(true)}
-              onOpenSettings={() => setActiveTab('settings')}
-              onOpenArchive={() => setIsArchiveOpen(true)}
-              onOpenManageCode={() => setIsInviteOpen(true)}
-            />
+          <div className="space-y-6 min-w-0 w-full">
+            {/* Banner Section: shown on all tabs and assignments list, hidden only when creating or editing an assignment/exam */}
+            {!(
+              activeTab === 'assignments' &&
+              (isCreateAssignment ||
+                isCreateExam ||
+                actionParam === 'edit' ||
+                actionParam === 'edit-exam' ||
+                actionParam === 'exam-detail')
+            ) && (
+              <ClassDetailBanner
+                classInfo={classInfo}
+                currentRole={effectiveRole}
+                canManageClass={isClassManager}
+                isCompact={false}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                subjectsCount={courses.length}
+                assignmentsCount={totalClassAssignmentsCount}
+                instructorsCount={3}
+                onCopyCode={handleCopyCode}
+                onInviteClick={() => setIsInviteOpen(true)}
+                onOpenSettings={() => handleTabChange('settings')}
+                onOpenArchive={() => setIsArchiveOpen(true)}
+                onOpenManageCode={() => setIsInviteOpen(true)}
+              />
+            )}
 
             {/* Content Tab Panes */}
-            {activeTab === 'stream' && (
+            {(activeTab === 'stream' || activeTab === 'overview') && (
               <ClassStreamTab
                 classInfo={classInfo}
                 currentRole={effectiveRole}
-                onNavigateTab={setActiveTab}
+                onNavigateTab={handleTabChange}
                 onOpenCreateAnnouncement={() => setIsCreateAnnouncementOpen(true)}
                 onToast={showToast}
               />
@@ -407,27 +572,142 @@ export function ClassDetailPageView({
                 onAssignTeacherClick={(c) =>
                   showToast(`Mở phân công giảng viên cho môn ${c.code}`)
                 }
-                onToast={showToast}
               />
             )}
 
-            {(activeTab === 'assignments' || activeTab === 'gradebook') && (
-              <ClassAssignmentsTab
-                currentRole={effectiveRole}
-                onToast={showToast}
-                gradebookStudents={gradebookStudents}
-                gradebookAi={gradebookAi}
-                onSendAiSuggestion={() =>
-                  showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 2 học viên cần hỗ trợ!')
-                }
-                onInterveneClick={(s) =>
-                  showToast(`Mở khung hỗ trợ cá nhân hóa cho học viên: ${s.name}`)
-                }
-                initialSubTab={activeTab === 'gradebook' ? 'gradebook' : 'assignments'}
-              />
+            {activeTab === 'assignments' && (
+              isClassManager ? (
+                isCreateAssignment ? (
+                  <TeacherCreateAssignmentFormView
+                    classId={resolvedClassId}
+                    className={classInfo?.name || classInfo?.title || 'CNTT-K22-01'}
+                    onCancel={() => {
+                      router.push(`/classes/${classId}?tab=assignments`);
+                    }}
+                    onSuccess={() => {
+                      router.push(`/classes/${classId}?tab=assignments`);
+                    }}
+                    onToast={showToast}
+                  />
+                ) : searchParams.get('action') === 'edit' ? (
+                  <TeacherEditAssignmentFormView
+                    classId={resolvedClassId}
+                    assignmentId={searchParams.get('assignmentId') || ''}
+                    className={classInfo?.name || classInfo?.title || 'CNTT-K22-01'}
+                    onCancel={() => {
+                      router.push(`/classes/${classId}?tab=assignments`);
+                    }}
+                    onSuccess={() => {
+                      router.push(`/classes/${classId}?tab=assignments`);
+                    }}
+                    onToast={showToast}
+                  />
+                ) : isCreateExam && canManageClassExams ? (
+                  <TeacherCreateExamFormView
+                    classId={resolvedClassId}
+                    className={teacherClassSubtitle}
+                    onCancel={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                    onSuccess={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                    onToast={showToast}
+                  />
+                ) : searchParams.get('action') === 'edit-exam' && canManageClassExams ? (
+                  <TeacherEditExamFormView
+                    classId={resolvedClassId}
+                    examId={searchParams.get('examId') || ''}
+                    className={teacherClassSubtitle}
+                    onCancel={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                    onSuccess={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                    onToast={showToast}
+                  />
+                ) : searchParams.get('action') === 'exam-detail' ? (
+                  <TeacherExamDetailView
+                    classId={resolvedClassId}
+                    examId={searchParams.get('examId') || ''}
+                    className={teacherClassSubtitle}
+                    onBack={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                    onEditExam={(id) => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams&action=edit-exam&examId=${id}`);
+                    }}
+                    onToast={showToast}
+                  />
+                ) : (
+                  <TeacherAssignmentsTableView
+                    classId={resolvedClassId}
+                    routeClassId={classId}
+                    className={teacherClassSubtitle}
+                    canManageExams={canManageClassExams}
+                    onToast={showToast}
+                    onCreateAssignment={() => {
+                      router.push(`/classes/${classId}?tab=assignments&action=create`);
+                    }}
+                    onEditAssignment={(item) => {
+                      router.push(`/classes/${classId}?tab=assignments&action=edit&assignmentId=${item.id}`);
+                    }}
+                    onCreateExam={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams&action=create`);
+                    }}
+                    onEditExam={(examId) => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams&action=edit-exam&examId=${examId}`);
+                    }}
+                    onViewExam={(examId) => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams&action=exam-detail&examId=${examId}`);
+                    }}
+                  />
+                )
+              ) : (
+                searchParams.get('action') === 'exam-detail' ? (
+                  <StudentExamDetailView
+                    classId={resolvedClassId}
+                    examId={searchParams.get('examId') || ''}
+                    className={classInfo?.name || classInfo?.title || 'CNTT-K22-01'}
+                    onBack={() => {
+                      router.push(`/classes/${classId}?tab=assignments&subtab=exams`);
+                    }}
+                  />
+                ) : (
+                  <StudentAssignmentsTableView
+                    classId={resolvedClassId}
+                    routeClassId={classId}
+                    className={
+                      classInfo?.title && classInfo?.name && classInfo.title !== classInfo.name
+                        ? `${classInfo.title} (${classInfo.name})`
+                        : classInfo?.title || classInfo?.name || ''
+                    }
+                    onViewAssignment={(assignmentId) => {
+                      router.push(`/classes/${classId}/assignments/${assignmentId}`);
+                    }}
+                    onViewExam={(examId) => {
+                      router.push(
+                        `/classes/${classId}?tab=assignments&subtab=exams&action=exam-detail&examId=${examId}`
+                      );
+                    }}
+                  />
+                )
+              )
             )}
 
-            {activeTab === 'people' && (
+            {activeTab === 'gradebook' && (
+              isStudent ? (
+                <StudentGradeReportView classId={classInfo?.id || classId} />
+              ) : (
+                <TeacherGradeReportsTableView
+                  classId={classInfo?.id || classId}
+                  onToast={showToast}
+                />
+              )
+            )}
+
+            {(activeTab === 'people' || activeTab === 'members') && (
               <ClassMembersTab
                 members={members}
                 currentRole={effectiveRole}
@@ -442,7 +722,7 @@ export function ClassDetailPageView({
             {activeTab === 'settings' && effectiveRole !== 'student' && (
               <ClassSettingsTab
                 classInfo={classInfo}
-                onSaveClassInfo={() => showToast('Đã lưu cấu hình lớp thành công!')}
+                onSaveClassInfo={handleSaveClassInfo}
                 onRegenerateCode={() => showToast('Đã tạo mã lớp tự ghi danh mới!')}
                 onOpenArchiveModal={() => setIsArchiveOpen(true)}
                 onDeleteSuccess={() => {
@@ -468,48 +748,6 @@ export function ClassDetailPageView({
               />
             )}
 
-            {activeTab === 'members' && (
-              <ClassMembersTab
-                members={members}
-                currentRole={effectiveRole}
-                classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
-                onApproveMember={handleApproveMember}
-                onRejectMember={(m) => showToast(`Đã từ chối yêu cầu của ${m.name}`)}
-                onInviteClick={() => setIsInviteOpen(true)}
-                onToast={showToast}
-              />
-            )}
-
-            {activeTab === 'overview' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border-[3px] border-slate-300 dark:border-slate-700 p-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
-                  <span className="material-symbols-outlined text-3xl">grid_view</span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Tổng quan không gian giảng dạy
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  Lớp học hiện có {courses.length} môn học đang hoạt động, {classInfo.enrolledCount} sinh viên và tiến độ nhập điểm đạt 95.8%.
-                </p>
-                <div className="flex justify-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('stream')}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    Xem Bảng tin lớp
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('gradebook')}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
-                  >
-                    Xem bảng điểm & PLO
-                  </button>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'materials' && (
               <ClassMaterialsTab
                 materials={materials}
@@ -520,7 +758,6 @@ export function ClassDetailPageView({
           </div>
         )}
       </main>
-      </div>
 
       {/* Socratic AI Tutor Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
@@ -670,7 +907,7 @@ export function ClassDetailPageView({
       />
 
       <InviteMemberModal
-        classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
+        classCode={classInfo?.name || classInfo?.enrollmentKey || classId}
         instructorName={classInfo?.instructor?.fullName || userFullName}
         enrolledCount={classInfo?.enrolledCount || 45}
         maxStudents={classInfo?.maxStudents || 60}
@@ -705,4 +942,3 @@ export function ClassDetailPageView({
     </div>
   );
 }
-

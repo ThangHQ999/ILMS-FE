@@ -199,4 +199,7 @@ export interface ClassDetailData {
   members: ClassMember[];
   materials?: ClassMaterial[];
   courseTemplates?: CourseTemplate[];
+  isClassInfoLive?: boolean;
+  isMembersLive?: boolean;
+  isCoursesLive?: boolean;
 }
