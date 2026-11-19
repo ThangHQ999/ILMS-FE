@@ -8,132 +8,13 @@ import { getLocalCreatedClasses } from '@/features/classes/services/class.servic
 import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
 import type { ClassItem } from '@/features/classes/schemas/class.schema';
 import { getSubjectInfoForClass, getMockExamsForSubject } from '../../constants/subject-quiz.constants';
+import {
+  type BankQuestion,
+  getBankQuestionsForSubject,
+  getSubjectAiPrompt,
+} from '../../constants/subject-question-bank.constants';
 
-export interface BankQuestion {
-  id: string;
-  code: string;
-  chapter: string;
-  type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'CALCULATION' | 'ESSAY';
-  typeLabel: string;
-  bloomLevel: 'BLOOM_1' | 'BLOOM_2' | 'BLOOM_3' | 'BLOOM_4';
-  bloomLabel: string;
-  bloomColor: string;
-  difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
-  difficultyLabel: string;
-  content: string;
-  options?: {
-    id: string;
-    label: string;
-    text: string;
-    isCorrect: boolean;
-  }[];
-  solutionNote?: string;
-  explanation: string;
-  tags: string[];
-  plo: string;
-  discriminationIndex: number;
-  correctRate: number; // Percentage
-  lastExamDate?: string;
-}
-
-const DEFAULT_QUESTIONS: BankQuestion[] = [
-  {
-    id: 'bank-q-1',
-    code: '#NET-042',
-    chapter: 'Chương 4: Tầng Mạng',
-    type: 'SINGLE_CHOICE',
-    typeLabel: 'Multiple Choice (1 Đáp án)',
-    bloomLevel: 'BLOOM_4',
-    bloomLabel: 'Vận dụng cao (Bloom 4)',
-    bloomColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300',
-    difficultyLevel: 'HARD',
-    difficultyLabel: 'Khó (P ≤ 0.4)',
-    content:
-      'Trong cấu trúc định tuyến phân cấp OSPF, giả sử Router ABR kết nối giữa Backbone Area 0 và Totally Stubby Area 1. Khi một mạng con thuộc Area 2 bị mất kết nối (down link), router ABR nói trên sẽ xử lý các LSA như thế nào để cập nhật trạng thái liên kết vào Area 1?',
-    options: [
-      {
-        id: 'opt-1-a',
-        label: 'A',
-        text: 'Truyền LSA Type 3 chi tiết mô tả mạng đích bị mất tới tất cả router trong Area 1.',
-        isCorrect: false,
-      },
-      {
-        id: 'opt-1-b',
-        label: 'B',
-        text: 'Không truyền bất kỳ LSA Type 3 cụ thể nào, chỉ duy trì Default Route (0.0.0.0/0) duy nhất. (Đúng)',
-        isCorrect: true,
-      },
-      {
-        id: 'opt-1-c',
-        label: 'C',
-        text: 'Khởi tạo LSA Type 5 External quảng bá ngập lụt (flood) trong toàn bộ Autonomous System.',
-        isCorrect: false,
-      },
-      {
-        id: 'opt-1-d',
-        label: 'D',
-        text: 'Chuyển Area 1 thành NSSA và chuyển đổi LSA Type 7 sang Type 5.',
-        isCorrect: false,
-      },
-    ],
-    explanation:
-      'Totally Stubby Area chặn cả External LSA (Type 4, 5) lẫn Inter-area Summary LSA (Type 3). ABR chỉ chèn một Default Route duy nhất (LSA Type 3 cho 0.0.0.0/0) vào Area 1.',
-    tags: ['#OSPF', '#ABR', '#LSDB'],
-    plo: 'PLO-03',
-    discriminationIndex: 0.42,
-    correctRate: 64,
-    lastExamDate: '12/2023',
-  },
-  {
-    id: 'bank-q-2',
-    code: '#NET-043',
-    chapter: 'Chương 4: Tầng Mạng',
-    type: 'SINGLE_CHOICE',
-    typeLabel: 'Multiple Choice',
-    bloomLevel: 'BLOOM_2',
-    bloomLabel: 'Thông hiểu (Bloom 2)',
-    bloomColor: 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300',
-    difficultyLevel: 'MEDIUM',
-    difficultyLabel: 'Trung bình (0.4 < P ≤ 0.7)',
-    content:
-      'Thuật toán tìm đường ngắn nhất Dijkstra (Shortest Path First - SPF) được sử dụng trong giao thức OSPF có độ phức tạp thời gian khi được cài đặt tối ưu bằng cấu trúc dữ liệu Min-Heap nhị phân (Binary Heap) là bao nhiêu? (Với V là số đỉnh Router và E là số liên kết mạng).',
-    options: [
-      { id: 'opt-2-a', label: 'A', text: 'O(V²)', isCorrect: false },
-      { id: 'opt-2-b', label: 'B', text: 'O((V + E) log V)', isCorrect: true },
-      { id: 'opt-2-c', label: 'C', text: 'O(V * E)', isCorrect: false },
-      { id: 'opt-2-d', label: 'D', text: 'O(E²)', isCorrect: false },
-    ],
-    explanation:
-      'Dijkstra dùng Binary Min-Heap có độ phức tạp O((V + E) log V). Mỗi thao tác Extract-Min tốn O(log V) và mỗi thao tác Decrease-Key tốn O(log V) cho tối đa E cạnh.',
-    tags: ['#Dijkstra', '#Routing'],
-    plo: 'PLO-01',
-    discriminationIndex: 0.28,
-    correctRate: 78,
-    lastExamDate: '10/2023',
-  },
-  {
-    id: 'bank-q-3',
-    code: '#NET-044',
-    chapter: 'Chương 4: Tầng Mạng',
-    type: 'CALCULATION',
-    typeLabel: 'Bài toán tính toán (Calculation)',
-    bloomLevel: 'BLOOM_3',
-    bloomLabel: 'Vận dụng (Bloom 3)',
-    bloomColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
-    difficultyLevel: 'MEDIUM',
-    difficultyLabel: 'Trung bình (0.4 < P ≤ 0.7)',
-    content:
-      'Cho dải địa chỉ mạng IPv4 172.16.0.0/20. Người quản trị cần chia nhỏ thành các mạng con (Subnets) sao cho mỗi mạng con có khả năng chứa tối thiểu 120 hosts hoạt động. Xác định số lượng subnet tối đa có thể tạo được và Subnet Mask tương ứng theo định dạng thập phân có dấu chấm (Dotted-Decimal).',
-    solutionNote: 'Đáp án chuẩn: 32 subnets với Subnet Mask: 255.255.255.128 (/25)',
-    explanation:
-      'Cần 120 hosts -> cần 7 bit host (2^7 - 2 = 126 > 120). Chiều dài prefix mới là 32 - 7 = /25 (Subnet Mask: 255.255.255.128). Số bit mượn là 25 - 20 = 5 bit -> 2^5 = 32 subnets tối đa.',
-    tags: ['#IPv4', '#Subnetting', '#VLSM'],
-    plo: 'PLO-02',
-    discriminationIndex: 0.51,
-    correctRate: 52,
-    lastExamDate: '11/2023',
-  },
-];
+export type { BankQuestion };
 
 interface TeacherQuestionBankViewProps {
   userFullName?: string;
@@ -303,90 +184,125 @@ export function TeacherQuestionBankView({
     return getSubjectInfoForClass(activeClass);
   }, [activeClass]);
 
-  // Questions Database State (local + persistent)
+  // Helper to strictly validate questions belong to the active subject
+  const isQuestionListMatchingSubject = (list: any[], subjectKey: string): boolean => {
+    if (!Array.isArray(list) || list.length === 0) return false;
+    return list.every((q) => {
+      if (q.subjectKey && q.subjectKey === subjectKey) return true;
+      if (q.subjectKey && q.subjectKey !== subjectKey) return false;
+
+      const fullText = `${q.content || ''} ${(q.tags || []).join(' ')} ${q.code || ''}`.toLowerCase();
+      if (subjectKey === 'giaiTich2') {
+        if (
+          fullText.includes('ospf') ||
+          fullText.includes('dijkstra') ||
+          fullText.includes('router') ||
+          fullText.includes('lsdb') ||
+          fullText.includes('sql') ||
+          fullText.includes('uml') ||
+          fullText.includes('cidr')
+        ) {
+          return false;
+        }
+      } else if (subjectKey === 'mangMayTinh') {
+        if (
+          fullText.includes('tích phân') ||
+          fullText.includes('chuỗi số') ||
+          fullText.includes('đạo hàm riêng') ||
+          fullText.includes('bcnf') ||
+          fullText.includes('avl tree')
+        ) {
+          return false;
+        }
+      } else if (subjectKey === 'cauTrucDuLieu') {
+        if (
+          fullText.includes('ospf') ||
+          fullText.includes('tích phân') ||
+          fullText.includes('3nf') ||
+          fullText.includes('bcnf')
+        ) {
+          return false;
+        }
+      } else if (subjectKey === 'coSoDuLieu') {
+        if (
+          fullText.includes('ospf') ||
+          fullText.includes('tích phân') ||
+          fullText.includes('chuỗi số') ||
+          fullText.includes('avl tree')
+        ) {
+          return false;
+        }
+      } else if (subjectKey === 'congNghePhanMem') {
+        if (
+          fullText.includes('ospf') ||
+          fullText.includes('tích phân') ||
+          fullText.includes('đạo hàm') ||
+          fullText.includes('bcnf')
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  };
+
+  // Questions Database State (local + persistent per class and subject)
   const [questions, setQuestions] = useState<BankQuestion[]>(() => {
+    const defaultList = getBankQuestionsForSubject(subjectInfo.key, activeClass);
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`ilms_bank_questions_${activeClass.id}`);
+      const storageKey = `ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (isQuestionListMatchingSubject(parsed, subjectInfo.key)) {
+            return parsed;
+          } else {
+            localStorage.removeItem(storageKey);
+          }
         } catch { }
       }
     }
-    return DEFAULT_QUESTIONS;
+    return defaultList;
   });
 
-  // Re-sync questions when active class changes
+  // Re-sync questions when active class or subject changes
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const saved = localStorage.getItem(`ilms_bank_questions_${activeClass.id}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setQuestions(parsed);
-          return;
-        }
-      } catch { }
+    // 1. Reset chapter filter, question selection, PLOs and search query
+    setSelectedChapter('ALL');
+    setSelectedQuestionIds([]);
+    setSelectedPlos(['PLO-01', 'PLO-02', 'PLO-03', 'PLO-05']);
+    setSearchQuery('');
+
+    // 2. Load questions for this specific class and subject
+    const defaultList = getBankQuestionsForSubject(subjectInfo.key, activeClass);
+
+    if (typeof window !== 'undefined') {
+      const storageKey = `ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`;
+      const legacyKey = `ilms_bank_questions_${activeClass.id}`;
+      const saved = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (isQuestionListMatchingSubject(parsed, subjectInfo.key)) {
+            setQuestions(parsed);
+            return;
+          } else {
+            // Discard mismatched legacy questions from localStorage
+            localStorage.removeItem(storageKey);
+            localStorage.removeItem(legacyKey);
+          }
+        } catch { }
+      }
     }
 
-    // Default sample questions for the selected subject
-    if (subjectInfo.key === 'giaiTich2') {
-      setQuestions([
-        {
-          id: 'bank-gt2-1',
-          code: '#CALC-001',
-          chapter: 'Chương 1: Chuỗi số & Chuỗi hàm',
-          type: 'SINGLE_CHOICE',
-          typeLabel: 'Multiple Choice (1 Đáp án)',
-          bloomLevel: 'BLOOM_1',
-          bloomLabel: 'Nhận biết (Bloom 1)',
-          bloomColor: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-          difficultyLevel: 'EASY',
-          difficultyLabel: 'Dễ (P > 0.7)',
-          content: 'Điều kiện cần để chuỗi số dương ∑(n=1 đến ∞) a_n hội tụ là gì?',
-          options: [
-            { id: 'opt-gt2-1-a', label: 'A', text: 'lim_{n -> ∞} a_n = 0', isCorrect: true },
-            { id: 'opt-gt2-1-b', label: 'B', text: 'lim_{n -> ∞} a_n = 1', isCorrect: false },
-            { id: 'opt-gt2-1-c', label: 'C', text: 'lim_{n -> ∞} (a_{n+1} / a_n) > 1', isCorrect: false },
-            { id: 'opt-gt2-1-d', label: 'D', text: 'a_n >= 1 với mọi n', isCorrect: false },
-          ],
-          explanation:
-            'Theo định lý cơ bản về điều kiện cần của chuỗi số hội tụ: Nếu chuỗi ∑ a_n hội tụ thì số hạng tổng quát phải tiến về 0.',
-          tags: ['#ChuoiSo', '#HoiTu', '#DinhLy'],
-          plo: 'PLO-01',
-          discriminationIndex: 0.35,
-          correctRate: 85,
-          lastExamDate: '10/2024',
-        },
-        {
-          id: 'bank-gt2-2',
-          code: '#CALC-002',
-          chapter: 'Chương 3: Tích phân bội (Tích phân kép & Bội ba)',
-          type: 'CALCULATION',
-          typeLabel: 'Bài toán tính toán (Calculation)',
-          bloomLevel: 'BLOOM_3',
-          bloomLabel: 'Vận dụng (Bloom 3)',
-          bloomColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
-          difficultyLevel: 'MEDIUM',
-          difficultyLabel: 'Trung bình (0.4 < P ≤ 0.7)',
-          content:
-            'Tính tích phân kép I = ∬_D (2x + y) dxdy với miền D là hình chữ nhật giới hạn bởi 0 ≤ x ≤ 2 và 0 ≤ y ≤ 1.',
-          solutionNote: 'Đáp án chuẩn: I = 5',
-          explanation:
-            'Áp dụng công thức Fubini: I = ∫_0^2 dx ∫_0^1 (2x + y) dy = ∫_0^2 [2xy + y²/2]_0^1 dx = ∫_0^2 (2x + 1/2) dx = [x² + x/2]_0^2 = 4 + 1 = 5.',
-          tags: ['#TichPhanKep', '#Fubini', '#HinhChuNhat'],
-          plo: 'PLO-02',
-          discriminationIndex: 0.44,
-          correctRate: 62,
-          lastExamDate: '11/2024',
-        },
-      ]);
-    } else {
-      setQuestions(DEFAULT_QUESTIONS);
-    }
-  }, [activeClass.id, subjectInfo.key]);
+    setQuestions(defaultList);
+
+    // 3. Update AI Generator prompt & default chapter
+    const aiConfig = getSubjectAiPrompt(subjectInfo.key, activeClass.name || activeClass.title || 'học phần');
+    setAiPrompt(aiConfig.prompt);
+    setNewQChapter(aiConfig.defaultChapter);
+  }, [activeClass.id, activeClass.name, subjectInfo.key]);
 
   // Selected Chapter Filter
   const [selectedChapter, setSelectedChapter] = useState<string>('ALL');
@@ -399,8 +315,8 @@ export function TeacherQuestionBankView({
     BLOOM_4: true,
   });
 
-  // PLO Filter State
-  const [selectedPlos, setSelectedPlos] = useState<string[]>(['PLO-01', 'PLO-03']);
+  // PLO Filter State - Default to ALL PLOs so all questions show up initially
+  const [selectedPlos, setSelectedPlos] = useState<string[]>(['PLO-01', 'PLO-02', 'PLO-03', 'PLO-05']);
 
   // Search & Difficulty Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -453,8 +369,14 @@ export function TeacherQuestionBankView({
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
       // Chapter filter
-      if (selectedChapter !== 'ALL' && !q.chapter.toLowerCase().includes(selectedChapter.toLowerCase())) {
-        return false;
+      if (selectedChapter !== 'ALL') {
+        const selNorm = selectedChapter.toLowerCase().trim();
+        const qNorm = q.chapter.toLowerCase().trim();
+        const matchChap =
+          qNorm.includes(selNorm) ||
+          selNorm.includes(qNorm) ||
+          (selNorm.slice(0, 8) && qNorm.includes(selNorm.slice(0, 8)));
+        if (!matchChap) return false;
       }
       // Bloom filter
       if (!bloomFilters[q.bloomLevel]) {
@@ -692,12 +614,13 @@ export function TeacherQuestionBankView({
       discriminationIndex: 0.38,
       correctRate: 70,
       lastExamDate: 'Mới tạo',
+      subjectKey: subjectInfo.key,
     };
 
     const updated = [newQuestion, ...questions];
     setQuestions(updated);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(`ilms_bank_questions_${activeClass.id}`, JSON.stringify(updated));
+      localStorage.setItem(`ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`, JSON.stringify(updated));
     }
 
     setIsAddQuestionModalOpen(false);
@@ -732,25 +655,26 @@ export function TeacherQuestionBankView({
             : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300',
         difficultyLevel: aiTargetBloom === 'BLOOM_4' ? 'HARD' : 'MEDIUM',
         difficultyLabel: aiTargetBloom === 'BLOOM_4' ? 'Khó (P ≤ 0.4)' : 'Trung bình (0.4 < P ≤ 0.7)',
-        content: `[AI Co-pilot] Tình huống ${idx + 1}: ${aiPrompt}. Giả sử xảy ra biến cố mất gói và định tuyến lại qua cổng phụ, thuật toán phân xử như thế nào?`,
+        content: `[AI Co-pilot] Tình huống ${idx + 1}: ${aiPrompt}. Bài toán tình huống phân tích chuyên sâu chuẩn Bloom dành cho ${activeClass.name || activeClass.title || 'học phần'}.`,
         options: [
-          { id: `opt-ai-${idx}-a`, label: 'A', text: 'Kích hoạt ngay lập tức đường dự phòng mà không cần tính lại LSDB', isCorrect: false },
-          { id: `opt-ai-${idx}-b`, label: 'B', text: 'Chạy lại thuật toán SPF cục bộ và cập nhật Forwarding Database', isCorrect: true },
-          { id: `opt-ai-${idx}-c`, label: 'C', text: 'Chuyển đổi toàn bộ Area sang Stubby và loại bỏ bản ghi BGP', isCorrect: false },
-          { id: `opt-ai-${idx}-d`, label: 'D', text: 'Hủy toàn bộ bảng định tuyến và đợi bản tin Hello mới sau 40s', isCorrect: false },
+          { id: `opt-ai-${idx}-a`, label: 'A', text: 'Kích hoạt phương án tối ưu dựa trên phân tích điều kiện biên', isCorrect: true },
+          { id: `opt-ai-${idx}-b`, label: 'B', text: 'Thực hiện phép xấp xỉ bậc một bỏ qua sai số lũy thừa', isCorrect: false },
+          { id: `opt-ai-${idx}-c`, label: 'C', text: 'Chuyển đổi toàn bộ miền xác định mà không thỏa mãn điều kiện liên tục', isCorrect: false },
+          { id: `opt-ai-${idx}-d`, label: 'D', text: 'Hủy bỏ tiến trình và lặp lại bước khởi tạo', isCorrect: false },
         ],
-        explanation: 'Thuật toán SPF sẽ tự động kích hoạt tính lại đường đi ngắn nhất dựa trên cơ sở dữ liệu trạng thái liên kết LSDB hiện có.',
-        tags: ['#AI_Generated', '#OSPF', '#Bloom4'],
+        explanation: 'Thuật toán và phương pháp giải quyết tối ưu tuân thủ nguyên lý chuẩn của học phần.',
+        tags: ['#AI_Generated', `#${subjectInfo.key}`, `#${aiTargetBloom}`],
         plo: 'PLO-03',
         discriminationIndex: 0.45,
         correctRate: 58,
         lastExamDate: 'Mới sinh AI',
+        subjectKey: subjectInfo.key,
       }));
 
       const updated = [...generatedQuestions, ...questions];
       setQuestions(updated);
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`ilms_bank_questions_${activeClass.id}`, JSON.stringify(updated));
+        localStorage.setItem(`ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`, JSON.stringify(updated));
       }
 
       showToast(`AI GPT-4o đã bóc tách và sinh thành công ${aiQuestionCount} câu hỏi chuẩn hóa Bloom!`);
@@ -763,7 +687,7 @@ export function TeacherQuestionBankView({
       const updated = questions.filter((q) => q.id !== id);
       setQuestions(updated);
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`ilms_bank_questions_${activeClass.id}`, JSON.stringify(updated));
+        localStorage.setItem(`ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`, JSON.stringify(updated));
       }
       showToast(`Đã xóa câu hỏi ${code}`);
     }
@@ -777,11 +701,12 @@ export function TeacherQuestionBankView({
       code: `${q.code}-DUP`,
       content: `[Bản sao] ${q.content}`,
       lastExamDate: 'Bản sao mới',
+      subjectKey: subjectInfo.key,
     };
     const updated = [dup, ...questions];
     setQuestions(updated);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(`ilms_bank_questions_${activeClass.id}`, JSON.stringify(updated));
+      localStorage.setItem(`ilms_bank_questions_${subjectInfo.key}_${activeClass.id}`, JSON.stringify(updated));
     }
     showToast(`Đã nhân bản câu hỏi ${q.code}`);
   };
@@ -1034,6 +959,11 @@ export function TeacherQuestionBankView({
                             onClick={() => {
                               setSelectedClassId(String(cls.id));
                               setIsCourseDropdownOpen(false);
+                              if (typeof window !== 'undefined') {
+                                const newUrl = new URL(window.location.href);
+                                newUrl.searchParams.set('classId', String(cls.id));
+                                window.history.replaceState({}, '', newUrl.toString());
+                              }
                               showToast(`Đã chuyển sang lớp: ${label}`);
                             }}
                             className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer ${isSelected
@@ -1123,10 +1053,10 @@ export function TeacherQuestionBankView({
                   Tổng số câu hỏi
                 </span>
                 <span className="text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
-                  {340 + (questions.length - DEFAULT_QUESTIONS.length)}
+                  {questions.length}
                 </span>
                 <span className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1 mt-1">
-                  <span className="material-symbols-outlined text-[14px]">verified</span> 100% Đã chuẩn hóa PLO
+                  <span className="material-symbols-outlined text-[14px]">verified</span> 100% Thuộc môn {activeClass.name || activeClass.title || 'học phần'}
                 </span>
               </div>
               <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -1140,10 +1070,16 @@ export function TeacherQuestionBankView({
                   Tỷ lệ Bloom Cao (Vận dụng+)
                 </span>
                 <span className="text-3xl font-bold text-slate-900 dark:text-white mt-0.5">
-                  25.0%
+                  {questions.length > 0
+                    ? `${(
+                      (questions.filter((q) => q.bloomLevel === 'BLOOM_3' || q.bloomLevel === 'BLOOM_4').length /
+                        questions.length) *
+                      100
+                    ).toFixed(1)}%`
+                    : '0.0%'}
                 </span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  85/340 câu (Cần bổ sung 15 câu)
+                  {questions.filter((q) => q.bloomLevel === 'BLOOM_3' || q.bloomLevel === 'BLOOM_4').length}/{questions.length} câu (Chuẩn ABET)
                 </span>
               </div>
               <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
@@ -1225,22 +1161,29 @@ export function TeacherQuestionBankView({
                         : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                         }`}
                     >
-                      340
+                      {questions.length}
                     </span>
                   </div>
 
                   {/* Chapters List */}
                   <div className="flex flex-col pl-2 pt-1 gap-1">
-                    {subjectInfo.chapters.map((chap, idx) => {
+                    {subjectInfo.chapters.map((chap) => {
                       const isSelected = selectedChapter === chap;
-                      const count = [45, 62, 88, 95, 50][idx] || 50;
+                      // Dynamic count of questions for this chapter
+                      const matchingQuestions = questions.filter(
+                        (q) =>
+                          q.chapter.toLowerCase().includes(chap.toLowerCase()) ||
+                          chap.toLowerCase().includes(q.chapter.toLowerCase()) ||
+                          (chap.slice(0, 8) && q.chapter.toLowerCase().includes(chap.toLowerCase().slice(0, 8)))
+                      );
+                      const displayCount = matchingQuestions.length;
 
                       return (
                         <div key={chap} className="flex flex-col">
                           <button
                             type="button"
                             onClick={() => setSelectedChapter(chap)}
-                            className={`w-full text-left flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all group ${isSelected
+                            className={`w-full text-left flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all group cursor-pointer ${isSelected
                               ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold'
                               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                               }`}
@@ -1253,34 +1196,36 @@ export function TeacherQuestionBankView({
                               <span className="truncate">{chap}</span>
                             </div>
                             <span className="text-[10.5px] font-mono px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white">
-                              {count}
+                              {displayCount}
                             </span>
                           </button>
 
                           {/* Sub topics under selected chapter */}
                           {isSelected && (
                             <div className="flex flex-col pl-5 pt-1 pb-1 gap-1">
-                              <div
-                                onClick={() => showToast(`Lọc chuyên đề: Định tuyến OSPF & LSDB`)}
-                                className="flex items-center justify-between text-[11px] py-1 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 font-medium cursor-pointer"
-                              >
-                                <span>• Định tuyến OSPF &amp; LSDB</span>
-                                <span className="font-mono text-slate-400">42</span>
-                              </div>
-                              <div
-                                onClick={() => showToast(`Lọc chuyên đề: IPv4 Subnetting & VLSM`)}
-                                className="flex items-center justify-between text-[11px] py-1 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer"
-                              >
-                                <span>• IPv4 Subnetting &amp; VLSM</span>
-                                <span className="font-mono text-slate-400">33</span>
-                              </div>
-                              <div
-                                onClick={() => showToast(`Lọc chuyên đề: Giao thức BGP`)}
-                                className="flex items-center justify-between text-[11px] py-1 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer"
-                              >
-                                <span>• Giao thức BGP</span>
-                                <span className="font-mono text-slate-400">20</span>
-                              </div>
+                              {matchingQuestions.length > 0 ? (
+                                matchingQuestions.slice(0, 3).map((subQ) => {
+                                  const subTag = subQ.tags[0] || subQ.code;
+                                  const subTitle = subQ.content.slice(0, 28) + '...';
+                                  return (
+                                    <div
+                                      key={subQ.id}
+                                      onClick={() => {
+                                        setSearchQuery(subTag.replace('#', ''));
+                                        showToast(`Đã lọc chuyên đề: ${subTag}`);
+                                      }}
+                                      className="flex items-center justify-between text-[11px] py-1 px-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 font-medium cursor-pointer"
+                                    >
+                                      <span className="truncate">• {subTag}: {subTitle}</span>
+                                      <span className="font-mono text-slate-400 shrink-0 ml-1">1</span>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div className="text-[10px] text-slate-400 italic px-2 py-0.5">
+                                  Chưa có câu hỏi trong chương này
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1337,7 +1282,7 @@ export function TeacherQuestionBankView({
                       </div>
                     </div>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                      120
+                      {questions.filter((q) => q.bloomLevel === 'BLOOM_1').length}
                     </span>
                   </label>
 
@@ -1357,7 +1302,7 @@ export function TeacherQuestionBankView({
                       </div>
                     </div>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                      135
+                      {questions.filter((q) => q.bloomLevel === 'BLOOM_2').length}
                     </span>
                   </label>
 
@@ -1377,7 +1322,7 @@ export function TeacherQuestionBankView({
                       </div>
                     </div>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                      60
+                      {questions.filter((q) => q.bloomLevel === 'BLOOM_3').length}
                     </span>
                   </label>
 
@@ -1397,7 +1342,7 @@ export function TeacherQuestionBankView({
                       </div>
                     </div>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-purple-200/60 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-bold">
-                      25
+                      {questions.filter((q) => q.bloomLevel === 'BLOOM_4').length}
                     </span>
                   </label>
                 </div>
@@ -1414,9 +1359,9 @@ export function TeacherQuestionBankView({
                     const isSelected = selectedPlos.includes(plo);
                     const labelMap: Record<string, string> = {
                       'PLO-01': 'PLO-01 (Lý thuyết cơ bản)',
-                      'PLO-02': 'PLO-02 (Thiết kế mạng)',
-                      'PLO-03': 'PLO-03 (Phân tích giao thức)',
-                      'PLO-05': 'PLO-05 (Bảo mật mạng)',
+                      'PLO-02': 'PLO-02 (Thiết kế & Mô hình)',
+                      'PLO-03': 'PLO-03 (Phân tích & Tối ưu)',
+                      'PLO-05': 'PLO-05 (Thực hành ứng dụng)',
                     };
 
                     return (
@@ -1448,7 +1393,15 @@ export function TeacherQuestionBankView({
                   <span className="font-bold">Gợi ý AI Co-pilot</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Tỷ lệ câu hỏi Bloom 4 cho chương OSPF đang dưới 15%. Bạn có muốn tạo 5 câu tình huống LSDB Flood tự động?
+                  {subjectInfo.key === 'giaiTich2'
+                    ? 'Tỷ lệ câu hỏi Bloom 4 cho chương Tích phân bội đang dưới 15%. Bạn có muốn tạo 5 câu tình huống tính tích phân kép tự động?'
+                    : subjectInfo.key === 'cauTrucDuLieu'
+                    ? 'Tỷ lệ câu hỏi Bloom 4 cho chương Cây AVL & Đồ thị đang dưới 15%. Bạn có muốn tạo 5 câu tình huống cây nhị phân tự động?'
+                    : subjectInfo.key === 'coSoDuLieu'
+                    ? 'Tỷ lệ câu hỏi Bloom 4 cho chương Chuẩn hóa CSDL đang dưới 15%. Bạn có muốn tạo 5 câu tình huống BCNF/SQL tự động?'
+                    : subjectInfo.key === 'congNghePhanMem'
+                    ? 'Tỷ lệ câu hỏi Bloom 4 cho chương UML & Design Patterns đang dưới 15%. Bạn có muốn tạo 5 câu tình huống phần mềm tự động?'
+                    : `Tỷ lệ câu hỏi Bloom 4 cho ${subjectInfo.defaultChapter} đang dưới 15%. Bạn có muốn tạo 5 câu tình huống chuyên sâu tự động?`}
                 </p>
                 <button
                   type="button"
@@ -1507,7 +1460,7 @@ export function TeacherQuestionBankView({
                       <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                         <div className="bg-slate-400 h-full rounded-full" style={{ width: '30%' }} />
                       </div>
-                      <span className="text-[11px] text-slate-400">Kho có sẵn: 120 câu</span>
+                      <span className="text-[11px] text-slate-400">Kho có sẵn: {questions.filter((q) => q.bloomLevel === 'BLOOM_1').length} câu</span>
                     </div>
 
                     {/* Thông hiểu 40% */}
@@ -1519,7 +1472,7 @@ export function TeacherQuestionBankView({
                       <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                         <div className="bg-blue-600 h-full rounded-full" style={{ width: '40%' }} />
                       </div>
-                      <span className="text-[11px] text-slate-400">Kho có sẵn: 135 câu</span>
+                      <span className="text-[11px] text-slate-400">Kho có sẵn: {questions.filter((q) => q.bloomLevel === 'BLOOM_2').length} câu</span>
                     </div>
 
                     {/* Vận dụng 20% */}
@@ -1531,7 +1484,7 @@ export function TeacherQuestionBankView({
                       <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                         <div className="bg-emerald-600 h-full rounded-full" style={{ width: '20%' }} />
                       </div>
-                      <span className="text-[11px] text-slate-400">Kho có sẵn: 60 câu</span>
+                      <span className="text-[11px] text-slate-400">Kho có sẵn: {questions.filter((q) => q.bloomLevel === 'BLOOM_3').length} câu</span>
                     </div>
 
                     {/* Vận dụng cao 10% */}
@@ -1543,7 +1496,7 @@ export function TeacherQuestionBankView({
                       <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                         <div className="bg-purple-600 h-full rounded-full" style={{ width: '10%' }} />
                       </div>
-                      <span className="text-[11px] text-slate-400">Kho có sẵn: 25 câu</span>
+                      <span className="text-[11px] text-slate-400">Kho có sẵn: {questions.filter((q) => q.bloomLevel === 'BLOOM_4').length} câu</span>
                     </div>
                   </div>
 
@@ -1599,7 +1552,17 @@ export function TeacherQuestionBankView({
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Tìm theo nội dung, ID câu hỏi, hashtag (#OSPF, #Dijkstra)..."
+                      placeholder={
+                        subjectInfo.key === 'giaiTich2'
+                          ? 'Tìm theo nội dung, ID câu hỏi, hashtag (#ChuoiSo, #TichPhan)...'
+                          : subjectInfo.key === 'cauTrucDuLieu'
+                          ? 'Tìm theo nội dung, ID câu hỏi, hashtag (#CayAVL, #Dijkstra)...'
+                          : subjectInfo.key === 'coSoDuLieu'
+                          ? 'Tìm theo nội dung, ID câu hỏi, hashtag (#3NF, #SQL, #ACID)...'
+                          : subjectInfo.key === 'congNghePhanMem'
+                          ? 'Tìm theo nội dung, ID câu hỏi, hashtag (#Scrum, #UML, #Pattern)...'
+                          : 'Tìm theo nội dung, ID câu hỏi, hashtag...'
+                      }
                       className="w-full bg-slate-100 dark:bg-[#131314] text-slate-900 dark:text-white text-xs pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
                     />
                   </div>
@@ -1673,7 +1636,7 @@ export function TeacherQuestionBankView({
                       setSelectedChapter('ALL');
                       setSearchQuery('');
                       setDifficultyFilter('ALL');
-                      setSelectedPlos(['PLO-01', 'PLO-03']);
+                      setSelectedPlos(['PLO-01', 'PLO-02', 'PLO-03', 'PLO-05']);
                       setBloomFilters({ BLOOM_1: true, BLOOM_2: true, BLOOM_3: true, BLOOM_4: true });
                     }}
                     className="text-blue-600 dark:text-blue-400 hover:underline ml-2 font-semibold cursor-pointer"
