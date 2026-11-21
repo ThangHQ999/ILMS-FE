@@ -22,11 +22,14 @@ import {
   Menu,
   X,
 } from 'lucide-react';
+import { useCurrentUser } from '@/features/auth';
+import { UserMenuDropdown } from '@/features/dashboard/components/UserMenuDropdown';
 
 export function PublicHeader() {
   const t = useTranslations('landing.nav');
   const tCommon = useTranslations('common');
   const { resolvedTheme, setTheme } = useTheme();
+  const { data: user } = useCurrentUser();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -336,21 +339,44 @@ export function PublicHeader() {
             )}
           </button>
 
-          <Link
-            href="/login"
-            prefetch={true}
-            className="hidden sm:inline-flex text-sm font-medium text-slate-700 dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-white hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full transition-colors whitespace-nowrap"
-          >
-            {t('login')}
-          </Link>
+          {/* Action Buttons: Avatar if logged in, else Login/Register */}
+          {mounted && user ? (
+            <div className="flex items-center gap-2.5">
+              <Link
+                href="/dashboard"
+                prefetch={true}
+                className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-[#041E49] dark:text-[#A8C7FA] bg-[#D3E3FD]/70 hover:bg-[#D3E3FD] dark:bg-[#162B4D]/70 dark:hover:bg-[#162B4D] px-3.5 py-1.5 rounded-full transition-colors whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                <span>Bảng điều khiển</span>
+              </Link>
+              <UserMenuDropdown
+                userFullName={
+                  [user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') ||
+                  user.email
+                }
+                isFocus={false}
+              />
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                prefetch={true}
+                className="hidden sm:inline-flex text-sm font-medium text-slate-700 dark:text-[#C4C7C5] hover:text-[#0B57D0] dark:hover:text-white hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full transition-colors whitespace-nowrap"
+              >
+                {t('login')}
+              </Link>
 
-          <Link
-            href="/register"
-            prefetch={true}
-            className="inline-flex items-center text-sm font-medium text-[#041E49] bg-[#D3E3FD] hover:bg-[#B9D0F9] dark:text-[#062E6F] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] px-5 py-2.5 rounded-full border-none shadow-none transition-colors whitespace-nowrap"
-          >
-            {t('getStarted')}
-          </Link>
+              <Link
+                href="/register"
+                prefetch={true}
+                className="inline-flex items-center text-sm font-medium text-[#041E49] bg-[#D3E3FD] hover:bg-[#B9D0F9] dark:text-[#062E6F] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] px-5 py-2.5 rounded-full border-none shadow-none transition-colors whitespace-nowrap"
+              >
+                {t('getStarted')}
+              </Link>
+            </>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -403,22 +429,52 @@ export function PublicHeader() {
           >
             {t('about')}
           </Link>
-          <div className="pt-2 flex gap-2">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 text-center py-2.5 text-sm font-medium rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] text-slate-800 dark:text-[#E3E3E3] border-none shadow-none"
-            >
-              {t('login')}
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 text-center py-2.5 text-sm font-medium rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] border-none shadow-none"
-            >
-              {t('getStarted')}
-            </Link>
-          </div>
+
+          {mounted && user ? (
+            <div className="pt-2 border-t border-slate-100 dark:border-[#282A2C] space-y-2">
+              <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#1E1F20]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  {([user.firstName, user.lastName].filter(Boolean).join(' ') || user.email)
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3] truncate">
+                    {[user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') ||
+                      user.email}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-[#C4C7C5] truncate">
+                    {user.email}
+                  </span>
+                </div>
+              </div>
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-bold bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">dashboard</span>
+                <span>Vào Bảng điều khiển</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="pt-2 flex gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 text-center py-2.5 text-sm font-medium rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] text-slate-800 dark:text-[#E3E3E3] border-none shadow-none"
+              >
+                {t('login')}
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 text-center py-2.5 text-sm font-medium rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#A8C7FA] dark:text-[#062E6F] border-none shadow-none"
+              >
+                {t('getStarted')}
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

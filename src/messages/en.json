@@ -892,6 +892,7 @@
     "expandSidebar": "Expand sidebar",
     "userMenu": {
       "proLearner": "Pro Learner",
+      "dashboard": "Dashboard",
       "manageAccount": "Manage ILMS Account",
       "switchAccount": "Switch / Select Account",
       "switchAccountTitle": "Switch Account",
