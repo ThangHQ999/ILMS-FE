@@ -139,12 +139,20 @@ export function useCourseMaterials(courseId: string) {
       title,
       description,
       isDownloadable,
+      isStorageOnly,
+      skipAiExtraction,
     }: {
       file: File;
       title?: string;
       description?: string;
       isDownloadable?: boolean;
-    }) => uploadCourseMaterial(courseId, file, title, description, isDownloadable),
+      isStorageOnly?: boolean;
+      skipAiExtraction?: boolean;
+    }) =>
+      uploadCourseMaterial(courseId, file, title, description, isDownloadable, {
+        isStorageOnly,
+        skipAiExtraction,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courseKeys.materials(courseId) });
     },

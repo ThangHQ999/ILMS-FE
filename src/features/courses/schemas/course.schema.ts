@@ -114,6 +114,7 @@ export const aiIngestionStatusEnum = z.enum([
   'PUBLISHING',
   'SUCCESS',
   'FAILED',
+  'SKIPPED',
 ]);
 export type AiIngestionStatus = z.infer<typeof aiIngestionStatusEnum>;
 
@@ -127,6 +128,16 @@ export function normalizeAiIngestionStatus(status?: string | null): AiIngestionS
     return 'SUCCESS';
   }
   if (normalized === 'FAILED' || normalized === 'ERROR') return 'FAILED';
+  if (
+    normalized === 'SKIPPED' ||
+    normalized === 'STORAGE_ONLY' ||
+    normalized === 'RAW' ||
+    normalized === 'DISABLED' ||
+    normalized === 'NONE' ||
+    normalized === 'IGNORED'
+  ) {
+    return 'SKIPPED';
+  }
   return 'NOT_EXTRACTED';
 }
 
@@ -153,6 +164,8 @@ export const courseMaterialItemSchema = z.object({
   url: z.string().nullable().optional(),
   downloadUrl: z.string().nullable().optional(),
   isDownloadable: z.boolean().default(true),
+  isStorageOnly: z.boolean().optional(),
+  skipAiExtraction: z.boolean().optional(),
   uploadStatus: z.string().default('READY'),
   aiIngestionStatus: z
     .string()

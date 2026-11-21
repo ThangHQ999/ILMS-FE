@@ -22,6 +22,8 @@ interface CourseMaterialsTabProps {
   onAutoPublishChange?: (val: boolean) => void;
 }
 
+export type MaterialUploadMode = 'AI_PIPELINE' | 'RAW_STORAGE';
+
 type FileTypeFilter = 'ALL' | 'PDF' | 'DOCX' | 'PPTX' | 'OTHER';
 type AiStatusFilter =
   | 'ALL'
@@ -29,7 +31,8 @@ type AiStatusFilter =
   | 'ACTIVE'
   | 'AWAITING_REVIEW'
   | 'SUCCESS'
-  | 'FAILED';
+  | 'FAILED'
+  | 'SKIPPED';
 
 function resolveFileVisual(fileType: string, filename?: string | null) {
   const combined = `${fileType} ${filename ?? ''}`.toUpperCase();
@@ -134,6 +137,13 @@ function renderAiStatusBadge(item: CourseMaterialItem) {
           Bóc tách thất bại{item.aiErrorCode ? ` (${item.aiErrorCode})` : ''}
         </span>
       );
+    case 'SKIPPED':
+      return (
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-slate-700">
+          <span className="material-symbols-outlined text-[14px] text-slate-500">folder_open</span>
+          Tài liệu lưu trữ thuần túy
+        </span>
+      );
     default:
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-200/70 dark:border-slate-700/70">
@@ -213,6 +223,57 @@ export function CourseMaterialsTab({
     );
   };
 
+  const [uploadMode, setUploadMode] = useState<MaterialUploadMode>(() => {
+    if (typeof window === 'undefined') return 'AI_PIPELINE';
+    try {
+      const saved = localStorage.getItem(`ilms_material_upload_mode_${courseId}`);
+      if (saved === 'RAW_STORAGE' || saved === 'AI_PIPELINE') return saved;
+    } catch {
+      // fallback
+    }
+    return 'AI_PIPELINE';
+  });
+
+  const handleSetUploadMode = (mode: MaterialUploadMode) => {
+    setUploadMode(mode);
+    try {
+      localStorage.setItem(`ilms_material_upload_mode_${courseId}`, mode);
+    } catch {
+      // ignore
+    }
+    onShowToast?.(
+      mode === 'RAW_STORAGE'
+        ? 'Đã chuyển sang: Chế độ chỉ thuần tải tệp lên (Không bóc tách thực thể AI).'
+        : 'Đã chuyển sang: Chế độ bóc tách tri thức AI (Kích hoạt pipeline 4 Agent AI & Neo4j).'
+    );
+  };
+
+  const [storageOnlyIds, setStorageOnlyIds] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const saved = localStorage.getItem(`ilms_storage_only_materials_${courseId}`);
+      if (saved) return new Set(JSON.parse(saved));
+    } catch {
+      // fallback
+    }
+    return new Set();
+  });
+
+  const persistStorageOnlyIds = (updater: (prev: Set<string>) => Set<string>) => {
+    setStorageOnlyIds((prev) => {
+      const next = updater(prev);
+      try {
+        localStorage.setItem(
+          `ilms_storage_only_materials_${courseId}`,
+          JSON.stringify(Array.from(next))
+        );
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
   const [extractingId, setExtractingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingDownloadId, setTogglingDownloadId] = useState<string | null>(null);
@@ -231,21 +292,39 @@ export function CourseMaterialsTab({
     deleteMutation,
   } = useCourseMaterials(courseId);
 
+  // Map pure-storage files so they are treated as SKIPPED and excluded from batch AI extraction
+  const processedMaterials = useMemo(() => {
+    return materials.map((item) => {
+      const isMarkedRaw =
+        storageOnlyIds.has(item.id) ||
+        item.aiIngestionStatus === 'SKIPPED' ||
+        item.isStorageOnly === true;
+      if (isMarkedRaw && item.aiIngestionStatus !== 'SUCCESS') {
+        return {
+          ...item,
+          aiIngestionStatus: 'SKIPPED' as const,
+        };
+      }
+      return item;
+    });
+  }, [materials, storageOnlyIds]);
+
   // Derived pipeline counts for Tier 2 live banner & Tier 1 CTA
   const pipelineCounts = useMemo(() => {
-    const active = materials.filter((m) => isActiveAiIngestionStatus(m.aiIngestionStatus)).length;
-    const awaiting = materials.filter((m) => m.aiIngestionStatus === 'AWAITING_REVIEW').length;
-    const failed = materials.filter((m) => m.aiIngestionStatus === 'FAILED').length;
-    const published = materials.filter((m) => m.aiIngestionStatus === 'SUCCESS').length;
-    const unextracted = materials.filter(
+    const active = processedMaterials.filter((m) => isActiveAiIngestionStatus(m.aiIngestionStatus)).length;
+    const awaiting = processedMaterials.filter((m) => m.aiIngestionStatus === 'AWAITING_REVIEW').length;
+    const failed = processedMaterials.filter((m) => m.aiIngestionStatus === 'FAILED').length;
+    const published = processedMaterials.filter((m) => m.aiIngestionStatus === 'SUCCESS').length;
+    const storageOnly = processedMaterials.filter((m) => m.aiIngestionStatus === 'SKIPPED').length;
+    const unextracted = processedMaterials.filter(
       (m) => m.aiIngestionStatus === 'NOT_EXTRACTED' && m.uploadStatus === 'READY'
     );
-    return { active, awaiting, failed, published, unextracted };
-  }, [materials]);
+    return { active, awaiting, failed, published, storageOnly, unextracted };
+  }, [processedMaterials]);
 
   const filteredMaterials = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return materials.filter((mat) => {
+    return processedMaterials.filter((mat) => {
       const matchesSearch =
         !q ||
         mat.title.toLowerCase().includes(q) ||
@@ -271,7 +350,7 @@ export function CourseMaterialsTab({
 
       return matchesSearch && matchesType && matchesStatus;
     });
-  }, [materials, searchQuery, fileTypeFilter, aiStatusFilter]);
+  }, [processedMaterials, searchQuery, fileTypeFilter, aiStatusFilter]);
 
   const hasFilters =
     Boolean(searchQuery.trim()) || fileTypeFilter !== 'ALL' || aiStatusFilter !== 'ALL';
@@ -286,11 +365,28 @@ export function CourseMaterialsTab({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const isRaw = uploadMode === 'RAW_STORAGE';
+
     uploadMutation.mutate(
-      { file, title: file.name, isDownloadable: true },
       {
-        onSuccess: () => {
-          onShowToast?.(`Đã tải lên tài liệu "${file.name}" lên Google Drive.`);
+        file,
+        title: file.name,
+        isDownloadable: true,
+        isStorageOnly: isRaw,
+        skipAiExtraction: isRaw,
+      },
+      {
+        onSuccess: (resItem) => {
+          if (isRaw) {
+            if (resItem?.id) {
+              persistStorageOnlyIds((prev) => new Set([...prev, resItem.id]));
+            }
+            onShowToast?.(
+              `Đã tải lên tệp lưu trữ "${file.name}" (không kích hoạt bóc tách thực thể AI).`
+            );
+          } else {
+            onShowToast?.(`Đã tải lên tài liệu "${file.name}" lên Google Drive.`);
+          }
           if (fileInputRef.current) fileInputRef.current.value = '';
         },
         onError: (err) => {
@@ -422,6 +518,11 @@ export function CourseMaterialsTab({
                   {pipelineCounts.published} {t('publishedUnit')}
                 </span>
               )}
+              {pipelineCounts.storageOnly > 0 && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+                  {pipelineCounts.storageOnly} {t('rawStorageUnit')}
+                </span>
+              )}
               {isFetching && !isLoading && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 dark:text-blue-400">
                   <span className="material-symbols-outlined text-[14px] animate-spin">sync</span>
@@ -431,14 +532,50 @@ export function CourseMaterialsTab({
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {canEdit
-                ? `Tải lên giáo trình, slide cho ${courseName || 'môn học'} và kích hoạt pipeline 4 Agent AI để xây dựng Đồ thị tri thức.`
-                : `Tài liệu bài giảng và học liệu đã được giảng viên chuẩn hóa tri thức cho ${courseName || 'môn học'}.`}
+                ? uploadMode === 'RAW_STORAGE'
+                  ? `Chế độ chỉ tải tệp thuần túy: Lưu trữ giáo trình, bài giảng và tài liệu tham khảo cho ${courseName || 'môn học'} (không bóc tách thực thể AI).`
+                  : `Tải lên giáo trình, slide cho ${courseName || 'môn học'} và kích hoạt pipeline 4 Agent AI để xây dựng Đồ thị tri thức.`
+                : `Tài liệu bài giảng và học liệu đã được giảng viên chuẩn hóa cho ${courseName || 'môn học'}.`}
             </p>
           </div>
 
           {/* Teacher / Admin Primary Actions */}
           {canEdit && (
             <div className="flex flex-wrap items-center gap-2">
+              {/* Upload Mode Selector (Segmented Toggle) */}
+              <div
+                className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-xs"
+                role="group"
+                aria-label="Chế độ tải tài liệu"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSetUploadMode('AI_PIPELINE')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    uploadMode === 'AI_PIPELINE'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                  title="Chế độ AI: Tệp tải lên sẽ sẵn sàng đưa vào pipeline 4 Agent AI để bóc tách thực thể và Đồ thị tri thức"
+                >
+                  <span className="material-symbols-outlined text-[15px]">auto_awesome</span>
+                  <span>{t('modeAi')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetUploadMode('RAW_STORAGE')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    uploadMode === 'RAW_STORAGE'
+                      ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                  title="Chế độ thuần: Chỉ thuần tải file lên lưu trữ/chia sẻ cho sinh viên tải về, hoàn toàn không bóc tách thực thể"
+                >
+                  <span className="material-symbols-outlined text-[15px]">folder_shared</span>
+                  <span>{t('modeRaw')}</span>
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={handleToggleAutoPublish}
@@ -485,13 +622,30 @@ export function CourseMaterialsTab({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadMutation.isPending}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
+                  uploadMode === 'RAW_STORAGE'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-[#0059bb] hover:bg-blue-700'
+                }`}
+                title={
+                  uploadMode === 'RAW_STORAGE'
+                    ? 'Tải tệp lưu trữ thuần túy (Không bóc tách thực thể)'
+                    : 'Tải tài liệu và sẵn sàng bóc tách AI'
+                }
               >
                 <span className="material-symbols-outlined text-[17px]">
-                  {uploadMutation.isPending ? 'progress_activity' : 'upload_file'}
+                  {uploadMutation.isPending
+                    ? 'progress_activity'
+                    : uploadMode === 'RAW_STORAGE'
+                      ? 'cloud_upload'
+                      : 'upload_file'}
                 </span>
                 <span>
-                  {uploadMutation.isPending ? t('uploadingButton') : t('uploadButton')}
+                  {uploadMutation.isPending
+                    ? t('uploadingButton')
+                    : uploadMode === 'RAW_STORAGE'
+                      ? t('uploadRawButton')
+                      : t('uploadButton')}
                 </span>
               </button>
             </div>
@@ -533,13 +687,14 @@ export function CourseMaterialsTab({
                 onChange={setAiStatusFilter}
                 options={[
                   { value: 'ALL', label: 'Mọi trạng thái AI' },
-                  { value: 'NOT_EXTRACTED', label: 'Chưa bóc tách' },
+                  { value: 'NOT_EXTRACTED', label: 'Chưa bóc tách AI' },
                   { value: 'ACTIVE', label: 'Đang chạy / Hàng đợi' },
                   { value: 'AWAITING_REVIEW', label: 'Chờ giảng viên duyệt' },
                   { value: 'SUCCESS', label: 'Đã xuất bản Neo4j' },
+                  { value: 'SKIPPED', label: 'Tài liệu lưu trữ thuần' },
                   { value: 'FAILED', label: 'Thất bại' },
                 ]}
-                className="min-w-[175px]"
+                className="min-w-[185px]"
               />
             )}
 
@@ -659,10 +814,20 @@ export function CourseMaterialsTab({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-colors"
+              className={`mt-2 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-xs font-bold cursor-pointer transition-colors ${
+                uploadMode === 'RAW_STORAGE'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-[#0059bb] hover:bg-blue-700'
+              }`}
             >
-              <span className="material-symbols-outlined text-[18px]">upload_file</span>
-              <span>Tải tài liệu đầu tiên</span>
+              <span className="material-symbols-outlined text-[18px]">
+                {uploadMode === 'RAW_STORAGE' ? 'cloud_upload' : 'upload_file'}
+              </span>
+              <span>
+                {uploadMode === 'RAW_STORAGE'
+                  ? 'Tải tệp lưu trữ đầu tiên'
+                  : 'Tải tài liệu đầu tiên'}
+              </span>
             </button>
           )}
         </div>
@@ -829,37 +994,82 @@ export function CourseMaterialsTab({
                       </Link>
                     )}
 
+                    {canEdit && !isUploadingDrive && mat.aiIngestionStatus === 'SKIPPED' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          persistStorageOnlyIds((prev) => {
+                            const next = new Set(prev);
+                            next.delete(mat.id);
+                            return next;
+                          });
+                          handleExtractOne(mat);
+                        }}
+                        disabled={isRowExtracting}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-600 hover:text-white text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Chuyển tệp lưu trữ này sang bóc tách tri thức AI & xây dựng Đồ thị Neo4j"
+                      >
+                        <span
+                          className={`material-symbols-outlined text-[15px] ${
+                            isRowExtracting ? 'animate-spin' : ''
+                          }`}
+                        >
+                          {isRowExtracting ? 'progress_activity' : 'auto_awesome'}
+                        </span>
+                        <span>Kích hoạt bóc tách AI</span>
+                      </button>
+                    )}
+
                     {canEdit &&
                       !isUploadingDrive &&
                       (mat.aiIngestionStatus === 'NOT_EXTRACTED' ||
                         mat.aiIngestionStatus === 'FAILED') && (
-                        <button
-                          type="button"
-                          onClick={() => handleExtractOne(mat)}
-                          disabled={isRowExtracting}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
-                            mat.aiIngestionStatus === 'FAILED'
-                              ? 'bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-600 hover:text-white text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
-                              : 'bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-600 hover:text-white text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900'
-                          }`}
-                        >
-                          <span
-                            className={`material-symbols-outlined text-[15px] ${
-                              isRowExtracting ? 'animate-spin' : ''
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleExtractOne(mat)}
+                            disabled={isRowExtracting}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
+                              mat.aiIngestionStatus === 'FAILED'
+                                ? 'bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-600 hover:text-white text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
+                                : 'bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-600 hover:text-white text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900'
                             }`}
                           >
-                            {isRowExtracting
-                              ? 'progress_activity'
-                              : mat.aiIngestionStatus === 'FAILED'
-                                ? 'refresh'
-                                : 'auto_awesome'}
-                          </span>
-                          <span>
-                            {mat.aiIngestionStatus === 'FAILED'
-                              ? 'Thử bóc tách lại'
-                              : 'Bóc tách AI'}
-                          </span>
-                        </button>
+                            <span
+                              className={`material-symbols-outlined text-[15px] ${
+                                isRowExtracting ? 'animate-spin' : ''
+                              }`}
+                            >
+                              {isRowExtracting
+                                ? 'progress_activity'
+                                : mat.aiIngestionStatus === 'FAILED'
+                                  ? 'refresh'
+                                  : 'auto_awesome'}
+                            </span>
+                            <span>
+                              {mat.aiIngestionStatus === 'FAILED'
+                                ? 'Thử bóc tách lại'
+                                : 'Bóc tách AI'}
+                            </span>
+                          </button>
+
+                          {mat.aiIngestionStatus === 'NOT_EXTRACTED' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                persistStorageOnlyIds((prev) => new Set([...prev, mat.id]));
+                                onShowToast?.(
+                                  `Đã chuyển "${mat.title}" sang chế độ tài liệu lưu trữ thuần túy (không bóc tách AI).`
+                                );
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                              title="Bỏ qua AI, chuyển thành tệp lưu trữ thuần túy"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">folder_off</span>
+                              <span>Bỏ qua AI</span>
+                            </button>
+                          )}
+                        </div>
                       )}
                   </div>
 

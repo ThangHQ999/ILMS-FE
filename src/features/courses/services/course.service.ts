@@ -336,7 +336,8 @@ export async function uploadCourseMaterial(
   file: File,
   title?: string,
   description?: string,
-  isDownloadable = true
+  isDownloadable = true,
+  options?: { isStorageOnly?: boolean; skipAiExtraction?: boolean }
 ): Promise<CourseMaterialItem> {
   const formData = new FormData();
   formData.append('file', file);
@@ -345,6 +346,10 @@ export async function uploadCourseMaterial(
     formData.append('description', description.trim());
   }
   formData.append('isDownloadable', String(isDownloadable));
+  if (options?.isStorageOnly || options?.skipAiExtraction) {
+    formData.append('isStorageOnly', 'true');
+    formData.append('skipAiExtraction', 'true');
+  }
 
   const { data: res } = await api.post<ApiResponse<unknown>>(
     `/courses/${courseId}/materials`,
