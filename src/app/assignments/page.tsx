@@ -18,7 +18,7 @@ export default function AssignmentsPage() {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'TS. Lê Hoàng Nam';
+      : '';
 
   return <AssignmentsTabView classId="cs-202" userFullName={userFullName} />;
 }

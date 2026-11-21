@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useSubscriptionPlans, useMySubscription, useSubscribePlan } from '../../hooks/useSubscriptions';
+import { formatSubscriptionDate, isSubscriptionDowngrade } from '../../utils/subscription.utils';
 import type { SubscriptionPlan } from '../../schemas/subscription.schema';
 
 interface SubscriptionPlansModalProps {
@@ -17,6 +18,7 @@ export function SubscriptionPlansModal({
   onSuccessToast,
 }: SubscriptionPlansModalProps) {
   const t = useTranslations('settings');
+  const locale = useLocale();
   const { data: plans = [], isLoading: isLoadingPlans } = useSubscriptionPlans();
   const { data: currentSub } = useMySubscription();
 
@@ -60,6 +62,16 @@ export function SubscriptionPlansModal({
   };
 
   const isPending = subscribeMutation.isPending;
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId);
+  const currentPlan = plans.find((p) => p.code === currentSub?.planCode);
+  const isDowngrade = isSubscriptionDowngrade(
+    currentSub?.planCode,
+    selectedPlan?.code,
+    currentPlan?.price,
+    selectedPlan?.price
+  );
+  const formattedEndDate = formatSubscriptionDate(currentSub?.endDate, locale);
+  const currentPlanLabel = currentSub?.planName || currentPlan?.name || currentSub?.planCode || '';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
@@ -246,6 +258,25 @@ export function SubscriptionPlansModal({
           </label>
         </div>
 
+        {/* Transparent Downgrade Notice */}
+        {isDowngrade && (
+          <div className="rounded-2xl bg-[#F0F4F9] dark:bg-[#162B4D]/50 border border-[#D3E3FD] dark:border-[#A8C7FA]/25 px-4 py-3 flex items-center gap-2.5 text-xs text-[#041E49] dark:text-[#C4C7C5]">
+            <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA] shrink-0">
+              schedule
+            </span>
+            <span>
+              {formattedEndDate
+                ? t('downgradeNoticeWithDate', {
+                    currentPlanName: currentPlanLabel,
+                    endDate: formattedEndDate,
+                  })
+                : t('downgradeNoticeFallback', {
+                    currentPlanName: currentPlanLabel,
+                  })}
+            </span>
+          </div>
+        )}
+
         {/* Footer Actions */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-[#282A2C]">
           <span className="text-xs text-[#747775] dark:text-[#8E918F]">
@@ -274,8 +305,16 @@ export function SubscriptionPlansModal({
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">credit_card</span>
-                  <span>Tiến hành Thanh toán</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    {isDowngrade ? 'event_upcoming' : 'credit_card'}
+                  </span>
+                  <span>
+                    {isDowngrade
+                      ? formattedEndDate
+                        ? t('btnScheduleDowngradeWithDate', { endDate: formattedEndDate })
+                        : t('btnScheduleDowngradeFallback')
+                      : t('btnProceedPayment')}
+                  </span>
                 </>
               )}
             </button>

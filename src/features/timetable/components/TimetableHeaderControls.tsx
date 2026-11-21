@@ -14,6 +14,11 @@ interface TimetableHeaderControlsProps {
   onGoToCurrentWeek: () => void;
   onOpenExportModal: () => void;
   onOpenSwapRoomModal: () => void;
+  onOpenCreateModal?: () => void;
+  selectedClassId?: string;
+  onSelectClassId?: (classId?: string) => void;
+  classesList?: Array<{ id: string; name: string; code?: string }>;
+  isTeacher?: boolean;
 }
 
 export function TimetableHeaderControls({
@@ -26,6 +31,11 @@ export function TimetableHeaderControls({
   onGoToCurrentWeek,
   onOpenExportModal,
   onOpenSwapRoomModal,
+  onOpenCreateModal,
+  selectedClassId,
+  onSelectClassId,
+  classesList = [],
+  isTeacher = true,
 }: TimetableHeaderControlsProps) {
   const t = useTranslations('timetable');
   const tFilters = useTranslations('timetable.filters');
@@ -40,10 +50,10 @@ export function TimetableHeaderControls({
   return (
     <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none mb-6 transition-colors border-none ring-0 outline-none flex flex-col gap-5">
       {/* Top Row: Title & Action Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Title */}
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-medium text-gray-900 dark:text-[#E3E3E3] font-sans">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-[#E3E3E3] font-sans">
             {t('weeklyTitle')}
           </h1>
           <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-[#004A77] text-blue-900 dark:text-[#C2E7FF] border-none font-sans whitespace-nowrap">
@@ -53,6 +63,18 @@ export function TimetableHeaderControls({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Create Session Button (+ Thêm ca học) */}
+          {isTeacher && onOpenCreateModal && (
+            <button
+              type="button"
+              onClick={onOpenCreateModal}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors border-none cursor-pointer whitespace-nowrap font-sans shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[17px]">add_circle</span>
+              <span>Thêm ca học</span>
+            </button>
+          )}
+
           {/* Today shortcut */}
           <button
             type="button"
@@ -76,7 +98,7 @@ export function TimetableHeaderControls({
             <span className="px-3 text-gray-900 dark:text-[#E3E3E3] font-semibold whitespace-nowrap">
               {t('weekRangeDisplay', {
                 week: currentWeek,
-                range: `${startDate.slice(0, 5)} - ${endDate.slice(0, 5)}, 2024`,
+                range: `${startDate.slice(0, 5)} - ${endDate.slice(0, 5)}`,
               })}
             </span>
             <button
@@ -114,25 +136,48 @@ export function TimetableHeaderControls({
         </div>
       </div>
 
-      {/* Filter Chips in a neat horizontal row */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1">
-        {filterTabs.map((tab) => {
-          const isActive = filterType === tab.type;
-          return (
-            <button
-              key={tab.type}
-              type="button"
-              onClick={() => onFilterChange(tab.type)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-opacity border-none cursor-pointer font-sans whitespace-nowrap ${
-                isActive
-                  ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] hover:opacity-90'
-                  : 'bg-gray-200 dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] hover:opacity-80'
-              }`}
+      {/* Filter Row: Class Filter Dropdown + Session Type Filter Chips */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+          {filterTabs.map((tab) => {
+            const isActive = filterType === tab.type;
+            return (
+              <button
+                key={tab.type}
+                type="button"
+                onClick={() => onFilterChange(tab.type)}
+                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all border-none cursor-pointer font-sans whitespace-nowrap ${
+                  isActive
+                    ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] shadow-sm'
+                    : 'bg-gray-100 dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] hover:opacity-80'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Class Filter Dropdown */}
+        {classesList.length > 0 && onSelectClassId && (
+          <div className="flex items-center gap-2 min-w-[200px]">
+            <span className="text-xs text-slate-500 dark:text-[#C4C7C5] font-semibold whitespace-nowrap">
+              Lớp:
+            </span>
+            <select
+              value={selectedClassId || ''}
+              onChange={(e) => onSelectClassId(e.target.value || undefined)}
+              className="h-8 px-3 rounded-full bg-gray-100 dark:bg-[#282A2C] border-none text-xs text-slate-900 dark:text-[#E3E3E3] font-medium outline-none cursor-pointer"
             >
-              {tab.label}
-            </button>
-          );
-        })}
+              <option value="">Tất cả các lớp</option>
+              {classesList.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

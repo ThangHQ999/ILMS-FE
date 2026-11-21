@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { WorkspaceRoleMode } from '../types';
 
@@ -82,14 +83,14 @@ export function ClassEmptyState({
           <span>{t('joinClassBtn')}</span>
         </button>
       ) : (
-        <button
-          type="button"
-          onClick={onCreateClick}
+        <Link
+          href="/classes/create"
+          prefetch={true}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 active:scale-95 text-primary-foreground text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           <span>{t('createClassBtn')}</span>
-        </button>
+        </Link>
       )}
     </div>
   );

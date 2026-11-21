@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CustomSelect } from '@/components/shared';
 import { postClassAnnouncement, useClasses } from '@/features/classes';
 
 export const createAnnouncementFormSchema = z.object({
@@ -177,29 +178,18 @@ export function TeacherCreateAnnouncementModal({
             <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-2">
               Lớp học mục tiêu <span className="text-[#BA1A1A] dark:text-[#F28B82]">*</span>
             </label>
-            <div className="relative">
-              <select
-                value={classId}
-                onChange={(e) => {
-                  setClassId(e.target.value);
-                  if (errors.classId) setErrors((prev) => ({ ...prev, classId: undefined }));
-                }}
-                className="w-full bg-gray-100 dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3] rounded-2xl px-4 py-3 text-sm appearance-none focus:outline-none cursor-pointer border border-transparent focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors"
-              >
-                {availableClassOptions.map((opt) => (
-                  <option
-                    key={opt.id}
-                    value={opt.id}
-                    className="bg-white dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3]"
-                  >
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-[#C4C7C5]">
-                <span className="material-symbols-outlined text-[20px]">expand_more</span>
-              </div>
-            </div>
+            <CustomSelect<string>
+              value={classId}
+              onChange={(val) => {
+                setClassId(val);
+                if (errors.classId) setErrors((prev) => ({ ...prev, classId: undefined }));
+              }}
+              options={availableClassOptions.map((opt) => ({
+                value: opt.id,
+                label: opt.label,
+              }))}
+              triggerClassName="bg-gray-100 dark:bg-[#282A2C] rounded-2xl border-none h-11"
+            />
             {errors.classId && (
               <p className="text-xs text-red-500 mt-1">{errors.classId}</p>
             )}

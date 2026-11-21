@@ -3,6 +3,7 @@ export * from './constants';
 export * from './services/course.service';
 export * from './hooks/useCourse';
 export { CourseDetailPageView } from './components/detail/CourseDetailPageView';
+export { CreateCoursePageView } from './components/CreateCoursePageView';
 export { CourseBanner } from './components/detail/CourseBanner';
 export { CourseSyllabusTab } from './components/detail/CourseSyllabusTab';
 export { CourseMaterialsTab } from './components/detail/CourseMaterialsTab';

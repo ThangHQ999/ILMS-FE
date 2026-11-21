@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCurrentUser } from '@/features/auth';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import { useClasses } from '@/features/classes/hooks/useClasses';
+import type { ClassItem } from '@/features/classes/types';
 import {
   DashboardSidebar,
   DashboardHeader,
@@ -38,28 +41,32 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
 }) => {
   const { data: user } = useCurrentUser();
   const { isFocus, toggleMode } = useDashboardMode();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
+  const { data: classesData } = useClasses({ page: 0, size: 50 });
+  const classesList: ClassItem[] = classesData?.items ?? [];
+
+  const [selectedClassId, setSelectedClassId] = useState<string>(() => {
+    if (classId && classId !== 'CNTT-K21A') return classId;
+    return '';
+  });
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('ilms_analytics_sidebar_collapsed');
-      if (stored === 'true') setIsSidebarCollapsed(true);
-    } catch {
-      // ignore
+    if (!selectedClassId && classesList.length > 0) {
+      // Find matching class or default to first
+      const matched = classesList.find((c) => c.id === classId || c.code === classId);
+      setSelectedClassId(matched ? matched.id : classesList[0].id);
     }
-  }, []);
+  }, [classesList, selectedClassId, classId]);
+
+  const effectiveClassId = selectedClassId || (classId !== 'CNTT-K21A' ? classId : classesList[0]?.id || 'CNTT-K21A');
+  const activeClass = useMemo(
+    () => classesList.find((c) => c.id === effectiveClassId) || null,
+    [classesList, effectiveClassId]
+  );
 
   const handleToggleSidebarCollapse = useCallback(() => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('ilms_analytics_sidebar_collapsed', String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
+    setIsSidebarCollapsed((prev) => !prev);
+  }, [setIsSidebarCollapsed]);
 
   const userFullName =
     user?.firstName || user?.lastName
@@ -75,17 +82,17 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const [isLocked, setIsLocked] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const { data: sessions = [], isLoading: isLoadingSessions } = useLessonSessions(classId);
+  const { data: sessions = [], isLoading: isLoadingSessions } = useLessonSessions(effectiveClassId);
   const { data: rooms = [] } = useRooms();
-  const { data: students = [] } = useClassStudents(classId);
+  const { data: students = [] } = useClassStudents(effectiveClassId);
   const { data: existingAttendances = [] } = useAttendances(
-    classId,
+    effectiveClassId,
     selectedSession?.lessonSessionId
   );
 
-  const createSessionMutation = useCreateLessonSession(classId);
+  const createSessionMutation = useCreateLessonSession(effectiveClassId);
   const saveAttendancesMutation = useSaveAttendances(
-    classId,
+    effectiveClassId,
     selectedSession?.lessonSessionId || ''
   );
 
@@ -273,7 +280,29 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
           <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto flex flex-col gap-6">
             {!selectedSession ? (
               <>
-                <LessonSessionHeader onBackToClasses={() => setSelectedSession(null)} />
+                <LessonSessionHeader
+                  activeClass={activeClass}
+                  classesList={classesList}
+                  selectedClassId={effectiveClassId}
+                  onSelectClassId={(id) => setSelectedClassId(id)}
+                  totalSessionsCount={sessions.length || 12}
+                  completedSessionsCount={sessions.filter((s) => s.status === 'COMPLETED').length}
+                  attendanceRate={
+                    sessions.length > 0
+                      ? (sessions.reduce(
+                          (acc, s) =>
+                            acc +
+                            (s.totalStudents && s.totalStudents > 0
+                              ? (s.attendedCount ?? 0) / s.totalStudents
+                              : 1),
+                          0
+                        ) /
+                          sessions.length) *
+                        100
+                      : 95.0
+                  }
+                  onBackToClasses={() => setSelectedSession(null)}
+                />
                 <LessonSessionTable
                   sessions={sessions}
                   isLoading={isLoadingSessions}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import {
@@ -41,7 +42,7 @@ export function CompetencyAnalyticsView({
   heatmapData,
   onSwitchToFocus,
 }: CompetencyAnalyticsViewProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [activeTab, setActiveTab] = useState<MainTabType>('tree');
 
   // Benchmark toggle states

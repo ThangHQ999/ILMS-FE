@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { useUserRole } from '@/hooks/useUserRole';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { ClassHeroSection } from './ClassHeroSection';
 import { ClassKpiStatsBar } from './ClassKpiStatsBar';
-import { ClassFilterToolbar } from './ClassFilterToolbar';
+import { ClassFilterToolbar, type ClassRoleTab } from './ClassFilterToolbar';
 import { ClassCardGrid } from './ClassCardGrid';
-import { ClassListView } from './ClassListView';
-import { StudentClassListView } from './StudentClassListView';
 import {
   ClassLoadingSkeleton,
   ClassEmptyState,
@@ -22,11 +20,7 @@ import { ArchiveClassModal } from './ArchiveClassModal';
 import { JoinClassModal } from './JoinClassModal';
 import { useClasses, useClassKpiSummary } from '../hooks/useClasses';
 import { useArchiveClass } from '../hooks/useArchiveClass';
-import {
-  EmptyState,
-  ErrorState,
-  Button,
-} from '@/components/shared';
+import { EmptyState, ErrorState, Button } from '@/components/shared';
 import type {
   ClassFilters,
   ClassViewMode,
@@ -35,27 +29,24 @@ import type {
   StudentClassKpiStats,
   WorkspaceRoleMode,
 } from '../types';
-
 import { getLocalCreatedClasses } from '../services/class.service';
+
+const LAST_CLASS_TAB_KEY = 'ilms_classes_last_tab';
 
 interface ClassListPageViewProps {
   userFullName?: string;
 }
 
-export function ClassListPageView({
-  userFullName,
-}: ClassListPageViewProps) {
+export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   const t = useTranslations('classes');
 
   // Shell Layout State
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
-  // Workspace Role Mode: Synchronized with app-wide global role
-  const { isTeacher, switchRole } = useUserRole();
-  const workspaceMode: WorkspaceRoleMode = isTeacher ? 'faculty' : 'student';
+  // Role-based 3-tab state: TEACHING | ENROLLED | ARCHIVED
+  const [activeTab, setActiveTab] = useState<ClassRoleTab>('ENROLLED');
+  const hasInitializedTabRef = useRef(false);
 
-  // Filters & View State (in Faculty mode, default view is list / 1-column bento)
   const [filters, setFilters] = useState<ClassFilters>({
     search: '',
     status: 'ACTIVE',
@@ -65,39 +56,62 @@ export function ClassListPageView({
     size: 12,
   });
   const [viewMode, setViewMode] = useState<ClassViewMode>('list');
-
-  // Interactive KPI State
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Mobile Filter Sheet State
+  // Modals & UI feedback
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  // Modal States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
+  const [initialJoinCode, setInitialJoinCode] = useState('');
   const [archiveTarget, setArchiveTarget] = useState<ClassItem | null>(null);
-
-  // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const codeParam = params.get('code')?.trim();
+    if (codeParam) {
+      setInitialJoinCode(codeParam);
+      setIsJoinOpen(true);
+    }
+  }, []);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  // Data Query
-  const effectiveRole = workspaceMode === 'faculty' ? 'TEACHER' : 'STUDENT';
-  const queryFilters = useMemo(
-    () => ({
-      ...filters,
-      role: effectiveRole,
-    }),
-    [filters, effectiveRole]
-  );
-  const { data: responseData, isLoading, isFetching, isError, error, refetch } = useClasses(queryFilters);
+  // Fetch 3 tab datasets so counts & Smart Default stay accurate
+  const teachingQuery = useClasses({
+    status: 'ACTIVE',
+    role: 'TEACHER',
+    sort: filters.sort,
+    page: 0,
+    size: 50,
+  });
+  const enrolledQuery = useClasses({
+    status: 'ACTIVE',
+    role: 'STUDENT',
+    sort: filters.sort,
+    page: 0,
+    size: 50,
+  });
+  const archivedQuery = useClasses({
+    status: 'ARCHIVED',
+    role: 'ALL',
+    sort: filters.sort,
+    page: 0,
+    size: 50,
+  });
+
   const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
+
+  const refetchAll = useCallback(() => {
+    teachingQuery.refetch();
+    enrolledQuery.refetch();
+    archivedQuery.refetch();
+  }, [teachingQuery, enrolledQuery, archivedQuery]);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -122,76 +136,148 @@ export function ClassListPageView({
     setFilters((prev) => ({ ...prev, ...updates }));
   }, []);
 
+  // Base items per tab (before client-side search/role/KPI filters)
+  const teachingBaseItems = useMemo(() => {
+    const apiItems = teachingQuery.data?.items ?? [];
+    const localCreated = isClient ? getLocalCreatedClasses() : [];
+    const baseIds = new Set(apiItems.map((c) => String(c.id)));
+    const baseNames = new Set(apiItems.map((c) => c.name?.toLowerCase()));
+    const newCreated = localCreated.filter(
+      (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
+    );
+    return [...newCreated, ...apiItems].filter(
+      (i) => i.status === 'ACTIVE' && !i.deletedAt
+    );
+  }, [teachingQuery.data, isClient]);
+
+  const enrolledBaseItems = useMemo(() => {
+    const apiItems = enrolledQuery.data?.items ?? [];
+    const activeItems = apiItems.filter((i) => i.status === 'ACTIVE' && !i.deletedAt);
+    const studentItems = activeItems.filter((x) => x.teachingRole === 'STUDENT');
+    return studentItems.length > 0 ? studentItems : activeItems;
+  }, [enrolledQuery.data]);
+
+  const archivedBaseItems = useMemo(() => {
+    const apiItems = archivedQuery.data?.items ?? [];
+    return apiItems.filter((i) => i.status === 'ARCHIVED' || Boolean(i.deletedAt));
+  }, [archivedQuery.data]);
+
+  const teachingCount = teachingBaseItems.length;
+  const enrolledCount = enrolledBaseItems.length;
+  const archivedCount = archivedBaseItems.length;
+  const showTeachingTab = teachingCount > 0 || enrolledCount === 0;
+
+  // Smart Default tab selection
+  useEffect(() => {
+    if (hasInitializedTabRef.current) return;
+    if (teachingQuery.isLoading || enrolledQuery.isLoading) return;
+
+    hasInitializedTabRef.current = true;
+
+    if (teachingCount === 0 && enrolledCount > 0) {
+      setActiveTab('ENROLLED');
+      return;
+    }
+
+    if (teachingCount > 0 && enrolledCount === 0) {
+      setActiveTab('TEACHING');
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
+      if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
+        setActiveTab(saved);
+        return;
+      }
+    } catch {
+      // Ignore storage read error
+    }
+
+    const fallbackTab: ClassRoleTab = teachingCount > 0 ? 'TEACHING' : 'ENROLLED';
+    setActiveTab(fallbackTab);
+  }, [teachingQuery.isLoading, enrolledQuery.isLoading, teachingCount, enrolledCount]);
+
+  // If user is on TEACHING tab and teaching tab becomes hidden, fall back to ENROLLED
+  useEffect(() => {
+    if (activeTab === 'TEACHING' && !showTeachingTab) {
+      setActiveTab('ENROLLED');
+    }
+  }, [activeTab, showTeachingTab]);
+
+  const handleTabChange = useCallback((tab: ClassRoleTab) => {
+    setActiveTab(tab);
+    setActiveKpi(null);
+    setFilters((prev) => ({
+      ...prev,
+      status: tab === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE',
+      role: 'ALL',
+      page: 0,
+    }));
+    try {
+      localStorage.setItem(LAST_CLASS_TAB_KEY, tab);
+    } catch {
+      // Ignore storage write error
+    }
+  }, []);
+
   const handleKpiClick = useCallback(
     (type: string) => {
       setActiveKpi((prev) => (prev === type ? null : type));
-
-      if (type === 'teaching') {
-        showToast('Hiển thị danh sách lớp học đang giảng dạy!');
-      } else if (type === 'students') {
-        showToast('Hiển thị danh sách sắp xếp theo quy mô học viên!');
-      } else if (type === 'pending') {
-        showToast('Đang lọc các lớp có yêu cầu cần xử lý!');
-      } else if (type === 'enrolled') {
-        showToast('Hiển thị tất cả lớp học đang tham gia!');
-      } else if (type === 'tasks') {
-        showToast('Lọc các lớp có bài tập sắp đến hạn nộp!');
-      } else if (type === 'gpa') {
-        showToast('Hiển thị bảng phân tích điểm chuẩn đầu ra PLO!');
-      }
+      if (type === 'teaching') showToast('Hiển thị danh sách lớp học đang giảng dạy!');
+      else if (type === 'students') showToast('Hiển thị danh sách sắp xếp theo quy mô học viên!');
+      else if (type === 'pending') showToast('Đang lọc các lớp có yêu cầu cần xử lý!');
+      else if (type === 'enrolled') showToast('Hiển thị tất cả lớp học đang tham gia!');
+      else if (type === 'tasks') showToast('Lọc các lớp có bài tập sắp đến hạn nộp!');
+      else if (type === 'gpa') showToast('Hiển thị bảng phân tích điểm chuẩn đầu ra PLO!');
     },
     [showToast]
   );
 
-  const handleToggleWorkspace = useCallback(() => {
-    const nextRole = isTeacher ? 'STUDENT' : 'TEACHER';
-    switchRole(nextRole);
-    setViewMode(nextRole === 'TEACHER' ? 'list' : 'grid');
-    showToast(nextRole === 'TEACHER' ? 'Đã chuyển sang Chế độ Giảng dạy' : 'Đã chuyển sang Chế độ Học tập');
-  }, [isTeacher, switchRole, showToast]);
-
-  const handleViewModeChange = useCallback((mode: ClassViewMode) => {
-    setViewMode(mode);
-    showToast(mode === 'list' ? 'Đã chuyển sang chế độ hiển thị Danh sách' : 'Đã chuyển sang chế độ hiển thị Dạng lưới thẻ');
-  }, [showToast]);
-
-  // Filtered Items Computation (No mock data fallback - real API data only)
-  const items = useMemo(() => {
-    let list: ClassItem[] = [];
-    const apiItems = responseData?.items ? [...responseData.items] : [];
-
-    if (workspaceMode === 'student') {
-      const studentApiItems = apiItems.filter((x) => x.teachingRole === 'STUDENT');
-      list = studentApiItems.length > 0 ? studentApiItems : apiItems;
-    } else {
-      // Merge locally created classes at top (guarantees newly created classes persist across F5 refresh)
-      const localCreated = isClient ? getLocalCreatedClasses() : [];
-      const baseIds = new Set(apiItems.map((c) => String(c.id)));
-      const baseNames = new Set(apiItems.map((c) => c.name?.toLowerCase()));
-      const newCreated = localCreated.filter(
-        (c) => !baseIds.has(String(c.id)) && (!c.name || !baseNames.has(c.name.toLowerCase()))
+  const handleViewModeChange = useCallback(
+    (mode: ClassViewMode) => {
+      setViewMode(mode);
+      showToast(
+        mode === 'list'
+          ? 'Đã chuyển sang chế độ hiển thị Danh sách'
+          : 'Đã chuyển sang chế độ hiển thị Dạng lưới thẻ'
       );
+    },
+    [showToast]
+  );
 
-      list = [...newCreated, ...apiItems];
-    }
+  const activeQuery =
+    activeTab === 'TEACHING'
+      ? teachingQuery
+      : activeTab === 'ENROLLED'
+      ? enrolledQuery
+      : archivedQuery;
 
-    // Filter by status tab
-    if (filters.status === 'ACTIVE') {
-      list = list.filter((i) => i.status === 'ACTIVE' && !i.deletedAt);
-    } else if (filters.status === 'ARCHIVED') {
-      list = list.filter((i) => i.status === 'ARCHIVED' || Boolean(i.deletedAt));
-    }
+  const baseItemsForTab =
+    activeTab === 'TEACHING'
+      ? teachingBaseItems
+      : activeTab === 'ENROLLED'
+      ? enrolledBaseItems
+      : archivedBaseItems;
 
-    // Filter by KPI
+  const totalInCurrentTab = baseItemsForTab.length;
+
+  // Apply search / role / KPI / sort filters on the active tab
+  const filteredItems = useMemo(() => {
+    let list = [...baseItemsForTab];
+
     if (activeKpi === 'pending') {
-      list = list.filter((i) => (i.stats?.pendingRequestsCount ?? 0) > 0 || (i.stats?.ungradedAssignmentsCount ?? 0) > 0);
+      list = list.filter(
+        (i) =>
+          (i.stats?.pendingRequestsCount ?? 0) > 0 ||
+          (i.stats?.ungradedAssignmentsCount ?? 0) > 0
+      );
     } else if (activeKpi === 'students') {
       list = [...list].sort((a, b) => (b.enrolledCount ?? 0) - (a.enrolledCount ?? 0));
     } else if (activeKpi === 'tasks') {
       list = list.filter((_, idx) => idx % 2 === 0);
     }
 
-    // Client-side search matching code, title, and description
     if (filters.search) {
       const q = filters.search.toLowerCase().trim();
       list = list.filter(
@@ -202,122 +288,101 @@ export function ClassListPageView({
       );
     }
 
-    // Client-side filtering by major
     if (filters.major && filters.major !== 'all') {
       list = list.filter((i) => i.major === filters.major);
     }
 
-    // Client-side filtering by role
-    if (filters.role && filters.role !== 'ALL') {
+    if (activeTab === 'TEACHING' && filters.role && filters.role !== 'ALL') {
       list = list.filter((i) => i.teachingRole === filters.role);
     }
 
     return list;
-  }, [
-    workspaceMode,
-    filters.status,
-    filters.search,
-    filters.major,
-    filters.role,
-    activeKpi,
-    responseData,
-    isClient,
-  ]);
+  }, [baseItemsForTab, activeKpi, filters.search, filters.major, filters.role, activeTab]);
 
-  // Compute Faculty KPI Stats from API
+  // Pagination slice
+  const pageSize = filters.size || 12;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const currentPageDisplay = Math.min((filters.page ?? 0) + 1, totalPages);
+  const items = useMemo(() => {
+    const start = (currentPageDisplay - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPageDisplay, pageSize]);
+
+  const handlePageSelect = useCallback(
+    (page: number) => {
+      const targetPage = Math.max(0, Math.min(page - 1, totalPages - 1));
+      handleFilterUpdate({ page: targetPage });
+    },
+    [totalPages, handleFilterUpdate]
+  );
+
+  // KPI stats per tab
   const facultyKpiStats: ClassKpiStats = useMemo(() => {
-    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
-    const studentsFromItems = items.reduce((acc, c) => acc + (c.enrolledCount || 0), 0);
-    const pendingFromItems = items.reduce((acc, c) => acc + (c.stats?.pendingRequestsCount || 0), 0);
-
+    const studentsFromItems = teachingBaseItems.reduce((acc, c) => acc + (c.enrolledCount || 0), 0);
+    const pendingFromItems = teachingBaseItems.reduce(
+      (acc, c) => acc + (c.stats?.pendingRequestsCount || 0),
+      0
+    );
     return {
-      activeClassesCount: kpiData?.activeClassesCount ?? activeFromItems,
+      activeClassesCount: Math.max(kpiData?.activeClassesCount ?? 0, teachingCount),
       totalStudentsCount: kpiData?.totalStudentsCount ?? studentsFromItems,
       needsAttentionCount: kpiData?.pendingRequestsCount ?? pendingFromItems,
     };
-  }, [kpiData, items]);
+  }, [kpiData, teachingBaseItems, teachingCount]);
 
-  // Compute Student KPI Stats from API
-  const studentKpiStats: StudentClassKpiStats = useMemo(() => {
-    const activeFromItems = items.filter((c) => c.status === 'ACTIVE').length;
-    return {
-      enrolledClassesCount: activeFromItems,
+  const studentKpiStats: StudentClassKpiStats = useMemo(
+    () => ({
+      enrolledClassesCount: enrolledCount,
       upcomingAssignmentsCount: kpiData?.ungradedAssignmentsCount ?? 0,
       avgProgressPercent: 0,
-    };
-  }, [kpiData, items]);
-
-  // Dynamic tab counts derived from API response
-  const totalElements = responseData?.totalElements ?? items.length;
-  const activeCount = useMemo(() => {
-    if (filters.status === 'ACTIVE' && responseData?.totalElements !== undefined) {
-      return responseData.totalElements;
-    }
-    return (responseData?.items ?? items).filter((c) => c.status === 'ACTIVE' && !c.deletedAt).length;
-  }, [responseData, items, filters.status]);
-
-  const enrolledCount = activeCount;
-
-  const archivedCount = useMemo(() => {
-    if (filters.status === 'ARCHIVED' && responseData?.totalElements !== undefined) {
-      return responseData.totalElements;
-    }
-    return (responseData?.items ?? items).filter((c) => c.status === 'ARCHIVED' || Boolean(c.deletedAt)).length;
-  }, [responseData, items, filters.status]);
-
-  const allCount = totalElements;
-  const displayedCount = items.length;
+    }),
+    [kpiData, enrolledCount]
+  );
 
   const hasActiveFilters = Boolean(
     filters.search?.trim() ||
-    (filters.major && filters.major !== 'all') ||
-    (filters.role && filters.role !== 'ALL') ||
-    activeKpi
+      (filters.major && filters.major !== 'all') ||
+      (activeTab === 'TEACHING' && filters.role && filters.role !== 'ALL') ||
+      activeKpi
   );
 
-  const pageSize = filters.size || 12;
-  const totalPages = Math.max(1, responseData?.totalPages ?? Math.ceil(totalElements / pageSize));
-  const currentPageDisplay = (filters.page ?? 0) + 1;
-
-  const handlePageSelect = useCallback((page: number) => {
-    const targetPage = Math.max(0, Math.min(page - 1, totalPages - 1));
-    handleFilterUpdate({ page: targetPage });
-  }, [totalPages, handleFilterUpdate]);
+  const workspaceMode: WorkspaceRoleMode = activeTab === 'TEACHING' ? 'faculty' : 'student';
+  const showKpiBar =
+    !activeQuery.isLoading &&
+    !activeQuery.isError &&
+    ((activeTab === 'TEACHING' && teachingCount > 0) ||
+      (activeTab === 'ENROLLED' && enrolledCount > 0));
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] text-gray-900 dark:text-[#E3E3E3] flex flex-col font-sans transition-colors duration-200">
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
-        isFocus={isFocusMode}
+        isFocus={false}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         workspaceMode={workspaceMode}
       />
 
-      {/* 2. Top Header */}
+      {/* 2. Clean Global Header (No Focus Mode, No redundant Role Switcher / Badges) */}
       <DashboardHeader
-        isFocus={isFocusMode}
+        isFocus={false}
+        showFocusMode={false}
+        showRoleSwitcher={false}
         isSidebarCollapsed={isSidebarCollapsed}
-        onToggleMode={() => setIsFocusMode(!isFocusMode)}
+        onToggleMode={() => {}}
         userFullName={userFullName}
-        workspaceMode={workspaceMode}
-        onToggleWorkspaceMode={handleToggleWorkspace}
       />
 
       {/* 3. Main Workspace Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto ${
-          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
+        className={`flex-1 transition-all duration-300 ${
+          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
-        <div className="space-y-6">
-          {/* Hero Section */}
+        <div className="pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto space-y-6">
+          {/* Page Header: Title + Join & Create side-by-side (+ overflow menu on Teaching tab) */}
           <ClassHeroSection
-            workspaceMode={workspaceMode}
-            onToggleWorkspaceMode={(mode) => {
-              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
-              setViewMode(mode === 'faculty' ? 'list' : 'grid');
-            }}
+            showExportMenu={activeTab === 'TEACHING'}
             onCreateClick={() => setIsCreateOpen(true)}
             onJoinClick={() => setIsJoinOpen(true)}
             onExportClick={() => {
@@ -328,54 +393,51 @@ export function ClassListPageView({
             }}
           />
 
-          {/* KPI Stats Bar */}
-          <ClassKpiStatsBar
-            workspaceMode={workspaceMode}
-            stats={facultyKpiStats}
-            studentStats={studentKpiStats}
-            onKpiClick={handleKpiClick}
-            activeKpi={activeKpi}
-          />
+          {/* KPI Stats Bar (Hidden when active tab has 0 classes or on Archived tab) */}
+          {showKpiBar && (
+            <ClassKpiStatsBar
+              workspaceMode={workspaceMode}
+              stats={facultyKpiStats}
+              studentStats={studentKpiStats}
+              onKpiClick={handleKpiClick}
+              activeKpi={activeKpi}
+            />
+          )}
 
-          {/* Filter Toolbar */}
+          {/* 3-Tab Role Toolbar & Filters */}
           <ClassFilterToolbar
-            workspaceMode={workspaceMode}
-            onWorkspaceModeChange={(mode) => {
-              switchRole(mode === 'faculty' ? 'TEACHER' : 'STUDENT');
-              setViewMode(mode === 'faculty' ? 'list' : 'grid');
-            }}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            showTeachingTab={showTeachingTab}
+            teachingCount={teachingCount}
+            enrolledCount={enrolledCount}
+            archivedCount={archivedCount}
             filters={filters}
             onFilterChange={handleFilterUpdate}
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
-            activeCount={activeCount}
-            enrolledCount={enrolledCount}
-            archivedCount={archivedCount}
-            allCount={allCount}
-            displayedCount={displayedCount}
-            onOpenMobileFilter={() => setIsMobileFilterOpen(true)}
             activeKpi={activeKpi}
             onClearKpi={() => setActiveKpi(null)}
           />
 
-          {/* Dynamic Content Lifecycle Driven by Real API States (7-State Matrix) */}
-          {isLoading ? (
+          {/* Dynamic Content Lifecycle */}
+          {activeQuery.isLoading ? (
             <ClassLoadingSkeleton />
-          ) : isError ? (
+          ) : activeQuery.isError ? (
             <ErrorState
               title={t('errorLoadTitle')}
               description={t('errorLoadDesc')}
-              error={error}
-              onRetry={() => refetch()}
+              error={activeQuery.error}
+              onRetry={() => activeQuery.refetch()}
             />
-          ) : items.length === 0 && hasActiveFilters ? (
+          ) : totalInCurrentTab > 0 && items.length === 0 && hasActiveFilters ? (
             <ClassSearchNotFoundState
               onClearFilters={() => {
                 handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
                 setActiveKpi(null);
               }}
             />
-          ) : items.length === 0 && filters.status === 'ARCHIVED' ? (
+          ) : items.length === 0 && activeTab === 'ARCHIVED' ? (
             <EmptyState
               variant="archived"
               title={t('emptyArchivedTitle')}
@@ -384,7 +446,7 @@ export function ClassListPageView({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleFilterUpdate({ status: 'ACTIVE', page: 0 })}
+                  onClick={() => handleTabChange('ENROLLED')}
                 >
                   {t('backToActiveBtn')}
                 </Button>
@@ -397,46 +459,38 @@ export function ClassListPageView({
               onJoinClick={() => setIsJoinOpen(true)}
             />
           ) : (
-            <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
-              {isFetching && !isLoading && (
+            <div
+              className={`transition-opacity duration-200 ${
+                activeQuery.isFetching && !activeQuery.isLoading ? 'opacity-70' : 'opacity-100'
+              }`}
+            >
+              {activeQuery.isFetching && !activeQuery.isLoading && (
                 <div className="h-0.5 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-950 mb-3">
                   <div className="h-full w-1/3 bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse rounded-full" />
                 </div>
               )}
-              {/* Class Presentation (Student List View vs Grid / Faculty) */}
-              {workspaceMode === 'student' && viewMode === 'list' ? (
-                <StudentClassListView
-                  items={items}
-                  copiedCode={copiedCode}
-                  onCopyCode={handleCopyCode}
-                />
-              ) : (
-                <ClassCardGrid
-                  items={items}
-                  workspaceMode={workspaceMode}
-                  viewMode={viewMode}
-                  onArchiveClick={(item) => setArchiveTarget(item)}
-                  onRestoreClick={(item) => restoreClass(item.id)}
-                  copiedCode={copiedCode}
-                  onCopyCode={handleCopyCode}
-                />
-              )}
+
+              <ClassCardGrid
+                items={items}
+                workspaceMode={workspaceMode}
+                viewMode={viewMode}
+                onArchiveClick={(item) => setArchiveTarget(item)}
+                onRestoreClick={(item) => restoreClass(item.id)}
+                copiedCode={copiedCode}
+                onCopyCode={handleCopyCode}
+              />
             </div>
           )}
 
-          {/* 4. Pagination */}
-          {!isLoading && !isError && items.length > 0 && (
-            <nav aria-label="Phân trang danh sách lớp" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800">
+          {/* Pagination */}
+          {!activeQuery.isLoading && !activeQuery.isError && items.length > 0 && (
+            <nav
+              aria-label="Phân trang danh sách lớp"
+              className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800"
+            >
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                Hiển thị{' '}
-                <strong className="font-semibold text-slate-900 dark:text-white">
-                  {filters.page * pageSize + 1} - {Math.min((filters.page + 1) * pageSize, totalElements)}
-                </strong>{' '}
-                trên{' '}
-                <strong className="font-semibold text-slate-900 dark:text-white">
-                  {totalElements}
-                </strong>{' '}
-                lớp học
+                Hiển thị <span className="font-bold text-slate-800 dark:text-slate-200">{items.length}</span> /{' '}
+                <span className="font-bold text-slate-800 dark:text-slate-200">{filteredItems.length}</span> lớp học
               </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-1.5">
@@ -479,22 +533,25 @@ export function ClassListPageView({
         </div>
       </main>
 
-      {/* 6. Modals */}
+      {/* Modals */}
       <CreateClassModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={(created) => {
           showToast(`Đã tạo thành công lớp học "${created.title || created.name}"!`);
-          refetch();
+          handleTabChange('TEACHING');
+          refetchAll();
         }}
       />
 
       <JoinClassModal
         isOpen={isJoinOpen}
+        initialCode={initialJoinCode}
         onClose={() => setIsJoinOpen(false)}
         onSuccess={() => {
           showToast('Đã gửi yêu cầu tham gia lớp học thành công!');
-          refetch();
+          handleTabChange('ENROLLED');
+          refetchAll();
         }}
       />
 
@@ -513,7 +570,7 @@ export function ClassListPageView({
         workspaceMode={workspaceMode}
       />
 
-      {/* 7. Toast Feedback */}
+      {/* Toast Feedback */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#1E1F20] text-[#E3E3E3] shadow-2xl border-none text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
           <span className="material-symbols-outlined text-[18px] text-emerald-400">

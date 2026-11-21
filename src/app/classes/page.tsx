@@ -18,7 +18,7 @@ export default function ClassesPage() {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'TS. Lê Hoàng Nam';
+      : '';
 
   return <ClassListPageView userFullName={userFullName} />;
 }

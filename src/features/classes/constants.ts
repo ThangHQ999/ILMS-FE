@@ -38,7 +38,7 @@ export const DEFAULT_STUDENT_CLASSES: ClassItem[] = [
     status: 'ACTIVE',
     teachingRole: 'STUDENT',
     instructor: {
-      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
+      fullName: ' (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
     },
     schedule: {
       room: 'H6-302',
@@ -154,7 +154,7 @@ export const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     status: 'ACTIVE',
     teachingRole: 'PRIMARY_INSTRUCTOR',
     instructor: {
-      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 giảng viên',
+      fullName: ' (Chủ nhiệm môn) • 2 giảng viên',
     },
     schedule: {
       room: 'A2-301',
@@ -182,7 +182,7 @@ export const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     status: 'ACTIVE',
     teachingRole: 'TA',
     instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
+      fullName: ' • 2 giảng viên',
     },
     schedule: {
       room: 'A2-205',
@@ -238,7 +238,7 @@ export const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     status: 'ACTIVE',
     teachingRole: 'TA',
     instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 2 giảng viên',
+      fullName: ' • 2 giảng viên',
     },
     schedule: {
       room: 'Lab-Net-01',
@@ -266,7 +266,7 @@ export const DEFAULT_FACULTY_CLASSES: ClassItem[] = [
     status: 'ACTIVE',
     teachingRole: 'PRIMARY_INSTRUCTOR',
     instructor: {
-      fullName: 'TS. Lê Hoàng Nam • 1 giảng viên',
+      fullName: ' • 1 giảng viên',
     },
     schedule: {
       room: 'B2-201',

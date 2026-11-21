@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import type { AssignmentFilters } from '../types';
 
 interface AssignmentFilterToolbarProps {
@@ -44,58 +45,46 @@ export function AssignmentFilterToolbar({
       {/* Filter Dropdowns Group */}
       <div className="flex flex-wrap items-center gap-2.5 shrink-0">
         {/* Chapter Dropdown */}
-        <div className="relative">
-          <select
-            value={filters.chapter}
-            onChange={(e) => onFilterChange({ chapter: e.target.value })}
-            className="appearance-none h-10 pl-3 pr-8 rounded-xl bg-muted/40 text-foreground text-xs sm:text-sm font-medium border border-border cursor-pointer focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all"
-          >
-            <option value="ALL">{t('filters.allChapters')}</option>
-            <option value="CH1">{t('filters.ch1')}</option>
-            <option value="CH2">{t('filters.ch2')}</option>
-            <option value="CH3">{t('filters.ch3')}</option>
-            <option value="CH4">{t('filters.ch4')}</option>
-          </select>
-          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground pointer-events-none">
-            expand_more
-          </span>
-        </div>
+        <CustomSelect<string>
+          value={filters.chapter}
+          onChange={(val) => onFilterChange({ chapter: val })}
+          options={[
+            { value: 'ALL', label: t('filters.allChapters') },
+            { value: 'CH1', label: t('filters.ch1') },
+            { value: 'CH2', label: t('filters.ch2') },
+            { value: 'CH3', label: t('filters.ch3') },
+            { value: 'CH4', label: t('filters.ch4') },
+          ]}
+          className="min-w-[140px]"
+        />
 
         {/* Topic Dropdown */}
-        <div className="relative">
-          <select
-            value={filters.topic}
-            onChange={(e) => onFilterChange({ topic: e.target.value })}
-            className="appearance-none h-10 pl-3 pr-8 rounded-xl bg-muted/40 text-foreground text-xs sm:text-sm font-medium border border-border cursor-pointer focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all"
-          >
-            <option value="ALL">{t('filters.allTopics')}</option>
-            <option value="TRANSPORT">{t('filters.topicTransport')}</option>
-            <option value="NETWORK">{t('filters.topicNetwork')}</option>
-            <option value="APPLICATION">{t('filters.topicApp')}</option>
-            <option value="WIRESHARK">{t('filters.topicWireshark')}</option>
-          </select>
-          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground pointer-events-none">
-            expand_more
-          </span>
-        </div>
+        <CustomSelect<string>
+          value={filters.topic}
+          onChange={(val) => onFilterChange({ topic: val })}
+          options={[
+            { value: 'ALL', label: t('filters.allTopics') },
+            { value: 'TRANSPORT', label: t('filters.topicTransport') },
+            { value: 'NETWORK', label: t('filters.topicNetwork') },
+            { value: 'APPLICATION', label: t('filters.topicApp') },
+            { value: 'WIRESHARK', label: t('filters.topicWireshark') },
+          ]}
+          className="min-w-[150px]"
+        />
 
         {/* Difficulty / Bloom Dropdown */}
-        <div className="relative">
-          <select
-            value={filters.difficulty}
-            onChange={(e) => onFilterChange({ difficulty: e.target.value })}
-            className="appearance-none h-10 pl-3 pr-8 rounded-xl bg-muted/40 text-foreground text-xs sm:text-sm font-medium border border-border cursor-pointer focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all"
-          >
-            <option value="ALL">{t('filters.allDifficulties')}</option>
-            <option value="BLOOM1">{t('filters.bloom1')}</option>
-            <option value="BLOOM2">{t('filters.bloom2')}</option>
-            <option value="BLOOM3">{t('filters.bloom3')}</option>
-            <option value="BLOOM4">{t('filters.bloom4')}</option>
-          </select>
-          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground pointer-events-none">
-            expand_more
-          </span>
-        </div>
+        <CustomSelect<string>
+          value={filters.difficulty}
+          onChange={(val) => onFilterChange({ difficulty: val })}
+          options={[
+            { value: 'ALL', label: t('filters.allDifficulties') },
+            { value: 'BLOOM1', label: t('filters.bloom1') },
+            { value: 'BLOOM2', label: t('filters.bloom2') },
+            { value: 'BLOOM3', label: t('filters.bloom3') },
+            { value: 'BLOOM4', label: t('filters.bloom4') },
+          ]}
+          className="min-w-[150px]"
+        />
       </div>
     </div>
   );

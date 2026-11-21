@@ -32,12 +32,12 @@ interface LessonWorkspaceHeaderProps {
 
 export function LessonWorkspaceHeader({
   courseId,
-  courseCode = 'CS-202',
-  courseName = 'Cấu trúc dữ liệu & Giải thuật nâng cao',
-  classGroup = 'CS-202 • Nhóm 01',
-  chapterNumber = '03',
-  lessonNumber = '02',
-  lessonTitle = 'Cơ chế truyền tin cậy (RDT) & Bắt tay 3 bước TCP',
+  courseCode = '',
+  courseName = '',
+  classGroup = '',
+  chapterNumber = '',
+  lessonNumber = '',
+  lessonTitle = '',
   activeNavTab,
   onSelectNavTab,
   isLeftSidebarOpen,
@@ -48,10 +48,10 @@ export function LessonWorkspaceHeader({
   onToggleFocusMode,
   onOpenNotes,
   hasUnsavedNotes = true,
-  studentName = 'Trần Nhật Minh',
-  studentCode = '21120485',
-  overallProgress = 64,
-  lessonProgress = 68,
+  studentName = '',
+  studentCode = '',
+  overallProgress = 0,
+  lessonProgress = 0,
   onHelpClick,
 }: LessonWorkspaceHeaderProps) {
   return (
@@ -78,88 +78,7 @@ export function LessonWorkspaceHeader({
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                 Chương {chapterNumber} • Bài {lessonNumber}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate max-w-xs md:max-w-md">
-                Xây dựng Cấu trúc Layout 3 Cột Hiện đại
-              </span>
             </div>
-          </div>
-
-          {/* Center/Right Nav & Actions */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Nav Pills */}
-            <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <button
-                type="button"
-                onClick={() => onSelectNavTab('workspace')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeNavTab === 'workspace'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                Không gian học
-              </button>
-              <button
-                type="button"
-                onClick={() => onSelectNavTab('syllabus')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeNavTab === 'syllabus'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                Đề cương
-              </button>
-              <button
-                type="button"
-                onClick={() => onSelectNavTab('resources')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeNavTab === 'resources'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                Tài nguyên
-              </button>
-              <button
-                type="button"
-                onClick={() => onSelectNavTab('discussion')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeNavTab === 'discussion'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                Hỏi đáp
-              </button>
-            </nav>
-
-            <ThemeToggle />
-            <LanguageSwitcher variant="minimal" />
-
-            {/* Help Button */}
-            <button
-              type="button"
-              onClick={onHelpClick}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors text-xs font-bold cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">help_outline</span>
-              <span className="hidden md:inline">Trợ giúp</span>
-            </button>
-
-            {/* User Profile Avatar */}
-            <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shadow-xs">
-              <span className="material-symbols-outlined text-[18px]">person</span>
-            </div>
-          </div>
-
-          {/* Bottom Micro Progress Rail (Overall course progress) */}
-          <div className="absolute bottom-0 left-0 w-full h-[3px] bg-slate-200 dark:bg-slate-800">
-            <div
-              className="h-full bg-blue-600 dark:bg-blue-400 transition-all duration-300"
-              style={{ width: `${overallProgress}%` }}
-              title={`Tiến độ môn học: ${overallProgress}%`}
-            />
           </div>
         </div>
       </header>
@@ -197,11 +116,10 @@ export function LessonWorkspaceHeader({
             <button
               type="button"
               onClick={onToggleLeftSidebar}
-              className={`p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border ${
-                isLeftSidebarOpen
-                  ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent'
-              }`}
+              className={`p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border ${isLeftSidebarOpen
+                ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                : 'border-transparent'
+                }`}
               title="Ẩn/Hiện Cây Giáo Trình (Left Sidebar)"
             >
               <span className="material-symbols-outlined text-[20px]">view_sidebar</span>
@@ -211,11 +129,10 @@ export function LessonWorkspaceHeader({
             <button
               type="button"
               onClick={onToggleFocusMode}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                isFocusMode
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${isFocusMode
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700'
+                }`}
               title="Chế độ Tập trung: Ẩn cả hai thanh bên để tối đa hóa không gian học"
             >
               <span className="material-symbols-outlined text-[18px]">center_focus_strong</span>
@@ -242,11 +159,10 @@ export function LessonWorkspaceHeader({
             <button
               type="button"
               onClick={onToggleRightSidebar}
-              className={`p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border ${
-                isRightSidebarOpen
-                  ? 'border-indigo-500/50 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent'
-              }`}
+              className={`p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border ${isRightSidebarOpen
+                ? 'border-indigo-500/50 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'
+                : 'border-transparent'
+                }`}
               title="Ẩn/Hiện Trợ lý Socratic AI (Right Sidebar)"
             >
               <span className="material-symbols-outlined text-[20px]">neurology</span>

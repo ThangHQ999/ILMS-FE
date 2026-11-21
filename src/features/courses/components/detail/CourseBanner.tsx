@@ -11,6 +11,7 @@ interface CourseBannerProps {
   completedLessons: number;
   totalChapters?: number;
   totalHours?: number;
+  canEdit?: boolean;
   onOpenAddChapter: () => void;
   onOpenAddLesson: () => void;
   onSelectTab: (tab: string) => void;
@@ -22,22 +23,33 @@ export function CourseBanner({
   completedLessons,
   totalChapters,
   totalHours,
+  canEdit = false,
   onOpenAddChapter,
   onOpenAddLesson,
   onSelectTab,
 }: CourseBannerProps) {
   const t = useTranslations('courses.detail');
   const progressPercent =
-    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : course.teachingProgress || 36;
+    totalLessons > 0
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : course.teachingProgress ?? 0;
 
-  const chaptersCountDisplay = totalChapters || course.chaptersCount || 8;
-  const lessonsCountDisplay = totalLessons || course.lecturesCount || 24;
-  const hoursCountDisplay = totalHours || 36;
+  const chaptersCountDisplay = totalChapters ?? course.chaptersCount ?? 0;
+  const lessonsCountDisplay = totalLessons ?? course.lecturesCount ?? 0;
+  const hoursCountDisplay = totalHours ?? 0;
+  const bgUrl = course.backgroundUrl || course.thumbnailUrl;
 
   return (
     <div className="bg-[#39359e] rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row justify-between gap-6 border-[3px] border-[#4f4ca8]">
-      {/* Background Decoration */}
-      <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
+      {/* Optional Course Background Image Behind Content */}
+      {bgUrl ? (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <img src={bgUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1E1B4B]/92 via-[#312E81]/82 to-[#39359E]/65" />
+        </div>
+      ) : (
+        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
+      )}
 
       {/* Left Info */}
       <div className="flex flex-col gap-4 relative z-10 w-full md:w-2/3">
@@ -71,13 +83,17 @@ export function CourseBanner({
           <span className="px-3 py-1 bg-white text-[#39359e] rounded font-bold shadow-xs">
             {course.courseCode}
           </span>
-          <span className="px-3 py-1 bg-white/10 rounded border border-white/20">
-            {course.semester || 'Học kỳ II (2024-2025)'}
-          </span>
-          <span className="px-3 py-1 bg-white/10 rounded border border-white/20 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">stars</span>
-            <span>{course.specialFeature || 'Đồ thị AVL tự chấm'}</span>
-          </span>
+          {course.semester && (
+            <span className="px-3 py-1 bg-white/10 rounded border border-white/20">
+              {course.semester}
+            </span>
+          )}
+          {course.specialFeature && (
+            <span className="px-3 py-1 bg-white/10 rounded border border-white/20 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[16px]">stars</span>
+              <span>{course.specialFeature}</span>
+            </span>
+          )}
         </div>
 
         {/* Title & Desc */}
@@ -86,8 +102,7 @@ export function CourseBanner({
             {course.name}
           </h1>
           <p className="text-white/80 max-w-2xl leading-relaxed text-sm md:text-base">
-            {course.description ||
-              'Học phần chuyên sâu nghiên cứu các cấu trúc dữ liệu cây cân bằng (AVL, Red-Black), Segment Tree, Fenwick Tree và các thuật toán đồ thị nâng cao phục vụ thiết kế hệ thống xử lý dữ liệu lớn.'}
+            {course.description || 'Chưa có mô tả học phần.'}
           </p>
         </div>
 
@@ -97,11 +112,11 @@ export function CourseBanner({
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[20px]">person</span>
               <span>{t('instructor')}:</span>
-              <strong className="text-white ml-1">{course.instructorName || 'TS. Nguyễn Văn An (CN)'}</strong>
+              <strong className="text-white ml-1">{course.instructorName || 'Giảng viên'}</strong>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[20px]">hub</span>
-              <strong>{course.knowledgeNodesCount || 142}</strong> {t('knowledgeNodes')}
+              <strong>{course.knowledgeNodesCount ?? 0}</strong> {t('knowledgeNodes')}
             </span>
           </div>
 
@@ -131,23 +146,27 @@ export function CourseBanner({
 
       {/* Right Actions & Stats */}
       <div className="flex flex-col gap-3 relative z-10 w-full md:w-auto min-w-[240px]">
-        <button
-          type="button"
-          onClick={onOpenAddLesson}
-          className="flex items-center justify-center gap-2 bg-white text-[#39359e] font-bold px-4 py-2.5 rounded-xl border-[3px] border-white/40 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
-        >
-          <span className="material-symbols-outlined text-[20px]">add_circle</span>
-          <span>{t('btnAddLesson')}</span>
-        </button>
+        {canEdit && (
+          <>
+            <button
+              type="button"
+              onClick={onOpenAddLesson}
+              className="flex items-center justify-center gap-2 bg-white text-[#39359e] font-bold px-4 py-2.5 rounded-xl border-[3px] border-white/40 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer text-xs sm:text-sm active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[20px]">add_circle</span>
+              <span>{t('btnAddLesson')}</span>
+            </button>
 
-        <button
-          type="button"
-          onClick={onOpenAddChapter}
-          className="flex items-center justify-center gap-2 bg-white/10 border-[3px] border-white/40 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer text-xs sm:text-sm active:scale-95"
-        >
-          <span className="material-symbols-outlined text-[20px]">playlist_add</span>
-          <span>{t('btnAddChapter')}</span>
-        </button>
+            <button
+              type="button"
+              onClick={onOpenAddChapter}
+              className="flex items-center justify-center gap-2 bg-white/10 border-[3px] border-white/40 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer text-xs sm:text-sm active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[20px]">playlist_add</span>
+              <span>{t('btnAddChapter')}</span>
+            </button>
+          </>
+        )}
 
         <button
           type="button"

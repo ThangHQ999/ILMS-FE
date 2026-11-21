@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useSocraticLessonContext } from '@/hooks/useSocraticLessonContext';
 import { ChatMessage } from '../types';
 import {
   INITIAL_CHAT_MESSAGES,
@@ -61,6 +62,7 @@ export function useSocraticChat(
     return localStorage.getItem(SESSION_ID_KEY) || undefined;
   });
 
+  const lessonContext = useSocraticLessonContext();
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const streamEndRef = useRef<HTMLDivElement | null>(null);
@@ -125,6 +127,20 @@ export function useSocraticChat(
         {
           message: content,
           sessionId,
+          subject: lessonContext?.courseCode,
+          materialIds: lessonContext?.materialIds,
+          courseName: lessonContext?.courseName,
+          chapterTitle: lessonContext?.chapterTitle,
+          lessonId: lessonContext?.lessonId,
+          lessonTitle: lessonContext?.lessonTitle,
+          blockContext: lessonContext?.activeBlock
+            ? {
+                id: lessonContext.activeBlock.id,
+                type: lessonContext.activeBlock.type,
+                title: lessonContext.activeBlock.title,
+                content_text: lessonContext.activeBlock.contentText,
+              }
+            : null,
         },
         {
           onSessionInit: (newSessionId) => {
@@ -182,7 +198,24 @@ export function useSocraticChat(
           onError: (err) => {
             setIsTyping(false);
             const errMsg = err instanceof Error ? err.message : String(err);
-            const displayError = `⚠️ **Kết nối tới máy chủ AI Socratic bị gián đoạn.**\n\n*Chi tiết:* ${errMsg}\n\nVui lòng kiểm tra lại đường truyền hoặc dịch vụ backend và thử lại.`;
+            const isQuotaLimit =
+              errMsg.includes('AI_DAILY_LIMIT_EXCEEDED') ||
+              errMsg.includes('lượt hỏi') ||
+              errMsg.includes('429');
+
+            const displayError = isQuotaLimit
+              ? '⚠️ **Bạn đã dùng hết lượt hỏi Trợ lý AI hôm nay.**\n\nVui lòng quay lại vào ngày mai hoặc nâng cấp gói cước để tiếp tục trò chuyện và học tập không giới hạn.'
+              : `⚠️ **Kết nối tới máy chủ AI Socratic bị gián đoạn.**\n\n*Chi tiết:* ${errMsg}\n\nVui lòng kiểm tra lại đường truyền hoặc dịch vụ backend và thử lại.`;
+
+            const attachment = isQuotaLimit
+              ? {
+                  icon: 'diamond',
+                  title: 'Mở khóa Gói cước Plus & Pro',
+                  subtitle: 'Hỏi đáp AI không giới hạn & Đồ thị tri thức',
+                  actionText: 'Nâng cấp ngay',
+                  link: '/pricing',
+                }
+              : undefined;
 
             if (!hasAddedAiMsg) {
               setMessages((prev) => [
@@ -193,13 +226,14 @@ export function useSocraticChat(
                   senderName: 'Trợ lý Socratic',
                   content: displayError,
                   timestamp: 'Vừa xong',
+                  attachment,
                 },
               ]);
             } else {
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === aiMsgId
-                    ? { ...m, content: `${m.content}\n\n${displayError}` }
+                    ? { ...m, content: `${m.content}\n\n${displayError}`, attachment }
                     : m
                 )
               );
@@ -210,7 +244,7 @@ export function useSocraticChat(
         controller.signal
       );
     },
-    [inputText, isTyping, userName, sessionId, isAuthenticated, scrollToBottom]
+    [inputText, isTyping, userName, sessionId, isAuthenticated, lessonContext, scrollToBottom]
   );
 
   const rateMessage = useCallback(

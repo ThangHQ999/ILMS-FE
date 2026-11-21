@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { CustomSelect } from '@/components/shared';
 import { useUserRole } from '@/hooks/useUserRole';
 import { LessonSession } from '../types';
 
@@ -52,21 +53,18 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
           </div>
 
           {/* Status Dropdown Selector */}
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none pl-3.5 pr-8 py-2.5 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] text-xs font-semibold cursor-pointer outline-none transition-all border-none"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="checked">Đã điểm danh</option>
-              <option value="in_progress">Đang điểm danh</option>
-              <option value="unchecked">Chưa điểm danh</option>
-            </select>
-            <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-              expand_more
-            </span>
-          </div>
+          <CustomSelect<string>
+            variant="pill"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: 'all', label: 'Tất cả trạng thái' },
+              { value: 'checked', label: 'Đã điểm danh' },
+              { value: 'in_progress', label: 'Đang điểm danh' },
+              { value: 'unchecked', label: 'Chưa điểm danh' },
+            ]}
+            className="min-w-[165px]"
+          />
 
           {/* Room / Date Search Field */}
           <div className="relative flex-1 min-w-[220px]">

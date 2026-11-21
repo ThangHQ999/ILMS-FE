@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import type { ClassMaterial } from '../../schemas/class-detail.schema';
 import { UploadMaterialModal } from './UploadMaterialModal';
 
@@ -35,6 +36,10 @@ export function ClassMaterialsTab({
   const [isAutoQuizOpen, setIsAutoQuizOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<ClassMaterial | null>(null);
+  const [uploadSubject, setUploadSubject] = useState('CS-202: Cấu trúc dữ liệu và giải thuật');
+  const [uploadCategory, setUploadCategory] = useState('Slide bài giảng (PPTX)');
+  const [quizBloomLevel, setQuizBloomLevel] = useState('Bloom 3: Vận dụng (Application)');
+  const [quizQuestionCount, setQuizQuestionCount] = useState('5 câu hỏi nhanh');
 
   // Internal toast helper
   const notify = (msg: string) => {
@@ -293,43 +298,45 @@ export function ClassMaterialsTab({
         {/* Dropdowns */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
               {t('filterSubject')}
             </span>
-            <select
+            <CustomSelect<string>
               value={selectedSubject}
-              onChange={(e) => {
-                setSelectedSubject(e.target.value);
+              onChange={(val) => {
+                setSelectedSubject(val);
                 setCurrentPage(1);
               }}
-              className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600"
-            >
-              <option value="ALL">{t('allSubjects')}</option>
-              <option value="CS-202">CS-202: Cấu trúc dữ liệu và giải thuật</option>
-              <option value="CS-201">CS-201: Cơ sở dữ liệu</option>
-              <option value="CS-203">CS-203: Lập trình hướng đối tượng</option>
-              <option value="CS-204">CS-204: Nhập môn trí tuệ nhân tạo</option>
-            </select>
+              options={[
+                { value: 'ALL', label: t('allSubjects') },
+                { value: 'CS-202', label: 'CS-202: Cấu trúc dữ liệu và giải thuật' },
+                { value: 'CS-201', label: 'CS-201: Cơ sở dữ liệu' },
+                { value: 'CS-203', label: 'CS-203: Lập trình hướng đối tượng' },
+                { value: 'CS-204', label: 'CS-204: Nhập môn trí tuệ nhân tạo' },
+              ]}
+              className="min-w-[200px]"
+            />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
               {t('filterCategory')}
             </span>
-            <select
+            <CustomSelect<string>
               value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
+              onChange={(val) => {
+                setSelectedCategory(val);
                 setCurrentPage(1);
               }}
-              className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            >
-              <option value="ALL">{t('allCategories')}</option>
-              <option value="syllabus">{t('categorySyllabus')}</option>
-              <option value="slide">{t('categorySlide')}</option>
-              <option value="quiz">{t('categoryQuiz')}</option>
-              <option value="code">{t('categoryCode')}</option>
-            </select>
+              options={[
+                { value: 'ALL', label: t('allCategories') },
+                { value: 'syllabus', label: t('categorySyllabus') },
+                { value: 'slide', label: t('categorySlide') },
+                { value: 'quiz', label: t('categoryQuiz') },
+                { value: 'code', label: t('categoryCode') },
+              ]}
+              className="min-w-[160px]"
+            />
           </div>
         </div>
 
@@ -957,25 +964,33 @@ export function ClassMaterialsTab({
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   {t('uploadSubjectLabel')}
                 </label>
-                <select className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
-                  <option>CS-202: Cấu trúc dữ liệu và giải thuật</option>
-                  <option>CS-201: Cơ sở dữ liệu</option>
-                  <option>CS-203: Lập trình hướng đối tượng</option>
-                  <option>CS-204: Nhập môn trí tuệ nhân tạo</option>
-                </select>
+                <CustomSelect<string>
+                  value={uploadSubject}
+                  onChange={setUploadSubject}
+                  options={[
+                    { value: 'CS-202: Cấu trúc dữ liệu và giải thuật', label: 'CS-202: Cấu trúc dữ liệu và giải thuật' },
+                    { value: 'CS-201: Cơ sở dữ liệu', label: 'CS-201: Cơ sở dữ liệu' },
+                    { value: 'CS-203: Lập trình hướng đối tượng', label: 'CS-203: Lập trình hướng đối tượng' },
+                    { value: 'CS-204: Nhập môn trí tuệ nhân tạo', label: 'CS-204: Nhập môn trí tuệ nhân tạo' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
                   {t('uploadCategoryLabel')}
                 </label>
-                <select className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
-                  <option>Slide bài giảng (PPTX)</option>
-                  <option>Giáo trình chính (PDF)</option>
-                  <option>Đề cương & Chuẩn ABET (PDF)</option>
-                  <option>Đề thi & Quiz mẫu</option>
-                  <option>Mã nguồn Lab & Testcase (ZIP)</option>
-                </select>
+                <CustomSelect<string>
+                  value={uploadCategory}
+                  onChange={setUploadCategory}
+                  options={[
+                    { value: 'Slide bài giảng (PPTX)', label: 'Slide bài giảng (PPTX)' },
+                    { value: 'Giáo trình chính (PDF)', label: 'Giáo trình chính (PDF)' },
+                    { value: 'Đề cương & Chuẩn ABET (PDF)', label: 'Đề cương & Chuẩn ABET (PDF)' },
+                    { value: 'Đề thi & Quiz mẫu', label: 'Đề thi & Quiz mẫu' },
+                    { value: 'Mã nguồn Lab & Testcase (ZIP)', label: 'Mã nguồn Lab & Testcase (ZIP)' },
+                  ]}
+                />
               </div>
 
               <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 flex items-start gap-2.5">
@@ -1158,22 +1173,30 @@ export function ClassMaterialsTab({
                   <label className="font-semibold text-gray-700 dark:text-[#C4C7C5] block mb-1">
                     Cấp độ tư duy (Bloom)
                   </label>
-                  <select className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none text-gray-900 dark:text-[#E3E3E3] outline-none">
-                    <option>Bloom 3: Vận dụng (Application)</option>
-                    <option>Bloom 1: Ghi nhớ (Recall)</option>
-                    <option>Bloom 2: Thấu hiểu (Understand)</option>
-                    <option>Bloom 4: Phân tích (Analysis)</option>
-                  </select>
+                  <CustomSelect<string>
+                    value={quizBloomLevel}
+                    onChange={setQuizBloomLevel}
+                    options={[
+                      { value: 'Bloom 3: Vận dụng (Application)', label: 'Bloom 3: Vận dụng (Application)' },
+                      { value: 'Bloom 1: Ghi nhớ (Recall)', label: 'Bloom 1: Ghi nhớ (Recall)' },
+                      { value: 'Bloom 2: Thấu hiểu (Understand)', label: 'Bloom 2: Thấu hiểu (Understand)' },
+                      { value: 'Bloom 4: Phân tích (Analysis)', label: 'Bloom 4: Phân tích (Analysis)' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="font-semibold text-gray-700 dark:text-[#C4C7C5] block mb-1">
                     Số lượng câu hỏi
                   </label>
-                  <select className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none text-gray-900 dark:text-[#E3E3E3] outline-none">
-                    <option>5 câu hỏi nhanh</option>
-                    <option>10 câu trắc nghiệm</option>
-                    <option>15 câu toàn chương</option>
-                  </select>
+                  <CustomSelect<string>
+                    value={quizQuestionCount}
+                    onChange={setQuizQuestionCount}
+                    options={[
+                      { value: '5 câu hỏi nhanh', label: '5 câu hỏi nhanh' },
+                      { value: '10 câu trắc nghiệm', label: '10 câu trắc nghiệm' },
+                      { value: '15 câu toàn chương', label: '15 câu toàn chương' },
+                    ]}
+                  />
                 </div>
               </div>
 

@@ -1225,6 +1225,16 @@
     "billingHeaderTitle": "Gói cước & Đăng ký Pro",
     "billingHeaderSubtitle": "Chi tiết giấy phép sử dụng phòng Lab AI, GPU Cloud và tính năng trợ giảng 24/7.",
     "btnCancelAutoRenew": "Hủy gia hạn gói",
+    "scheduledPlanTitle": "Kế hoạch chuyển gói",
+    "scheduledPlanDesc": "Bạn đã lên lịch chuyển sang {nextPlanName} vào ngày {date} (khi gói hiện tại kết thúc). Bạn vẫn có toàn quyền sử dụng {currentPlanName} cho đến thời điểm đó.",
+    "scheduledPlanDescNoDate": "Bạn đã lên lịch chuyển sang {nextPlanName} khi gói hiện tại kết thúc. Bạn vẫn có toàn quyền sử dụng {currentPlanName} cho đến thời điểm đó.",
+    "btnCancelScheduledPlan": "Hủy kế hoạch chuyển gói",
+    "btnCancelingScheduledPlan": "Đang hủy...",
+    "downgradeNoticeWithDate": "Gói {currentPlanName} hiện tại vẫn còn hiệu lực đến hết ngày {endDate}. Hệ thống sẽ chỉ chuyển sang gói mới sau thời điểm này.",
+    "downgradeNoticeFallback": "Gói {currentPlanName} hiện tại vẫn còn hiệu lực đến hết chu kỳ. Hệ thống sẽ chỉ chuyển sang gói mới sau thời điểm này.",
+    "btnScheduleDowngradeWithDate": "Lên lịch chuyển gói sau ngày {endDate}",
+    "btnScheduleDowngradeFallback": "Lên lịch chuyển gói cuối kỳ",
+    "btnProceedPayment": "Tiến hành Thanh toán",
     "btnUpgradeEnterprise": "Nâng cấp Enterprise",
     "lblPlanCost": "Chi phí gói",
     "paidStatus": "Đã thanh toán",
@@ -1281,7 +1291,7 @@
     "mainPageTitle": "Cài đặt & Tùy chọn hệ thống",
     "mainPageSubtitle": "Quản lý thông tin tài khoản, bảo mật danh tính, gói đăng ký EduTech Pro và tùy biến không gian học tập trực tuyến của bạn.",
     "searchPlaceholder": "Tìm nhanh: Đổi mật khẩu, 2FA, Dark mode...",
-    "searchHintCount": "Truy cập tức thì 18+ thiết lập cá nhân hóa"
+    "searchHintCount": "Tìm kiếm nhanh"
   },
   "competency": {
     "pageTitle": "Bản đồ Năng lực & Cây Kỹ năng",
@@ -1371,6 +1381,34 @@
     "modalCreateDesc": "Khởi tạo không gian lớp học mới cho học kỳ hiện tại",
     "fieldName": "Mã lớp",
     "fieldNamePlaceholder": "Ví dụ: CS201.N12",
+    "createPage": {
+      "breadcrumbTitle": "Tạo lớp học mới",
+      "backToClasses": "Quay lại danh sách lớp",
+      "heading": "Tạo lớp học mới",
+      "subheading": "Thiết lập thông tin, cấu hình ghi danh và ảnh nền cho không gian lớp học của bạn.",
+      "sectionBasic": "Thông tin cơ bản",
+      "sectionBackground": "Ảnh nền lớp học",
+      "backgroundHint": "PNG, JPG, WEBP • Tối đa 10MB",
+      "uploadCta": "Nhấn để tải ảnh nền lên",
+      "uploadSubtext": "Ảnh sẽ tự động lưu lên Cloud và làm lớp nền cho thẻ & banner lớp học.",
+      "uploadingLabel": "Đang tải ảnh lên Cloud...",
+      "uploadedLabel": "Đã tải ảnh nền lên",
+      "uploadFailed": "Tải ảnh nền thất bại. Vui lòng thử lại.",
+      "changeBgBtn": "Đổi ảnh",
+      "removeBgBtn": "Xóa ảnh",
+      "sectionSettings": "Thời gian & Quyền ghi danh",
+      "visibilityLabel": "Chế độ hiển thị",
+      "visibilityPublic": "Công khai (Public)",
+      "visibilityPrivate": "Riêng tư (Private)",
+      "startDateLabel": "Ngày bắt đầu",
+      "endDateLabel": "Ngày kết thúc",
+      "isCodeActiveLabel": "Cho phép tham gia bằng mã",
+      "isCodeActiveHint": "Học viên có thể nhập mã lớp để tham gia",
+      "requireApprovalLabel": "Phê duyệt yêu cầu",
+      "requireApprovalHint": "Giảng viên duyệt trước khi vào lớp",
+      "previewTitle": "Xem trước thẻ lớp học",
+      "previewDefaultTitle": "Lớp Công nghệ phần mềm 01"
+    },
     "fieldTitle": "Tên học phần / Môn học",
     "fieldTitlePlaceholder": "Ví dụ: Cơ sở Dữ liệu Nâng cao",
     "fieldDescription": "Mô tả lớp học",
@@ -1747,6 +1785,8 @@
       "lessonsInChapter": "{count} bài học",
       "lessonDuration": "{minutes} phút",
       "lessonType": {
+        "MODULAR": "Bài giảng khối",
+        "TEXT": "Lý thuyết",
         "THEORY": "Lý thuyết",
         "VIDEO": "Video bài giảng",
         "QUIZ": "Trắc nghiệm",
@@ -2092,7 +2132,7 @@
         "bank": "Ngân hàng thụ hưởng:",
         "bankName": "MB Bank (Quân Đội)",
         "accountHolder": "Chủ tài khoản:",
-        "accountHolderName": "CONG TY EDUTECH INNOVATIONS",
+        "accountHolderName": "HOANG QUANG THANG",
         "accountNumber": "Số tài khoản:",
         "amount": "Số tiền:",
         "transferNote": "Nội dung chuyển khoản:",
@@ -2258,5 +2298,105 @@
         }
       }
     }
+  },
+  "materialsHub": {
+    "title": "Trung tâm Xử lý & Duyệt Tri thức AI",
+    "subtitle": "Theo dõi pipeline Spring Boot → FastAPI 4-Agents, kiểm tra lỗi BLOCKER và duyệt bản nháp xuất bản lên Neo4j & ChromaDB.",
+    "livePolling": "Live Polling 4s",
+    "refresh": "Làm mới",
+    "searchPlaceholder": "Tìm theo tên tài liệu, môn học, Job ID...",
+    "kpi": {
+      "active": "Đang xếp hàng / Xử lý",
+      "awaitingReview": "Chờ giảng viên duyệt",
+      "completed": "Đã xuất bản Neo4j",
+      "failed": "Thất bại / Cần chạy lại"
+    },
+    "filters": {
+      "all": "Tất cả",
+      "awaitingReview": "Cần duyệt",
+      "active": "Đang chạy",
+      "completed": "Đã xuất bản",
+      "failed": "Thất bại",
+      "reset": "Đặt lại bộ lọc"
+    },
+    "status": {
+      "NOT_EXTRACTED": "Chưa bóc tách AI",
+      "QUEUED": "Đang xếp hàng đợi",
+      "PROCESSING": "AI đang phân tích (4 Agents)",
+      "AWAITING_REVIEW": "Chờ giảng viên duyệt",
+      "PUBLISHING": "Đang xuất bản Neo4j & ChromaDB",
+      "SUCCESS": "Đã xuất bản Neo4j",
+      "COMPLETED": "Đã xuất bản Neo4j",
+      "FAILED": "Bóc tách thất bại"
+    },
+    "steps": {
+      "header": "Tiến trình Pipeline AI (5 chặng)",
+      "queued": "Hàng đợi",
+      "queuedSub": "QUEUED · Lưu cục bộ",
+      "aiDraft": "AI 4-Agents",
+      "aiDraftSub": "Extractor → Reviewer",
+      "draftReady": "Bản nháp",
+      "draftReadySub": "MySQL & Neo4j Sync",
+      "review": "Duyệt tri thức",
+      "reviewSub": "Kiểm tra BLOCKER",
+      "publish": "Xuất bản",
+      "publishSub": "Neo4j + ChromaDB"
+    },
+    "draftGraph": {
+      "heading": "Đồ thị bản nháp theo revision",
+      "syncing": "Đang đồng bộ đồ thị bản nháp sang Neo4j (tự động thử lại mỗi 2.5s)...",
+      "reload": "Tải lại đồ thị",
+      "nodesUnit": "nút",
+      "edgesUnit": "liên kết",
+      "selectHint": "Nhấp vào một nút trên đồ thị để xem hoặc chỉnh sửa trực tiếp thuộc tính.",
+      "moveExercise": "Chuyển bài tập sang khái niệm",
+      "addEntity": "Thêm thực thể tri thức",
+      "addRelation": "Nối quan hệ",
+      "addTopic": "Thêm chủ đề",
+      "deleteNode": "Xóa node"
+    },
+    "actions": {
+      "uploadDirect": "Tải tài liệu vào Pipeline (Duyệt tay)",
+      "autoPublishOn": "Tự động xuất bản",
+      "autoPublishOff": "Dừng chờ duyệt tay",
+      "approveAndPublish": "Duyệt & Xuất bản lên Neo4j",
+      "requestChanges": "Yêu cầu chỉnh sửa",
+      "reject": "Từ chối",
+      "retry": "Thử chạy lại",
+      "rawJson": "Raw JSON",
+      "viewPublishedGraph": "Xem Đồ thị đã xuất bản",
+      "downloadSource": "Tệp gốc"
+    },
+    "empty": {
+      "noJobsTitle": "Chưa có tiến trình bóc tách AI nào",
+      "noJobsDesc": "Tải tài liệu trực tiếp tại đây hoặc bấm \"Bóc tách AI\" từ tab Tài liệu trong khóa học.",
+      "uploadFirst": "Tải tài liệu đầu tiên",
+      "noMatch": "Không có tiến trình nào khớp bộ lọc hiện tại."
+    }
+  },
+  "courseMaterials": {
+    "title": "Kho tài liệu & Học liệu môn học",
+    "filesUnit": "tệp",
+    "publishedUnit": "đã xuất bản Neo4j",
+    "syncing": "Đang đồng bộ...",
+    "uploadButton": "Tải tài liệu lên",
+    "uploadingButton": "Đang tải lên...",
+    "extractAll": "Bóc tách tất cả",
+    "searchPlaceholder": "Tìm tên tài liệu, chương hoặc bài học...",
+    "openHub": "Mở Trung tâm Xử lý AI",
+    "emptyTitle": "Chưa có tài liệu học tập nào",
+    "emptyFilterTitle": "Không tìm thấy tài liệu phù hợp bộ lọc",
+    "resetFilters": "Đặt lại bộ lọc"
+  },
+  "courseKg": {
+    "title": "Đồ thị Tri thức Môn học",
+    "conceptsUnit": "khái niệm",
+    "edgesUnit": "liên kết",
+    "viewGraph": "Sơ đồ mạng lưới",
+    "viewTopics": "Theo Chủ đề",
+    "openStudio": "Mở Studio Toàn cảnh",
+    "searchPlaceholder": "Tìm khái niệm, chủ đề hoặc từ khóa...",
+    "emptyTitle": "Môn học chưa có Đồ thị tri thức nào được xuất bản",
+    "askSocraticAi": "Hỏi Socratic AI về khái niệm này"
   }
 }

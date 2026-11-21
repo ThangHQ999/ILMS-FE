@@ -86,6 +86,7 @@ export const chatMessageSchema = z.object({
       subtitle: z.string(),
       icon: z.string(),
       actionText: z.string(),
+      link: z.string().optional(),
     })
     .optional(),
 });

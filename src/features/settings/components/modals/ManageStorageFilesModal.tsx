@@ -20,10 +20,13 @@ export function ManageStorageFilesModal({
   const [fileType, setFileType] = useState('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { data: files = [], isLoading } = useStorageFiles({
-    search: search || undefined,
-    fileType: fileType !== 'ALL' ? fileType : undefined,
-  });
+  const { data: files = [], isLoading } = useStorageFiles(
+    {
+      search: search || undefined,
+      fileType: fileType !== 'ALL' ? fileType : undefined,
+    },
+    { enabled: isOpen }
+  );
 
   const deleteMutation = useDeleteStorageFile(() => {
     setDeletingId(null);
@@ -32,10 +35,10 @@ export function ManageStorageFilesModal({
 
   if (!isOpen) return null;
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = (deleteKey: string, rowId: string, name: string) => {
     if (confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tệp "${name}" để giải phóng dung lượng?`)) {
-      setDeletingId(id);
-      deleteMutation.mutate(id);
+      setDeletingId(rowId);
+      deleteMutation.mutate(deleteKey);
     }
   };
 
@@ -161,7 +164,13 @@ export function ManageStorageFilesModal({
                     <button
                       type="button"
                       disabled={isDeleting}
-                      onClick={() => handleDelete(file.id, file.name)}
+                      onClick={() =>
+                        handleDelete(
+                          file.publicId || file.fileId || file.id,
+                          file.id,
+                          file.name
+                        )
+                      }
                       className="px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-xs font-semibold transition-colors flex items-center gap-1 border-none cursor-pointer shrink-0 disabled:opacity-50"
                     >
                       {isDeleting ? (

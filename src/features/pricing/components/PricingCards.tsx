@@ -3,23 +3,43 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
-import { useMySubscription } from '@/features/settings';
+import { useMySubscription, useSubscriptionPlans } from '@/features/settings';
 
 interface PricingCardsProps {
   isYearly: boolean;
-  onSelectPlan: (planCode: string, planName: string, price: number) => void;
+  onSelectPlan: (
+    planCode: string,
+    planName: string,
+    price: number,
+    planId?: string
+  ) => void;
 }
 
 export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
   const t = useTranslations('pricing.cards');
   const { data: user } = useCurrentUser();
   const { data: subscription } = useMySubscription();
+  const { data: plans = [] } = useSubscriptionPlans();
 
   const currentPlanCode = user
     ? (subscription?.planCode || 'FREE').toUpperCase()
     : null;
 
   const billingUnit = isYearly ? t('yearlyUnit') : t('monthlyUnit');
+
+  const plusPlan = plans.find((p) => p.code === 'PLUS');
+  const proPlan = plans.find((p) => p.code === 'PRO');
+  const enterprisePlan = plans.find((p) => p.code === 'ENTERPRISE');
+
+  const plusPrice = isYearly
+    ? plusPlan?.yearlyPrice ?? 79000
+    : plusPlan?.price ?? 99000;
+  const proPrice = isYearly
+    ? proPlan?.yearlyPrice ?? 159000
+    : proPlan?.price ?? 199000;
+  const enterprisePrice = isYearly
+    ? enterprisePlan?.yearlyPrice ?? 399000
+    : enterprisePlan?.price ?? 499000;
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch w-full">
@@ -115,7 +135,7 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
 
           <div className="my-5 pb-5 border-b border-slate-200 dark:border-[#3c4043] flex items-baseline gap-1">
             <span className="text-3xl font-bold text-slate-900 dark:text-[#e3e3e3] font-mono">
-              {isYearly ? '79.000₫' : '99.000₫'}
+              {new Intl.NumberFormat('vi-VN').format(plusPrice)}₫
             </span>
             <span className="text-xs text-slate-500 dark:text-[#8e918f] font-normal">
               {billingUnit}
@@ -157,7 +177,14 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
         </div>
 
         <button
-          onClick={() => onSelectPlan('PLUS', 'Gói Nâng cao (Plus)', isYearly ? 79000 : 99000)}
+          onClick={() =>
+            onSelectPlan(
+              'PLUS',
+              plusPlan?.name || 'Gói Nâng cao (Plus)',
+              plusPrice,
+              plusPlan?.id
+            )
+          }
           className={`mt-6 w-full py-2.5 px-4 rounded-full font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
             currentPlanCode === 'PLUS'
               ? 'bg-slate-100 dark:bg-[#282a2c] text-slate-400 dark:text-[#8e918f] cursor-not-allowed border border-slate-200 dark:border-[#3c4043]'
@@ -190,7 +217,7 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
 
           <div className="my-5 pb-5 border-b border-slate-200 dark:border-[#3c4043] flex items-baseline gap-1">
             <span className="text-3xl font-bold text-slate-900 dark:text-[#e3e3e3] font-mono">
-              {isYearly ? '159.000₫' : '199.000₫'}
+              {new Intl.NumberFormat('vi-VN').format(proPrice)}₫
             </span>
             <span className="text-xs text-slate-500 dark:text-[#8e918f] font-normal">
               {billingUnit}
@@ -232,7 +259,14 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
         </div>
 
         <button
-          onClick={() => onSelectPlan('PRO', 'Gói Pro', isYearly ? 159000 : 199000)}
+          onClick={() =>
+            onSelectPlan(
+              'PRO',
+              proPlan?.name || 'Gói Pro',
+              proPrice,
+              proPlan?.id
+            )
+          }
           className={`mt-6 w-full py-2.5 px-4 rounded-full text-xs font-semibold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
             currentPlanCode === 'PRO'
               ? 'bg-slate-100 dark:bg-[#282a2c] text-slate-400 dark:text-[#8e918f] cursor-not-allowed border-slate-200 dark:border-[#3c4043]'
@@ -262,7 +296,7 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
 
           <div className="my-5 pb-5 border-b border-slate-200 dark:border-[#3c4043] flex items-baseline gap-1">
             <span className="text-3xl font-bold text-slate-900 dark:text-[#e3e3e3] font-mono">
-              {isYearly ? '399.000₫' : '499.000₫'}
+              {new Intl.NumberFormat('vi-VN').format(enterprisePrice)}₫
             </span>
             <span className="text-xs text-slate-500 dark:text-[#8e918f] font-normal">
               {billingUnit}
@@ -304,7 +338,14 @@ export function PricingCards({ isYearly, onSelectPlan }: PricingCardsProps) {
         </div>
 
         <button
-          onClick={() => onSelectPlan('ENTERPRISE', 'Gói Doanh nghiệp', isYearly ? 399000 : 499000)}
+          onClick={() =>
+            onSelectPlan(
+              'ENTERPRISE',
+              enterprisePlan?.name || 'Gói Doanh nghiệp',
+              enterprisePrice,
+              enterprisePlan?.id
+            )
+          }
           className={`mt-6 w-full py-2.5 px-4 rounded-full text-xs font-semibold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
             currentPlanCode === 'ENTERPRISE'
               ? 'bg-slate-100 dark:bg-[#282a2c] text-slate-400 dark:text-[#8e918f] cursor-not-allowed border-slate-200 dark:border-[#3c4043]'

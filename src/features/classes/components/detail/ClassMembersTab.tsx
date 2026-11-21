@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import type { ClassMember } from '../../schemas/class-detail.schema';
+import { CustomSelect } from '@/components/shared';
+import type { ClassItem } from '../../schemas/class.schema';
+import type { ClassCourse, ClassMember } from '../../schemas/class-detail.schema';
 import { StudentDetailDrawer } from './StudentDetailDrawer';
 
 interface ClassMembersTabProps {
+  classInfo?: ClassItem;
   members?: ClassMember[];
+  courses?: ClassCourse[];
   currentRole?: 'owner' | 'teacher' | 'student';
   classCode?: string;
   onApproveMember?: (member: ClassMember) => void;
@@ -15,9 +19,11 @@ interface ClassMembersTabProps {
 }
 
 export function ClassMembersTab({
+  classInfo,
   members = [],
+  courses = [],
   currentRole = 'owner',
-  classCode = 'CS-202',
+  classCode = '',
   onApproveMember,
   onRejectMember,
   onInviteClick,
@@ -39,6 +45,82 @@ export function ClassMembersTab({
   const notify = (msg: string) => {
     if (onToast) onToast(msg);
   };
+
+  const approvedStudentsCount = useMemo(
+    () =>
+      members.filter((m) => m.role === 'STUDENT' && m.status !== 'PENDING').length ||
+      classInfo?.enrolledCount ||
+      0,
+    [members, classInfo?.enrolledCount]
+  );
+
+  const pendingStudentsCount = useMemo(
+    () => members.filter((m) => m.status === 'PENDING').length,
+    [members]
+  );
+
+  const maxStudentsCount = classInfo?.maxStudents ?? 60;
+  const displayClassCode = classInfo?.enrollmentKey || classInfo?.name || classCode || 'Lớp học';
+  const classSubtitle = [
+    classInfo?.semester,
+    classInfo?.academicYear,
+    classInfo?.schedule?.room || classInfo?.major,
+  ]
+    .filter(Boolean)
+    .join(' • ');
+
+  // Course filter options from real class courses
+  const courseFilterOptions = useMemo(
+    () => [
+      { value: 'all', label: `Môn học: Tất cả môn (${courses.length})` },
+      ...courses.map((c) => ({
+        value: c.id,
+        label: c.code ? `${c.code}: ${c.name}` : c.name,
+      })),
+    ],
+    [courses]
+  );
+
+  // Real analytics derived from approved students in class
+  const memberAnalytics = useMemo(() => {
+    const activeStudents = members.filter(
+      (m) => m.role === 'STUDENT' && m.status !== 'PENDING'
+    );
+    const total = activeStudents.length;
+    const passed = activeStudents.filter(
+      (s) =>
+        s.learningStatus === 'EXCELLENT' ||
+        s.learningStatus === 'ACTIVE' ||
+        (typeof s.gpa === 'number' && s.gpa >= 5.0)
+    ).length;
+    const needReview = Math.max(0, total - passed);
+    const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0.0';
+
+    const withAttendance = activeStudents.filter(
+      (s) => typeof s.attendanceRate === 'number'
+    );
+    const avgAttendance =
+      withAttendance.length > 0
+        ? (
+            withAttendance.reduce((sum, s) => sum + (s.attendanceRate ?? 0), 0) /
+            withAttendance.length
+          ).toFixed(1)
+        : null;
+
+    const atRiskStudents = activeStudents.filter(
+      (s) => s.learningStatus === 'AT_RISK' || s.learningStatus === 'NEED_HELP'
+    );
+
+    return {
+      total,
+      passed,
+      needReview,
+      passRate,
+      withAttendanceCount: withAttendance.length,
+      avgAttendance,
+      atRiskStudents,
+    };
+  }, [members]);
 
   // Filter students
   const filteredStudents = useMemo(() => {
@@ -128,15 +210,17 @@ export function ClassMembersTab({
               Danh sách Học viên &amp; Sĩ số lớp
             </h2>
             <span className="font-mono text-xs px-3 py-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] font-semibold">
-              CNTT-K22-01
+              {displayClassCode}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] flex items-center gap-2">
-            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
-              verified
-            </span>
-            <span>Học kỳ II • Niên khóa 2024 - 2025 • Phòng máy Lab A2-404</span>
-          </p>
+          {classSubtitle && (
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] flex items-center gap-2">
+              <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
+                verified
+              </span>
+              <span>{classSubtitle}</span>
+            </p>
+          )}
 
           {/* Key Capacity & Enrolment Badges */}
           <div className="flex flex-wrap items-center gap-3 mt-1">
@@ -145,7 +229,9 @@ export function ClassMembersTab({
                 groups
               </span>
               <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">Chính thức:</span>
-              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">42</span>
+              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">
+                {approvedStudentsCount}
+              </span>
             </div>
 
             <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
@@ -153,7 +239,9 @@ export function ClassMembersTab({
                 pending_actions
               </span>
               <span className="text-xs text-gray-500 dark:text-[#8E918F]">Chờ duyệt:</span>
-              <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">3</span>
+              <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">
+                {pendingStudentsCount}
+              </span>
             </div>
 
             <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
@@ -161,7 +249,9 @@ export function ClassMembersTab({
                 how_to_reg
               </span>
               <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">Sĩ số tối đa:</span>
-              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">60</span>
+              <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">
+                {maxStudentsCount}
+              </span>
             </div>
           </div>
         </div>
@@ -216,39 +306,27 @@ export function ClassMembersTab({
           </div>
 
           {/* Filter 1: Trạng thái học tập */}
-          <div className="relative inline-block">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-xs font-medium text-gray-800 dark:text-[#C4C7C5] pl-4 pr-8 py-2 rounded-full cursor-pointer outline-none border-none"
-            >
-              <option value="all">Trạng thái: Tất cả</option>
-              <option value="good">Đang học tốt</option>
-              <option value="attention">Cần chú ý</option>
-              <option value="risk">Nguy cơ trượt môn</option>
-            </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-gray-500 dark:text-[#8E918F] text-[18px]">
-              keyboard_arrow_down
-            </span>
-          </div>
+          <CustomSelect<'all' | 'good' | 'attention' | 'risk'>
+            variant="pill"
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: 'all', label: 'Trạng thái: Tất cả' },
+              { value: 'good', label: 'Đang học tốt' },
+              { value: 'attention', label: 'Cần chú ý' },
+              { value: 'risk', label: 'Nguy cơ trượt môn' },
+            ]}
+            className="min-w-[165px]"
+          />
 
           {/* Filter 2: Môn học */}
-          <div className="relative inline-block">
-            <select
-              value={subjectFilter}
-              onChange={(e) => setSubjectFilter(e.target.value)}
-              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-xs font-medium text-gray-800 dark:text-[#C4C7C5] pl-4 pr-8 py-2 rounded-full cursor-pointer outline-none border-none"
-            >
-              <option value="all">Môn học: Tất cả môn (4)</option>
-              <option value="cs202">CS-202: Cấu trúc dữ liệu &amp; Giải thuật nâng cao</option>
-              <option value="cs301">CS-301: Thiết kế Thuật toán &amp; Đồ thị thông minh</option>
-              <option value="it101">IT-101: Nhập môn Công nghệ thông tin</option>
-              <option value="cs205">CS-205: Lập trình hướng đối tượng (OOP)</option>
-            </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-gray-500 dark:text-[#8E918F] text-[18px]">
-              keyboard_arrow_down
-            </span>
-          </div>
+          <CustomSelect<string>
+            variant="pill"
+            value={subjectFilter}
+            onChange={(val) => setSubjectFilter(val)}
+            options={courseFilterOptions}
+            className="min-w-[200px]"
+          />
 
           <button
             type="button"
@@ -613,10 +691,13 @@ export function ClassMembersTab({
           <span className="text-gray-500 dark:text-[#8E918F]">
             Hiển thị{' '}
             <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
-              1 - {filteredStudents.length}
+              {filteredStudents.length === 0 ? 0 : 1} - {filteredStudents.length}
             </strong>{' '}
             trên tổng số{' '}
-            <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">42</strong> học viên
+            <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
+              {filteredStudents.length}
+            </strong>{' '}
+            học viên
           </span>
 
           <div className="flex items-center gap-1.5">
@@ -666,14 +747,16 @@ export function ClassMembersTab({
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="text-xl font-bold text-gray-900 dark:text-[#E3E3E3] font-mono">
-                35/42
+                {memberAnalytics.passed}/{memberAnalytics.total}
               </span>
               <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA]">
-                83.3% Đạt
+                {memberAnalytics.passRate}% Đạt
               </span>
             </div>
             <span className="text-xs text-gray-500 dark:text-[#8E918F] truncate mt-0.5">
-              7 sinh viên ôn tập tăng cường
+              {memberAnalytics.total === 0
+                ? 'Chưa có dữ liệu học viên trong lớp'
+                : `${memberAnalytics.needReview} sinh viên cần ôn tập thêm`}
             </span>
           </div>
         </div>
@@ -689,14 +772,16 @@ export function ClassMembersTab({
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="text-xl font-bold text-gray-900 dark:text-[#E3E3E3] font-mono">
-                91.2%
+                {memberAnalytics.avgAttendance !== null ? `${memberAnalytics.avgAttendance}%` : '--'}
               </span>
               <span className="text-xs font-medium text-gray-500 dark:text-[#8E918F]">
                 Tỷ lệ có mặt
               </span>
             </div>
             <span className="text-xs text-gray-500 dark:text-[#8E918F] truncate mt-0.5">
-              Duy trì ổn định qua 8 tuần
+              {memberAnalytics.withAttendanceCount > 0
+                ? `Tính trên ${memberAnalytics.withAttendanceCount}/${memberAnalytics.total} học viên`
+                : 'Chưa có dữ liệu điểm danh'}
             </span>
           </div>
         </div>
@@ -711,17 +796,30 @@ export function ClassMembersTab({
               </span>
             </div>
             <span className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] mt-1">
-              2 Sinh viên cần can thiệp
+              {memberAnalytics.atRiskStudents.length} Sinh viên cần can thiệp
             </span>
             <span className="text-xs text-gray-500 dark:text-[#8E918F] line-clamp-1 mt-0.5">
-              Phạm Văn Hùng &amp; Vũ Đức Long thiếu bài tập.
+              {memberAnalytics.atRiskStudents.length === 0
+                ? 'Chưa ghi nhận sinh viên có nguy cơ.'
+                : `${memberAnalytics.atRiskStudents
+                    .slice(0, 2)
+                    .map((s) => s.name)
+                    .join(' & ')}${
+                    memberAnalytics.atRiskStudents.length > 2
+                      ? ` và ${memberAnalytics.atRiskStudents.length - 2} người khác`
+                      : ''
+                  }`}
             </span>
           </div>
           <button
             type="button"
-            onClick={() =>
-              notify('Mở báo cáo can thiệp sư phạm AI cho 2 sinh viên hổng kiến thức AVL & Fenwick Tree')
-            }
+            onClick={() => {
+              if (memberAnalytics.atRiskStudents.length > 0) {
+                setStatusFilter('risk');
+              } else {
+                notify('Hiện chưa có sinh viên nào thuộc nhóm cần can thiệp.');
+              }
+            }}
             className="px-4 py-2 rounded-full text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] text-xs font-semibold shrink-0 transition-colors cursor-pointer border-none bg-transparent"
           >
             Chi tiết

@@ -2,9 +2,17 @@ import {
   TimetableSession,
   TimetableKpis,
   SwapRoomFormValues,
+  RawLessonSessionResponse,
+  CreateLessonSessionRequest,
 } from './schemas/timetable.schema';
 
-export type { TimetableSession, TimetableKpis, SwapRoomFormValues };
+export type {
+  TimetableSession,
+  TimetableKpis,
+  SwapRoomFormValues,
+  RawLessonSessionResponse,
+  CreateLessonSessionRequest,
+};
 
 export type TimetableFilterType = 'all' | 'theory' | 'lab' | 'exam';
 

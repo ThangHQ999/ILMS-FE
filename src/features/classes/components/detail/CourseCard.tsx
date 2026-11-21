@@ -46,20 +46,33 @@ export function CourseCard({
 }: CourseCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const code = propCode || course?.code || 'IT-101';
-  const credits = propCredits ?? course?.credits ?? 4;
-  const title = propTitle || course?.name || 'Nhập môn Khoa học Máy tính & Tư duy thuật toán';
-  const instructorName = propInstructor || course?.instructorName || 'Ban Giảng huấn CNTT';
-  const studentsCount = propStudents ?? course?.studentsCount ?? 42;
-  const knowledgeNodesCount = propNodes ?? course?.knowledgeNodesCount ?? 115;
-  const classAvgScore = propAvg ?? course?.classAvgScore ?? 8.4;
-  const progressPercent = propProgress ?? course?.teachingProgress ?? (course?.status === 'COMPLETED' ? 100 : 100);
+  const code = propCode || course?.code || 'COURSE';
+  const credits = propCredits ?? course?.credits ?? 3;
+  const title = propTitle || course?.name || 'Môn học';
+  const instructorName = propInstructor || course?.instructorName || 'Giảng viên';
+  const studentsCount = propStudents ?? course?.studentsCount ?? 0;
+  const knowledgeNodesCount = propNodes ?? course?.knowledgeNodesCount ?? 0;
+  const classAvgScore = propAvg ?? course?.classAvgScore ?? '--';
+  const progressPercent = propProgress ?? course?.teachingProgress ?? 0;
   const courseId = propId || course?.id;
+  const bgUrl = course?.backgroundUrl || course?.thumbnailUrl;
 
   return (
-    <div className="bg-[#FFFFFF] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col h-full min-h-[280px] border-none shadow-sm dark:shadow-none relative transition-transform hover:-translate-y-0.5 duration-200">
+    <div
+      className={`bg-[#FFFFFF] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col h-full min-h-[280px] border-none shadow-sm dark:shadow-none relative transition-transform hover:-translate-y-0.5 duration-200 ${
+        isMenuOpen ? 'z-30' : ''
+      }`}
+    >
+      {/* Optional Course Background Layer */}
+      {bgUrl && (
+        <div className="pointer-events-none absolute inset-0 rounded-3xl overflow-hidden">
+          <img src={bgUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/85 to-white/65 dark:from-[#1E1F20]/95 dark:via-[#1E1F20]/85 dark:to-[#1E1F20]/65" />
+        </div>
+      )}
+
       {/* Header: Badges & Options */}
-      <div className="flex justify-between items-start mb-4">
+      <div className={`relative ${isMenuOpen ? 'z-30' : 'z-10'} flex justify-between items-start mb-4`}>
         <div className="flex gap-2">
           <span className="bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA] px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide">
             {code}
@@ -134,7 +147,7 @@ export function CourseCard({
       </div>
 
       {/* Title & Instructor */}
-      <div>
+      <div className="relative z-10">
         {courseId ? (
           <Link href={`/courses/${courseId}`}>
             <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3] line-clamp-2 leading-snug hover:text-blue-600 dark:hover:text-[#A8C7FA] transition-colors">
@@ -152,7 +165,7 @@ export function CourseCard({
       </div>
 
       {/* Flat Stats Row (REPLACING THE CRAMPED TABLE) */}
-      <div className="flex justify-between items-center mt-5 mb-5 px-4 py-3 bg-[#F0F4F8] dark:bg-[#131314] rounded-2xl border-none">
+      <div className="relative z-10 flex justify-between items-center mt-5 mb-5 px-4 py-3 bg-[#F0F4F8]/90 dark:bg-[#131314]/90 rounded-2xl border-none">
         <div className="flex flex-col items-center gap-0.5">
           <span className="text-[15px] font-bold text-gray-900 dark:text-[#E3E3E3]">{studentsCount}</span>
           <span className="text-[10px] font-medium text-gray-500 dark:text-[#8E918F]">Sinh viên</span>
@@ -168,7 +181,7 @@ export function CourseCard({
       </div>
 
       {/* Progress & Action */}
-      <div className="mt-auto flex flex-col gap-4">
+      <div className="relative z-10 mt-auto flex flex-col gap-4">
         <div>
           <div className="flex justify-between text-[11px] font-medium mb-1.5 text-gray-600 dark:text-[#C4C7C5]">
             <span>Tiến độ hoàn tất</span>

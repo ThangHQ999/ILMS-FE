@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { CustomSelect } from '@/components/shared';
 import { CreateLessonSessionRequest, Room, ConflictDetails, LessonSession } from '../types';
 
 interface CreateSessionModalProps {
@@ -166,19 +167,16 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 <span>Chọn Phòng học *</span>
                 <span className="text-[11px] font-normal text-[#747775] dark:text-[#8E918F]">Tòa Công Nghệ</span>
               </label>
-              <div className="relative">
-                <select
-                  value={roomId}
-                  onChange={(e) => setRoomId(e.target.value)}
-                  className="w-full pl-9 pr-8 py-3 rounded-2xl bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold outline-none appearance-none cursor-pointer border-none transition-all"
-                >
-                  {rooms.map((r) => (
-                    <option key={r.roomId} value={r.roomId}>{r.roomName}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">location_on</span>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#747775] dark:text-[#8E918F] text-[18px]">expand_more</span>
-              </div>
+              <CustomSelect<string>
+                value={roomId}
+                onChange={setRoomId}
+                options={rooms.map((r) => ({
+                  value: r.roomId,
+                  label: r.roomName,
+                  icon: 'location_on',
+                }))}
+                triggerClassName="bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] rounded-2xl border-none h-11"
+              />
             </div>
 
             {/* 2. Ngày học */}

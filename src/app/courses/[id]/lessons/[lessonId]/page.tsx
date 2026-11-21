@@ -13,13 +13,7 @@ export default function LessonDetailPage({ params }: LessonPageProps) {
   return (
     <LessonLearningWorkspace
       courseId={courseId}
-      courseCode="CS-202"
-      courseName="Cấu trúc dữ liệu & Giải thuật nâng cao"
-      classGroup="CS-202 • Nhóm 01"
       lessonId={lessonId}
-      chapterNumber="03"
-      lessonNumber="02"
-      lessonTitle="Cơ chế truyền tin cậy (RDT) & Bắt tay 3 bước TCP"
     />
   );
 }

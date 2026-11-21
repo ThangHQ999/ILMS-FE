@@ -19,6 +19,8 @@ export function useLogout() {
       if (typeof window !== 'undefined') {
         try {
           localStorage.removeItem('ilms_user');
+          localStorage.removeItem('ilms_user_preferences');
+          localStorage.removeItem('ilms_active_subscription');
           localStorage.removeItem('ilms_active_role_override');
           document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
           document.cookie = 'accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';

@@ -25,6 +25,8 @@ export const classCourseSchema = z.object({
   semester: z.string().optional(),
   classAvgScore: z.number().optional(),
   studentsCount: z.number().optional(),
+  backgroundUrl: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
 });
 export type ClassCourse = z.infer<typeof classCourseSchema>;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { MarkdownContent } from '@/components/shared';
 import type { ClassAnnouncement } from '@/features/classes/schemas/class-detail.schema';
 import {
   saveLocalAnnouncement,
@@ -117,7 +118,7 @@ export function ClassAnnouncementsTab({
       id: `ann-${Date.now()}`,
       title: newTitle.trim(),
       content: newContent.trim(),
-      authorName: currentRole === 'owner' ? 'TS. Lê Hoàng Nam' : 'TS. Nguyễn Văn An',
+      authorName: currentRole === 'owner' ? '' : 'TS. Nguyễn Văn An',
       authorRole: currentRole === 'owner' ? 'Giảng viên Chủ nhiệm' : 'Giảng viên',
       authorInitials: currentRole === 'owner' ? 'LN' : 'AN',
       authorColor: 'bg-primary text-on-primary',
@@ -132,13 +133,13 @@ export function ClassAnnouncementsTab({
       commentsCount: 0,
       attachments: hasAttachment
         ? [
-            {
-              name: 'Tai_Lieu_Huong_Dan_Moi.pdf',
-              size: '1.5 MB',
-              desc: 'Tài liệu hướng dẫn đính kèm theo thông báo',
-              type: 'pdf',
-            },
-          ]
+          {
+            name: 'Tai_Lieu_Huong_Dan_Moi.pdf',
+            size: '1.5 MB',
+            desc: 'Tài liệu hướng dẫn đính kèm theo thông báo',
+            type: 'pdf',
+          },
+        ]
         : undefined,
     };
 
@@ -295,11 +296,10 @@ export function ClassAnnouncementsTab({
                             : 'Đã gỡ tệp đính kèm.'
                         );
                       }}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border-none ${
-                        hasAttachment
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border-none ${hasAttachment
                           ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                           : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C]'
-                      }`}
+                        }`}
                       title="Đính kèm tài liệu PDF / Slide"
                     >
                       <span className="material-symbols-outlined text-[17px]">attach_file</span>
@@ -418,33 +418,30 @@ export function ClassAnnouncementsTab({
               <button
                 type="button"
                 onClick={() => setFeedFilter('all')}
-                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${
-                  feedFilter === 'all'
+                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'all'
                     ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                }`}
+                  }`}
               >
                 Tất cả
               </button>
               <button
                 type="button"
                 onClick={() => setFeedFilter('pinned')}
-                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${
-                  feedFilter === 'pinned'
+                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'pinned'
                     ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                }`}
+                  }`}
               >
                 Đã ghim
               </button>
               <button
                 type="button"
                 onClick={() => setFeedFilter('attachment')}
-                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${
-                  feedFilter === 'attachment'
+                className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'attachment'
                     ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                }`}
+                  }`}
               >
                 Có file đính kèm
               </button>
@@ -461,16 +458,14 @@ export function ClassAnnouncementsTab({
               return (
                 <article
                   key={item.id}
-                  className={`bg-white dark:bg-[#1E1F20] rounded-3xl p-6 sm:p-7 border-none shadow-sm dark:shadow-none flex flex-col gap-4 relative overflow-hidden transition-all ${
-                    isArchived ? 'opacity-85 hover:opacity-100' : ''
-                  }`}
+                  className={`bg-white dark:bg-[#1E1F20] rounded-3xl p-6 sm:p-7 border-none shadow-sm dark:shadow-none flex flex-col gap-4 relative overflow-hidden transition-all ${isArchived ? 'opacity-85 hover:opacity-100' : ''
+                    }`}
                 >
                   {/* Left Accent Bar */}
                   {item.isPinned && (
                     <div
-                      className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                        isErrorTheme ? 'bg-[#F28B82]' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
-                      }`}
+                      className={`absolute left-0 top-0 bottom-0 w-1.5 ${isErrorTheme ? 'bg-[#F28B82]' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                        }`}
                     />
                   )}
 
@@ -498,11 +493,10 @@ export function ClassAnnouncementsTab({
                     <div className="flex items-center gap-2">
                       {item.isPinned && (
                         <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border-none ${
-                            isErrorTheme
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border-none ${isErrorTheme
                               ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-800 dark:text-[#F28B82]'
                               : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
-                          }`}
+                            }`}
                         >
                           <span className="material-symbols-outlined text-[13px]">push_pin</span>
                           <span>{item.pinBadge || 'ĐÃ GHIM'}</span>
@@ -536,9 +530,10 @@ export function ClassAnnouncementsTab({
                     <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-[#C4C7C5] leading-relaxed">
-                      {item.content}
-                    </p>
+                    <MarkdownContent
+                      content={item.content}
+                      className="text-gray-600 dark:text-[#C4C7C5]"
+                    />
 
                     {/* Due Date Highlight Pill if applicable */}
                     {item.dueText && (
@@ -573,20 +568,19 @@ export function ClassAnnouncementsTab({
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                  att.type === 'pdf'
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${att.type === 'pdf'
                                     ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-600 dark:text-[#F28B82]'
                                     : att.type === 'pptx'
-                                    ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-[#FFB784]'
-                                    : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
-                                }`}
+                                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-[#FFB784]'
+                                      : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+                                  }`}
                               >
                                 <span className="material-symbols-outlined text-[20px]">
                                   {att.type === 'pdf'
                                     ? 'picture_as_pdf'
                                     : att.type === 'pptx'
-                                    ? 'slideshow'
-                                    : 'terminal'}
+                                      ? 'slideshow'
+                                      : 'terminal'}
                                 </span>
                               </div>
                               <div className="flex flex-col min-w-0">
@@ -627,11 +621,10 @@ export function ClassAnnouncementsTab({
                               key={opt.id}
                               type="button"
                               onClick={() => handleVotePoll(opt.id)}
-                              className={`p-3 rounded-2xl border-none flex flex-col gap-1 relative overflow-hidden text-left transition-all cursor-pointer ${
-                                isVoted
+                              className={`p-3 rounded-2xl border-none flex flex-col gap-1 relative overflow-hidden text-left transition-all cursor-pointer ${isVoted
                                   ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40'
                                   : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
-                              }`}
+                                }`}
                             >
                               <div
                                 className="absolute inset-y-0 left-0 bg-[#007BFF]/15 dark:bg-[#A8C7FA]/15 transition-all duration-500"
@@ -639,11 +632,10 @@ export function ClassAnnouncementsTab({
                               />
                               <div className="relative z-10 flex items-center justify-between text-xs">
                                 <span
-                                  className={`font-semibold ${
-                                    isVoted
+                                  className={`font-semibold ${isVoted
                                       ? 'text-blue-800 dark:text-[#A8C7FA]'
                                       : 'text-gray-800 dark:text-[#E3E3E3]'
-                                  }`}
+                                    }`}
                                 >
                                   {opt.label}
                                 </span>
@@ -1052,44 +1044,40 @@ export function ClassAnnouncementsTab({
               <button
                 type="button"
                 onClick={() => setSelectedSubjectFilter('ALL')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${
-                  selectedSubjectFilter === 'ALL'
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'ALL'
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                     : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
-                }`}
+                  }`}
               >
                 Tất cả học phần
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedSubjectFilter('ctdl')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${
-                  selectedSubjectFilter === 'ctdl'
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'ctdl'
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                     : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
-                }`}
+                  }`}
               >
                 Cấu trúc Dữ liệu &amp; Giải thuật (K22)
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedSubjectFilter('csdl')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${
-                  selectedSubjectFilter === 'csdl'
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'csdl'
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                     : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
-                }`}
+                  }`}
               >
                 Cơ sở dữ liệu nâng cao
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedSubjectFilter('web')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${
-                  selectedSubjectFilter === 'web'
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'web'
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                     : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
-                }`}
+                  }`}
               >
                 Lập trình Web chuyên sâu
               </button>
@@ -1135,17 +1123,15 @@ export function ClassAnnouncementsTab({
               ].map((s, idx) => (
                 <div
                   key={idx}
-                  className={`p-3 rounded-2xl border-none flex items-center justify-between ${
-                    s.read
+                  className={`p-3 rounded-2xl border-none flex items-center justify-between ${s.read
                       ? 'bg-[#F0F4F8] dark:bg-[#131314]'
                       : 'bg-rose-50 dark:bg-[#3C1919]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`material-symbols-outlined text-[16px] ${
-                        s.read ? 'text-emerald-600 dark:text-[#81C995]' : 'text-rose-600 dark:text-[#F28B82]'
-                      }`}
+                      className={`material-symbols-outlined text-[16px] ${s.read ? 'text-emerald-600 dark:text-[#81C995]' : 'text-rose-600 dark:text-[#F28B82]'
+                        }`}
                     >
                       {s.read ? 'check_circle' : 'cancel'}
                     </span>
@@ -1154,9 +1140,8 @@ export function ClassAnnouncementsTab({
                     </span>
                   </div>
                   <span
-                    className={`text-[11px] font-mono ${
-                      s.read ? 'text-gray-500 dark:text-[#8E918F]' : 'text-rose-600 dark:text-[#F28B82] font-semibold'
-                    }`}
+                    className={`text-[11px] font-mono ${s.read ? 'text-gray-500 dark:text-[#8E918F]' : 'text-rose-600 dark:text-[#F28B82] font-semibold'
+                      }`}
                   >
                     {s.time}
                   </span>

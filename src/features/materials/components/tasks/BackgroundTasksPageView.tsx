@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { useMaterialsTasks } from '../../hooks/useMaterialsTasks';
@@ -15,7 +16,7 @@ export function BackgroundTasksPageView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Shell Layout State
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isFocusMode, setIsFocusMode] = useState(false);
 
   // Banner dismiss state

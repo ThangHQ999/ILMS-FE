@@ -40,6 +40,55 @@ export const swapRoomRequestSchema = z.object({
   reason: z.string().min(5, 'Lý do điều chỉnh tối thiểu 5 ký tự'),
 });
 
+export const rawLessonSessionResponseSchema = z
+  .object({
+    id: z.string().optional(),
+    lessonSessionId: z.string().optional(),
+    sessionId: z.string().optional(),
+    classId: z.string(),
+    classCode: z.string().nullable().optional(),
+    className: z.string().optional(),
+    courseId: z.string().nullable().optional(),
+    courseCode: z.string().nullable().optional(),
+    courseName: z.string().nullable().optional(),
+    subjectCode: z.string().nullable().optional(),
+    subjectTitle: z.string().nullable().optional(),
+    teacherId: z.string().nullable().optional(),
+    teacherName: z.string().nullable().optional(),
+    roomId: z.string().nullable().optional(),
+    roomName: z.string().nullable().optional(),
+    timeSlotId: z.string().nullable().optional(),
+    timeSlotName: z.string().nullable().optional(),
+    sessionDate: z.string(),
+    startShift: z.number().nullable().optional(),
+    endShift: z.number().nullable().optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    note: z.string().nullable().optional(),
+    status: z.string().nullable().optional(),
+    studentsCount: z.number().nullable().optional(),
+    totalStudents: z.number().nullable().optional(),
+    attendedCount: z.number().nullable().optional(),
+  })
+  .passthrough();
+
+export const createLessonSessionSchema = z.object({
+  classId: z.string().min(1, 'Vui lòng chọn lớp học'),
+  courseId: z.string().optional(),
+  teacherId: z.string().optional(),
+  timeSlotId: z.string().optional(),
+  sessionDate: z.string().min(10, 'Vui lòng chọn ngày học (YYYY-MM-DD)'),
+  startTime: z.string().min(1, 'Vui lòng chọn giờ bắt đầu'),
+  endTime: z.string().min(1, 'Vui lòng chọn giờ kết thúc'),
+  startShift: z.number().int().min(1).max(12).default(1),
+  endShift: z.number().int().min(1).max(12).default(3),
+  roomId: z.string().min(1, 'Vui lòng chọn hoặc nhập phòng học'),
+  roomName: z.string().optional(),
+  note: z.string().optional(),
+});
+
 export type TimetableSession = z.infer<typeof timetableSessionSchema>;
 export type TimetableKpis = z.infer<typeof timetableKpisSchema>;
 export type SwapRoomFormValues = z.infer<typeof swapRoomRequestSchema>;
+export type RawLessonSessionResponse = z.infer<typeof rawLessonSessionResponseSchema>;
+export type CreateLessonSessionRequest = z.infer<typeof createLessonSessionSchema>;

@@ -113,7 +113,7 @@ export const classHubInfoSchema = z.object({
   semester: z.string().default('HK2 2024-2025'),
   room: z.string().default('Phòng học thông minh H6-302'),
   title: z.string().default('Mạng máy tính & Truyền thông dữ liệu'),
-  instructorName: z.string().default('TS. Lê Hoàng Nam'),
+  instructorName: z.string().default(''),
   department: z.string().default('Bộ môn: Kỹ thuật Mạng & Truyền thông'),
   studentsCount: z.number().default(48),
   assignmentsCount: z.number().default(8),

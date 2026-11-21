@@ -6,6 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
+import {
+  OPEN_SOCRATIC_COACH_EVENT,
+  setSocraticActiveBlock,
+  useSocraticLessonContext,
+} from '@/hooks/useSocraticLessonContext';
 import { LatexFormulaPicker } from '@/components/shared/LatexFormulaPicker';
 import { useSocraticChat } from '../../hooks/useSocraticChat';
 import { SocraticMarkdownRenderer } from '../SocraticMarkdownRenderer';
@@ -32,6 +37,7 @@ export function SocraticAICoach({
   const t = useTranslations('dashboard');
   const pathname = usePathname() || '/';
   const { isAuthenticated: roleIsAuthenticated } = useUserRole();
+  const lessonContext = useSocraticLessonContext();
   const isAuth = propIsAuthenticated !== undefined ? propIsAuthenticated : roleIsAuthenticated;
 
   const {
@@ -69,6 +75,21 @@ export function SocraticAICoach({
     onTranscript: setInputText,
     lang: 'vi-VN',
   });
+
+  // Listen for open event to optionally prefill prompt and focus textarea
+  useEffect(() => {
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ prompt?: string }>;
+      if (customEvent?.detail?.prompt) {
+        setInputText(customEvent.detail.prompt);
+      }
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 150);
+    };
+    window.addEventListener(OPEN_SOCRATIC_COACH_EVENT, handleOpen);
+    return () => window.removeEventListener(OPEN_SOCRATIC_COACH_EVENT, handleOpen);
+  }, [setInputText]);
 
   // Resize drag handle logic (Resizes from left edge on desktop: min 450px, max 800px)
   const handleMouseDown = useCallback(
@@ -522,12 +543,22 @@ export function SocraticAICoach({
                           {msg.attachment.subtitle}
                         </span>
                       </div>
-                      <button
-                        className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-[11px] font-medium transition-colors whitespace-nowrap cursor-pointer shadow-xs"
-                        type="button"
-                      >
-                        {msg.attachment.actionText}
-                      </button>
+                      {msg.attachment.link ? (
+                        <Link
+                          href={msg.attachment.link}
+                          className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-[11px] font-medium transition-colors whitespace-nowrap cursor-pointer shadow-xs inline-flex items-center gap-1"
+                        >
+                          <span>{msg.attachment.actionText}</span>
+                          <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        </Link>
+                      ) : (
+                        <button
+                          className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-[11px] font-medium transition-colors whitespace-nowrap cursor-pointer shadow-xs"
+                          type="button"
+                        >
+                          {msg.attachment.actionText}
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -684,6 +715,38 @@ export function SocraticAICoach({
                 </button>
               </div>
             )}
+
+            {lessonContext?.activeBlock ? (
+              <div className="mb-2 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-800/60 flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="material-symbols-outlined text-[15px] shrink-0">
+                    deployed_code
+                  </span>
+                  <span className="truncate font-semibold text-[11px]">
+                    Đang hỏi về khối [{lessonContext.activeBlock.type}]:{' '}
+                    {lessonContext.activeBlock.title ||
+                      lessonContext.activeBlock.contentText.slice(0, 60)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSocraticActiveBlock(null)}
+                  title="Bỏ chọn khối"
+                  className="text-[11px] font-bold hover:text-blue-900 dark:hover:text-white cursor-pointer border-none bg-transparent shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : lessonContext?.lessonTitle ? (
+              <div className="mb-2 px-3 py-1 rounded-xl bg-slate-100 dark:bg-[#282A2C] flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                <span className="material-symbols-outlined text-[14px] text-blue-600 dark:text-blue-400 shrink-0">
+                  menu_book
+                </span>
+                <span className="truncate">
+                  Ngữ cảnh: <strong>{lessonContext.courseCode}</strong> • {lessonContext.lessonTitle}
+                </span>
+              </div>
+            ) : null}
 
             <div className="flex flex-col bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-2.5 focus-within:ring-2 focus-within:ring-[#0B57D0]/40 dark:focus-within:ring-[#A8C7FA]/40 transition-all border border-slate-200/60 dark:border-transparent">
               <textarea

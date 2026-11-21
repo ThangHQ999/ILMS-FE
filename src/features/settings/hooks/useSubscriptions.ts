@@ -6,6 +6,7 @@ import {
   getSubscriptionPlans,
   subscribePlan,
   cancelAutoRenew,
+  cancelScheduledSubscription,
   getSubscriptionHistory,
 } from '../services/subscription.service';
 import type { SubscribeRequest } from '../schemas/subscription.schema';
@@ -17,14 +18,28 @@ export const subscriptionKeys = {
   history: () => [...subscriptionKeys.all, 'history'] as const,
 };
 
-export function useMySubscription() {
+export function useMySubscription(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: subscriptionKeys.mySubscription(),
     queryFn: getMySubscription,
+    enabled: options?.enabled ?? true,
+    placeholderData: () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('ilms_active_subscription');
+          if (stored) {
+            return JSON.parse(stored);
+          }
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 }
 
@@ -45,6 +60,7 @@ export function useSubscribePlan(onSuccessCallback?: () => void) {
     mutationFn: (input: SubscribeRequest) => subscribePlan(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['storage'] });
       onSuccessCallback?.();
     },
   });
@@ -56,6 +72,18 @@ export function useCancelAutoRenew(onSuccessCallback?: () => void) {
     mutationFn: cancelAutoRenew,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.mySubscription() });
+      onSuccessCallback?.();
+    },
+  });
+}
+
+export function useCancelScheduledSubscription(onSuccessCallback?: () => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cancelScheduledSubscription,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.mySubscription() });
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
       onSuccessCallback?.();
     },
   });

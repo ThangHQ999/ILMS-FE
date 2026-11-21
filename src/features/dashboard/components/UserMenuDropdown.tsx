@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCurrentUser, useLogout } from '@/features/auth';
+import { useMySubscription } from '@/features/settings';
 import { useUserRole } from '@/hooks/useUserRole';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 import { SubAccountItem } from '../types';
@@ -40,10 +41,33 @@ export function UserMenuDropdown({
   const t = useTranslations('dashboard.userMenu');
   const router = useRouter();
   const { data: currentUser } = useCurrentUser();
+  const { data: mySub } = useMySubscription({ enabled: Boolean(currentUser) });
   const { mutate: performLogout } = useLogout();
   const { roleBadge } = useUserRole();
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const planCode = isMounted ? (mySub?.planCode || 'FREE').toUpperCase() : 'FREE';
+  const planBadgeLabel =
+    planCode === 'ENTERPRISE'
+      ? 'Enterprise'
+      : planCode === 'PRO'
+        ? 'Pro'
+        : planCode === 'PLUS'
+          ? 'Plus'
+          : 'Free';
+  const planBadgeClass =
+    planCode === 'PRO' || planCode === 'ENTERPRISE'
+      ? 'bg-gradient-to-r from-[#0B57D0] to-indigo-600 text-white dark:from-[#A8C7FA] dark:to-indigo-300 dark:text-[#041E49]'
+      : planCode === 'PLUS'
+        ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
+        : 'bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:text-[#C4C7C5]';
+
   const [isAccountsOpen, setIsAccountsOpen] = useState(false);
   const [subAccounts, setSubAccounts] = useState<SubAccountItem[]>(defaultSubAccounts);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -142,7 +166,13 @@ export function UserMenuDropdown({
           title={fullName}
         >
           <span>{initials}</span>
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#81C995]" />
+          {isMounted && mySub && (
+            <span
+              className={`absolute -bottom-1 -right-1.5 px-1.5 py-[1px] rounded-full text-[9px] font-bold tracking-tight leading-none shadow-sm ${planBadgeClass}`}
+            >
+              {planBadgeLabel}
+            </span>
+          )}
         </button>
       ) : (
         // Pill button in Analytics Mode
@@ -160,18 +190,21 @@ export function UserMenuDropdown({
             </div>
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
           </div>
-          <div className="hidden md:flex flex-col text-left mr-0.5">
-            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]">
+          <div className="hidden md:flex items-center gap-1.5 text-left mr-0.5">
+            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[140px]">
               {fullName}
             </span>
-            <span className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium">
-              {roleBadge}
-            </span>
+            {isMounted && mySub && (
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight leading-none ${planBadgeClass}`}
+              >
+                {planBadgeLabel}
+              </span>
+            )}
           </div>
           <span
-            className={`material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#1F1F1F] dark:group-hover:text-[#E3E3E3] transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : 'rotate-0'
-            }`}
+            className={`material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#1F1F1F] dark:group-hover:text-[#E3E3E3] transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'
+              }`}
           >
             expand_more
           </span>
@@ -204,20 +237,17 @@ export function UserMenuDropdown({
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 justify-center mb-1">
+            <div className="flex items-center gap-2 justify-center mb-1 flex-wrap">
               <h3 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight">
                 {fullName}
               </h3>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none">
-                {roleBadge}
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${planBadgeClass}`}
+              >
+                {planBadgeLabel}
               </span>
             </div>
             <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3">{email}</p>
-
-            {/* Role Switcher for previewing teacher vs student view */}
-            <div className="w-full mb-3">
-              <RoleSwitcher />
-            </div>
 
             {/* Manage Account button */}
             <Link
@@ -240,9 +270,8 @@ export function UserMenuDropdown({
             >
               <span>{t('switchAccount')}</span>
               <span
-                className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${
-                  isAccountsOpen ? 'rotate-180' : 'rotate-0'
-                }`}
+                className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${isAccountsOpen ? 'rotate-180' : 'rotate-0'
+                  }`}
               >
                 expand_more
               </span>
@@ -268,18 +297,16 @@ export function UserMenuDropdown({
                     <div
                       key={account.id}
                       onClick={() => !isExpired && handleSwitchAccount(account)}
-                      className={`p-2.5 rounded-2xl transition-colors border-none ${
-                        isExpired
-                          ? 'bg-white/60 dark:bg-[#131314]/60'
-                          : 'hover:bg-white dark:hover:bg-[#1E1F20] cursor-pointer group'
-                      }`}
+                      className={`p-2.5 rounded-2xl transition-colors border-none ${isExpired
+                        ? 'bg-white/60 dark:bg-[#131314]/60'
+                        : 'hover:bg-white dark:hover:bg-[#1E1F20] cursor-pointer group'
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
                           <div
-                            className={`w-9 h-9 rounded-full bg-gradient-to-tr ${
-                              account.avatarGradient || 'from-slate-600 to-slate-800'
-                            } text-white flex items-center justify-center font-bold text-xs shrink-0`}
+                            className={`w-9 h-9 rounded-full bg-gradient-to-tr ${account.avatarGradient || 'from-slate-600 to-slate-800'
+                              } text-white flex items-center justify-center font-bold text-xs shrink-0`}
                           >
                             {account.initials}
                           </div>

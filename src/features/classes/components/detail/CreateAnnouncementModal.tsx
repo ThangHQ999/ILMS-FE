@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { uploadFile } from '@/lib/upload';
 
 export interface AttachedFile {
   id: string;
@@ -8,7 +9,10 @@ export interface AttachedFile {
   size: string;
   status: string;
   type: 'pdf' | 'pptx' | 'zip' | 'png' | 'doc';
+  url?: string;
   rawFile?: File;
+  abortController?: AbortController;
+  uploadState?: 'uploading' | 'uploaded' | 'error';
 }
 
 export interface TargetClassOption {
@@ -42,41 +46,13 @@ export interface CreateAnnouncementModalProps {
   onToast?: (message: string) => void;
 }
 
-const DEFAULT_ATTACHMENTS: AttachedFile[] = [
-  {
-    id: 'att-1',
-    name: 'Thong_Bao_Nghi_Le_DHQG_2026.pdf',
-    size: '1.4 MB',
-    status: 'Đã quét an toàn',
-    type: 'pdf',
-  },
-  {
-    id: 'att-2',
-    name: 'Slide_Bo_Sung_Lab03_AVL.pptx',
-    size: '5.8 MB',
-    status: 'Sẵn sàng đính kèm',
-    type: 'pptx',
-  },
-];
-
-const DEFAULT_CONTENT = `Chào toàn thể sinh viên lớp CS-202 (Cấu trúc dữ liệu & Giải thuật),
-
-Theo lịch của Nhà trường, tuần tới toàn bộ sinh viên sẽ nghỉ lễ Giải phóng miền Nam và Quốc tế Lao động. Vì vậy, tiến độ bài tập và buổi thực hành sẽ được điều chỉnh cụ thể như sau:
-
-• Hạn nộp Lab 03 (Binary Trees & AVL Balance): Dời từ 23:59 Chủ Nhật (28/04) sang 23:59 Thứ Ba (07/05).
-• Buổi Review trực tuyến qua Google Meet vẫn được tổ chức vào tối Thứ Sáu tuần này cho nhóm sinh viên cần hỗ trợ thuật toán quay cây.
-
-git commit -m "feat: complete AVL rotation benchmarks" && git push origin main
-
-Đề nghị các nhóm trưởng kiểm tra lại tiến độ của các thành viên trong mục Quản lý Nhóm.`;
-
 export function CreateAnnouncementModal({
   isOpen,
   onClose,
-  classId = 'CS-202',
-  classCode = 'CS-202',
-  classNameTitle = 'Cấu trúc dữ liệu & Giải thuật',
-  studentCount = 45,
+  classId = '',
+  classCode = '',
+  classNameTitle = '',
+  studentCount = 0,
   availableClasses = [],
   onPublish,
   onSaveDraft,
@@ -90,45 +66,31 @@ export function CreateAnnouncementModal({
     studentCount,
   };
 
-  const otherClassesPool: TargetClassOption[] =
-    availableClasses.length > 0
-      ? availableClasses
-      : [
-          {
-            id: `${classId}-L`,
-            code: `${classCode}L`,
-            name: `${classNameTitle} (Thực hành Lab 02)`,
-            studentCount: 28,
-          },
-          {
-            id: 'CS-203',
-            code: 'CS-203',
-            name: 'Thuật toán nâng cao & Đồ thị',
-            studentCount: 36,
-          },
-          {
-            id: 'CNTT-K22B',
-            code: 'CNTT-K22B',
-            name: 'Cấu trúc dữ liệu (Ca chiều Thứ 4)',
-            studentCount: 42,
-          },
-        ];
+  const otherClassesPool: TargetClassOption[] = availableClasses;
 
   const [selectedClasses, setSelectedClasses] = useState<TargetClassOption[]>([
     defaultClassOption,
   ]);
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
 
-  // Form states
-  const [title, setTitle] = useState(
-    'Lịch nghỉ lễ và dời hạn nộp đề cương thực hành Lab 03'
-  );
-  const [content, setContent] = useState(DEFAULT_CONTENT);
+  useEffect(() => {
+    setSelectedClasses([
+      {
+        id: classId,
+        code: classCode,
+        name: classNameTitle,
+        studentCount,
+      },
+    ]);
+  }, [classId, classCode, classNameTitle, studentCount]);
+
+  // Form states (empty by default, no mock/sample data)
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [isPinned, setIsPinned] = useState(true);
   const [isUrgentEmail, setIsUrgentEmail] = useState(true);
   const [isMobilePush, setIsMobilePush] = useState(true);
-  const [attachments, setAttachments] =
-    useState<AttachedFile[]>(DEFAULT_ATTACHMENTS);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
 
   // Scheduling states
   const [isScheduling, setIsScheduling] = useState(false);
@@ -268,32 +230,77 @@ export function CreateAnnouncementModal({
     processFiles(files);
   };
 
-  const processFiles = (files: File[]) => {
-    const newItems: AttachedFile[] = files.map((file) => {
+  const processFiles = async (files: File[]) => {
+    const placeholders: AttachedFile[] = files.map((file) => {
       const ext = file.name.split('.').pop()?.toLowerCase();
       let type: AttachedFile['type'] = 'pdf';
       if (ext === 'pptx' || ext === 'ppt') type = 'pptx';
       else if (ext === 'zip' || ext === 'rar') type = 'zip';
-      else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') type = 'png';
+      else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') type = 'png';
       else if (ext === 'doc' || ext === 'docx') type = 'doc';
 
       const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const controller = new AbortController();
       return {
         id: `att-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         name: file.name,
         size: `${sizeMb} MB`,
-        status: 'Sẵn sàng đính kèm',
+        status: 'Đang tải lên...',
         type,
         rawFile: file,
+        abortController: controller,
+        uploadState: 'uploading' as const,
       };
     });
 
-    setAttachments((prev) => [...prev, ...newItems]);
-    notify(`Đã thêm ${newItems.length} tệp đính kèm mới vào danh sách!`);
+    setAttachments((prev) => [...prev, ...placeholders]);
+
+    placeholders.forEach((item) => {
+      if (!item.rawFile || !item.abortController) return;
+      const controller = item.abortController;
+      uploadFile(item.rawFile, 'ilms/announcements', controller.signal)
+        .then((res) => {
+          setAttachments((prev) =>
+            prev.map((att) =>
+              att.id === item.id
+                ? {
+                    ...att,
+                    url: res.url,
+                    status: 'Đã tải lên',
+                    uploadState: 'uploaded',
+                    abortController: undefined,
+                  }
+                : att
+            )
+          );
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return;
+          const msg = err instanceof Error ? err.message : 'Lỗi tải lên';
+          setAttachments((prev) =>
+            prev.map((att) =>
+              att.id === item.id
+                ? {
+                    ...att,
+                    status: `Lỗi: ${msg}`,
+                    uploadState: 'error',
+                    abortController: undefined,
+                  }
+                : att
+            )
+          );
+        });
+    });
   };
 
   const handleRemoveAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((item) => item.id !== id));
+    setAttachments((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (target?.abortController) {
+        target.abortController.abort();
+      }
+      return prev.filter((item) => item.id !== id);
+    });
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -315,6 +322,16 @@ export function CreateAnnouncementModal({
 
   // Submit announcement
   const handlePublish = () => {
+    const hasUploading = attachments.some((att) => att.uploadState === 'uploading');
+    const hasFailed = attachments.some((att) => att.uploadState === 'error');
+    if (hasUploading) {
+      notify('Vui lòng chờ tất cả tệp tải lên hoàn tất hoặc hủy tệp đang tải.');
+      return;
+    }
+    if (hasFailed) {
+      notify('Có tệp tải lên thất bại. Vui lòng gỡ tệp lỗi trước khi đăng.');
+      return;
+    }
     if (!title.trim()) {
       notify('Vui lòng nhập tiêu đề thông báo.');
       return;
@@ -324,9 +341,17 @@ export function CreateAnnouncementModal({
       return;
     }
 
+    const uploadedAttachments = attachments.filter((att) => Boolean(att.url));
+    const attachmentMarkdown =
+      uploadedAttachments.length > 0
+        ? `\n\n**Tệp đính kèm:**\n${uploadedAttachments
+            .map((att) => `- [${att.name}](${att.url})`)
+            .join('\n')}`
+        : '';
+
     const payload: CreateAnnouncementData = {
       title: title.trim(),
-      content: content.trim(),
+      content: `${content.trim()}${attachmentMarkdown}`,
       targetClassIds: selectedClasses.map((c) => c.id),
       isPinned,
       isUrgentEmail,
@@ -336,6 +361,9 @@ export function CreateAnnouncementModal({
     };
 
     onPublish(payload);
+    setTitle('');
+    setContent('');
+    setAttachments([]);
     notify(
       isScheduling && scheduledDateTime
         ? `Đã lên lịch phát thông báo vào ${scheduledDateTime} tới ${totalAudienceCount} sinh viên!`
@@ -346,9 +374,17 @@ export function CreateAnnouncementModal({
 
   // Save draft
   const handleSaveDraft = () => {
+    const uploadedAttachments = attachments.filter((att) => Boolean(att.url));
+    const attachmentMarkdown =
+      uploadedAttachments.length > 0
+        ? `\n\n**Tệp đính kèm:**\n${uploadedAttachments
+            .map((att) => `- [${att.name}](${att.url})`)
+            .join('\n')}`
+        : '';
+
     const payload: CreateAnnouncementData = {
       title: title.trim(),
-      content: content.trim(),
+      content: `${content.trim()}${attachmentMarkdown}`,
       targetClassIds: selectedClasses.map((c) => c.id),
       isPinned,
       isUrgentEmail,
@@ -463,15 +499,17 @@ export function CreateAnnouncementModal({
                   </span>
                 ))}
 
-                {/* Add More Classes Selector Dropdown Trigger */}
-                <button
-                  type="button"
-                  onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-blue-600 dark:text-[#A8C7FA] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                  <span>Thêm lớp cùng học phần (CS-202L, CS-203)...</span>
-                </button>
+                {/* Add More Classes Selector Dropdown Trigger (only when additional classes exist) */}
+                {otherClassesPool.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-blue-600 dark:text-[#A8C7FA] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-semibold transition-colors cursor-pointer border-none bg-transparent"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                    <span>Thêm lớp khác</span>
+                  </button>
+                )}
               </div>
 
               {/* Class Selection Dropdown Popover */}
@@ -702,19 +740,9 @@ export function CreateAnnouncementModal({
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={8}
-                  placeholder="Nhập nội dung thông báo đầy đủ gửi tới sinh viên..."
+                  placeholder="Nhập nội dung thông báo đầy đủ gửi tới sinh viên (hỗ trợ Markdown)..."
                   className="w-full bg-transparent font-normal text-xs sm:text-sm text-slate-900 dark:text-slate-100 leading-relaxed outline-none resize-y min-h-[160px] custom-scrollbar placeholder:text-slate-400"
                 />
-
-                {/* Preview snippet container for terminal commands */}
-                <div className="mt-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/80 font-mono text-xs text-slate-800 dark:text-slate-200 flex items-center justify-between border border-slate-200 dark:border-slate-700">
-                  <span className="truncate select-all">
-                    git commit -m &quot;feat: complete AVL rotation benchmarks&quot; &amp;&amp; git push origin main
-                  </span>
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[16px] shrink-0 ml-2">
-                    terminal
-                  </span>
-                </div>
               </div>
             </div>
           </div>

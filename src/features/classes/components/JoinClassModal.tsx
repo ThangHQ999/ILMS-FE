@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useJoinClass } from '../hooks/useJoinClass';
 
@@ -8,15 +8,27 @@ interface JoinClassModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialCode?: string;
 }
 
-export function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClassModalProps) {
+export function JoinClassModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialCode = '',
+}: JoinClassModalProps) {
   const t = useTranslations('classes');
   const { mutateAsync: joinClassMutate, isPending } = useJoinClass();
 
-  const [classCode, setClassCode] = useState('');
+  const [classCode, setClassCode] = useState(initialCode);
   const [error, setError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialCode) {
+      setClassCode(initialCode);
+    }
+  }, [initialCode]);
 
   if (!isOpen) return null;
 
@@ -89,7 +101,7 @@ export function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClassModalPro
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {apiError && (
-            <div className="p-3.5 rounded-xl bg-destructive/15 text-destructive text-xs flex items-start gap-2.5 border border-destructive/30">
+            <div className="p-3.5 rounded-xl bg-red-50 dark:bg-[#3C1919] text-[#B3261E] dark:text-[#FFB4AB] text-xs flex items-start gap-2.5 border border-red-200 dark:border-[#93000A]/60">
               <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">
                 error
               </span>
@@ -99,7 +111,7 @@ export function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClassModalPro
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5">
-              {t('fieldJoinCode')} <span className="text-destructive">*</span>
+              {t('fieldJoinCode')} <span className="text-[#B3261E] dark:text-[#FFB4AB]">*</span>
             </label>
             <input
               type="text"
@@ -114,7 +126,7 @@ export function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClassModalPro
               className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 font-mono tracking-wide uppercase transition-all"
             />
             {error && (
-              <p className="mt-1 text-[11px] text-destructive font-medium">{error}</p>
+              <p className="mt-1 text-[11px] text-[#B3261E] dark:text-[#FFB4AB] font-medium">{error}</p>
             )}
             <p className="mt-1.5 text-[11px] text-muted-foreground">
               Mã tham gia được cấp bởi Giảng viên chủ nhiệm hoặc qua email mời lớp học.

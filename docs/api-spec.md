@@ -308,6 +308,32 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
 4. **Chống Double-Submit (Khóa nút khi thực thi):**
    - Các nút nộp bài kiểm tra trắc nghiệm (`/quizzes/{id}/attempts/{attemptId}/submit`), nộp bài tập (`/assignments/{id}/submissions`), và gán môn học theo lô (`/classes/{id}/courses/batch`) phải lập tức chuyển sang trạng thái `disabled` kèm hiệu ứng Loading ngay khi click chuột để tránh gây trùng lặp giao dịch và xung đột khóa bi quan.
 
+---
+
+#### 1.4.5. Bảng Ma trận Hạn mức & Quota Gói Dịch vụ (Subscription Plan Limits & Quotas)
+
+Hệ thống ILMS áp dụng cơ chế chốt chặn quota (Quota Barrier) theo 4 cấp bậc gói thuê bao (`FREE`, `PLUS`, `PRO`, `ENTERPRISE`). Khi người dùng vượt quá hạn mức, Backend sẽ lập tức từ chối và phản hồi lỗi nghiệp vụ (HTTP 4xx):
+
+| Tính năng / Hạn mức Quota | Gói Cơ bản (`FREE`) | Gói Nâng cao (`PLUS`) | Gói Chuyên nghiệp (`PRO`) | Gói Doanh nghiệp (`ENTERPRISE`) | Mã lỗi khi vượt hạn mức |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Dung lượng ổ lưu trữ Cloud** | **1 GB** | **15 GB** | **50 GB** | **200 GB+** | `STORAGE_QUOTA_EXCEEDED` (HTTP 400) |
+| **Kích thước tệp tải lên tối đa** | 25 MB / file | 100 MB / file | 500 MB / file | 2 GB / file | `FILE_SIZE_EXCEEDED_PLAN_LIMIT` (HTTP 400) |
+| **Số lượng khóa học quản lý** | 3 khóa học | 15 khóa học | 50 khóa học | Không giới hạn | `COURSE_CREATION_LIMIT_REACHED` (HTTP 403) |
+| **Số lượng lớp học quản lý** | 2 lớp học | 10 lớp học | 30 lớp học | Không giới hạn | `CLASS_CREATION_LIMIT_REACHED` (HTTP 403) |
+| **Số học viên tối đa / lớp** | 30 học viên | 60 học viên | 150 học viên | 500 học viên | `CLASS_CAPACITY_LIMIT_REACHED` |
+| **Lượt tương tác Trợ lý AI / ngày** | 20 lượt | 300 lượt | 1.000 lượt | Không giới hạn | `AI_DAILY_LIMIT_EXCEEDED` (HTTP 429) |
+| **Đồ thị tri thức tương tác** | 5 đồ thị | 30 đồ thị | 150 đồ thị | Không giới hạn | `KNOWLEDGE_GRAPH_QUOTA_EXCEEDED` (HTTP 400) |
+| **Tự động phát sinh Quiz AI** | ✘ | ✔ | ✔ | ✔ | `FEATURE_NOT_IN_PLAN` |
+| **Tự động chấm bài tự luận AI** | ✘ | ✘ | ✔ | ✔ | `FEATURE_NOT_IN_PLAN` |
+| **Tên miền riêng & Thương hiệu** | ✘ | ✘ | ✘ | ✔ | `FEATURE_NOT_IN_PLAN` |
+| **Cấp độ hỗ trợ kỹ thuật** | Tiêu chuẩn (Email) | Ưu tiên (Ticket 24h) | Hỗ trợ 1-1 (SLA 4h) | Chuyên biệt 24/7 (SLA 99.9%) | — |
+
+> [!TIP]
+> **Xử lý UI Frontend khi bắt gặp lỗi Quota:**
+> - Bắt lỗi `COURSE_CREATION_LIMIT_REACHED` hoặc `CLASS_CREATION_LIMIT_REACHED`: Hiển thị Modal/Dialog chúc mừng người dùng đã phát triển nhiều khóa/lớp học kèm nút CTA `"Nâng cấp gói cước ngay"` dẫn sang `/subscription/plans`.
+> - Bắt lỗi `STORAGE_QUOTA_EXCEEDED` hoặc `FILE_SIZE_EXCEEDED_PLAN_LIMIT`: Hiển thị cảnh báo dung lượng và gợi ý xóa bớt tài liệu tại `/storage` hoặc nâng cấp gói dung lượng lớn hơn.
+> - Bắt lỗi `AI_DAILY_LIMIT_EXCEEDED`: Hiển thị thông báo đã dùng hết lượt AI hôm nay và đồng hồ đếm ngược reset lúc 00:00 UTC (07:00 sáng giờ VN).
+
 
 ---
 
@@ -317,7 +343,9 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
 
 | Method | Endpoint | Quyền hạn | Mô tả | Request Body | Response Data |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **POST** | `/api/v1/auth/register` | Public | Đăng ký tài khoản người dùng mới | `RegisterRequestDTO` | `UserResponseDTO` |
+| **POST** | `/api/v1/auth/register` | Public | Đăng ký tài khoản người dùng mới (Hệ thống tự động gửi email xác thực tài khoản chuẩn Google style) | `RegisterRequestDTO` | `UserResponseDTO` |
+| **GET** | `/api/v1/auth/verify-email` | Public | Xác thực và kích hoạt tài khoản qua token từ email | Query: `?token=...` | `null` |
+| **POST** | `/api/v1/auth/resend-verification` | Public | Gửi lại email xác thực tài khoản | Query: `?email=...` | `null` |
 | **POST** | `/api/v1/auth/login` | Public | Đăng nhập hệ thống (Server set HttpOnly Cookies) | `LoginRequestDTO` | `UserResponseDTO` |
 | **POST** | `/api/v1/auth/logout` | `isAuthenticated()` | Đăng xuất (Server xóa HttpOnly Cookies) | None | `null` |
 | **POST** | `/api/v1/auth/refresh-token` | Public (Cookie) | Tự động làm mới phiên đăng nhập (Đọc HttpOnly cookie `refreshToken` / `refresh-token`) | None (Cookie) | `{ "refreshed": true }` |
@@ -363,7 +391,7 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
     "firstName": "Hải",
     "middleName": "Thanh",
     "lastName": "Nguyễn",
-    "avatarUrl": "https://res.cloudinary.com/.../avatar.jpg"
+    "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
   }
   ```
 - **`ChangePasswordRequestDTO`**:
@@ -401,12 +429,12 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
 | **POST** | `/api/v1/users` | `hasAuthority('USER_MANAGE')` | Admin tạo người dùng mới | `UserCreateRequestDTO` |
 | **GET** | `/api/v1/users/profile` *(hoặc `/api/v1/user/profile`)* | `isAuthenticated()` | Lấy toàn bộ thông tin hồ sơ người dùng đang đăng nhập | None |
 | **PUT** | `/api/v1/users/profile` *(hoặc `/api/v1/user/profile`)* | `isAuthenticated()` | Cập nhật hồ sơ cá nhân (Tên hiển thị, SĐT, ngày sinh, bio) | `UpdateProfileRequestDTO` |
-| **POST** | `/api/v1/users/avatar` *(hoặc `/api/v1/user/avatar`)* | `isAuthenticated()` | Tải lên và cập nhật ảnh đại diện người dùng | `multipart/form-data` (`file`) |
+| **POST** | `/api/v1/users/avatar` *(hoặc `/api/v1/user/avatar`)* | `isAuthenticated()` | Tải lên và cập nhật ảnh đại diện người dùng (Lưu trữ 100% Google Drive, link CDN direct nhúng thẻ `<img>`) | `multipart/form-data` (`file`) |
 | **PUT** | `/api/v1/users/password` *(hoặc `/api/v1/user/password`)* | `isAuthenticated()` | Đổi mật khẩu tài khoản trong trang Cài đặt (Settings) | `ChangePasswordRequestDTO` |
 | **GET** | `/api/v1/users/{id}` | `hasAuthority('USER_VIEW')` or `hasAuthority('USER_MANAGE')` | Xem thông tin chi tiết người dùng theo ID | Path: `id` (UUID) |
 | **PUT** | `/api/v1/users/{id}` | `hasAuthority('USER_VIEW')` or `hasAuthority('USER_MANAGE')` | Cập nhật hồ sơ người dùng theo ID | `UserUpdateRequestDTO` |
 | **PATCH** | `/api/v1/users/{id}/role` | `hasAuthority('USER_MANAGE')` | Gán vai trò hệ thống mới cho User | `UserUpdateRoleRequest`: `{ "role": "ROLE_ADMIN" }` |
-| **GET** | `/api/v1/users/me/timetable` | `isAuthenticated()` | Xem thời khóa biểu cá nhân của học sinh / giảng viên | `?startDate=2026-11-01&endDate=2026-11-30` (ISO Date) |
+| **GET** | `/api/v1/users/me/timetable` | `isAuthenticated()` | Xem thời khóa biểu cá nhân của học sinh / giảng viên (lọc theo ngày, lớp, môn học) | `?startDate=2026-11-01&endDate=2026-11-30&classId=&courseId=` |
 
 #### Payload `UserProfileResponseDTO`:
 ```json
@@ -421,11 +449,22 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
   "birthDate": "2002-05-15",
   "role": "ROLE_USER",
   "bio": "Sinh viên Khoa học Máy tính đam mê AI và phát triển hệ thống",
-  "avatarUrl": "https://res.cloudinary.com/.../avatar.jpg",
+  "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
   "socialAccounts": {
     "google": { "email": "vana.nguyen@gmail.com", "isLinked": true },
     "github": { "username": "vananguyen", "isLinked": true },
     "apple": { "isLinked": false }
+  }
+}
+```
+
+#### Phản hồi `POST /api/v1/users/avatar`:
+```json
+{
+  "status": 200,
+  "message": "Cập nhật ảnh đại diện thành công",
+  "data": {
+    "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
   }
 }
 ```
@@ -448,6 +487,40 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
   "confirmPassword": "NewPassword123@"
 }
 ```
+
+#### Response `GET /api/v1/users/me/timetable` (`List<LessonSessionResponseDTO>`):
+Dành cho trang Thời khóa biểu cá nhân của Học sinh & Giảng viên, tự động tổng hợp tất cả các buổi học/ca học của những lớp mà người dùng đang tham gia:
+```json
+{
+  "status": 200,
+  "message": "Lấy thông tin ca học thành công",
+  "data": [
+    {
+      "classId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "lessonSessionId": "7bb18a92-1234-4567-89ab-cdef01234567",
+      "classCode": "D21CNPM01",
+      "className": "Lớp Công nghệ phần mềm 01",
+      "courseId": "9c9c9c9c-0000-0000-0000-000000000001",
+      "courseCode": "INT1306",
+      "courseName": "Cấu trúc dữ liệu và Giải thuật",
+      "teacherId": "11111111-2222-3333-4444-555555555555",
+      "teacherName": "Trần Văn Giảng Viên",
+      "roomId": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01",
+      "roomName": "Phòng 302-A2",
+      "timeSlotId": "2a2a2a2a-2a2a-2a2a-2a2a-2a2a2a2a2a01",
+      "timeSlotName": "Kíp 1 (Sáng)",
+      "sessionDate": "2026-11-24",
+      "startShift": 1,
+      "endShift": 2,
+      "startTime": "07:00:00",
+      "endTime": "08:50:00",
+      "note": "Học lý thuyết Đồ thị liên thông"
+    }
+  ],
+  "timestamp": "2026-11-20T19:00:00.000Z"
+}
+```
+*Query Params hỗ trợ:* `?startDate=2026-11-01&endDate=2026-11-30&classId=&courseId=` (Mặc định không truyền sẽ lấy toàn bộ lịch học).
 
 ---
 
@@ -477,8 +550,6 @@ export const ClassHeaderActions: React.FC<{ classId: string }> = ({ classId }) =
   }
 }
 ```
-| **GET** | `/api/v1/users/notification-settings` *(hoặc `/api/v1/user/notification-settings`)* | `isAuthenticated()` | Lấy riêng cấu hình thông báo (push, email, reminder categories) | None |
-| **PUT / PATCH** | `/api/v1/users/notification-settings` *(hoặc `/api/v1/user/notification-settings`)* | `isAuthenticated()` | Cập nhật riêng cấu hình thông báo của người dùng | JSON Object notification settings |
 
 #### Payload `UserPreferencesDTO`:
 ```json
@@ -553,7 +624,10 @@ Base path: `/api/v1/courses`
 | :--- | :--- | :--- | :--- | :--- |
 | **POST** | `/api/v1/courses` | `hasAuthority('COURSE_CREATE')` | Tạo mới khóa học | `CourseCreateRequestDTO` |
 | **GET** | `/api/v1/courses` | `hasAuthority('COURSE_VIEW')` | Tìm kiếm và xem danh sách khóa học | `?search=&status=&isArchived=false&page=0&size=10` |
-| **GET** | `/api/v1/courses/{id}` | `hasAuthority('COURSE_VIEW')` | Xem chi tiết thông tin khóa học | Path: `id` |
+| **GET** | `/api/v1/courses/{id}` | `hasAuthority('COURSE_VIEW')` | Xem chi tiết môn học kèm thống kê Banner (`CourseDetailResponseDTO`) | Path: `id` |
+| **GET** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('COURSE_VIEW')` | Danh sách tài liệu/học liệu của môn học (phân trang, lọc theo loại file và tìm kiếm) | `?fileType=&search=&page=0&size=20` |
+| **POST** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('MATERIAL_UPLOAD')` | Tải lên tài liệu/học liệu cấp môn học (không bắt buộc bài học) | `multipart/form-data`: `file`, `title`, `description`, `isDownloadable` |
+| **GET** | `/api/v1/courses/{courseId}/knowledge-graph` | `hasAuthority('KNOWLEDGE_GRAPH_READ') or hasAuthority('COURSE_VIEW')` | Lấy đồ thị tri thức tổng hợp toàn bộ môn học (`CourseKnowledgeGraphResponseDTO`) | Path: `courseId` |
 | **GET** | `/api/v1/courses/users/{userId}` | `hasAuthority('COURSE_VIEW')` | Danh sách khóa học của một giảng viên | `?page=0&size=10` |
 | **PUT / PATCH** | `/api/v1/courses/{id}` | `hasAuthority('COURSE_UPDATE')` | Cập nhật thông tin khóa học (chủ khóa học / Admin) | `CourseUpdateRequestDTO` |
 | **PATCH** | `/api/v1/courses/{id}/instructor` | `hasAuthority('SYSTEM_CONFIG')` | Đổi giảng viên phụ trách chính của môn học | `UpdateCourseInstructorRequestDTO`: `{ "instructorId": "uuid..." }` |
@@ -562,6 +636,7 @@ Base path: `/api/v1/courses`
 | **PATCH** | `/api/v1/courses/{id}/restore` | `hasAuthority('SYSTEM_CONFIG')` | Khôi phục khóa học đã bị xóa mềm | None |
 | **DELETE** | `/api/v1/courses/{id}/hard` | `hasAuthority('SYSTEM_CONFIG')` | Xóa vĩnh viễn khóa học (chỉ Admin, chặn khi còn học viên/bài tập) | Path: `id` |
 | **GET** | `/api/v1/courses/{courseId}/classes` | `hasAuthority('COURSE_VIEW')` | Danh sách các lớp học đang học môn này | `?academicYear=&page=0&size=10` |
+| **GET** | `/api/v1/courses/{courseId}/timetable` | `hasAuthority('COURSE_VIEW')` | Thời khóa biểu các lớp học của môn học | `?startDate=&endDate=` (ISO Date) |
 
 #### Payload mẫu bổ sung phân hệ Khóa học:
 - **`UpdateCourseStatusRequestDTO`**:
@@ -583,16 +658,188 @@ Base path: `/api/v1/courses`
     "academicYear": "2026-2027"
   }
   ```
+- **`GET /api/v1/courses/{courseId}/timetable`** (`List<LessonSessionResponseDTO>`):
+  Lấy toàn bộ lịch học của các lớp đang theo học môn học này (dành cho Giảng viên phụ trách môn hoặc Sinh viên theo dõi lịch học):
+  ```json
+  [
+    {
+      "classId": "9c9c9c9c-0000-0000-0000-000000000002",
+      "lessonSessionId": "7bb18a92-1234-4567-89ab-cdef01234567",
+      "classCode": "D21CNPM01",
+      "className": "Lớp Công nghệ phần mềm 01",
+      "courseId": "9c9c9c9c-0000-0000-0000-000000000001",
+      "courseCode": "IT3010",
+      "courseName": "Cấu trúc dữ liệu và Giải thuật",
+      "teacherId": "11111111-2222-3333-4444-555555555555",
+      "teacherName": "TS. Nguyễn Văn A",
+      "roomId": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01",
+      "roomName": "Lab 302",
+      "timeSlotId": "2a2a2a2a-2a2a-2a2a-2a2a-2a2a2a2a2a01",
+      "timeSlotName": "Kíp 1",
+      "sessionDate": "2026-11-25",
+      "startShift": 1,
+      "endShift": 2,
+      "startTime": "07:00:00",
+      "endTime": "08:50:00",
+      "note": "Thực hành Cây nhị phân tìm kiếm"
+    }
+  ]
+  ```
+  *Query Params hỗ trợ:* `?startDate=2026-11-01&endDate=2026-11-30` (Lọc theo khoảng ngày).
 
 #### Payload `CourseCreateRequestDTO`:
 ```json
 {
-  "title": "Cấu trúc dữ liệu và Giải thuật",
-  "code": "IT3010",
+  "name": "Cấu trúc dữ liệu và Giải thuật",
   "description": "Môn học cơ sở ngành CNTT",
+  "visibility": "PUBLIC",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
+}
+```
+
+#### Payload `CourseUpdateRequestDTO`:
+```json
+{
+  "name": "Cấu trúc dữ liệu và Giải thuật nâng cao",
+  "description": "Cập nhật mô tả môn học...",
+  "visibility": "PUBLIC",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
+}
+```
+
+#### Response `CourseResponseDTO`:
+```json
+{
+  "id": "9c9c9c9c-0000-0000-0000-000000000001",
+  "courseCode": "IT3010",
+  "name": "Cấu trúc dữ liệu và Giải thuật",
+  "description": "Môn học cơ sở ngành CNTT",
+  "visibility": "PUBLIC",
+  "status": "DRAFT",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "createdAt": "2026-11-17T10:00:00.000Z",
+  "updatedAt": "2026-11-17T10:00:00.000Z",
+  "deletedAt": null,
+  "ownerId": "9c9c9c9c-0000-0000-0000-000000000002"
+}
+```
+
+#### Response `CourseDetailResponseDTO` (`GET /api/v1/courses/{id}`):
+```json
+{
+  "id": "9c9c9c9c-0000-0000-0000-000000000001",
+  "courseCode": "IT3010",
+  "name": "Cấu trúc dữ liệu và Giải thuật",
+  "description": "Môn học cơ sở ngành CNTT",
+  "visibility": "PUBLIC",
+  "status": "PUBLISHED",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "thumbnailUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
   "credits": 3,
-  "coverImageUrl": "https://res.cloudinary.com/.../cover.jpg",
-  "status": true
+  "instructorName": "TS. Nguyễn Văn A",
+  "instructorAvatar": "https://lh3.googleusercontent.com/a/...",
+  "semester": "Học kỳ 1 (2026-2027)",
+  "currentWeek": 8,
+  "specialFeature": "Trợ lý AI Socratic & Đồ thị tri thức",
+  "specialFeatureIcon": "Sparkles",
+  "chaptersCount": 4,
+  "lecturesCount": 11,
+  "knowledgeNodesCount": 30,
+  "quizzesCount": 5,
+  "teachingProgress": 36,
+  "hasAiTutor": true,
+  "ownerId": "9c9c9c9c-0000-0000-0000-000000000002",
+  "createdAt": "2026-11-17T10:00:00.000Z",
+  "updatedAt": "2026-11-17T10:00:00.000Z",
+  "deletedAt": null
+}
+```
+
+#### Response `CourseMaterialItemDTO` (`GET /api/v1/courses/{courseId}/materials`):
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "courseId": "9c9c9c9c-0000-0000-0000-000000000001",
+  "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+  "lessonId": "4bb96f75-6828-4673-c4fd-3d074g77bgb7",
+  "lessonTitle": "1.1 Ôn tập tiệm cận thời gian & không gian",
+  "chapterId": "5cc07g86-7939-5784-d5ge-4e185h88chc8",
+  "chapterTitle": "Chương 1: Tổng quan & Đánh giá độ phức tạp",
+  "title": "Slide Chương 1.pdf",
+  "description": "Tài liệu bài giảng tổng quan",
+  "originalFileName": "slide-chuong-1.pdf",
+  "fileType": "PDF",
+  "mimeType": "application/pdf",
+  "fileSizeBytes": 2516582,
+  "fileSizeFormatted": "2.4 MB",
+  "url": "https://drive.google.com/file/d/1g9b0p3.../view",
+  "downloadUrl": "/api/v1/materials/3fa85f64-5717-4562-b3fc-2c963f66afa6/download",
+  "isDownloadable": true,
+  "uploadStatus": "READY",
+  "aiIngestionStatus": "SUCCESS",
+  "conceptsCount": 14,
+  "ingestionJobId": "7dd18a92-1234-4567-89ab-cdef01234567",
+  "draftRevisionId": "8ee29b03-2345-5678-9abc-def012345678",
+  "aiErrorCode": null,
+  "uploadedBy": "9c9c9c9c-0000-0000-0000-000000000002",
+  "uploadedByName": "TS. Nguyễn Văn A",
+  "createdAt": "2026-11-18T10:00:00.000Z",
+  "updatedAt": "2026-11-18T10:00:00.000Z"
+}
+```
+*(Giá trị `aiIngestionStatus` thực tế đọc từ `ingestion_jobs` & `material_publications`: `NOT_EXTRACTED` | `QUEUED` | `PROCESSING` | `AWAITING_REVIEW` | `SUCCESS` | `FAILED`).*
+
+#### Response `CourseKnowledgeGraphResponseDTO` (`GET /api/v1/courses/{courseId}/knowledge-graph`):
+```json
+{
+  "courseId": "9c9c9c9c-0000-0000-0000-000000000001",
+  "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+  "totalNodes": 2,
+  "totalEdges": 1,
+  "nodes": [
+    {
+      "id": "node-1",
+      "label": "Độ phức tạp thuật toán",
+      "level": "BEGINNER",
+      "category": "Algorithms",
+      "masteryPercent": 80,
+      "status": "MASTERED",
+      "prerequisites": [],
+      "linkedLessonIds": ["4bb96f75-6828-4673-c4fd-3d074g77bgb7"]
+    },
+    {
+      "id": "node-2",
+      "label": "Ký pháp Big-O",
+      "level": "BEGINNER",
+      "category": "Complexity",
+      "masteryPercent": 60,
+      "status": "IN_PROGRESS",
+      "prerequisites": ["node-1"],
+      "linkedLessonIds": ["4bb96f75-6828-4673-c4fd-3d074g77bgb7"]
+    }
+  ],
+  "edges": [
+    {
+      "source": "node-1",
+      "target": "node-2",
+      "relation": "PREREQUISITE"
+    }
+  ]
+}
+```
+
+#### Response `UserCourseResponseDTO` (`GET /api/v1/courses/users/{userId}`):
+```json
+{
+  "classId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "className": "D21CNPM01",
+  "classCode": "D21CNPM01",
+  "courseId": "9c9c9c9c-0000-0000-0000-000000000001",
+  "name": "Cấu trúc dữ liệu và Giải thuật",
+  "description": "Môn học cơ sở ngành CNTT",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "ownerId": "9c9c9c9c-0000-0000-0000-000000000002",
+  "registeredAt": "2026-11-01T08:00:00"
 }
 ```
 
@@ -630,14 +877,157 @@ Base path: `/api/v1/courses`
 {
   "title": "Thuật toán tìm kiếm theo chiều sâu (DFS)",
   "content": "Nội dung bài học dạng Markdown hoặc HTML...",
-  "lessonType": "THEORY",
+  "lessonType": "MODULAR",
   "orderIndex": 1,
-  "isPublished": true,
-  "videoUrl": "https://res.cloudinary.com/.../video.mp4",
-  "durationSeconds": 2700
+  "duration": 45
 }
 ```
-*(Giá trị `lessonType`: `THEORY`, `VIDEO`, `QUIZ`, `ASSIGNMENT`).*
+*(Giá trị `lessonType`: `VIDEO`, `TEXT`, `QUIZ`, `DOCUMENT`, `MODULAR`. Trong `GET /api/v1/courses/{courseId}/content`, mỗi bài học có thêm `contentMode`: `LEGACY` | `MODULAR` và `status` thực tế theo tiến độ người dùng: `NOT_STARTED` | `IN_PROGRESS` | `COMPLETED`).*
+
+---
+
+### 5.2.1. Modular Block-Based Lesson Workspace (Notion-style) & Tiến độ học tập (FE & BE Contract)
+
+> **Quy tắc hiển thị chế độ Biên soạn (Editor Mode) phía Frontend:**
+> Vì mọi tài khoản `ROLE_USER` trong DB đều có quyền `COURSE_UPDATE` ở tầng hệ thống, **FE không được** chỉ kiểm tra `COURSE_UPDATE` để hiện nút Biên soạn. Thay vào đó, FE dựa trực tiếp vào cờ **`canEdit`** do API `GET /api/v1/lessons/{lessonId}/blocks` trả về (hoặc kiểm tra `course.ownerId === currentUser.id || currentUser.role === 'ROLE_ADMIN'`).
+
+#### Danh sách Endpoints & Ma trận Phân quyền 2 Tầng:
+
+| Method | Endpoint | System RBAC (`@PreAuthorize`) | Ngữ cảnh Course / Class (Service Layer) | Mô tả & Payload |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/lessons/{lessonId}/blocks` | `hasAuthority('COURSE_VIEW')` | `ADMIN`, `course.owner`, môn `PUBLIC + PUBLISHED`, hoặc thành viên lớp có gán môn | Lấy toàn bộ blocks theo `orderIndex` tăng dần + `lessonProgress` + `studentState`. *(Nếu không phải `canEdit`, BE tự ẩn `correctIndex` và `explanation` của `QUIZ` chưa hoàn thành)* |
+| **POST** | `/api/v1/lessons/{lessonId}/blocks` | `hasAuthority('COURSE_UPDATE')` | Chỉ `ROLE_ADMIN` hoặc `course.owner` | Chèn 1 block mới (`LessonBlockCreateRequestDTO`), tự tính `orderIndex` nếu truyền `prevBlockId`/`nextBlockId` |
+| **PATCH** | `/api/v1/lessons/{lessonId}/blocks/{blockId}` | `hasAuthority('COURSE_UPDATE')` | Chỉ `ROLE_ADMIN` hoặc `course.owner` | Cập nhật `type`, `content`, `materialId`, `metadata` (có hỗ trợ `expectedVersion` chống ghi đè) |
+| **PATCH** | `/api/v1/lessons/{lessonId}/blocks/{blockId}/reorder` | `hasAuthority('COURSE_UPDATE')` | Chỉ `ROLE_ADMIN` hoặc `course.owner` | Kéo-thả đổi vị trí (`orderIndex` hoặc `prevBlockId`/`nextBlockId`); tự rebalance về bội số `1000.0` nếu khoảng cách `< 1e-6` |
+| **PATCH** | `/api/v1/lessons/{lessonId}/blocks/batch` | `hasAuthority('COURSE_UPDATE')` | Chỉ `ROLE_ADMIN` hoặc `course.owner` | Auto-save debounce 1000ms: tạo/cập nhật/xóa mềm hàng loạt block trong 1 transaction |
+| **DELETE** | `/api/v1/lessons/{lessonId}/blocks/{blockId}` | `hasAuthority('COURSE_UPDATE')` | Chỉ `ROLE_ADMIN` hoặc `course.owner` | Xóa mềm 1 block (`deleted_at`) |
+| **POST** | `/api/v1/lessons/{lessonId}/blocks/{blockId}/quiz-attempt` | `hasAuthority('LESSON_PROGRESS_UPDATE') or hasAuthority('COURSE_VIEW')` | Người dùng xem được bài học | Sinh viên nộp đáp án Inline Quiz → chấm điểm, lưu `lesson_block_progress`, cập nhật `lesson_progress` |
+| **PATCH** | `/api/v1/lessons/{lessonId}/blocks/{blockId}/video-progress` | `hasAuthority('LESSON_PROGRESS_UPDATE') or hasAuthority('COURSE_VIEW')` | Người dùng xem được bài học | Lưu mốc giây xem video (`watchedSeconds`); đạt `>= 85%` tự đánh dấu hoàn thành block |
+| **PUT** | `/api/v1/lessons/{lessonId}/progress` | `hasAuthority('LESSON_PROGRESS_UPDATE') or hasAuthority('COURSE_VIEW')` | Người dùng xem được bài học | Đánh dấu hoàn thành bài học dạng đọc (`TEXT`/`SLIDE`) hoặc lưu `lastAccessedBlockId` |
+
+#### Chuẩn JSON `content` theo 8 loại Block chính (kèm `IMAGE`, `DIVIDER`):
+
+| `type` | Cấu trúc `content` JSON | Ghi chú FE / BE |
+| :--- | :--- | :--- |
+| `HEADING` | `{ "level": 1 \| 2 \| 3, "text": "1. Nguyên lý bắt tay 3 bước" }` | Tự sinh Mục lục (TOC) |
+| `TEXT` | `{ "markdown": "Công thức độ phức tạp $O(n \\log n)$..." }` | `MarkdownContent` + KaTeX |
+| `CALLOUT` | `{ "variant": "INFO" \| "TIP" \| "WARNING" \| "THEOREM", "title": "Định lý", "markdown": "..." }` | Material 3 Alert surface |
+| `VIDEO` | `{ "url": "https://...", "sourceType": "YOUTUBE" \| "DRIVE" \| "MP4", "durationSeconds": 620, "caption": "...", "chapters": [{ "timeSec": 135, "title": "Giới thiệu" }] }` | Nếu upload nội bộ, gắn thêm `materialId` |
+| `SLIDE` | `{ "materialId": "uuid?", "url": "https://...", "fileName": "Chuong1.pdf", "totalPages": 24, "embedType": "PDF" \| "GOOGLE_SLIDES" }` | Khuyến nghị fallback `/api/v1/materials/{materialId}/download` |
+| `CODE_SANDBOX` | `{ "language": "javascript" \| "python" \| "java" \| "cpp" \| "sql", "title": "Cài đặt QuickSort", "initialCode": "...", "expectedOutput": "...", "allowRun": true, "readOnly": false }` | JS chạy iframe `sandbox="allow-scripts"` |
+| `QUIZ` | `{ "question": "JWT gồm mấy phần?", "options": ["2", "3", "4"], "correctIndex": 1, "explanation": "Header, Payload, Signature", "allowRetry": true }` | **BE ẩn `correctIndex` & `explanation`** ở `GET /blocks` với SV chưa hoàn thành |
+| `DIAGRAM` | `{ "engine": "MERMAID" \| "VIS3D", "code": "flowchart TD...", "caption": "Sơ đồ luồng TCP" }` | `MermaidRenderer` / `Vis3dRenderer` |
+| `IMAGE` / `DIVIDER` | `IMAGE`: `{ "url": "...", "caption": "..." }` · `DIVIDER`: `{}` | Mở rộng tương thích Notion |
+
+#### Response `LessonBlocksWorkspaceResponseDTO` (`GET /api/v1/lessons/{lessonId}/blocks`):
+```json
+{
+  "lessonId": "4bb96f75-6828-4673-c4fd-3d074g77bgb7",
+  "lessonTitle": "1.1 Ôn tập tiệm cận thời gian & không gian",
+  "contentMode": "MODULAR",
+  "canEdit": true,
+  "legacyContent": null,
+  "rebalanced": false,
+  "lessonProgress": {
+    "lessonId": "4bb96f75-6828-4673-c4fd-3d074g77bgb7",
+    "status": "IN_PROGRESS",
+    "progressPercent": 50,
+    "lastAccessedBlockId": "a1b2c3d4-0000-0000-0000-000000000001",
+    "completedAt": null
+  },
+  "blocks": [
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "lessonId": "4bb96f75-6828-4673-c4fd-3d074g77bgb7",
+      "type": "HEADING",
+      "content": { "level": 2, "text": "Khái niệm Big-O" },
+      "orderIndex": 1000.0,
+      "materialId": null,
+      "metadata": null,
+      "version": 0,
+      "studentState": null,
+      "createdAt": "2026-11-18T21:00:00",
+      "updatedAt": "2026-11-18T21:00:00"
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000002",
+      "lessonId": "4bb96f75-6828-4673-c4fd-3d074g77bgb7",
+      "type": "QUIZ",
+      "content": {
+        "question": "Độ phức tạp tìm kiếm nhị phân là?",
+        "options": ["O(n)", "O(log n)", "O(n^2)"],
+        "allowRetry": true
+      },
+      "orderIndex": 2000.0,
+      "materialId": null,
+      "metadata": null,
+      "version": 0,
+      "studentState": {
+        "isCompleted": false,
+        "interactionState": { "selectedIndex": 0, "isCorrect": false, "attempts": 1 }
+      },
+      "createdAt": "2026-11-18T21:00:00",
+      "updatedAt": "2026-11-18T21:00:00"
+    }
+  ]
+}
+```
+
+#### Payloads thao tác Block & Progress:
+- **`POST /api/v1/lessons/{lessonId}/blocks`** (`LessonBlockCreateRequestDTO`):
+  ```json
+  {
+    "type": "TEXT",
+    "content": { "markdown": "Nội dung bài giảng..." },
+    "prevBlockId": "a1b2c3d4-0000-0000-0000-000000000001",
+    "nextBlockId": "a1b2c3d4-0000-0000-0000-000000000002"
+  }
+  ```
+  *(Có thể truyền trực tiếp `orderIndex`, hoặc truyền `prevBlockId` / `nextBlockId` để BE tự tính trung bình cộng).*
+- **`PATCH /api/v1/lessons/{lessonId}/blocks/{blockId}/reorder`** (`LessonBlockReorderRequestDTO`):
+  ```json
+  { "orderIndex": 1500.0 }
+  ```
+  *(Hoặc `{ "prevBlockId": "...", "nextBlockId": "..." }` — trả về `LessonBlocksWorkspaceResponseDTO` kèm `rebalanced: true|false`).*
+- **`PATCH /api/v1/lessons/{lessonId}/blocks/batch`** (`LessonBlockBatchRequestDTO` — Auto-save debounce 1000ms):
+  ```json
+  {
+    "upserts": [
+      {
+        "id": "a1b2c3d4-0000-0000-0000-000000000001",
+        "type": "HEADING",
+        "content": { "level": 2, "text": "Tiêu đề đã sửa" },
+        "orderIndex": 1000.0,
+        "expectedVersion": 0
+      },
+      {
+        "type": "CALLOUT",
+        "content": { "variant": "TIP", "title": "Mẹo nhớ nhanh", "markdown": "..." },
+        "orderIndex": 2500.0
+      }
+    ],
+    "deleteBlockIds": []
+  }
+  ```
+- **`POST /api/v1/lessons/{lessonId}/blocks/{blockId}/quiz-attempt`**:
+  - Request: `{ "selectedIndex": 1 }`
+  - Response (`BlockQuizAttemptResponseDTO`):
+    ```json
+    {
+      "blockId": "a1b2c3d4-0000-0000-0000-000000000002",
+      "isCorrect": true,
+      "selectedIndex": 1,
+      "correctIndex": 1,
+      "explanation": "Tìm kiếm nhị phân chia đôi mảng ở mỗi bước.",
+      "lessonProgressPercent": 100,
+      "lessonStatus": "COMPLETED"
+    }
+    ```
+- **`PATCH /api/v1/lessons/{lessonId}/blocks/{blockId}/video-progress`**:
+  - Request: `{ "watchedSeconds": 540, "durationSeconds": 620, "isCompleted": false }`
+  - Response: `LessonProgressResponseDTO` (`status`, `progressPercent`, `lastAccessedBlockId`, `completedAt`).
+- **`PUT /api/v1/lessons/{lessonId}/progress`**:
+  - Request: `{ "isCompleted": true, "lastAccessedBlockId": "a1b2c3d4-0000-0000-0000-000000000001" }`
 
 ---
 
@@ -646,8 +1036,11 @@ Base path: `/api/v1/courses`
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả | Định dạng dữ liệu |
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/api/v1/lessons/{lessonId}/materials` | `hasAuthority('COURSE_VIEW')` | Lấy danh sách tài liệu của bài học | Trả về `List<MaterialSummaryResponseDTO>` |
+| **GET** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('COURSE_VIEW')` | Lấy toàn bộ tài liệu học liệu của môn học (phân trang, lọc fileType, search) | Trả về `PageResponse<CourseMaterialItemDTO>` (`?fileType=&search=&page=0&size=20`) |
 | **GET** | `/api/v1/materials/{materialId}` | `hasAuthority('COURSE_VIEW')` | Xem chi tiết 1 tài liệu | Trả về `MaterialResponseDTO` |
 | **POST** | `/api/v1/lessons/{lessonId}/materials` | `hasAuthority('MATERIAL_UPLOAD')` | Upload tài liệu đính kèm bài học | `multipart/form-data`: `file`, `title`, `description`, `isDownloadable` |
+| **POST** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('MATERIAL_UPLOAD')` | Upload tài liệu trực tiếp ở cấp môn học (không thuộc bài học) | `multipart/form-data`: `file`, `title`, `description`, `isDownloadable` |
+| **POST** | `/api/v1/materials/{materialId}/extract` | `hasAuthority('MATERIAL_UPLOAD') or hasAuthority('KNOWLEDGE_GRAPH_EDIT')` | Kéo file từ Google Drive vào pipeline `ingestion_jobs` → FastAPI bóc tách tri thức (`?autoPublish=true\|false`, mặc định `true`) | Path: `materialId` (Trả về `CourseMaterialItemDTO` với `aiIngestionStatus = QUEUED \| PROCESSING` và `ingestionJobId`) |
 | **PUT** | `/api/v1/materials/{materialId}` | `hasAuthority('MATERIAL_UPLOAD')` | Sửa thông tin tài liệu | `MaterialUpdateRequestDTO`: `{ "title": "...", "description": "..." }` |
 | **PATCH** | `/api/v1/materials/{materialId}/downloadable` | `hasAuthority('MATERIAL_UPLOAD')` | Bật/tắt quyền cho phép học sinh tải xuống | `MaterialUpdateDownloadableRequestDTO`: `{ "isDownloadable": true }` |
 | **PUT** | `/api/v1/materials/{materialId}/file` | `hasAuthority('MATERIAL_UPLOAD')` | Thay thế tệp đính kèm mới | `multipart/form-data`: `file` |
@@ -684,8 +1077,34 @@ Base path: `/api/v1/classes`
   "description": "Lớp học kỳ 1 năm 2026-2027",
   "academicYear": "2021-2026",
   "major": "Công nghệ thông tin",
-  "maxStudents": 60,
-  "enrollmentKey": "MATKHAU123"
+  "maxCapacity": 60,
+  "visibility": "PUBLIC",
+  "requireApproval": true,
+  "isCodeActive": true,
+  "thumbnailUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "startAt": "2026-09-01T07:00:00",
+  "endAt": "2027-01-15T18:00:00"
+}
+```
+*(Ghi chú: `requireApproval` và `isCodeActive` mặc định là `true` nếu không truyền; `visibility` nhận `PUBLIC` hoặc `PRIVATE`, mặc định là `PUBLIC`).*
+
+#### Payload `UpdateClassRequestDTO`:
+```json
+{
+  "name": "D21CNPM01 - Cập nhật",
+  "title": "Lớp Công nghệ phần mềm 01",
+  "description": "Cập nhật mô tả lớp học...",
+  "academicYear": "2026-2027",
+  "major": "Công nghệ phần mềm",
+  "maxCapacity": 75,
+  "visibility": "PUBLIC",
+  "requireApproval": true,
+  "isCodeActive": true,
+  "thumbnailUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "startAt": "2026-09-01T07:00:00",
+  "endAt": "2027-01-15T18:00:00"
 }
 ```
 
@@ -728,8 +1147,8 @@ Base path: `/api/v1/classes`
   "maxCapacity": 60,
   "status": "ACTIVE",
   "visibility": "PUBLIC",
-  "thumbnailUrl": "https://res.cloudinary.com/.../thumb.png",
-  "backgroundUrl": "https://res.cloudinary.com/.../banner.jpg",
+  "thumbnailUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
   "classCode": "K8X29PLA",
   "requireApproval": true,
   "isCodeActive": true,
@@ -742,7 +1161,7 @@ Base path: `/api/v1/classes`
     "id": "11111111-2222-3333-4444-555555555555",
     "fullName": "Nguyễn Văn Chủ Nhiệm",
     "email": "teacher@ilms.edu.vn",
-    "avatarUrl": "https://res.cloudinary.com/.../avatar.jpg"
+    "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
   },
   "createdAt": "2026-11-01T08:00:00.000Z",
   "updatedAt": "2026-11-14T08:30:00.000Z"
@@ -796,6 +1215,7 @@ Base path: `/api/v1/classes`
   "courseId": "8fa85f64-5717-4562-b3fc-2c963f66afa8",
   "courseCode": "INT1306",
   "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+  "backgroundUrl": "https://lh3.googleusercontent.com/d/1XyZ...",
   "credits": 3,
   "teacherId": "11111111-2222-3333-4444-555555555555",
   "teacherName": "Trần Văn Giảng Viên",
@@ -803,7 +1223,7 @@ Base path: `/api/v1/classes`
     "id": "11111111-2222-3333-4444-555555555555",
     "fullName": "Trần Văn Giảng Viên",
     "email": "giangvien@ilms.edu.vn",
-    "avatarUrl": "https://res.cloudinary.com/.../teacher.jpg"
+    "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
   },
   "semester": "HK1",
   "academicYear": "2026-2027",
@@ -829,25 +1249,113 @@ Base path: `/api/v1/classes`
 
 ---
 
-### 7.2. Ca học & Điểm danh (`/api/v1/classes/{classId}/lesson-sessions`)
+### 7.2. Kíp học chuẩn (`/api/v1/time-slots`)
+
+| Method | Endpoint | Quyền hạn (SpEL) | Mô tả | Request Body / Params |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/time-slots` | `hasAuthority('CLASS_VIEW') or hasAuthority('SYSTEM_CONFIG')` | Lấy danh sách các kíp học chuẩn xếp theo giờ bắt đầu | None |
+| **POST** | `/api/v1/time-slots` | `hasAuthority('SYSTEM_CONFIG')` | Tạo kíp học mới (Admin) | `TimeSlotRequestDTO` |
+| **PUT** | `/api/v1/time-slots/{id}` | `hasAuthority('SYSTEM_CONFIG')` | Cập nhật kíp học | `TimeSlotRequestDTO` |
+| **DELETE** | `/api/v1/time-slots/{id}` | `hasAuthority('SYSTEM_CONFIG')` | Xóa kíp học (chặn nếu đang có ca học dùng) | Path: `id` |
+
+---
+
+### 7.3. Ca học & Điểm danh (`/api/v1/classes/{classId}/lesson-sessions`)
 *(Hỗ trợ cả alias URL: `/api/v1/classes/{classId}/lessonSessions`)*
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/classes/{classId}/lesson-sessions` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách các ca học của lớp |
-| **POST** | `/api/v1/classes/{classId}/lesson-sessions` | `hasAuthority('ATTENDANCE_MANAGE')` | Tạo lịch ca học mới cho lớp (`LessonSessionCreateDTO`) |
+| **GET** | `/api/v1/classes/{classId}/lesson-sessions` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách ca học của lớp (lọc `?startDate=&endDate=&courseId=`) |
+| **POST** | `/api/v1/classes/{classId}/lesson-sessions` | `hasAuthority('ATTENDANCE_MANAGE')` | Tạo lịch 1 ca học mới cho lớp (`LessonSessionCreateDTO`) |
+| **POST** | `/api/v1/classes/{classId}/lesson-sessions/recurring` | `hasAuthority('ATTENDANCE_MANAGE')` | Lên lịch định kỳ hàng loạt theo các thứ trong tuần (`RecurringLessonSessionRequestDTO`) |
+| **PUT** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}` | `hasAuthority('ATTENDANCE_MANAGE')` | Cập nhật ca học (dời ngày, đổi phòng, đổi giờ, đổi môn/GV) |
+| **DELETE** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}` | `hasAuthority('ATTENDANCE_MANAGE')` | Xóa ca học (`?force=true` nếu muốn xóa ca đã có điểm danh) |
 | **GET** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bảng điểm danh của ca học |
 | **POST** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('ATTENDANCE_MANAGE')` | Điểm danh hàng loạt học sinh (`BatchAttendanceRequestDTO`) |
 
 #### Payload `LessonSessionCreateDTO`:
 ```json
 {
-  "roomId": "9c9c9c9c-0000-0000-0000-000000000001",
-  "timeSlotId": "9c9c9c9c-0000-0000-0000-000000000002",
+  "roomId": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01",
+  "courseId": "eeeeeeee-eeee-eeee-ffff-ffffffffffff",
+  "teacherId": "cccccccc-cccc-cccc-dddd-dddddddddddd",
+  "timeSlotId": "2a2a2a2a-2a2a-2a2a-2a2a-2a2a2a2a2a01",
   "sessionDate": "2026-11-20",
+  "startTime": "07:00:00",
+  "endTime": "08:50:00",
+  "startShift": 1,
+  "endShift": 2,
   "note": "Học thực hành lập trình mạng Socket"
 }
 ```
+
+#### Payload `RecurringLessonSessionRequestDTO`:
+```json
+{
+  "roomId": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01",
+  "courseId": "eeeeeeee-eeee-eeee-ffff-ffffffffffff",
+  "teacherId": "cccccccc-cccc-cccc-dddd-dddddddddddd",
+  "timeSlotId": "2a2a2a2a-2a2a-2a2a-2a2a-2a2a2a2a2a01",
+  "startDate": "2026-11-20",
+  "endDate": "2026-12-30",
+  "daysOfWeek": ["MONDAY", "THURSDAY"],
+  "skipConflicts": false,
+  "note": "Lịch học lý thuyết định kỳ"
+}
+```
+
+#### Response `LessonSessionResponseDTO` (Chi tiết ca học lớp):
+```json
+{
+  "classId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "lessonSessionId": "7bb18a92-1234-4567-89ab-cdef01234567",
+  "classCode": "D21CNPM01",
+  "className": "Lớp Công nghệ phần mềm 01",
+  "courseId": "eeeeeeee-eeee-eeee-ffff-ffffffffffff",
+  "courseCode": "INT1306",
+  "courseName": "Cấu trúc dữ liệu và Giải thuật",
+  "teacherId": "cccccccc-cccc-cccc-dddd-dddddddddddd",
+  "teacherName": "Trần Văn Giảng Viên",
+  "roomId": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01",
+  "roomName": "Lab 302",
+  "timeSlotId": "2a2a2a2a-2a2a-2a2a-2a2a-2a2a2a2a2a01",
+  "timeSlotName": "Kíp 1",
+  "sessionDate": "2026-11-20",
+  "startShift": 1,
+  "endShift": 2,
+  "startTime": "07:00:00",
+  "endTime": "08:50:00",
+  "note": "Học thực hành lập trình mạng Socket (hoặc Lịch học bù)"
+}
+```
+
+#### Response `RecurringLessonSessionResponseDTO`:
+```json
+{
+  "createdCount": 12,
+  "skippedCount": 1,
+  "createdSessions": [
+    {
+      "lessonSessionId": "7bb18a92-1234-4567-89ab-cdef01234567",
+      "sessionDate": "2026-11-24",
+      "startTime": "07:00:00",
+      "endTime": "08:50:00"
+    }
+  ],
+  "skippedConflicts": [
+    {
+      "sessionDate": "2026-12-01",
+      "conflictCode": "ROOM_SCHEDULE_CONFLICT",
+      "reason": "Phòng Lab 302 đã có lớp khác đăng ký vào khung giờ này"
+    }
+  ]
+}
+```
+
+> [!NOTE]
+> **Quy tắc Nghiệp vụ Thời khóa biểu & Xếp lịch học:**
+> 1. **Lịch học bù / Buổi học phát sinh:** Giảng viên gọi `POST /api/v1/classes/{classId}/lesson-sessions` để thêm 1 ca học lẻ vào ngày bất kỳ. Hệ thống sẽ tự động đồng bộ vào thời khóa biểu lớp và thời khóa biểu cá nhân của toàn bộ học viên trong lớp.
+> 2. **Xóa ca học:** Giảng viên gọi `DELETE /api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}`. Nếu ca học đã phát sinh điểm danh, hệ thống sẽ trả về lỗi `LESSON_SESSION_HAS_ATTENDANCES`. Để xóa bắt buộc (xóa ca kèm xóa toàn bộ dữ liệu điểm danh đã nhập), truyền query parameter `?force=true`.
 
 #### Payload `BatchAttendanceRequestDTO`:
 ```json
@@ -1021,7 +1529,7 @@ Base path: `/api/v1/quizzes`
   "title": "Bài tập lớn: Thiết kế CSDL Quản lý bán hàng",
   "description": "Viết báo cáo phân tích lược đồ quan hệ và chuẩn hóa BCNF",
   "dueDate": "2026-11-30T23:59:59Z",
-  "fileAttachmentUrl": "https://res.cloudinary.com/.../debai.pdf"
+  "fileAttachmentUrl": "https://drive.google.com/file/d/1g9b0p3.../view"
 }
 ```
 
@@ -1045,7 +1553,7 @@ Base path: `/api/v1/quizzes`
 {
   "content": "Kính gửi thầy cô link GitHub repo và file báo cáo PDF đính kèm.",
   "attachmentUrls": [
-    "https://res.cloudinary.com/.../baocao.pdf"
+    "https://drive.google.com/file/d/1g9b0p3.../view"
   ]
 }
 ```
@@ -1126,29 +1634,47 @@ Base path: `/api/v1/exams/{examId}/questions`
 
 ---
 
-## 14. Tải lên Tệp tin Đa phương tiện (Cloudinary Uploads)
+## 14. Tải lên Tệp tin & Lưu trữ Đám mây (Unified Google Drive Uploads)
 
 Base path: `/api/v1/uploads`  
 Header bắt buộc: `Content-Type: multipart/form-data`  
-*Toàn bộ Controller được bảo vệ bởi `@PreAuthorize("hasAuthority('MATERIAL_UPLOAD')")`.*
+*Toàn bộ Controller được bảo vệ bởi `@PreAuthorize("hasAuthority('MATERIAL_UPLOAD') or isAuthenticated()")`.*
+
+Toàn bộ việc upload tệp tin (ảnh, video, PDF, giáo trình, bài tập, slide) được **gộp chung xử lý qua Google Drive**. File tự động được cấp quyền xem công khai (`anyone: reader`), lưu vết người tải lên (`uploadedBy`), kiểm tra hạn mức dung lượng gói cước (`QuotaService`), và trả về đồng thời link xem Google Drive (`fileUrl`/`url`), link nhúng ảnh CDN trực tiếp cho thẻ `<img>` (`directUrl`/`secureUrl`), và link tải về (`downloadUrl`).
 
 | Method | Endpoint | Mô tả | Form Data Params |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/api/v1/uploads` | Tải lên tệp tin tổng hợp (ảnh/video/PDF/Word) | `file` (MultipartFile), `folder` (optional string) |
-| **POST** | `/api/v1/uploads/image` | Tải lên hình ảnh (Avatar, ảnh bìa, sơ đồ) | `file` (ảnh tối đa 10MB), `folder` (optional) |
-| **POST** | `/api/v1/uploads/video` | Tải lên video bài giảng | `file` (video tối đa 100MB), `folder` (optional) |
-| **DELETE** | `/api/v1/uploads` | Xóa tệp tin đã lưu trên Cloud | Query: `?publicId=ilms/...&resourceType=image` |
+| **POST** | `/api/v1/uploads` | **API Upload duy nhất dùng chung cho toàn bộ hệ thống** (Ảnh, Video, PDF, Slide, Word...) | `file` (MultipartFile), `title` (optional string) |
+| **POST** | `/api/v1/uploads/image` | Alias upload ảnh (tương thích ngược, tự động gọi upload chung) | `file` (MultipartFile) |
+| **POST** | `/api/v1/uploads/video` | Alias upload video (tương thích ngược, tự động gọi upload chung) | `file` (MultipartFile) |
+| **POST** | `/api/v1/uploads/drive` *(hoặc `/document`)* | Alias upload tài liệu / drive (tương thích ngược) | `file` (MultipartFile), `title` (optional string) |
+| **DELETE** | `/api/v1/uploads` | Xóa tệp tin khỏi hệ thống và xóa vĩnh viễn trên Google Drive để giải phóng dung lượng | Query: `?publicId=1g9b0p3...` |
 
-#### Phản hồi mẫu `FileUploadResponseDTO`:
+#### Phản hồi chuẩn `FileUploadResponseDTO`:
 ```json
 {
-  "publicId": "ilms/materials/csdl_chuanhoa",
-  "url": "http://res.cloudinary.com/.../csdl_chuanhoa.pdf",
-  "secureUrl": "https://res.cloudinary.com/.../csdl_chuanhoa.pdf",
-  "format": "pdf",
-  "resourceType": "raw",
-  "bytes": 5242880,
-  "originalFilename": "Giao_trinh_chuan_hoa.pdf"
+  "status": 200,
+  "message": "Tải tệp lên thành công",
+  "data": {
+    "publicId": "1g9b0p3...",
+    "fileId": "1g9b0p3...",
+    "materialId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "url": "https://drive.google.com/file/d/1g9b0p3.../view",
+    "secureUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+    "fileUrl": "https://drive.google.com/file/d/1g9b0p3.../view",
+    "directUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
+    "downloadUrl": "https://drive.google.com/uc?id=1g9b0p3...&export=download",
+    "format": "pdf",
+    "fileType": "PDF",
+    "mimeType": "application/pdf",
+    "resourceType": "raw",
+    "bytes": 5242880,
+    "fileSizeBytes": 5242880,
+    "fileSizeFormatted": "5.0 MB",
+    "createdAt": "2026-11-18T00:30:00.000Z",
+    "originalFilename": "Giao_trinh_Co_so_du_lieu.pdf"
+  },
+  "timestamp": "2026-11-18T00:30:00.000Z"
 }
 ```
 
@@ -1186,9 +1712,16 @@ Endpoint mở luồng SSE stream trả lời từ AI theo thời gian thực:
   "material_ids": ["9c9c9c9c-0000-0000-0000-000000000003"],
   "active_canonical_code": "CHUAN_HOA_BCNF",
   "client_request_id": "c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c",
-  "expected_state_version": 1
+  "expected_state_version": 1,
+  "block_context": {
+    "id": "a1b2c3d4-0000-0000-0000-000000000002",
+    "type": "CODE_SANDBOX",
+    "title": "Cài đặt QuickSort",
+    "content_text": "function partition(arr, low, high) { ... }"
+  }
 }
 ```
+*(Trường `block_context` là tùy chọn: dùng khi sinh viên bấm **"Hỏi Cú AI về khối này"** trong Modular Block Canvas).*
 
 #### Quy chuẩn các SSE Event theo Protocol 2:
 | Event Name | Ý nghĩa nghiệp vụ | Payload JSON Structure |
@@ -1219,13 +1752,22 @@ Endpoint mở luồng SSE stream trả lời từ AI theo thời gian thực:
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
 | **POST** | `/api/v1/materials` | Upload tài liệu giáo trình (`multipart/form-data: file, title, subject, courseId`) để đưa vào pipeline AI |
+| **POST** | `/api/v1/materials/{materialId}/extract` | Kích hoạt bóc tách tri thức AI từ tài liệu đã upload (`?autoPublish=true|false`, mặc định `true`). Trả về `CourseMaterialItemDTO` |
 | **GET** | `/api/v1/materials/ingestion` | Danh sách các tiến trình xử lý tài liệu (`ingestion_jobs`) |
 | **GET** | `/api/v1/materials/ingestion/{jobId}` | Trạng thái chi tiết của job (`QUEUED`, `PROCESSING`, `SUCCESS`, `FAILED`) |
 | **GET** | `/api/v1/materials/ingestion/{jobId}/drafts/{revisionId}/graph` | Lấy dữ liệu đồ thị bản nháp sơ bộ do AI sinh ra |
-| **POST** | `/api/v1/materials/ingestion/{jobId}/retry` | Thử lại tiến trình nếu bị lỗi |
+| **POST** | `/api/v1/materials/ingestion/{jobId}/retry` | Thử lại tiến trình bóc tách nếu bị lỗi |
 | **POST** | `/api/v1/materials/ingestion/{jobId}/drafts` | Chỉnh sửa bản nháp đồ thị tri thức (`EditRequest`) |
 | **POST** | `/api/v1/materials/ingestion/{jobId}/review` | Giảng viên duyệt bản nháp đồ thị để xuất bản chính thức (`ReviewRequest`) |
 | **GET** | `/api/v1/materials/{materialId}/ingestion/{jobId}/file` | Tải xuống tệp gốc của job |
+
+#### Luồng 5 Giai đoạn Bóc tách Tri thức AI (AI Ingestion & Publication Pipeline):
+1. **Giai đoạn 1 (`QUEUED`):** File tài liệu được đưa vào hàng đợi xử lý bóc tách tri thức.
+2. **Giai đoạn 2 (`AI_DRAFT` / `PROCESSING`):** Hệ thống điều phối 4 AI Agents chuyên biệt (Trích xuất khái niệm, Định nghĩa, Quan hệ phụ thuộc, Kiểm tra tính nhất quán).
+3. **Giai đoạn 3 (`DRAFT_READY`):** Bản nháp đồ thị tri thức sơ bộ đã hoàn tất, sinh ra `draftRevisionId`.
+4. **Giai đoạn 4 (`AWAITING_REVIEW` / `REVIEWED`):** Chờ Giảng viên rà soát các concepts và mối quan hệ. Nếu gọi qua endpoint `/extract?autoPublish=true`, hệ thống tự động duyệt để tiến thẳng sang Giai đoạn 5.
+5. **Giai đoạn 5 (`PUBLISHED`):** Đồ thị tri thức chính thức được ghi vào cơ sở dữ liệu đồ thị Neo4j. Tài liệu chuyển trạng thái `aiIngestionStatus = SUCCESS`.
+*Khi gặp sự cố (ví dụ lỗi mạng AI hoặc định dạng tài liệu):* Job chuyển sang `FAILED` kèm `aiErrorCode`. Giảng viên có thể gọi `POST /api/v1/materials/ingestion/{jobId}/retry` để thử lại từ mốc thất bại gần nhất.
 
 ---
 
@@ -1235,6 +1777,7 @@ Endpoint mở luồng SSE stream trả lời từ AI theo thời gian thực:
 
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
+| **GET** | `/api/v1/knowledge-graphs/courses/{courseId}` | Lấy đồ thị tri thức tổng hợp toàn bộ môn học (`CourseKnowledgeGraphResponseDTO`) |
 | **GET** | `/api/v1/knowledge-graphs/published` | Danh sách đồ thị tri thức đã xuất bản (`?courseId=&subject=&q=&after=&limit=30`) |
 | **GET** | `/api/v1/knowledge-graphs/published/materials/{materialId}` | Lấy toàn bộ cây đồ thị tri thức đã xuất bản của tài liệu (`?nodeId=&depth=2&limit=200`) |
 | **GET** | `/api/v1/knowledge-graphs/published/concepts/{canonicalCode}` | Chi tiết 1 khái niệm, định nghĩa, quy trình, bài tập liên quan |
@@ -1260,14 +1803,16 @@ Hệ thống cho phép người dùng theo dõi dung lượng lưu trữ cá nh�
 
 | Method | Endpoint | Quyền hạn (Authority) | Mô tả chức năng |
 | :---: | :--- | :---: | :--- |
-| **GET** | `/api/v1/storage/summary` | `STORAGE_VIEW` | Thống kê tổng quan dung lượng đã dùng, hạn mức gói, % sử dụng, cảnh báo sắp đầy |
-| **GET** | `/api/v1/storage/breakdown` | `STORAGE_VIEW` | Phân tích dung lượng chi tiết theo loại file (PDF, DOCX, VIDEO...) và theo môn học |
-| **GET** | `/api/v1/storage/files` | `STORAGE_VIEW` | Danh sách tệp cá nhân kèm bộ lọc `courseId`, `fileType`, `search`, sắp xếp theo size/ngày |
-| **DELETE** | `/api/v1/storage/files/{materialId}` | `STORAGE_VIEW` | Xóa tài liệu để giải phóng dung lượng lưu trữ |
+| **POST** | `/api/v1/storage/upload` | `MATERIAL_UPLOAD` or `isAuthenticated()` | Tải lên tệp tin/tài liệu độc lập lên Google Drive (lưu vết cá nhân, tính quota, trả về link xem/tải ngay) |
+| **GET** | `/api/v1/storage/summary` | `STORAGE_VIEW` or `isAuthenticated()` | Thống kê tổng quan dung lượng đã dùng, hạn mức gói, % sử dụng, cảnh báo sắp đầy (mọi user đăng nhập đều xem được) |
+| **GET** | `/api/v1/storage/breakdown` | `STORAGE_VIEW` or `isAuthenticated()` | Phân tích dung lượng chi tiết theo loại file (PDF, DOCX, VIDEO...) và theo môn học |
+| **GET** | `/api/v1/storage/files` | `STORAGE_VIEW` or `isAuthenticated()` | Danh sách tệp cá nhân kèm bộ lọc `courseId`, `fileType`, `search`, sắp xếp theo size/ngày |
+| **DELETE** | `/api/v1/storage/files/{materialId}` | `STORAGE_VIEW` or `isAuthenticated()` | Xóa tài liệu khỏi hệ thống và xóa vĩnh viễn trên Google Drive để giải phóng dung lượng |
 | **GET** | `/api/v1/subscriptions/plans` | `PLAN_VIEW` | Lấy danh sách các gói dịch vụ đang hoạt động công khai trên hệ thống |
 | **GET** | `/api/v1/subscriptions/my-subscription` | `SUBSCRIPTION_MANAGE` | Thông tin gói thuê bao hiện tại, hạn sử dụng, % dung lượng, hạn mức AI, môn học, lớp |
-| **POST** | `/api/v1/subscriptions/subscribe` | `SUBSCRIPTION_MANAGE` | Đăng ký hoặc nâng cấp gói dịch vụ mới |
+| **POST** | `/api/v1/subscriptions/subscribe` | `SUBSCRIPTION_MANAGE` | Đăng ký hoặc nâng cấp gói dịch vụ mới (mô hình Gemini: nâng cấp ngay, gia hạn cộng dồn, hạ cấp lên lịch) |
 | **POST** | `/api/v1/subscriptions/cancel-auto-renew` | `SUBSCRIPTION_MANAGE` | Hủy tính năng tự động gia hạn gói khi hết chu kỳ |
+| **POST** | `/api/v1/subscriptions/cancel-scheduled` | `SUBSCRIPTION_MANAGE` | Hủy kế hoạch hạ cấp / gói dịch vụ đang được lên lịch |
 | **GET** | `/api/v1/subscriptions/history` | `SUBSCRIPTION_MANAGE` | Lịch sử giao dịch và thanh toán gói dịch vụ của tài khoản |
 
 #### A. Chi tiết Payload Người dùng
@@ -1347,6 +1892,9 @@ Response:
     "endDate": "2026-12-01T00:00:00Z",
     "daysRemaining": 17,
     "autoRenew": true,
+    "nextPlanCode": "PLUS",
+    "nextPlanName": "Gói Nâng cao (Plus)",
+    "nextPlanStartDate": "2026-12-01T00:00:00Z",
     "limits": {
       "maxStorageBytes": 53687091200,
       "maxStorageFormatted": "50.0 GB",
@@ -1355,21 +1903,37 @@ Response:
       "storageRemainingBytes": 53162803200,
       "storageRemainingFormatted": "49.5 GB",
       "storageUsagePercentage": 0.98,
-      "maxUploadFileSizeBytes": 209715200,
-      "maxUploadFileSizeFormatted": "200.0 MB",
-      "maxCoursesCreated": 20,
+      "maxUploadFileSizeBytes": 524288000,
+      "maxUploadFileSizeFormatted": "500.0 MB",
+      "maxCoursesCreated": 50,
       "currentCoursesCreated": 4,
-      "maxClassesCreated": 15,
+      "maxClassesCreated": 30,
       "currentClassesCreated": 3,
-      "maxStudentsPerClass": 100,
-      "aiDailyRequests": 200,
-      "knowledgeGraphMonthlyQuota": 50,
+      "maxStudentsPerClass": 150,
+      "aiDailyRequests": 1000,
+      "knowledgeGraphMonthlyQuota": 150,
       "allowCustomThemes": true,
       "prioritySupport": true
     }
   }
 }
 ```
+
+> [!NOTE]
+> **Quy tắc Vòng đời Thuê bao theo Chuẩn Gemini (Subscription Lifecycle Rules):**
+> 1. **Nâng cấp gói (Upgrade - ví dụ FREE -> PRO hoặc PLUS -> PRO):**
+>    - Kích hoạt gói mới có hiệu lực **ngay lập tức** (`status: ACTIVE`).
+>    - Gói cũ chuyển sang trạng thái `UPGRADED`, tự động hủy mọi gói đang lên lịch (`SCHEDULED`).
+> 2. **Gia hạn cùng gói (Renew - ví dụ PRO mua tiếp PRO):**
+>    - Thời hạn sử dụng được **cộng dồn** liên tục: `endDate = endDate.plusDays(durationDays)`.
+> 3. **Hạ cấp gói (Downgrade - ví dụ PRO xuống PLUS):**
+>    - Gói hạ cấp được đưa vào trạng thái hẹn giờ **`SCHEDULED`** (`nextPlanCode: PLUS`), bắt đầu từ ngày gói hiện tại hết hạn.
+>    - Người dùng được bảo toàn 100% quyền lợi gói cao cấp hiện tại đến hết chu kỳ đã thanh toán.
+>    - Người dùng có thể hủy lệnh hạ cấp bất kỳ lúc nào qua API `POST /api/v1/subscriptions/cancel-scheduled`.
+> 4. **Hết hạn & Fallback về gói Miễn phí (Expiration & Graceful Degradation):**
+>    - Tác vụ Cron nền quét định kỳ mỗi giờ (`scanAndDowngradeExpiredSubscriptions`).
+>    - Khi gói hết hạn mà không có gói gia hạn / gói hẹn giờ, tài khoản tự động chuyển về gói **`FREE`** (1 GB storage, 3 khóa học, 2 lớp học, 20 lượt AI/ngày).
+>    - **Bảo toàn dữ liệu người dùng:** Hệ thống KHÔNG tự ý xóa các môn học, lớp học hay tài liệu đã tạo trước đó. Người dùng chỉ bị chặn tạo thêm môn học mới (`COURSE_CREATION_LIMIT_REACHED`), lớp mới (`CLASS_CREATION_LIMIT_REACHED`) hoặc tải thêm file mới (`STORAGE_QUOTA_EXCEEDED`) cho đến khi nâng cấp lại gói cước.
 
 ##### 4. `POST /api/v1/subscriptions/subscribe`
 
@@ -1403,7 +1967,218 @@ Request:
 
 ---
 
-## 18. Bảng Tra cứu Mã Lỗi Hệ thống (ErrorCode Reference)
+## 18. Cổng Thanh Toán Tự Động VietQR & SePay Webhook (Payment & Real-time IPN)
+
+Hệ thống tích hợp cổng thanh toán chuyển khoản ngân hàng tự động **VietQR qua SePay**, cung cấp luồng thanh toán không chạm (touchless payment), xác nhận tức thời theo thời gian thực (Real-time) qua **Server-Sent Events (SSE)** và Webhook IPN chuẩn ngân hàng.
+
+### 18.1. Luồng Thanh Toán Tự Động (Payment & Real-time Flow)
+
+```
+[Người dùng / Frontend]
+        |
+        | 1. POST /api/v1/payments/orders (kèm planId)
+        v
+[ILMS Backend] ----> Lưu PaymentOrder (status: PENDING, code: ILMS123456, timeout: 15p)
+        |      ----> Sinh link VietQR SePay động
+        v
+[Frontend] <------- Trả về { orderCode, qrUrl, amount, expiredAt, ... }
+        |
+        +---- 2. Mở kết nối SSE: GET /api/v1/payments/stream/{orderCode} (Lắng nghe sự kiện)
+        |     (Hoặc định kỳ polling GET /api/v1/payments/orders/{orderCode} nếu trình duyệt ngắt SSE)
+        |
+        | 3. Người dùng mở App Ngân hàng quét VietQR & bấm Chuyển khoản
+        v
+[Ngân hàng Việt Nam (NAPAS)]
+        |
+        | 4. Biến động số dư tài khoản thụ hưởng
+        v
+[Hệ thống SePay]
+        |
+        | 5. POST /api/v1/payments/webhook (Header: Authorization: Apikey ...)
+        v
+[ILMS Backend]
+        |-- Xác thực Apikey SePay
+        |-- Bỏ qua nếu transferType != "in"
+        |-- Trích xuất orderCode (từ trường code hoặc Regex ILMS\\d+ trong content)
+        |-- Kiểm tra Idempotency (nếu đơn đã PAID -> bỏ qua)
+        |-- Kiểm tra số tiền chuyển khớp/đủ (transferAmount >= order.amount)
+        |-- Cập nhật đơn: status = PAID, paidAt = now, referenceCode
+        |-- Kích hoạt gói dịch vụ: SubscriptionService.activatePlanForPaidUser(...)
+        |-- Bắn sự kiện SSE PAYMENT_SUCCESS tới luồng stream của orderCode
+        v
+[Frontend] <------- Nhận event "PAYMENT_SUCCESS" qua SSE stream!
+        |
+        +---- Chuyển hướng người dùng sang trang "Thanh toán thành công" & cập nhật quyền lợi.
+```
+
+---
+
+### 18.2. Danh Sách Endpoints Thanh Toán
+
+| Method | Endpoint | Quyền hạn (Authority) | Mô tả chức năng |
+| :---: | :--- | :---: | :--- |
+| **POST** | `/api/v1/payments/orders` | `ROLE_USER` / Đã đăng nhập | Tạo đơn thanh toán gói dịch vụ & sinh link VietQR động SePay |
+| **GET** | `/api/v1/payments/orders/{orderCode}` | `Public` | Tra cứu trạng thái đơn hàng (Tự động cập nhật `EXPIRED` nếu quá hạn) |
+| **GET** | `/api/v1/payments/stream/{orderCode}` | `Public` | Stream Server-Sent Events (SSE) cập nhật trạng thái thanh toán real-time |
+| **POST** | `/api/v1/payments/webhook` | `Public` (Kiểm tra Apikey) | Webhook nhận thông báo biến động số dư từ SePay IPN |
+
+---
+
+### 18.3. Chi tiết API Thanh Toán
+
+##### 1. `POST /api/v1/payments/orders`
+Tạo đơn thanh toán mới cho gói dịch vụ học tập / lưu trữ Cloud.
+
+**Request Headers:** HttpOnly Cookie `access-token`.
+
+**Request Body:**
+```json
+{
+  "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "amount": 199000,
+  "description": "Nang cap goi Pro 1 thang"
+}
+```
+*(Ghi chú: Nếu không truyền `amount`, hệ thống tự động lấy giá niêm yết từ `SubscriptionPlan`).*
+
+**Response:**
+```json
+{
+  "status": 201,
+  "message": "Tạo đơn hàng thanh toán thành công",
+  "data": {
+    "orderCode": "ILMS682941",
+    "amount": 199000,
+    "qrUrl": "https://qr.sepay.vn/img?acc=0123456789&bank=MB&amount=199000&des=ILMS682941&template=compact",
+    "bankCode": "MB",
+    "accountNumber": "0123456789",
+    "accountName": "NGUYEN VAN A",
+    "expiredAt": "2026-11-17T18:45:00.000Z",
+    "status": "PENDING",
+    "description": "Nang cap goi Pro 1 thang",
+    "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "paidAt": null
+  },
+  "timestamp": "2026-11-17T18:30:00.000Z"
+}
+```
+
+##### 2. `GET /api/v1/payments/orders/{orderCode}`
+Kiểm tra trạng thái đơn hàng. Nếu đơn đang `PENDING` nhưng thời gian hiện tại đã vượt quá `expiredAt`, backend sẽ tự động cập nhật sang `EXPIRED`.
+
+**Response (Khi đã thanh toán):**
+```json
+{
+  "status": 200,
+  "message": "Lấy thông tin đơn hàng thanh toán thành công",
+  "data": {
+    "orderCode": "ILMS682941",
+    "amount": 199000,
+    "qrUrl": "https://qr.sepay.vn/img?acc=0123456789&bank=MB&amount=199000&des=ILMS682941&template=compact",
+    "bankCode": "MB",
+    "accountNumber": "0123456789",
+    "accountName": "NGUYEN VAN A",
+    "expiredAt": "2026-11-17T18:45:00.000Z",
+    "status": "PAID",
+    "description": "Nang cap goi Pro 1 thang",
+    "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "paidAt": "2026-11-17T18:32:15.000Z"
+  },
+  "timestamp": "2026-11-17T18:32:16.000Z"
+}
+```
+
+##### 3. `GET /api/v1/payments/stream/{orderCode}`
+Mở kết nối Server-Sent Events (SSE) để Frontend nhận thông báo thanh toán thành công tức thì mà không cần polling liên tục.
+
+- **Content-Type:** `text/event-stream`
+- **Sự kiện khi vừa kết nối thành công:**
+  - `event`: `INIT`
+  - `data`: `Connected to payment stream for order: ILMS682941`
+- **Sự kiện khi thanh toán thành công:**
+  - `event`: `PAYMENT_SUCCESS`
+  - `data`: (JSON chuỗi của `PaymentOrderResponseDTO`)
+- **Mã mẫu tích hợp Frontend (Next.js / React):**
+  ```typescript
+  const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/payments/stream/${orderCode}`);
+  
+  eventSource.addEventListener("PAYMENT_SUCCESS", (event) => {
+    const orderData = JSON.parse(event.data);
+    toast.success("Thanh toán thành công! Gói cước của bạn đã được kích hoạt.");
+    router.push("/subscription/success");
+    eventSource.close();
+  });
+
+  eventSource.onerror = () => {
+    // Nếu kết nối lỗi, đóng stream và fallback sang polling
+    eventSource.close();
+  };
+  ```
+
+##### 4. `POST /api/v1/payments/webhook`
+Webhook nhận IPN từ SePay khi có biến động số dư tài khoản ngân hàng.
+
+**Request Headers:**
+- `Authorization: Apikey <SEPAY_API_KEY>`
+- `Content-Type: application/json`
+
+**Request Body (Format chuẩn từ SePay):**
+```json
+{
+  "id": 123456,
+  "gateway": "MBBank",
+  "transactionDate": "2026-11-17 18:32:15",
+  "accountNumber": "0123456789",
+  "code": "ILMS682941",
+  "content": "ILMS682941 chuyen khoan nang cap pro",
+  "transferType": "in",
+  "transferAmount": 199000,
+  "accumulated": 15000000,
+  "subAccount": null,
+  "referenceCode": "MB1234567890"
+}
+```
+
+**Response (SePay yêu cầu trả về HTTP 200 OK):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### 18.4. Cấu hình Tham số SePay & Triển khai Production (Configuration & FAQ)
+
+#### A. Các biến cấu hình hệ thống (`application.properties`):
+```properties
+# Mã ngân hàng thụ hưởng nhận tiền (MB, VCB, ACB, TPB...)
+sepay.bank-code=${SEPAY_BANK_CODE:MB}
+
+# Số tài khoản ngân hàng thụ hưởng nhận tiền
+sepay.account-no=${SEPAY_ACCOUNT_NO:0123456789}
+
+# Tên chủ tài khoản thụ hưởng hiển thị khi quét mã QR
+sepay.account-name=${SEPAY_ACCOUNT_NAME:HOANG QUANG THANG}
+
+# Giao diện hiển thị VietQR (compact: tối giản, qronly: chỉ mã QR, template: đầy đủ logo ngân hàng)
+sepay.qr-template=${SEPAY_QR_TEMPLATE:compact}
+
+# API Key bảo mật dùng để xác thực Webhook IPN gửi từ SePay (Authorization: Apikey <SEPAY_API_KEY>)
+sepay.api-key=${SEPAY_API_KEY}
+```
+
+#### B. Cơ chế Tự động Kích hoạt Gói & Câu hỏi thường gặp:
+1. **Chuyển khoản xong gói có được tự động đăng ký/kích hoạt không?**
+   - **CÓ 100% TỰ ĐỘNG.** Khi người dùng chuyển khoản thành công bằng bất kỳ app ngân hàng nào (qua hệ thống NAPAS 247), biến động số dư được SePay ghi nhận và bắn ngay Webhook IPN sang `/api/v1/payments/webhook`. Backend tự động khớp mã đơn `ILMS...`, kiểm tra số tiền đủ và kích hoạt gói cước ngay lập tức qua `SubscriptionService.activatePlanForPaidUser(...)`. Đồng thời phát sự kiện SSE `PAYMENT_SUCCESS` giúp trình duyệt của người dùng tự động chuyển sang trang thành công mà không cần chờ đợi.
+2. **Cấu hình Webhook IPN trên SePay có thể điền sau được không?**
+   - **HOÀN TOÀN ĐƯỢC.** Trong giai đoạn test nội bộ hoặc đang phát triển, bạn chưa cần đăng ký URL công khai với SePay. Khi chuẩn bị đưa hệ thống lên Production hoặc thử nghiệm tích hợp đầu-cuối qua tunnel (như ngrok / Cloudflare Tunnel), bạn chỉ cần vào Dashboard của SePay, dán URL webhook `https://your-domain.com/api/v1/payments/webhook` và copy API Key cấu hình vào biến môi trường `SEPAY_API_KEY`.
+3. **SePay có trừ phí trên mỗi giao dịch chuyển khoản không?**
+   - **KHÔNG.** Giao dịch là chuyển khoản ngân hàng trực tiếp (P2P / Direct Bank Transfer) từ người dùng sang số tài khoản ngân hàng của bạn, SePay không thu phí chiết khấu % trên từng đơn hàng chuyển khoản (0% transaction fee).
+
+---
+
+## 19. Bảng Tra cứu Mã Lỗi Hệ thống (ErrorCode Reference)
 
 Dành cho Frontend Interceptor hiển thị thông báo Toast / Modal / Alert chính xác:
 
@@ -1424,6 +2199,12 @@ Dành cho Frontend Interceptor hiển thị thông báo Toast / Modal / Alert ch
 | **404** | `COURSE_NOT_FOUND` | Không tìm thấy môn học |
 | **404** | `CHAPTER_NOT_FOUND` | Không tìm thấy chương học |
 | **404** | `LESSON_NOT_FOUND` | Không tìm thấy bài học |
+| **404** | `MATERIAL_NOT_FOUND` | Không tìm thấy tài liệu |
+| **404** | `SESSION_NOT_FOUND` | Ca học không tồn tại |
+| **404** | `LESSON_BLOCK_NOT_FOUND` | Không tìm thấy khối bài học |
+| **404** | `TIME_SLOT_NOT_FOUND` | Kíp học không tồn tại |
+| **400** | `INVALID_BLOCK_DATA` | Dữ liệu khối bài học không hợp lệ |
+| **409** | `LESSON_BLOCK_VERSION_CONFLICT` | Khối bài học đã được thay đổi từ phiên làm việc khác, vui lòng tải lại |
 | **404** | `QUESTION_NOT_FOUND` | Không tìm thấy câu hỏi hoặc câu hỏi đã bị xóa |
 | **404** | `QUIZ_NOT_FOUND` | Bài kiểm tra không tồn tại |
 | **404** | `ASSIGNMENT_NOT_FOUND` | Bài tập không tồn tại |
@@ -1434,19 +2215,143 @@ Dành cho Frontend Interceptor hiển thị thông báo Toast / Modal / Alert ch
 | **404** | `KNOWLEDGE_GRAPH_NOT_FOUND` | Không tìm thấy đồ thị hoặc bạn không có quyền truy cập |
 | **404** | `PLAN_NOT_FOUND` | Gói dịch vụ không tồn tại |
 | **404** | `SUBSCRIPTION_NOT_FOUND` | Không tìm thấy thông tin gói thuê bao của người dùng |
+| **404** | `NOTIFICATION_NOT_FOUND` | Thông báo không tồn tại |
+| **403** | `NOTIFICATION_ACCESS_DENIED` | Bạn không có quyền thao tác với thông báo này |
+| **404** | `ORDER_NOT_FOUND` | Đơn hàng thanh toán không tồn tại hoặc mã đơn không hợp lệ |
+| **400** | `INVALID_ORDER_DATA` | Dữ liệu đơn hàng hoặc số tiền thanh toán không hợp lệ |
 | **409** | `EMAIL_EXISTED` | Email này đã được đăng ký trên hệ thống |
 | **409** | `ALREADY_CLASS_MEMBER` | Bạn đã là thành viên của lớp học này rồi |
 | **409** | `COURSE_ALREADY_ASSIGNED` | Môn học đã được gán cho lớp này từ trước |
 | **409** | `ROOM_SCHEDULE_CONFLICT` | Trùng lịch phòng học vào thời gian đã chọn |
+| **409** | `TIME_SLOT_NAME_EXISTS` | Tên kíp học đã tồn tại |
+| **409** | `TIME_SLOT_IN_USE` | Không thể xóa kíp học đang được sử dụng trong lịch học |
+| **409** | `SESSION_HAS_ATTENDANCES` | Không thể xóa ca học đã có dữ liệu điểm danh (truyền ?force=true để xóa kèm điểm danh) |
 | **409** | `CLASS_OWNER_CANNOT_BE_REMOVED` | Không thể xóa hoặc hạ quyền chủ sở hữu của lớp học |
 | **409** | `KNOWLEDGE_GRAPH_CONFLICT` | Đồ thị đã thay đổi. Hãy tải phiên bản hiện hành mới nhất |
 | **409** | `PLAN_ALREADY_EXISTS` | Mã gói dịch vụ đã tồn tại trên hệ thống |
 | **400** | `CLASS_NOT_DELETED` | Lớp học đang hoạt động bình thường, không thể khôi phục |
 | **400** | `COURSE_NOT_DELETED` | Môn học chưa bị xóa nên không thể khôi phục |
 | **400** | `MISSING_CORRECT_ANSWER` | Câu hỏi bắt buộc phải có ít nhất một đáp án đúng |
+| **400** | `RECURRING_SCHEDULE_LIMIT_EXCEEDED` | Số lượng buổi học tạo định kỳ vượt quá giới hạn tối đa (100 buổi/lần) |
 | **400** | `STORAGE_QUOTA_EXCEEDED` | Dung lượng lưu trữ đám mây của bạn đã hết. Vui lòng nâng cấp gói cước hoặc xóa bớt tệp |
 | **400** | `FILE_SIZE_EXCEEDED_PLAN_LIMIT` | Kích thước tệp vượt quá giới hạn tối đa của gói tài khoản hiện tại |
 | **413** | `FILE_SIZE_EXCEEDED` | Kích thước tệp tin vượt quá giới hạn cho phép |
+| **422** | `INVALID_KNOWLEDGE_GRAPH` | Dữ liệu chỉnh sửa đồ thị không hợp lệ |
+| **422** | `KNOWLEDGE_GRAPH_REVIEW_REQUIRED` | Cần sửa lỗi và xác nhận các nội dung cần rà soát trước khi duyệt |
 | **429** | `AI_DAILY_LIMIT_EXCEEDED` | Bạn đã dùng hết lượt hỏi Trợ lý AI hôm nay. Vui lòng quay lại vào ngày mai hoặc nâng cấp gói Pro |
 | **502** | `SOCRATIC_STREAM_FAILED` | Kết nối gia sư AI bị gián đoạn. Vui lòng thử lại |
 | **502** | `KNOWLEDGE_GRAPH_UNAVAILABLE` | Dịch vụ đồ thị tri thức tạm thời không khả dụng |
+
+---
+
+## 20. Phân hệ Thông báo & Realtime Notification (In-App Notifications & SSE Stream)
+
+Base path: `/api/v1/notifications`
+
+Hệ thống thông báo hợp nhất (Unified Notification System) phục vụ chuông thông báo Header, Toast thông báo nổi tức thì qua Server-Sent Events (SSE), và quản lý lịch sử thông báo cá nhân của người dùng.
+
+### 20.1. Danh Sách Endpoints Thông Báo
+
+| Method | Endpoint | Quyền hạn (SpEL) | Mô tả chức năng |
+| :---: | :--- | :--- | :--- |
+| **GET** | `/api/v1/notifications` | `hasAuthority('NOTIFICATION_VIEW')` | Lấy danh sách thông báo cá nhân phân trang (hỗ trợ lọc `isRead`, `type`, `search`) |
+| **GET** | `/api/v1/notifications/unread-count` | `hasAuthority('NOTIFICATION_VIEW')` | Đếm số lượng thông báo chưa đọc (hiển thị Badge icon chuông Header) |
+| **PATCH** | `/api/v1/notifications/{id}/read` | `hasAuthority('NOTIFICATION_VIEW')` | Đánh dấu một thông báo là đã đọc (bảo vệ chống IDOR) |
+| **PATCH** | `/api/v1/notifications/read-all` | `hasAuthority('NOTIFICATION_VIEW')` | Đánh dấu tất cả thông báo của người dùng là đã đọc |
+| **DELETE** | `/api/v1/notifications/{id}` | `hasAuthority('NOTIFICATION_VIEW')` | Xóa một thông báo cá nhân |
+| **GET** | `/api/v1/notifications/stream` | `hasAuthority('NOTIFICATION_VIEW')` | **SSE Stream (Real-time):** Mở kết nối Server-Sent Events nhận thông báo tức thời |
+| **POST** | `/api/v1/notifications/broadcast` | `hasAuthority('NOTIFICATION_MANAGE')` | Admin phát sóng thông báo hệ thống / bảo trì toàn trường |
+
+---
+
+### 20.2. Chi tiết Payloads Phân Hệ Thông Báo
+
+#### 1. `GET /api/v1/notifications`
+Query Parameters:
+- `isRead` (optional boolean): `false` (chỉ lấy chưa đọc), `true` (chỉ lấy đã đọc), không truyền (lấy tất cả).
+- `type` (optional enum): `SYSTEM`, `CLASS_ANNOUNCEMENT`, `ASSIGNMENT_DUE`, `GRADE_RELEASED`, `ATTENDANCE_WARNING`, `AI_RECOMMENDATION`.
+- `search` (optional string): Tìm kiếm theo từ khóa trong tiêu đề hoặc nội dung.
+- `page` (optional int, default `0`), `size` (optional int, default `10`).
+
+Response (`ApiResponse<PageResponse<NotificationResponseDTO>>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy danh sách thông báo thành công",
+  "data": {
+    "items": [
+      {
+        "id": "7fa85f64-5717-4562-b3fc-2c963f66afa1",
+        "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "title": "Nhắc hạn nộp: Bài tập Lab 1",
+        "content": "Bài tập Cấu trúc dữ liệu Lab 1 sắp hết hạn lúc 23:59 hôm nay. Vui lòng hoàn thành và nộp bài đúng hạn.",
+        "type": "ASSIGNMENT_DUE",
+        "priority": "HIGH",
+        "isRead": false,
+        "readAt": null,
+        "actionUrl": "/classes/9c9c9c9c-0000-0000-0000-000000000002/assignments/8fa85f64-5717-4562-b3fc-2c963f66afa8",
+        "referenceType": "ASSIGNMENT",
+        "referenceId": "8fa85f64-5717-4562-b3fc-2c963f66afa8",
+        "metadata": "{\"courseName\":\"Cấu trúc dữ liệu và Giải thuật\",\"dueDate\":\"2026-11-20T23:59:00\"}",
+        "createdAt": "2026-11-20T10:00:00.000Z",
+        "expiresAt": null
+      }
+    ],
+    "pageNumber": 0,
+    "pageSize": 10,
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true
+  },
+  "timestamp": "2026-11-20T20:00:00.000Z"
+}
+```
+
+#### 2. `GET /api/v1/notifications/unread-count`
+Response:
+```json
+{
+  "status": 200,
+  "message": "Lấy số lượng thông báo chưa đọc thành công",
+  "data": {
+    "unreadCount": 3
+  },
+  "timestamp": "2026-11-20T20:00:00.000Z"
+}
+```
+
+#### 3. `GET /api/v1/notifications/stream` (Realtime SSE)
+Frontend kết nối bằng `EventSource`:
+```typescript
+const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/notifications/stream`, {
+  withCredentials: true // Gửi kèm HttpOnly cookie access-token
+});
+
+eventSource.addEventListener("NOTIFICATION", (event) => {
+  const notification = JSON.parse(event.data);
+  // 1. Tăng unread count trên Header
+  incrementUnreadCount();
+  // 2. Bắn Toast notification ở góc màn hình
+  toast.info(notification.title, {
+    description: notification.content,
+    action: {
+      label: "Xem ngay",
+      onClick: () => router.push(notification.actionUrl)
+    }
+  });
+});
+```
+
+#### 4. `POST /api/v1/notifications/broadcast` (Admin Only)
+Request:
+```json
+{
+  "title": "Bảo trì nâng cấp hệ thống",
+  "content": "Hệ thống ILMS sẽ tiến hành bảo trì định kỳ từ 01:00 đến 03:00 sáng ngày 22/11/2026.",
+  "type": "SYSTEM",
+  "priority": "HIGH",
+  "actionUrl": "/announcements/system",
+  "targetUserIds": []
+}
+```
+*(Nếu `targetUserIds` để mảng rỗng `[]` hoặc `null`, hệ thống tự động phát sóng đến toàn bộ người dùng).*

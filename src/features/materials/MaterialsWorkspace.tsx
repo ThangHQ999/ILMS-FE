@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useLocale } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { DraftGraphEditor } from './DraftGraphEditor';
 import { ApiError } from '@/types/common';
 import { materials, type Draft, type Job, type JobSummary } from './materials-api';
@@ -136,14 +137,23 @@ export function MaterialsWorkspace() {
         <button className={button} disabled={busy || saving || dirty}>{t('Tải lên', 'Upload')}</button>
       </form>
       <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none space-y-4">
-        <label className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
-          {t('Học liệu đã lưu', 'Saved materials')}
-          <select className={input} value={jobId ?? ''} disabled={busy || saving || dirty}
-            onChange={(event) => { const id = event.target.value; if (id) void action(async () => apply(await materials.get(id))); }}>
-            <option value="">{t('Chọn học liệu', 'Select material')}</option>
-            {jobs.map((item) => <option key={item.jobId} value={item.jobId}>{item.title} · {item.status}</option>)}
-          </select>
-        </label>
+        <div className="grid gap-1 text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
+          <span>{t('Học liệu đã lưu', 'Saved materials')}</span>
+          <CustomSelect<string>
+            value={jobId ?? ''}
+            disabled={busy || saving || dirty}
+            onChange={(id) => {
+              if (id) void action(async () => apply(await materials.get(id)));
+            }}
+            options={[
+              { value: '', label: t('Chọn học liệu', 'Select material') },
+              ...jobs.map((item) => ({
+                value: item.jobId,
+                label: `${item.title} · ${item.status}`,
+              })),
+            ]}
+          />
+        </div>
         {error && <p role="alert" className="text-sm text-[#B3261E] dark:text-[#F28B82]">{error}</p>}
         {job && <p role="status" className="text-xs text-[#444746] dark:text-[#C4C7C5]">{job.status} {job.stage} {job.errorCode}</p>}
         {job?.status === 'FAILED' && <button className={button} disabled={busy}

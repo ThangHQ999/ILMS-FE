@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios';
 import { ApiResponse } from '@/types/common';
-import { getClassById } from './class.service';
+import { getClassById, normalizeClassApiId } from './class.service';
 import type { ClassItem } from '../schemas/class.schema';
 import type {
   ClassDetailData,
@@ -30,7 +30,7 @@ export const MOCK_CLASS_INFO: ClassItem = {
   teachingRole: 'PRIMARY_INSTRUCTOR',
   instructor: {
     id: 'inst-01',
-    fullName: 'TS. Lê Hoàng Nam',
+    fullName: '',
     email: 'nam.le@ilms.edu.vn',
   },
   schedule: {
@@ -489,7 +489,7 @@ export const MOCK_GRADEBOOK_AI: GradebookAiAnalysis = {
 export const MOCK_MEMBERS: ClassMember[] = [
   {
     id: 'mem-01',
-    name: 'TS. Lê Hoàng Nam',
+    name: '',
     email: 'nam.le@ilms.edu.vn',
     role: 'OWNER',
     status: 'APPROVED',
@@ -689,7 +689,7 @@ export const MOCK_MATERIALS: ClassMaterial[] = [
     aiStatusType: 'ready',
     viewsCount: 42,
     isPinned: false,
-    subDetail: 'TS. Lê Hoàng Nam • 2 ngày trước',
+    subDetail: ' • 2 ngày trước',
   },
   {
     id: 'mat-03',
@@ -800,92 +800,222 @@ export function saveLocalClassCourse(classId: string, item: ClassCourse): void {
   }
 }
 
-/**
- * Fetch full class detail bundle with graceful API connect & fallback.
- */
-export async function getClassDetailData(classId: string): Promise<ClassDetailData> {
-  const cleanId = decodeURIComponent(classId || '').trim();
-  let classInfo: ClassItem = { ...MOCK_CLASS_INFO, id: cleanId };
-  let courses: ClassCourse[] = MOCK_COURSES;
-  let announcements: ClassAnnouncement[] = MOCK_ANNOUNCEMENTS;
-  let members: ClassMember[] = MOCK_MEMBERS;
-  let materials: ClassMaterial[] = MOCK_MATERIALS;
-
+export async function getClassInfoDetail(classId: string): Promise<ClassItem> {
+  const apiId = normalizeClassApiId(classId);
   try {
-    const fetched = await getClassById(cleanId);
+    const fetched = await getClassById(apiId);
     if (fetched && fetched.id) {
-      classInfo = {
+      return {
         ...fetched,
-        title: fetched.title || fetched.name || cleanId,
-        name: fetched.name || cleanId,
+        id: normalizeClassApiId(fetched.id),
+        title: fetched.title || fetched.name || apiId,
+        name: fetched.name || apiId,
       };
     }
   } catch {
-    classInfo = {
-      ...MOCK_CLASS_INFO,
-      id: cleanId,
-      name: cleanId,
-      title: cleanId,
-    };
+    // Fallback below
   }
+  return {
+    ...MOCK_CLASS_INFO,
+    id: apiId,
+    name: apiId,
+    title: apiId,
+  };
+}
 
-  // If this is a local/offline created class, return immediately without network latency/timeout
-  const isLocalGenerated = cleanId.startsWith('class-');
-
-  if (!isLocalGenerated) {
-    try {
-      const { data: coursesRes } = await api.get<ApiResponse<ClassCourse[]>>(
-        `/classes/${cleanId}/courses`
-      );
-      if (coursesRes?.data && Array.isArray(coursesRes.data) && coursesRes.data.length > 0) {
-        courses = coursesRes.data;
-      }
-    } catch {
-      // Fallback to mock courses
-    }
+export async function getClassCourses(classId: string): Promise<ClassCourse[]> {
+  const apiId = normalizeClassApiId(classId);
+  let courses: ClassCourse[] = [];
+  try {
+    const { data: coursesRes } = await api.get<ApiResponse<unknown>>(
+      `/classes/${apiId}/courses`
+    );
+    const list = extractArrayPayload(coursesRes?.data ?? coursesRes);
+    courses = list.map((entry) => {
+      const rec = entry as Record<string, unknown>;
+      const teacher =
+        rec.assignedTeacher && typeof rec.assignedTeacher === 'object'
+          ? (rec.assignedTeacher as Record<string, unknown>)
+          : undefined;
+      const nestedCourse =
+        rec.course && typeof rec.course === 'object'
+          ? (rec.course as Record<string, unknown>)
+          : undefined;
+      return {
+        id: String(rec.courseId ?? rec.id ?? nestedCourse?.id ?? ''),
+        code: String(rec.courseCode ?? rec.code ?? nestedCourse?.courseCode ?? ''),
+        name: String(
+          rec.courseTitle ??
+          rec.courseName ??
+          rec.name ??
+          rec.title ??
+          nestedCourse?.title ??
+          nestedCourse?.name ??
+          ''
+        ),
+        status: (rec.status === 'PENDING' || rec.status === 'COMPLETED' ? rec.status : 'ACTIVE') as ClassCourse['status'],
+        credits:
+          rec.credits !== undefined
+            ? Number(rec.credits)
+            : nestedCourse?.credits !== undefined
+              ? Number(nestedCourse.credits)
+              : undefined,
+        description: rec.description
+          ? String(rec.description)
+          : nestedCourse?.description
+            ? String(nestedCourse.description)
+            : undefined,
+        instructorName: teacher?.fullName
+          ? String(teacher.fullName)
+          : rec.teacherName
+            ? String(rec.teacherName)
+            : rec.instructorName
+              ? String(rec.instructorName)
+              : undefined,
+        studentsCount:
+          rec.studentsCount !== undefined ? Number(rec.studentsCount) : undefined,
+        knowledgeNodesCount:
+          rec.knowledgeNodesCount !== undefined
+            ? Number(rec.knowledgeNodesCount)
+            : undefined,
+        classAvgScore:
+          rec.classAvgScore !== undefined ? Number(rec.classAvgScore) : undefined,
+        teachingProgress:
+          rec.teachingProgress !== undefined
+            ? Number(rec.teachingProgress)
+            : undefined,
+        backgroundUrl: rec.backgroundUrl
+          ? String(rec.backgroundUrl)
+          : rec.courseBackgroundUrl
+            ? String(rec.courseBackgroundUrl)
+            : nestedCourse?.backgroundUrl
+              ? String(nestedCourse.backgroundUrl)
+              : rec.thumbnailUrl
+                ? String(rec.thumbnailUrl)
+                : undefined,
+        thumbnailUrl: rec.thumbnailUrl ? String(rec.thumbnailUrl) : undefined,
+      };
+    });
+  } catch {
+    courses = [];
   }
-
-  // Merge locally created courses for this class (offline/refresh persistence)
-  const localSubjects = getLocalClassCourses(cleanId);
+  const localSubjects = getLocalClassCourses(apiId);
   if (localSubjects.length > 0) {
     const existingCourseIds = new Set(courses.map((c) => c.id));
     const newCourses = localSubjects.filter((c) => !existingCourseIds.has(c.id));
     courses = [...newCourses, ...courses];
   }
+  return courses;
+}
 
-  if (!isLocalGenerated) {
-    try {
-      const { data: annRes } = await api.get<ApiResponse<ClassAnnouncement[]>>(
-        `/classes/class/${cleanId}/Announcements`
-      );
-      if (annRes?.data && Array.isArray(annRes.data) && annRes.data.length > 0) {
-        announcements = annRes.data;
-      }
-    } catch {
-      // Fallback to mock announcements
+function mapAnnouncementRecord(entry: unknown, fallbackIdx = 0): ClassAnnouncement {
+  const rec = (entry && typeof entry === 'object' ? entry : {}) as Record<string, unknown>;
+  const authorObj =
+    rec.author && typeof rec.author === 'object'
+      ? (rec.author as Record<string, unknown>)
+      : undefined;
+  const authorName = String(
+    rec.authorName ?? authorObj?.fullName ?? authorObj?.name ?? 'Giảng viên'
+  );
+  const initials =
+    authorName
+      .split(' ')
+      .filter(Boolean)
+      .slice(-2)
+      .map((p) => p[0]?.toUpperCase() || '')
+      .join('') || 'GV';
+
+  return {
+    id: String(rec.id ?? fallbackIdx + 1),
+    title: String(rec.title ?? ''),
+    content: String(rec.content ?? ''),
+    authorName,
+    authorRole: String(rec.authorRole ?? 'Giảng viên'),
+    authorInitials: String(rec.authorInitials ?? initials),
+    authorColor: String(rec.authorColor ?? 'bg-blue-700'),
+    createdAt: String(rec.createdAt ?? new Date().toISOString()),
+    isPinned: Boolean(rec.isPinned ?? rec.pinned ?? false),
+    tag: rec.tag ? String(rec.tag) : undefined,
+    commentsCount:
+      rec.commentsCount !== undefined ? Number(rec.commentsCount) : undefined,
+  };
+}
+
+function extractArrayPayload(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
+  const obj = payload as Record<string, unknown>;
+  const candidates = [
+    obj.content,
+    obj.items,
+    obj.announcements,
+    obj.records,
+    obj.results,
+    obj.data,
+  ];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (candidate && typeof candidate === 'object') {
+      const nested = candidate as Record<string, unknown>;
+      if (Array.isArray(nested.content)) return nested.content;
+      if (Array.isArray(nested.items)) return nested.items;
     }
   }
+  return [];
+}
 
-  // Merge locally persisted announcements (offline/mock persistence)
-  const localAnnouncements = getLocalAnnouncements(cleanId);
-  if (localAnnouncements.length > 0) {
-    const existingIds = new Set(announcements.map((a) => a.id));
-    const newItems = localAnnouncements.filter((a) => !existingIds.has(a.id));
-    announcements = [...newItems, ...announcements];
-  }
-
-  if (!isLocalGenerated) {
-    try {
-      const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
-        `/classes/${cleanId}/members`
-      );
-      if (memRes?.data && Array.isArray(memRes.data) && memRes.data.length > 0) {
-        members = memRes.data;
+export async function getClassAnnouncements(classId: string): Promise<ClassAnnouncement[]> {
+  const apiId = normalizeClassApiId(classId);
+  try {
+    const { data: annRes } = await api.get<ApiResponse<unknown>>(
+      `/classes/${apiId}/announcements`
+    );
+    const list = extractArrayPayload(annRes?.data ?? annRes);
+    return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
+  } catch (err) {
+    const status = (err as { httpStatus?: number; response?: { status?: number } })?.httpStatus ??
+      (err as { response?: { status?: number } })?.response?.status;
+    if (status === 404) {
+      try {
+        const { data: legacyRes } = await api.get<ApiResponse<unknown>>(
+          `/classes/class/${apiId}/Announcements`
+        );
+        const list = extractArrayPayload(legacyRes?.data ?? legacyRes);
+        return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
+      } catch {
+        return [];
       }
-    } catch {
-      // Fallback to mock members
     }
+    return [];
   }
+}
+
+export async function getClassMembers(classId: string): Promise<ClassMember[]> {
+  const apiId = normalizeClassApiId(classId);
+  try {
+    const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
+      `/classes/${apiId}/members`
+    );
+    const list = memRes?.data ?? (Array.isArray(memRes) ? memRes : null);
+    if (Array.isArray(list)) {
+      return list;
+    }
+  } catch {
+    // Backend unavailable
+  }
+  return [];
+}
+
+/**
+ * Fetch full class detail bundle with graceful API connect & fallback.
+ */
+export async function getClassDetailData(classId: string): Promise<ClassDetailData> {
+  const [classInfo, courses, announcements, members] = await Promise.all([
+    getClassInfoDetail(classId),
+    getClassCourses(classId),
+    getClassAnnouncements(classId),
+    getClassMembers(classId),
+  ]);
 
   return {
     classInfo,
@@ -894,7 +1024,7 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     gradebookStudents: MOCK_GRADEBOOK_STUDENTS,
     gradebookAi: MOCK_GRADEBOOK_AI,
     members,
-    materials,
+    materials: MOCK_MATERIALS,
     courseTemplates: MOCK_TEMPLATES,
   };
 }
@@ -905,13 +1035,16 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
  */
 export async function assignCourseToClass(
   classId: string,
-  courseId: string
+  courseId: string,
+  semester = 'Học kỳ 1',
+  academicYear = '2026-2027'
 ): Promise<void> {
-  try {
-    await api.post<ApiResponse<unknown>>(`/classes/${classId}/courses`, { courseId });
-  } catch {
-    // Local simulation fallback
-  }
+  const apiId = normalizeClassApiId(classId);
+  await api.post<ApiResponse<unknown>>(`/classes/${apiId}/courses`, {
+    courseId,
+    semester,
+    academicYear,
+  });
 }
 
 /**
@@ -921,8 +1054,9 @@ export async function removeCourseFromClass(
   classId: string,
   courseId: string
 ): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
   try {
-    await api.delete<ApiResponse<unknown>>(`/classes/${classId}/courses/${courseId}`);
+    await api.delete<ApiResponse<unknown>>(`/classes/${apiId}/courses/${courseId}`);
   } catch {
     // Local simulation fallback
   }
@@ -930,39 +1064,22 @@ export async function removeCourseFromClass(
 
 /**
  * Post a new announcement.
- * Endpoint: POST /api/v1/classes/class/{classId}/Announcements
+ * Endpoint: POST /api/v1/classes/{classId}/announcements
  */
 export async function postClassAnnouncement(
   classId: string,
   payload: { title: string; content: string }
-): Promise<void> {
-  try {
-    await api.post<ApiResponse<unknown>>(`/classes/class/${classId}/Announcements`, payload);
-  } catch {
-    // Local simulation fallback: ensure persisted in localStorage for offline/mock mode
-    const existing = getLocalAnnouncements(classId);
-    const alreadySaved = existing.some(
-      (a) => a.title === payload.title && a.content === payload.content
-    );
-    if (!alreadySaved) {
-      saveLocalAnnouncement(classId, {
-        id: `ann-${Date.now()}`,
-        title: payload.title,
-        content: payload.content,
-        authorName: 'TS. Lê Hoàng Nam',
-        authorRole: 'Giảng viên Chủ nhiệm',
-        authorInitials: 'LN',
-        authorColor: 'bg-primary text-on-primary',
-        createdAt: 'Vừa xong',
-        isPinned: false,
-        tag: 'Thông báo chung',
-        readCount: 1,
-        totalStudents: 42,
-        readPercent: 2,
-        commentsCount: 0,
-      });
-    }
+): Promise<ClassAnnouncement | null> {
+  const apiId = normalizeClassApiId(classId);
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/classes/${apiId}/announcements`,
+    payload
+  );
+  const created = data?.data ?? data;
+  if (created && typeof created === 'object') {
+    return mapAnnouncementRecord(created);
   }
+  return null;
 }
 
 /**
@@ -970,10 +1087,323 @@ export async function postClassAnnouncement(
  * Endpoint: POST /api/v1/classes/{classId}/approve
  */
 export async function approveMember(classId: string, userId: string): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.post<ApiResponse<unknown>>(`/classes/${apiId}/approve`, { userId });
+}
+
+/**
+ * Reject a pending member request.
+ * Endpoint: POST /api/v1/classes/{classId}/reject
+ */
+export async function rejectMember(
+  classId: string,
+  userId: string,
+  reason?: string
+): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.post<ApiResponse<unknown>>(`/classes/${apiId}/reject`, {
+    userId,
+    ...(reason ? { reason } : {}),
+  });
+}
+
+/**
+ * Remove a member from class.
+ * Endpoint: DELETE /api/v1/classes/{classId}/members/{userId}
+ */
+export async function removeMember(classId: string, userId: string): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.delete<ApiResponse<unknown>>(`/classes/${apiId}/members/${userId}`);
+}
+
+/**
+ * Update a member's role (only TEACHER or STUDENT supported by backend).
+ * Endpoint: PATCH /api/v1/classes/{classId}/members/{userId}/role
+ */
+export async function updateMemberRole(
+  classId: string,
+  userId: string,
+  role: 'TEACHER' | 'STUDENT'
+): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.patch<ApiResponse<unknown>>(`/classes/${apiId}/members/${userId}/role`, {
+    role,
+  });
+}
+
+/**
+ * Transfer class ownership.
+ * Endpoint: PATCH /api/v1/classes/{classId}/owner
+ */
+export async function changeClassOwner(classId: string, newOwnerId: string): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.patch<ApiResponse<unknown>>(`/classes/${apiId}/owner`, {
+    newOwnerId,
+  });
+}
+
+/**
+ * Pin or unpin an announcement.
+ * Endpoint: PATCH /api/v1/classes/{classId}/announcements/{announcementId}/pin?pin=true|false
+ */
+export async function pinClassAnnouncement(
+  classId: string,
+  announcementId: string,
+  pin: boolean
+): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.patch<ApiResponse<unknown>>(
+    `/classes/${apiId}/announcements/${announcementId}/pin`,
+    null,
+    { params: { pin } }
+  );
+}
+
+/**
+ * Delete an announcement.
+ * Endpoint: DELETE /api/v1/classes/{classId}/announcements/{announcementId}
+ */
+export async function deleteClassAnnouncement(
+  classId: string,
+  announcementId: string
+): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.delete<ApiResponse<unknown>>(
+    `/classes/${apiId}/announcements/${announcementId}`
+  );
+}
+
+export interface ClassBannerStats {
+  coursesCount: number;
+  studentsCount: number;
+  teachersCount: number;
+  pendingAssignmentsCount?: number;
+}
+
+/**
+ * Fetch real banner statistics for a class.
+ * Endpoint: GET /api/v1/classes/{id}/stats
+ */
+export async function getClassStats(classId: string): Promise<ClassBannerStats> {
+  const apiId = normalizeClassApiId(classId);
   try {
-    await api.post<ApiResponse<unknown>>(`/classes/${classId}/approve`, { userId });
+    const { data } = await api.get<ApiResponse<Record<string, unknown>>>(
+      `/classes/${apiId}/stats`
+    );
+    const resData = (data?.data ?? data) as Record<string, unknown> | undefined;
+    if (resData && typeof resData === 'object') {
+      return {
+        coursesCount: Number(resData.coursesCount ?? 0),
+        studentsCount: Number(resData.studentsCount ?? 0),
+        teachersCount: Number(resData.teachersCount ?? 0),
+        pendingAssignmentsCount:
+          resData.pendingAssignmentsCount !== undefined
+            ? Number(resData.pendingAssignmentsCount)
+            : undefined,
+      };
+    }
   } catch {
-    // Local simulation fallback
+    // Fallback
+  }
+  return { coursesCount: 0, studentsCount: 0, teachersCount: 0 };
+}
+
+export interface AvailableClassCourse {
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+  description?: string;
+  backgroundUrl?: string;
+  thumbnailUrl?: string;
+  instructorName?: string;
+}
+
+/**
+ * Fetch available courses that can be assigned to a class.
+ * Endpoint: GET /api/v1/classes/{classId}/courses/available
+ */
+export async function getAvailableClassCourses(
+  classId: string
+): Promise<AvailableClassCourse[]> {
+  const apiId = normalizeClassApiId(classId);
+  try {
+    const { data } = await api.get<ApiResponse<unknown>>(
+      `/classes/${apiId}/courses/available`,
+      { params: { page: 0, size: 20 } }
+    );
+    const items = extractArrayPayload(data?.data ?? data);
+    return items.map((item) => {
+      const rec = item as Record<string, unknown>;
+      const bg = rec.backgroundUrl
+        ? String(rec.backgroundUrl)
+        : rec.thumbnailUrl
+          ? String(rec.thumbnailUrl)
+          : undefined;
+      return {
+        id: String(rec.id ?? rec.courseId ?? ''),
+        code: String(rec.code ?? rec.courseCode ?? rec.id ?? ''),
+        name: String(rec.name ?? rec.title ?? ''),
+        credits: Number(rec.credits ?? 3),
+        description: rec.description ? String(rec.description) : undefined,
+        backgroundUrl: bg,
+        thumbnailUrl: rec.thumbnailUrl ? String(rec.thumbnailUrl) : bg,
+        instructorName: rec.instructorName ? String(rec.instructorName) : undefined,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export interface ClassAssignmentItem {
+  id: string;
+  title: string;
+  description?: string;
+  dueAt?: string;
+  maxScore?: number;
+  status?: string;
+  type?: string;
+  courseName?: string;
+  courseCode?: string;
+}
+
+/**
+ * Fetch assignments for a class.
+ * Endpoint: GET /api/v1/classes/{classId}/assignments
+ */
+export async function getClassAssignments(
+  classId: string
+): Promise<ClassAssignmentItem[]> {
+  const apiId = normalizeClassApiId(classId);
+  try {
+    const { data } = await api.get<ApiResponse<unknown>>(
+      `/classes/${apiId}/assignments`
+    );
+    const raw = data?.data ?? data;
+    const items = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === 'object' && Array.isArray((raw as { content?: unknown[] }).content)
+        ? (raw as { content: unknown[] }).content
+        : [];
+    return items.map((item) => {
+      const rec = item as Record<string, unknown>;
+      return {
+        id: String(rec.id ?? ''),
+        title: String(rec.title ?? rec.name ?? 'Bài tập'),
+        description: rec.description ? String(rec.description) : undefined,
+        dueAt: rec.dueAt ? String(rec.dueAt) : rec.deadline ? String(rec.deadline) : undefined,
+        maxScore: rec.maxScore !== undefined ? Number(rec.maxScore) : 10,
+        status: rec.status ? String(rec.status) : undefined,
+        type: rec.type ? String(rec.type) : 'ASSIGNMENT',
+        courseName: rec.courseName ? String(rec.courseName) : undefined,
+        courseCode: rec.courseCode ? String(rec.courseCode) : undefined,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch exams for a class.
+ * Endpoint: GET /api/v1/classes/{classId}/exams
+ */
+export async function getClassExams(classId: string): Promise<ClassAssignmentItem[]> {
+  const apiId = normalizeClassApiId(classId);
+  try {
+    const { data } = await api.get<ApiResponse<unknown>>(`/classes/${apiId}/exams`);
+    const raw = data?.data ?? data;
+    const items = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === 'object' && Array.isArray((raw as { content?: unknown[] }).content)
+        ? (raw as { content: unknown[] }).content
+        : [];
+    return items.map((item) => {
+      const rec = item as Record<string, unknown>;
+      return {
+        id: String(rec.id ?? ''),
+        title: String(rec.title ?? rec.name ?? 'Kỳ thi'),
+        description: rec.description ? String(rec.description) : undefined,
+        dueAt: rec.endAt ? String(rec.endAt) : rec.startAt ? String(rec.startAt) : undefined,
+        maxScore: rec.maxScore !== undefined ? Number(rec.maxScore) : 10,
+        status: rec.status ? String(rec.status) : undefined,
+        type: rec.examType ? String(rec.examType) : 'EXAM',
+        courseName: rec.courseName ? String(rec.courseName) : undefined,
+        courseCode: rec.courseCode ? String(rec.courseCode) : undefined,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch real grade reports for a class (teacher: all students, student: /me).
+ * Endpoints:
+ * - GET /api/v1/classes/{classId}/grade-reports
+ * - GET /api/v1/classes/{classId}/grade-reports/me
+ */
+export async function getClassGradeReports(
+  classId: string,
+  isStudent: boolean
+): Promise<GradebookStudent[]> {
+  const apiId = normalizeClassApiId(classId);
+  const endpoint = isStudent
+    ? `/classes/${apiId}/grade-reports/me`
+    : `/classes/${apiId}/grade-reports`;
+
+  try {
+    const { data } = await api.get<ApiResponse<unknown>>(endpoint);
+    const raw = data?.data ?? data;
+    const list = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === 'object' && Array.isArray((raw as { content?: unknown[] }).content)
+        ? (raw as { content: unknown[] }).content
+        : raw && typeof raw === 'object'
+          ? [raw]
+          : [];
+
+    return list.map((entry, idx) => {
+      const rec = entry as Record<string, unknown>;
+      const attendance = Number(rec.attendanceScore ?? rec.attendance_score ?? 0);
+      const midterm = Number(rec.midtermScore ?? rec.midterm_score ?? 0);
+      const finalScore = Number(rec.finalScore ?? rec.final_score ?? 0);
+      const avg = Number(
+        rec.totalScore ?? rec.averageScore ?? ((attendance + midterm + finalScore) / 3 || 0)
+      );
+      const name = String(rec.studentName ?? rec.fullName ?? rec.name ?? 'Học viên');
+      const initials = name
+        .split(' ')
+        .filter(Boolean)
+        .slice(-2)
+        .map((p) => p[0]?.toUpperCase() || '')
+        .join('') || 'SV';
+
+      return {
+        id: String(rec.studentId ?? rec.userId ?? rec.id ?? idx + 1),
+        stt: String(idx + 1),
+        name,
+        studentCode: String(rec.studentCode ?? rec.code ?? ''),
+        email: String(rec.email ?? ''),
+        avatar: initials,
+        avatarColor: 'bg-blue-100 text-blue-700',
+        attendanceScore: attendance,
+        quizScore: Number(rec.quizScore ?? 0),
+        labScore: Number(rec.labScore ?? 0),
+        midtermScore: midterm,
+        finalScore,
+        letterGrade: String(
+          rec.letterGrade ??
+          (avg >= 8.5 ? 'A' : avg >= 7.0 ? 'B' : avg >= 5.5 ? 'C' : avg >= 4.0 ? 'D' : 'F')
+        ),
+        ploPercent: Number(rec.ploPercent ?? Math.round(avg * 10)),
+        ploStatus: avg >= 8.0 ? 'EXCELLENT' : avg >= 5.5 ? 'PASSED' : 'NEEDS_SUPPORT',
+        totalGpa: Number(rec.totalGpa ?? Number((avg * 0.4).toFixed(2))),
+      };
+    });
+  } catch {
+    return [];
   }
 }
 

@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const taskStatusSchema = z.enum([
   'PROCESSING',
   'QUEUED',
+  'AWAITING_REVIEW',
+  'PUBLISHING',
   'SUCCESS',
   'FAILED',
   'PAUSED',

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCurrentUser } from '@/features/auth';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import {
   DashboardSidebar,
   DashboardHeader,
@@ -22,30 +23,11 @@ export function SettingsPageView() {
   const { data: user } = useCurrentUser();
   const { isFocus, toggleMode } = useDashboardMode();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('ilms_analytics_sidebar_collapsed');
-      if (stored === 'true') {
-        setIsSidebarCollapsed(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
   const handleToggleSidebarCollapse = useCallback(() => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('ilms_analytics_sidebar_collapsed', String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
+    setIsSidebarCollapsed((prev) => !prev);
+  }, [setIsSidebarCollapsed]);
 
   const {
     activeTab,
@@ -97,6 +79,7 @@ export function SettingsPageView() {
               userFullName={userFullName}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
+              onSelectTab={setActiveTab}
             />
 
             {/* 2-Column Layout Grid */}

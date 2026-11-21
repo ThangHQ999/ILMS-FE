@@ -2,15 +2,28 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomSelect } from '@/components/shared';
+import { uploadImage } from '@/lib/upload';
 import type { ClassItem } from '../../schemas/class.schema';
+import type { ClassMember } from '../../schemas/class-detail.schema';
 import { PermanentDeleteClassModal } from './PermanentDeleteClassModal';
 
 interface ClassSettingsTabProps {
   classInfo: ClassItem;
-  onSaveClassInfo: (updates: { title: string; description: string }) => void;
+  members?: ClassMember[];
+  onSaveClassInfo: (updates: {
+    title: string;
+    description: string;
+    maxCapacity?: number;
+    backgroundUrl?: string;
+    thumbnailUrl?: string;
+  }) => void;
   onRegenerateCode: () => void;
   onOpenArchiveModal: () => void;
   onDeleteSuccess?: () => void;
+  onInviteTeacher?: (email: string) => void;
+  onUpdateMemberRole?: (userId: string, role: 'TEACHER' | 'STUDENT') => void;
+  onRemoveMember?: (userId: string, name: string) => void;
 }
 
 type SectionId =
@@ -33,10 +46,14 @@ interface TAItem {
 
 export function ClassSettingsTab({
   classInfo,
+  members = [],
   onSaveClassInfo,
   onRegenerateCode,
   onOpenArchiveModal,
   onDeleteSuccess,
+  onInviteTeacher,
+  onUpdateMemberRole,
+  onRemoveMember,
 }: ClassSettingsTabProps) {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -55,11 +72,21 @@ export function ClassSettingsTab({
     classInfo.semester || 'Học kỳ II • 2024 - 2025'
   );
   const [maxStudents, setMaxStudents] = useState<number>(classInfo.maxStudents || 60);
-  const enrolledCount = classInfo.enrolledCount || 42;
+  const enrolledCount = classInfo.enrolledCount ?? 0;
   const [description, setDescription] = useState(
-    classInfo.description ||
-      'Lớp thực hành chuyên sâu Lập trình hướng đối tượng, Cấu trúc dữ liệu nâng cao và Kỹ thuật công nghệ phần mềm ứng dụng theo chuẩn đầu ra CDIO.'
+    classInfo.description || ''
   );
+  const [backgroundUrl, setBackgroundUrl] = useState(classInfo.backgroundUrl || '');
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  const [backgroundUploadError, setBackgroundUploadError] = useState<string | null>(null);
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setTitle(classInfo.title || classInfo.name || '');
+    setMaxStudents(classInfo.maxStudents || 60);
+    setDescription(classInfo.description || '');
+    setBackgroundUrl(classInfo.backgroundUrl || '');
+  }, [classInfo.id, classInfo.title, classInfo.name, classInfo.maxStudents, classInfo.description, classInfo.backgroundUrl]);
 
   // Form states: Section 2 (Mã lớp & Ghi danh)
   const [enrollmentKey, setEnrollmentKey] = useState(
@@ -69,27 +96,20 @@ export function ClassSettingsTab({
   const [requireApproval, setRequireApproval] = useState(false);
   const [schoolDomainOnly, setSchoolDomainOnly] = useState(true);
 
-  // Form states: Section 3 (Phân quyền GV & TA)
-  const [assistants, setAssistants] = useState<TAItem[]>([
-    {
-      id: 'ta-1',
-      name: 'ThS. Hoàng Thị Lan',
-      email: 'hoanglan@edu.vn',
-      initials: 'HL',
-      title: 'Trợ giảng chính (Head TA)',
-      role: 'Chấm bài & Duyệt SV',
-      bgColor: 'bg-blue-100 text-blue-700 dark:bg-[#162B4D] dark:text-[#A8C7FA]',
-    },
-    {
-      id: 'ta-2',
-      name: 'Trần Tiến Dũng (SV K21)',
-      email: 'dungtt_k21@edu.vn',
-      initials: 'TD',
-      title: 'Trợ giảng thực hành (Lab TA)',
-      role: 'Chỉ hỗ trợ Lab & Quiz',
-      bgColor: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300',
-    },
-  ]);
+  // Form states: Section 3 (Phân quyền GV từ API members)
+  const ownerMember = members.find((m) => m.role === 'OWNER');
+  const ownerName =
+    ownerMember?.name || classInfo.instructor?.fullName || 'Chủ nhiệm lớp';
+  const ownerEmail =
+    ownerMember?.email || classInfo.instructor?.email || '';
+  const ownerInitials =
+    ownerName
+      .split(' ')
+      .filter(Boolean)
+      .slice(-2)
+      .map((p) => p[0]?.toUpperCase() || '')
+      .join('') || 'GV';
+  const teacherMembers = members.filter((m) => m.role === 'TEACHER');
   const [newTaEmail, setNewTaEmail] = useState('');
 
   // Form states: Section 4 (AI Tutor)
@@ -190,48 +210,70 @@ export function ClassSettingsTab({
     showToast(`Đã tạo mã lớp ngẫu nhiên mới: ${newCode}`);
   };
 
-  // 6. ADD TEACHING ASSISTANT
+  // 6. INVITE CO-TEACHER BY EMAIL
   const handleAddAssistant = () => {
-    if (!newTaEmail.trim()) {
-      showToast('Vui lòng nhập địa chỉ email trợ giảng!');
+    const email = newTaEmail.trim();
+    if (!email) {
+      showToast('Vui lòng nhập địa chỉ email giảng viên!');
       return;
     }
 
-    if (!newTaEmail.includes('@')) {
+    if (!email.includes('@')) {
       showToast('Email không đúng định dạng!');
       return;
     }
 
-    const emailName = newTaEmail.split('@')[0];
-    const newTA: TAItem = {
-      id: `ta-${Date.now()}`,
-      name: emailName,
-      email: newTaEmail.trim(),
-      initials: emailName.slice(0, 2).toUpperCase(),
-      title: 'Trợ giảng mới (TA)',
-      role: 'Chấm bài & Duyệt SV',
-      bgColor: 'bg-emerald-100 text-emerald-800 dark:bg-[#142E20] dark:text-[#81C995]',
-    };
-
-    setAssistants((prev) => [...prev, newTA]);
+    if (onInviteTeacher) {
+      onInviteTeacher(email);
+    } else {
+      showToast(`Đã gửi lời mời giảng viên đến ${email}!`);
+    }
     setNewTaEmail('');
-    showToast(`Đã gửi lời mời phân quyền TA đến ${newTaEmail}!`);
   };
 
-  // 7. REMOVE TEACHING ASSISTANT
+  // 7. REMOVE TEACHER FROM CLASS
   const handleRemoveAssistant = (id: string, name: string) => {
-    setAssistants((prev) => prev.filter((a) => a.id !== id));
-    showToast(`Đã gỡ quyền trợ giảng của ${name}!`);
+    if (onRemoveMember) {
+      onRemoveMember(id, name);
+    } else {
+      showToast(`Đã gỡ quyền giảng viên của ${name}!`);
+    }
+  };
+
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setBackgroundUploadError(null);
+    setIsUploadingBackground(true);
+    try {
+      const uploaded = await uploadImage(file, 'ilms/classes');
+      setBackgroundUrl(uploaded.url);
+      showToast('Đã tải ảnh nền mới! Bấm "Lưu thay đổi" để áp dụng.');
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Không thể tải ảnh nền lên lúc này.';
+      setBackgroundUploadError(msg);
+    } finally {
+      setIsUploadingBackground(false);
+    }
   };
 
   // 8. SAVE ALL SETTINGS
   const handleSaveAll = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploadingBackground) {
+      showToast('Vui lòng chờ ảnh nền tải lên hoàn tất.');
+      return;
+    }
     onSaveClassInfo({
       title,
       description,
+      maxCapacity: maxStudents,
+      backgroundUrl: backgroundUrl || undefined,
+      thumbnailUrl: backgroundUrl || undefined,
     });
-    showToast('Đã lưu thành công toàn bộ thiết lập lớp học!');
   };
 
   return (
@@ -334,7 +376,7 @@ export function ClassSettingsTab({
                     : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
                 }`}
               >
-                {assistants.length} TA
+                {teacherMembers.length} GV
               </span>
             </button>
 
@@ -514,15 +556,16 @@ export function ClassSettingsTab({
                   <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5]">
                     Niên khóa • Học kỳ
                   </label>
-                  <select
+                  <CustomSelect<string>
                     value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium text-gray-800 dark:text-[#C4C7C5] border-none outline-none transition-all cursor-pointer appearance-none"
-                  >
-                    <option value="Học kỳ II • 2024 - 2025">Học kỳ II • 2024 - 2025</option>
-                    <option value="Học kỳ I • 2024 - 2025">Học kỳ I • 2024 - 2025</option>
-                    <option value="Học kỳ Hè • 2024 - 2025">Học kỳ Hè • 2024 - 2025</option>
-                  </select>
+                    onChange={setSemester}
+                    options={[
+                      { value: 'Học kỳ II • 2024 - 2025', label: 'Học kỳ II • 2024 - 2025' },
+                      { value: 'Học kỳ I • 2024 - 2025', label: 'Học kỳ I • 2024 - 2025' },
+                      { value: 'Học kỳ Hè • 2024 - 2025', label: 'Học kỳ Hè • 2024 - 2025' },
+                    ]}
+                    triggerClassName="bg-[#F0F4F8] dark:bg-[#131314] border-none rounded-2xl h-11"
+                  />
                   <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
                     Thời gian tính hạn nộp đồ án và quyền truy cập phòng lab.
                   </span>
@@ -576,6 +619,86 @@ export function ClassSettingsTab({
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium text-gray-900 dark:text-[#E3E3E3] border-none outline-none transition-all resize-none leading-relaxed"
                   />
+                </div>
+
+                {/* Ảnh nền lớp học */}
+                <div className="flex flex-col gap-2 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                      Ảnh nền lớp học (Background)
+                    </label>
+                    {backgroundUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setBackgroundUrl('')}
+                        className="text-xs font-medium text-rose-600 dark:text-rose-400 hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Xóa ảnh nền
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    ref={bgFileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleBackgroundUpload}
+                    className="hidden"
+                  />
+
+                  {backgroundUrl ? (
+                    <div className="relative rounded-2xl overflow-hidden bg-[#F0F4F8] dark:bg-[#131314] h-40">
+                      <img
+                        src={backgroundUrl}
+                        alt="Class background"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end justify-between p-4">
+                        <span className="text-xs text-white/90 font-medium truncate pr-4">
+                          Ảnh bìa hiện tại của lớp học
+                        </span>
+                        <button
+                          type="button"
+                          disabled={isUploadingBackground}
+                          onClick={() => bgFileInputRef.current?.click()}
+                          className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-gray-900 text-xs font-semibold cursor-pointer border-none transition-colors shrink-0 disabled:opacity-60"
+                        >
+                          {isUploadingBackground ? 'Đang tải...' : 'Đổi ảnh nền'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isUploadingBackground}
+                      onClick={() => bgFileInputRef.current?.click()}
+                      className="w-full h-32 rounded-2xl border border-dashed border-slate-300 dark:border-[#3c4043] bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90 transition-opacity flex flex-col items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+                    >
+                      {isUploadingBackground ? (
+                        <>
+                          <span className="w-5 h-5 border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">
+                            Đang tải ảnh nền lên...
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-[24px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                            add_photo_alternate
+                          </span>
+                          <span className="text-xs font-semibold text-gray-800 dark:text-[#E3E3E3]">
+                            Tải lên ảnh nền lớp học (PNG, JPG, WEBP)
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {backgroundUploadError && (
+                    <span className="text-xs text-rose-600 dark:text-rose-400">
+                      {backgroundUploadError}
+                    </span>
+                  )}
                 </div>
               </div>
             </section>
@@ -760,19 +883,19 @@ export function ClassSettingsTab({
                   <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-none">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center font-bold text-xs shrink-0">
-                        AN
+                        {ownerInitials}
                       </div>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-gray-900 dark:text-[#E3E3E3]">
-                            TS. Nguyễn Văn An
+                            {ownerName}
                           </span>
                           <span className="px-2.5 py-0.5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-semibold">
                             Chủ nhiệm lớp
                           </span>
                         </div>
                         <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
-                          nguyenvanan@edu.vn • Toàn quyền quản trị
+                          {ownerEmail ? `${ownerEmail} • ` : ''}Toàn quyền quản trị
                         </span>
                       </div>
                     </div>
@@ -781,63 +904,63 @@ export function ClassSettingsTab({
                     </span>
                   </div>
 
-                  {/* Trợ giảng Dynamic List */}
-                  {assistants.map((ta) => (
-                    <div
-                      key={ta.id}
-                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${ta.bgColor}`}
-                        >
-                          {ta.initials}
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-900 dark:text-[#E3E3E3]">
-                              {ta.name}
-                            </span>
-                            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] text-[10px] font-medium border-none">
-                              {ta.title}
+                  {/* Giảng viên đồng giảng (TEACHER) từ API */}
+                  {teacherMembers.length === 0 ? (
+                    <div className="px-4 py-3 text-[11px] text-gray-500 dark:text-[#8E918F]">
+                      Chưa có giảng viên đồng giảng nào được thêm vào lớp.
+                    </div>
+                  ) : (
+                    teacherMembers.map((teacher) => (
+                      <div
+                        key={teacher.id}
+                        className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-none"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center font-bold text-xs shrink-0">
+                            {teacher.avatar || 'GV'}
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-gray-900 dark:text-[#E3E3E3]">
+                                {teacher.name}
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] text-[10px] font-medium border-none">
+                                Giảng viên
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                              {teacher.email}
                             </span>
                           </div>
-                          <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
-                            {ta.email} • {ta.role}
-                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                          <CustomSelect<'TEACHER' | 'STUDENT'>
+                            variant="pill"
+                            value="TEACHER"
+                            onChange={(newRole) => {
+                              if (newRole !== 'TEACHER' && onUpdateMemberRole) {
+                                onUpdateMemberRole(teacher.id, newRole);
+                              }
+                            }}
+                            options={[
+                              { value: 'TEACHER', label: 'Giảng viên (TEACHER)' },
+                              { value: 'STUDENT', label: 'Chuyển thành Học viên' },
+                            ]}
+                            className="min-w-[180px]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAssistant(teacher.id, teacher.name)}
+                            className="p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
+                            title="Xóa khỏi lớp"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                          </button>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <select
-                          value={ta.role}
-                          onChange={(e) => {
-                            const newRole = e.target.value;
-                            setAssistants((prev) =>
-                              prev.map((item) =>
-                                item.id === ta.id ? { ...item, role: newRole } : item
-                              )
-                            );
-                            showToast(`Đã cập nhật quyền của ${ta.name}: ${newRole}`);
-                          }}
-                          className="bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1.5 rounded-full text-xs font-medium text-gray-800 dark:text-[#C4C7C5] outline-none border-none cursor-pointer appearance-none"
-                        >
-                          <option value="Chấm bài & Duyệt SV">Chấm bài &amp; Duyệt SV</option>
-                          <option value="Chỉ xem điểm & SV">Chỉ xem điểm &amp; SV</option>
-                          <option value="Chỉ hỗ trợ Lab & Quiz">Chỉ hỗ trợ Lab &amp; Quiz</option>
-                          <option value="Toàn quyền TA">Toàn quyền TA</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAssistant(ta.id, ta.name)}
-                          className="p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
-                          title="Xóa quyền"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 {/* Thêm trợ giảng mới */}
@@ -1009,16 +1132,17 @@ export function ClassSettingsTab({
                     <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5]">
                       Giới hạn lượt hỏi AI mỗi ngày / Sinh viên
                     </label>
-                    <select
+                    <CustomSelect<string>
                       value={dailyQuestionLimit}
-                      onChange={(e) => setDailyQuestionLimit(e.target.value)}
-                      className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs font-medium text-gray-800 dark:text-[#C4C7C5] border-none outline-none transition-all cursor-pointer appearance-none"
-                    >
-                      <option value="20 lượt hỏi / ngày (Tiêu chuẩn)">20 lượt hỏi / ngày (Tiêu chuẩn)</option>
-                      <option value="35 lượt hỏi / ngày (Khuyến nghị ngành CNTT)">35 lượt hỏi / ngày (Khuyến nghị ngành CNTT)</option>
-                      <option value="50 lượt hỏi / ngày (Mở rộng cho kỳ Đồ án)">50 lượt hỏi / ngày (Mở rộng cho kỳ Đồ án)</option>
-                      <option value="Không giới hạn (Theo quota trường cấp)">Không giới hạn (Theo quota trường cấp)</option>
-                    </select>
+                      onChange={setDailyQuestionLimit}
+                      options={[
+                        { value: '20 lượt hỏi / ngày (Tiêu chuẩn)', label: '20 lượt hỏi / ngày (Tiêu chuẩn)' },
+                        { value: '35 lượt hỏi / ngày (Khuyến nghị ngành CNTT)', label: '35 lượt hỏi / ngày (Khuyến nghị ngành CNTT)' },
+                        { value: '50 lượt hỏi / ngày (Mở rộng cho kỳ Đồ án)', label: '50 lượt hỏi / ngày (Mở rộng cho kỳ Đồ án)' },
+                        { value: 'Không giới hạn (Theo quota trường cấp)', label: 'Không giới hạn (Theo quota trường cấp)' },
+                      ]}
+                      triggerClassName="bg-[#F0F4F8] dark:bg-[#131314] border-none rounded-2xl h-11"
+                    />
                     <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
                       Giúp sinh viên tập trung tự nghiên cứu thay vì phụ thuộc quá mức vào AI.
                     </span>
@@ -1028,21 +1152,25 @@ export function ClassSettingsTab({
                     <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5]">
                       Nguồn tri thức tham chiếu (Grounding)
                     </label>
-                    <select
+                    <CustomSelect<string>
                       value={groundingSource}
-                      onChange={(e) => setGroundingSource(e.target.value)}
-                      className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs font-medium text-gray-800 dark:text-[#C4C7C5] border-none outline-none transition-all cursor-pointer appearance-none"
-                    >
-                      <option value={`Chỉ Giáo trình & Slide bài giảng ${systemCode}`}>
-                        Chỉ Giáo trình &amp; Slide bài giảng {systemCode}
-                      </option>
-                      <option value="Giáo trình lớp + Kho tài liệu mở IEEE / ACM">
-                        Giáo trình lớp + Kho tài liệu mở IEEE / ACM
-                      </option>
-                      <option value="Toàn bộ kiến thức kỹ thuật trên Internet">
-                        Toàn bộ kiến thức kỹ thuật trên Internet
-                      </option>
-                    </select>
+                      onChange={setGroundingSource}
+                      options={[
+                        {
+                          value: `Chỉ Giáo trình & Slide bài giảng ${systemCode}`,
+                          label: `Chỉ Giáo trình & Slide bài giảng ${systemCode}`,
+                        },
+                        {
+                          value: 'Giáo trình lớp + Kho tài liệu mở IEEE / ACM',
+                          label: 'Giáo trình lớp + Kho tài liệu mở IEEE / ACM',
+                        },
+                        {
+                          value: 'Toàn bộ kiến thức kỹ thuật trên Internet',
+                          label: 'Toàn bộ kiến thức kỹ thuật trên Internet',
+                        },
+                      ]}
+                      triggerClassName="bg-[#F0F4F8] dark:bg-[#131314] border-none rounded-2xl h-11"
+                    />
                     <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
                       Đảm bảo câu trả lời luôn bám sát chuẩn đầu ra của học phần.
                     </span>

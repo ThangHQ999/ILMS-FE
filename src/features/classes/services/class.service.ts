@@ -21,7 +21,17 @@ import {
 const STORAGE_KEY_CREATED_CLASSES = 'ilms_user_created_classes';
 
 /**
+ * Normalize a class route/state identifier into the raw backend class ID
+ * (e.g. strips legacy `class-` prefix like `class-1794915134961` -> `1794915134961`).
+ */
+export function normalizeClassApiId(id: string): string {
+  const clean = decodeURIComponent(id || '').trim();
+  return clean.startsWith('class-') ? clean.slice('class-'.length) : clean;
+}
+
+/**
  * Get locally persisted classes created by user (SSR-safe).
+ * Filters out legacy synthetic `class-*` IDs so only real backend IDs remain.
  */
 export function getLocalCreatedClasses(): ClassItem[] {
   if (typeof window === 'undefined') return [];
@@ -29,7 +39,11 @@ export function getLocalCreatedClasses(): ClassItem[] {
     const raw = localStorage.getItem(STORAGE_KEY_CREATED_CLASSES);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (c): c is ClassItem =>
+        Boolean(c && c.id && !String(c.id).startsWith('class-'))
+    );
   } catch {
     return [];
   }
@@ -136,93 +150,56 @@ export async function getClasses(
  * Endpoint: GET /api/v1/classes/{id}
  */
 export async function getClassById(id: string): Promise<ClassItem> {
-  const cleanId = decodeURIComponent(id || '').trim();
+  const apiId = normalizeClassApiId(id);
 
-  // 1. Check local cache first for newly created classes
-  const localList = getLocalCreatedClasses();
-  const local = localList.find(
-    (c) =>
-      String(c.id).toLowerCase() === cleanId.toLowerCase() ||
-      c.name?.toLowerCase() === cleanId.toLowerCase() ||
-      c.enrollmentKey?.toLowerCase() === cleanId.toLowerCase()
-  );
-  if (local) return local;
-
-  // 2. If it is a local-generated ID (starts with 'class-'), construct safe fallback immediately
-  if (cleanId.startsWith('class-')) {
-    const fallbackLocal: ClassItem = {
-      id: cleanId,
-      name: cleanId,
-      title: cleanId,
-      description: 'Không gian học tập và trao đổi môn học',
-      academicYear: DEFAULT_ACADEMIC_YEAR,
-      semester: CURRENT_SEMESTER,
-      major: 'Khoa học Máy tính',
-      maxStudents: 60,
-      enrolledCount: 42,
-      enrollmentKey: cleanId,
-      isCodeClosed: false,
-      status: 'ACTIVE',
-      teachingRole: 'PRIMARY_INSTRUCTOR',
-      instructor: {
-        fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm môn)',
-      },
-      schedule: {
-        room: 'Chưa xếp phòng',
-        dayOfWeek: 'Thứ 2',
-        timeSlot: 'Tiết 1-3',
-      },
-      stats: {
-        pendingRequestsCount: 0,
-        ungradedAssignmentsCount: 0,
-        attendanceRate: 100,
-      },
-      createdAt: new Date().toISOString(),
-    };
-    saveLocalCreatedClass(fallbackLocal);
-    return fallbackLocal;
-  }
-
-  // 3. Try fetching from Backend API
+  // 1. Always fetch from Backend API first using the normalized real ID
   try {
-    const { data } = await api.get<ApiResponse<unknown>>(`/classes/${cleanId}`);
+    const { data } = await api.get<ApiResponse<unknown>>(`/classes/${apiId}`);
     return classItemSchema.parse(data.data ?? data);
   } catch {
-    // 4. If backend doesn't have it or 401/404, check faculty defaults
+    // 2. Fallback to local cache / defaults only when backend is unavailable
+    const localList = getLocalCreatedClasses();
+    const local = localList.find(
+      (c) =>
+        String(c.id).toLowerCase() === apiId.toLowerCase() ||
+        c.name?.toLowerCase() === apiId.toLowerCase() ||
+        c.enrollmentKey?.toLowerCase() === apiId.toLowerCase()
+    );
+    if (local) return local;
+
     const fallback = DEFAULT_FACULTY_CLASSES.find(
       (c) =>
-        String(c.id).toLowerCase() === cleanId.toLowerCase() ||
-        c.name?.toLowerCase() === cleanId.toLowerCase() ||
-        c.enrollmentKey?.toLowerCase() === cleanId.toLowerCase()
+        String(c.id).toLowerCase() === apiId.toLowerCase() ||
+        c.name?.toLowerCase() === apiId.toLowerCase() ||
+        c.enrollmentKey?.toLowerCase() === apiId.toLowerCase()
     );
     if (fallback) return fallback;
 
-    // 5. Also check student defaults
     const studentFallback = DEFAULT_STUDENT_CLASSES.find(
       (c) =>
-        String(c.id).toLowerCase() === cleanId.toLowerCase() ||
-        c.name?.toLowerCase() === cleanId.toLowerCase() ||
-        c.enrollmentKey?.toLowerCase() === cleanId.toLowerCase()
+        String(c.id).toLowerCase() === apiId.toLowerCase() ||
+        c.name?.toLowerCase() === apiId.toLowerCase() ||
+        c.enrollmentKey?.toLowerCase() === apiId.toLowerCase()
     );
     if (studentFallback) return studentFallback;
 
-    // 6. Safe auto-recovery fallback: create safe item instead of throwing error that breaks UI
+    // 3. Safe auto-recovery fallback
     return {
-      id: cleanId,
-      name: cleanId,
-      title: cleanId,
+      id: apiId,
+      name: apiId,
+      title: apiId,
       description: 'Không gian học tập và trao đổi môn học',
       academicYear: DEFAULT_ACADEMIC_YEAR,
       semester: CURRENT_SEMESTER,
       major: 'Khoa học Máy tính',
       maxStudents: 60,
       enrolledCount: 42,
-      enrollmentKey: cleanId,
+      enrollmentKey: apiId,
       isCodeClosed: false,
       status: 'ACTIVE',
       teachingRole: 'PRIMARY_INSTRUCTOR',
       instructor: {
-        fullName: 'TS. Lê Hoàng Nam',
+        fullName: '',
       },
       schedule: {
         room: 'Chưa xếp phòng',
@@ -247,53 +224,30 @@ export async function getClassById(id: string): Promise<ClassItem> {
 export async function createClass(payload: CreateClassRequest): Promise<ClassItem> {
   let createdItem: ClassItem | null = null;
 
-  try {
-    // Call existing Spring Boot POST /api/v1/classes
-    const { data } = await api.post<ApiResponse<unknown>>('/classes', payload);
-    if (data?.data || data) {
-      createdItem = classItemSchema.parse(data.data ?? data);
-    }
-  } catch (error) {
-    // If backend reports duplicate or validation conflict, propagate error
-    const anyErr = error as { httpStatus?: number; backendStatus?: number; message?: string };
-    if (anyErr?.httpStatus === 409 || anyErr?.httpStatus === 400) {
-      throw error;
-    }
-  }
-
-  const finalItem: ClassItem = createdItem ?? {
-    id: `class-${Date.now()}`,
+  const dtoPayload = {
     name: payload.name.trim(),
     title: payload.title.trim(),
     description: payload.description?.trim() || '',
     academicYear: payload.academicYear || DEFAULT_ACADEMIC_YEAR,
-    semester: CURRENT_SEMESTER,
     major: payload.major || 'Khoa học Máy tính',
-    maxStudents: payload.maxStudents || 60,
-    enrolledCount: 0,
-    enrollmentKey: payload.enrollmentKey?.trim() || payload.name.trim(),
-    isCodeClosed: false,
-    status: 'ACTIVE',
-    teachingRole: 'PRIMARY_INSTRUCTOR',
-    instructor: {
-      fullName: 'TS. Lê Hoàng Nam (Chủ nhiệm lớp)',
-    },
-    schedule: {
-      room: 'Chưa xếp phòng',
-      dayOfWeek: 'Thứ 2',
-      timeSlot: 'Tiết 1-3',
-    },
-    stats: {
-      pendingRequestsCount: 0,
-      ungradedAssignmentsCount: 0,
-      attendanceRate: 100,
-    },
-    createdAt: new Date().toISOString(),
+    maxCapacity: Number(payload.maxCapacity ?? payload.maxStudents ?? 60) || 60,
+    visibility: payload.visibility ?? 'PUBLIC',
+    requireApproval: payload.requireApproval ?? true,
+    isCodeActive: payload.isCodeActive ?? true,
+    ...(payload.thumbnailUrl ? { thumbnailUrl: payload.thumbnailUrl } : {}),
+    ...(payload.backgroundUrl ? { backgroundUrl: payload.backgroundUrl } : {}),
+    ...(payload.startAt ? { startAt: payload.startAt } : {}),
+    ...(payload.endAt ? { endAt: payload.endAt } : {}),
   };
 
-  // Save to localStorage so class is immediately preserved and stays on F5 refresh
+  // Call existing Spring Boot POST /api/v1/classes and require real backend response
+  const { data } = await api.post<ApiResponse<unknown>>('/classes', dtoPayload);
+  const resData = data?.data ?? data;
+  if (!resData) {
+    throw new Error('Server did not return created class data');
+  }
+  const finalItem = classItemSchema.parse(resData);
   saveLocalCreatedClass(finalItem);
-
   return finalItem;
 }
 
@@ -305,7 +259,8 @@ export async function updateClass(
   id: string,
   payload: Partial<UpdateClassRequest>
 ): Promise<ClassItem> {
-  const { data } = await api.put<ApiResponse<unknown>>(`/classes/${id}`, payload);
+  const apiId = normalizeClassApiId(id);
+  const { data } = await api.put<ApiResponse<unknown>>(`/classes/${apiId}`, payload);
   return classItemSchema.parse(data.data ?? data);
 }
 
@@ -314,10 +269,11 @@ export async function updateClass(
  * Endpoint: DELETE /api/v1/classes/{id}/soft (hoặc DELETE /api/v1/classes/{id})
  */
 export async function archiveClass(id: string): Promise<void> {
+  const apiId = normalizeClassApiId(id);
   try {
-    await api.delete<ApiResponse<unknown>>(`/classes/${id}/soft`);
+    await api.delete<ApiResponse<unknown>>(`/classes/${apiId}/soft`);
   } catch {
-    await api.delete<ApiResponse<unknown>>(`/classes/${id}`);
+    await api.delete<ApiResponse<unknown>>(`/classes/${apiId}`);
   }
 }
 
@@ -326,17 +282,18 @@ export async function archiveClass(id: string): Promise<void> {
  * Endpoint: DELETE /api/v1/classes/{id} (as specified in docs/api-spec.md line 654)
  */
 export async function deleteClass(id: string): Promise<void> {
+  const apiId = normalizeClassApiId(id);
   try {
-    await api.delete<ApiResponse<unknown>>(`/classes/${id}`);
+    await api.delete<ApiResponse<unknown>>(`/classes/${apiId}`);
   } catch (err) {
     // Fallback if backend route uses /soft
     try {
-      await api.delete<ApiResponse<unknown>>(`/classes/${id}/soft`);
+      await api.delete<ApiResponse<unknown>>(`/classes/${apiId}/soft`);
     } catch {
       throw err;
     }
   } finally {
-    removeLocalCreatedClass(id);
+    removeLocalCreatedClass(apiId);
   }
 }
 
@@ -345,7 +302,8 @@ export async function deleteClass(id: string): Promise<void> {
  * Endpoint: PATCH /api/v1/classes/{id}/restore
  */
 export async function restoreClass(id: string): Promise<void> {
-  await api.patch<ApiResponse<unknown>>(`/classes/${id}/restore`);
+  const apiId = normalizeClassApiId(id);
+  await api.patch<ApiResponse<unknown>>(`/classes/${apiId}/restore`);
 }
 
 /**
@@ -356,7 +314,8 @@ export async function toggleClassCodeStatus(
   id: string,
   isClosed: boolean
 ): Promise<void> {
-  await api.patch<ApiResponse<unknown>>(`/classes/${id}/code-status`, null, {
+  const apiId = normalizeClassApiId(id);
+  await api.patch<ApiResponse<unknown>>(`/classes/${apiId}/code-status`, null, {
     params: { isClosed },
   });
 }
@@ -395,4 +354,45 @@ export async function getClassKpiSummary(): Promise<ClassKpiSummary> {
     pendingRequestsCount: 0,
     ungradedAssignmentsCount: 0,
   };
+}
+
+/**
+ * Regenerate enrollment / invite code for a class.
+ * Endpoint: POST /api/v1/classes/{id}/regenerate-code
+ */
+export async function regenerateClassCode(classId: string): Promise<string> {
+  const apiId = normalizeClassApiId(classId);
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/classes/${apiId}/regenerate-code`
+  );
+  const resData = data?.data ?? data;
+
+  if (typeof resData === 'string' && resData.trim()) {
+    return resData.trim();
+  }
+  if (resData && typeof resData === 'object') {
+    const record = resData as Record<string, unknown>;
+    const candidate =
+      record.classCode ?? record.enrollmentKey ?? record.code ?? record.class_code;
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  throw new Error('Invalid regenerate-code response from server');
+}
+
+/**
+ * Invite a member to a class by email.
+ * Endpoint: POST /api/v1/classes/{classId}/members/invite-by-email
+ */
+export async function inviteMemberByEmail(
+  classId: string,
+  email: string,
+  role: 'STUDENT' | 'TEACHER' = 'STUDENT'
+): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.post<ApiResponse<unknown>>(`/classes/${apiId}/members/invite-by-email`, {
+    email: email.trim(),
+    role,
+  });
 }

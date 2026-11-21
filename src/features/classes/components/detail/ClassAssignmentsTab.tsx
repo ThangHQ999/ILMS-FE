@@ -39,8 +39,8 @@ export function ClassAssignmentsTab({
     recommendedTopic: 'Cây phân đoạn & Dijkstra',
     recommendedDescription: 'Phổ điểm lớp tập trung ở dải Giỏi/Khá.',
   },
-  onSendAiSuggestion = () => {},
-  onInterveneClick = () => {},
+  onSendAiSuggestion = () => { },
+  onInterveneClick = () => { },
   initialSubTab = 'assignments',
 }: ClassAssignmentsTabProps) {
   const [subView, setSubView] = useState<'assignments' | 'gradebook'>(initialSubTab);
@@ -74,20 +74,18 @@ export function ClassAssignmentsTab({
           <button
             type="button"
             onClick={() => setSubView('assignments')}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subView === 'assignments'
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${subView === 'assignments'
                 ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                 : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[19px]">assignment</span>
             <span>Danh sách Bài tập &amp; Lab</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                subView === 'assignments'
+              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${subView === 'assignments'
                   ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]'
                   : 'bg-black/5 dark:bg-white/10 text-gray-600 dark:text-[#C4C7C5]'
-              }`}
+                }`}
             >
               4
             </span>
@@ -96,20 +94,18 @@ export function ClassAssignmentsTab({
           <button
             type="button"
             onClick={() => setSubView('gradebook')}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${
-              subView === 'gradebook'
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer border-none shrink-0 whitespace-nowrap ${subView === 'gradebook'
                 ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                 : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[19px]">fact_check</span>
             <span>Bảng điểm &amp; Ma trận PLO</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                subView === 'gradebook'
+              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${subView === 'gradebook'
                   ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                   : 'bg-black/5 dark:bg-white/10 text-gray-600 dark:text-[#C4C7C5]'
-              }`}
+                }`}
             >
               ABET
             </span>
@@ -155,44 +151,40 @@ export function ClassAssignmentsTab({
                 <button
                   type="button"
                   onClick={() => setFilterStatus('all')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
-                    filterStatus === 'all'
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${filterStatus === 'all'
                       ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                       : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   Tất cả (4)
                 </button>
                 <button
                   type="button"
                   onClick={() => setFilterStatus('open')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
-                    filterStatus === 'open'
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${filterStatus === 'open'
                       ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                       : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   Đang mở (1)
                 </button>
                 <button
                   type="button"
                   onClick={() => setFilterStatus('submitted')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
-                    filterStatus === 'submitted'
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${filterStatus === 'submitted'
                       ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                       : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   Đã nộp (1)
                 </button>
                 <button
                   type="button"
                   onClick={() => setFilterStatus('graded')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${
-                    filterStatus === 'graded'
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border-none ${filterStatus === 'graded'
                       ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                       : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   Đã chấm điểm (2)
                 </button>
@@ -295,7 +287,7 @@ export function ClassAssignmentsTab({
                 <div className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex flex-col gap-1.5">
                   <div className="flex items-center gap-2 text-blue-600 dark:text-[#A8C7FA] font-bold text-xs">
                     <span className="material-symbols-outlined text-[18px]">rate_review</span>
-                    <span>Nhận xét chi tiết từ TS. Lê Hoàng Nam:</span>
+                    <span>Nhận xét chi tiết từ :</span>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-700 dark:text-[#C4C7C5] italic leading-relaxed">
                     &ldquo;Phân tích cờ TCP SYN/ACK và cơ chế giải mã DNS Query rất xuất sắc, chụp ảnh Wireshark rõ ràng có highlight bộ lọc. Điểm trừ nhỏ ở phần giải thích TTL gói tin UDP chưa nêu rõ đơn vị.&rdquo;

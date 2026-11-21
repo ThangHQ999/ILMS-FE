@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect } from 'react';
+import React, { Suspense, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
 import { CourseDetailPageView } from '@/features/courses';
@@ -23,8 +23,15 @@ export default function CourseDetailPage({ params }: PageProps) {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'TS. Lê Hoàng Nam';
+      : '';
 
-  return <CourseDetailPageView courseId={id} userFullName={userFullName} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 animate-pulse" />
+      }
+    >
+      <CourseDetailPageView courseId={id} userFullName={userFullName} />
+    </Suspense>
+  );
 }
-

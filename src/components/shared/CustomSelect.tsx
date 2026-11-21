@@ -17,6 +17,7 @@ export interface CustomSelectProps<T extends string | number = string> {
   placeholder?: string;
   label?: string;
   disabled?: boolean;
+  variant?: 'default' | 'pill';
   className?: string;
   triggerClassName?: string;
   popupClassName?: string;
@@ -29,6 +30,7 @@ export function CustomSelect<T extends string | number = string>({
   placeholder = 'Chọn một mục...',
   label,
   disabled = false,
+  variant = 'default',
   className = '',
   triggerClassName = '',
   popupClassName = '',
@@ -89,8 +91,14 @@ export function CustomSelect<T extends string | number = string>({
       <button
         type="button"
         disabled={disabled}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
-        className={`w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200 dark:border-transparent text-xs sm:text-sm text-slate-900 dark:text-[#E3E3E3] font-medium flex items-center justify-between gap-2 transition-all outline-none focus:ring-2 focus:ring-[#0B57D0]/30 dark:focus:ring-[#A8C7FA]/30 hover:bg-slate-100 dark:hover:bg-[#282A2C] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`w-full px-3.5 text-xs sm:text-sm text-slate-900 dark:text-[#E3E3E3] font-medium flex items-center justify-between gap-2 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+          variant === 'pill'
+            ? 'h-9 px-4 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:bg-[#D5DAE0] dark:hover:bg-[#323538] border-none focus:ring-2 focus:ring-[#0B57D0]/30 dark:focus:ring-[#A8C7FA]/30'
+            : 'h-10 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200 dark:border-[#333537] hover:bg-slate-100 dark:hover:bg-[#282A2C] focus:ring-2 focus:ring-[#0B57D0]/30 dark:focus:ring-[#A8C7FA]/30'
+        } ${
           isOpen ? 'ring-2 ring-[#0B57D0] dark:ring-[#A8C7FA]' : ''
         } ${triggerClassName}`}
       >
@@ -117,7 +125,8 @@ export function CustomSelect<T extends string | number = string>({
       {/* Floating Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 top-full mt-1.5 z-50 p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#333537] shadow-xl dark:shadow-2xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 origin-top ${popupClassName}`}
+          role="listbox"
+          className={`absolute left-0 top-full mt-1.5 z-50 min-w-full w-max max-w-[300px] p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#333537] shadow-xl dark:shadow-2xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 origin-top ${popupClassName}`}
         >
           <div className="flex flex-col gap-0.5">
             {options.map((option) => {
@@ -126,6 +135,8 @@ export function CustomSelect<T extends string | number = string>({
                 <button
                   key={String(option.value)}
                   type="button"
+                  role="option"
+                  aria-selected={isSelected}
                   disabled={option.disabled}
                   onClick={() => handleSelect(option)}
                   className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm flex items-center justify-between gap-2 transition-colors border-none cursor-pointer ${

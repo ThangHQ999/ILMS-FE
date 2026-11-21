@@ -42,24 +42,44 @@ export function TeacherTodaySessionsCard({
         </div>
 
         {/* Classes List */}
-        <div className="space-y-3.5">
-          {sessions.map((session, index) => {
-            const total = session.studentsCount || 45;
-            const attended = session.attendedCount ?? 0;
-            // Attendance strictly requires ALL students to be attended (attended >= total)
-            const isFullyAttended = attended >= total && total > 0;
-            const isInProgress = !isFullyAttended && attended > 0;
+        {sessions.length === 0 ? (
+          <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-[32px] text-slate-400">
+              event_available
+            </span>
+            <p className="text-sm font-semibold text-slate-700 dark:text-[#E3E3E3]">
+              Hôm nay không có ca dạy nào
+            </p>
+            <p className="text-xs text-slate-500 dark:text-[#8E918F]">
+              Bạn có thể xem toàn bộ lịch trong tuần tại thời khóa biểu
+            </p>
+            <Link
+              href="/timetable"
+              className="mt-2 text-xs font-semibold text-[#0B57D0] dark:text-[#A8C7FA] hover:underline flex items-center gap-1 font-sans"
+            >
+              <span>Xem thời khóa biểu tuần</span>
+              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3.5">
+            {sessions.map((session, index) => {
+              const total = session.studentsCount || 45;
+              const attended = session.attendedCount ?? 0;
+              // Attendance strictly requires ALL students to be attended (attended >= total)
+              const isFullyAttended = attended >= total && total > 0;
+              const isInProgress = !isFullyAttended && attended > 0;
 
-            return (
-              <div
-                key={session.id}
-                className={`p-4 sm:p-5 rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-none shadow-none ring-0 outline-none ${
-                  index === 0
-                    ? 'bg-gray-100/70 hover:bg-gray-100 dark:bg-[#282A2C]/80 dark:hover:bg-[#282A2C]'
-                    : 'bg-gray-50 hover:bg-gray-100/70 dark:bg-[#282A2C]/50 dark:hover:bg-[#282A2C]/70'
-                }`}
-              >
-                {/* Left Details */}
+              return (
+                <div
+                  key={session.id}
+                  className={`p-4 sm:p-5 rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-none shadow-none ring-0 outline-none ${
+                    index === 0
+                      ? 'bg-gray-100/70 hover:bg-gray-100 dark:bg-[#282A2C]/80 dark:hover:bg-[#282A2C]'
+                      : 'bg-gray-50 hover:bg-gray-100/70 dark:bg-[#282A2C]/50 dark:hover:bg-[#282A2C]/70'
+                  }`}
+                >
+                  {/* Left Details */}
                 <div className="flex items-start sm:items-center gap-4 min-w-0">
                   <div className="bg-white text-[#0B57D0] dark:bg-[#1E1F20] dark:text-[#A8C7FA] px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap border-none shadow-sm dark:shadow-none ring-0 outline-none font-sans">
                     {session.timeSlot}
@@ -129,7 +149,8 @@ export function TeacherTodaySessionsCard({
             );
           })}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Card Footer */}
       <div className="mt-6 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] border-none shadow-none ring-0 outline-none">

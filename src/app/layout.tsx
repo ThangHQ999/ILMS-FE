@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import Script from 'next/script';
 import { Outfit, Plus_Jakarta_Sans, Roboto_Mono, Inter, Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale, getTranslations } from 'next-intl/server';
@@ -9,6 +10,7 @@ import { BrowserLocaleSync } from '@/components/shared/BrowserLocaleSync';
 import { DesignSystemSync } from '@/components/shared/DesignSystemSync';
 import { RouteProgressBar } from '@/components/shared/RouteProgressBar';
 import { GlobalSocraticCoach } from '@/components/shared/GlobalSocraticCoach';
+import { QuotaUpgradeModal } from '@/components/shared/QuotaUpgradeModal';
 import './globals.css';
 
 const outfit = Outfit({
@@ -111,49 +113,48 @@ export default async function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                var c = localStorage.getItem('ilms_color_tokens');
-                if (c) {
-                  var p = JSON.parse(c);
-                  var r = document.documentElement;
-                  if (p.primary) r.style.setProperty('--color-primary', p.primary);
-                  if (p.secondary) r.style.setProperty('--color-secondary', p.secondary);
-                  if (p.tertiary) r.style.setProperty('--color-tertiary', p.tertiary);
-                  if (p.neutral) r.style.setProperty('--color-neutral', p.neutral);
-                }
-                var f = localStorage.getItem('ilms_font_family');
-                if (!f || f === 'Google Sans') {
-                  f = 'Outfit';
-                  localStorage.setItem('ilms_font_family', 'Outfit');
-                }
-                var fontMap = {
-                  'Outfit': "var(--font-outfit), var(--font-plus-jakarta-sans), sans-serif",
-                  'Plus Jakarta Sans': "var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif",
-                  'Inter': "var(--font-inter, 'Inter'), sans-serif",
-                  'Montserrat': "var(--font-montserrat, 'Montserrat'), sans-serif",
-                  'Be Vietnam Pro': "var(--font-be-vietnam-pro, 'Be Vietnam Pro'), sans-serif"
-                };
-                if (f && fontMap[f]) {
-                  document.documentElement.style.setProperty('--font-sans', fontMap[f]);
-                }
-              } catch(e) {}
-            `,
-          }}
-        />
       </head>
       <body className="antialiased">
+        <Script id="design-system-init" strategy="beforeInteractive">
+          {`
+            try {
+              var c = localStorage.getItem('ilms_color_tokens');
+              if (c) {
+                var p = JSON.parse(c);
+                var r = document.documentElement;
+                if (p.primary) r.style.setProperty('--color-primary', p.primary);
+                if (p.secondary) r.style.setProperty('--color-secondary', p.secondary);
+                if (p.tertiary) r.style.setProperty('--color-tertiary', p.tertiary);
+                if (p.neutral) r.style.setProperty('--color-neutral', p.neutral);
+              }
+              var f = localStorage.getItem('ilms_font_family');
+              if (!f || f === 'Google Sans') {
+                f = 'Outfit';
+                localStorage.setItem('ilms_font_family', 'Outfit');
+              }
+              var fontMap = {
+                'Outfit': "var(--font-outfit), var(--font-plus-jakarta-sans), sans-serif",
+                'Plus Jakarta Sans': "var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif",
+                'Inter': "var(--font-inter, 'Inter'), sans-serif",
+                'Montserrat': "var(--font-montserrat, 'Montserrat'), sans-serif",
+                'Be Vietnam Pro': "var(--font-be-vietnam-pro, 'Be Vietnam Pro'), sans-serif"
+              };
+              if (f && fontMap[f]) {
+                document.documentElement.style.setProperty('--font-sans', fontMap[f]);
+              }
+            } catch(e) {}
+          `}
+        </Script>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Suspense fallback={null}>
             <RouteProgressBar />
           </Suspense>
           <BrowserLocaleSync currentLocale={locale} />
-          <DesignSystemSync />
           <Providers>
+            <DesignSystemSync />
             {children}
             <GlobalSocraticCoach />
+            <QuotaUpgradeModal />
           </Providers>
         </NextIntlClientProvider>
       </body>

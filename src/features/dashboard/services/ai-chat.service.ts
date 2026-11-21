@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios';
+import { triggerQuotaUpgradeModal } from '@/constants/quota-limits';
 import { ChatMessage } from '../types';
 
 export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
@@ -30,6 +31,17 @@ export interface SocraticStreamPayload {
   sessionId?: string;
   subject?: string;
   teacherId?: string;
+  materialIds?: string[];
+  courseName?: string;
+  chapterTitle?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  blockContext?: {
+    id: string;
+    type: string;
+    title?: string;
+    content_text: string;
+  } | null;
 }
 
 /**
@@ -70,6 +82,12 @@ export async function streamSocraticChatMessage(
         session_id: payload.sessionId,
         subject: payload.subject,
         teacher_id: payload.teacherId,
+        ...(payload.materialIds?.length ? { material_ids: payload.materialIds } : {}),
+        ...(payload.lessonId ? { lesson_id: payload.lessonId } : {}),
+        ...(payload.lessonTitle ? { lesson_title: payload.lessonTitle } : {}),
+        ...(payload.chapterTitle ? { chapter_title: payload.chapterTitle } : {}),
+        ...(payload.courseName ? { course_name: payload.courseName } : {}),
+        ...(payload.blockContext ? { block_context: payload.blockContext } : {}),
       }),
       signal,
     });
@@ -79,6 +97,15 @@ export async function streamSocraticChatMessage(
       try {
         const errorJson = await response.json();
         if (errorJson?.message) serverError = errorJson.message;
+        if (response.status === 429 || errorJson?.error === 'AI_DAILY_LIMIT_EXCEEDED') {
+          triggerQuotaUpgradeModal({
+            errorCode: 'AI_DAILY_LIMIT_EXCEEDED',
+            message:
+              errorJson?.message ||
+              'Bạn đã dùng hết lượt hỏi Trợ lý AI hôm nay. Vui lòng quay lại vào ngày mai hoặc nâng cấp gói cước',
+            status: 429,
+          });
+        }
       } catch {
         // ignore parse error
       }
@@ -133,6 +160,19 @@ export async function streamSocraticChatMessage(
             callbacks.onDone?.(finalContent, parsed.assistant_message_id);
             return;
           } else if (eventType === 'error') {
+            if (
+              parsed.error === 'AI_DAILY_LIMIT_EXCEEDED' ||
+              parsed.code === 'AI_DAILY_LIMIT_EXCEEDED' ||
+              (parsed.message && parsed.message.includes('lượt hỏi'))
+            ) {
+              triggerQuotaUpgradeModal({
+                errorCode: 'AI_DAILY_LIMIT_EXCEEDED',
+                message:
+                  parsed.message ||
+                  'Bạn đã dùng hết lượt hỏi Trợ lý AI hôm nay. Vui lòng quay lại vào ngày mai hoặc nâng cấp gói cước',
+                status: 429,
+              });
+            }
             throw new Error(parsed.message || 'Lỗi xử lý từ máy chủ AI Socratic.');
           }
         } catch (jsonErr: unknown) {

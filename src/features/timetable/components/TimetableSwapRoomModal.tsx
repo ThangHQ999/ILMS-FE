@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { TimetableSession } from '../types';
 
 interface TimetableSwapRoomModalProps {
@@ -71,17 +72,15 @@ export function TimetableSwapRoomModal({
             <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5">
               {t('sessionLabel')}
             </label>
-            <select
+            <CustomSelect<string>
               value={selectedSessionId}
-              onChange={(e) => setSelectedSessionId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3] border-none outline-none focus:ring-2 focus:ring-[#0B57D0]/40 transition-all font-sans cursor-pointer text-xs sm:text-sm"
-            >
-              {sessions.map((s) => (
-                <option key={s.lessonSessionId} value={s.lessonSessionId}>
-                  {s.className} ({s.classId}) - {s.startTime.substring(0, 5)} {s.sessionDate}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedSessionId}
+              options={sessions.map((s) => ({
+                value: s.lessonSessionId,
+                label: `${s.className} (${s.classId}) - ${s.startTime.substring(0, 5)} ${s.sessionDate}`,
+              }))}
+              triggerClassName="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl border-none h-11"
+            />
           </div>
 
           {/* 2. Loại yêu cầu */}

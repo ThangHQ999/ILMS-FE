@@ -26,7 +26,9 @@ export function useClassKpiSummary() {
   return useQuery<ClassKpiSummary>({
     queryKey: classKeys.kpiSummary(),
     queryFn: () => getClassKpiSummary(),
-    staleTime: 60_000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
 }

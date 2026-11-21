@@ -23,7 +23,7 @@
 
 3. **`LessonVideoPlayer.tsx` (Cột 2 - Interactive Video Player):**
    - Khung hình 16:9 với hoạt họa nền SVG mạng truyền gói TCP SYN/ACK.
-   - Dấu mốc HD 1080p, giảng viên TS. Lê Hoàng Nam, nút Bookmark khoảnh khắc, nút Share.
+   - Dấu mốc HD 1080p, giảng viên , nút Bookmark khoảnh khắc, nút Share.
    - Thanh tua tiến trình với 4 mốc chương (Chapter Markers: 02:15, 08:40, 15:30, 22:10).
    - Bộ điều khiển đầy đủ: Play/Pause, Tua ±10s, Âm lượng, Bộ đếm thời gian 14:20/28:45, Thay đổi tốc độ phát (1.0x -> 1.25x -> 1.5x -> 2.0x), Phụ đề Tiếng Việt, Cài đặt chất lượng, Toàn màn hình.
    - Dải nút mốc bài học (Video Chapters Strip) chuyển trực tiếp timestamp.

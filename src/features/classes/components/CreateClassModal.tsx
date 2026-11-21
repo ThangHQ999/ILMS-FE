@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { createClassRequestSchema, type CreateClassRequest, type ClassItem } from '../schemas/class.schema';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
 import { useCreateClass } from '../hooks/useCreateClass';
@@ -133,7 +135,22 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
               <span className="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5">
                 error
               </span>
-              <div className="flex-1 leading-relaxed font-medium">{apiError}</div>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                <span className="leading-relaxed font-medium">{apiError}</span>
+                {(apiError.includes('hạn mức') ||
+                  apiError.includes('CLASS_CREATION_LIMIT') ||
+                  apiError.includes('nâng cấp') ||
+                  apiError.includes('tối đa')) && (
+                  <Link
+                    href="/pricing"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground font-semibold whitespace-nowrap shadow-xs shrink-0 self-start sm:self-auto hover:opacity-90 active:scale-95 transition-all"
+                  >
+                    <span>Nâng cấp gói</span>
+                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </Link>
+                )}
+              </div>
             </div>
           )}
 
@@ -200,18 +217,13 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
               <label className="block text-xs font-semibold text-foreground mb-1.5">
                 {t('fieldMajor')} <span className="text-destructive">*</span>
               </label>
-              <select
-                name="major"
-                value={formData.major}
-                onChange={handleChange}
-                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all cursor-pointer"
-              >
-                {AVAILABLE_MAJORS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect<string>
+                value={formData.major || AVAILABLE_MAJORS[0]}
+                onChange={(val) =>
+                  setFormData((prev) => ({ ...prev, major: val }))
+                }
+                options={AVAILABLE_MAJORS.map((m) => ({ value: m, label: m }))}
+              />
             </div>
 
             {/* Max Students */}
@@ -224,7 +236,7 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
                 name="maxStudents"
                 min="1"
                 max="500"
-                value={formData.maxStudents}
+                value={Number(formData.maxStudents ?? 60)}
                 onChange={handleChange}
                 className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />

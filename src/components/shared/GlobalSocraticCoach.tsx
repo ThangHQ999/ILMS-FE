@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUserRole } from '@/hooks/useUserRole';
+import { OPEN_SOCRATIC_COACH_EVENT } from '@/hooks/useSocraticLessonContext';
 import { isAiCoachRouteAllowed } from '@/constants/ai-coach-routes';
 import { SocraticAICoach } from '@/features/dashboard';
 
@@ -45,6 +46,19 @@ export function GlobalSocraticCoach() {
     } catch {
       // ignore
     }
+
+    const handleOpenCoach = () => {
+      setIsMinimized(false);
+      try {
+        localStorage.setItem(STORAGE_KEY_MINIMIZED, 'false');
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener(OPEN_SOCRATIC_COACH_EVENT, handleOpenCoach);
+    return () => {
+      window.removeEventListener(OPEN_SOCRATIC_COACH_EVENT, handleOpenCoach);
+    };
   }, []);
 
   const handleToggleMinimize = () => {

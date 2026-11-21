@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { ErrorPageHeader } from './ErrorPageHeader';
 import { ErrorPageFooter } from './ErrorPageFooter';
 
@@ -385,16 +386,17 @@ export function ForbiddenView() {
                   <label className="block text-xs font-semibold text-slate-700 dark:text-[#C4C7C5] mb-1">
                     {t('accessPurpose')}
                   </label>
-                  <select
+                  <CustomSelect<string>
                     value={selectedPurpose}
-                    onChange={(e) => setSelectedPurpose(e.target.value)}
-                    className="w-full bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl p-3 text-xs text-slate-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer"
-                  >
-                    <option value="ta">Trợ giảng tham gia hỗ trợ chấm điểm (Teaching Assistant)</option>
-                    <option value="research">Học viên tham gia nghiên cứu đề tài chuyên sâu</option>
-                    <option value="reference">Cần tham khảo mẫu bài giảng cho đề án môn học</option>
-                    <option value="other">Lý do học vụ khác...</option>
-                  </select>
+                    onChange={setSelectedPurpose}
+                    options={[
+                      { value: 'ta', label: 'Trợ giảng tham gia hỗ trợ chấm điểm (Teaching Assistant)' },
+                      { value: 'research', label: 'Học viên tham gia nghiên cứu đề tài chuyên sâu' },
+                      { value: 'reference', label: 'Cần tham khảo mẫu bài giảng cho đề án môn học' },
+                      { value: 'other', label: 'Lý do học vụ khác...' },
+                    ]}
+                    triggerClassName="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl border-none h-11"
+                  />
                 </div>
 
                 <div>

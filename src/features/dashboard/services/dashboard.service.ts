@@ -192,7 +192,7 @@ export const MOCK_COURSES: CourseProgress[] = [
     id: 'c1',
     title: 'Cấu trúc dữ liệu & Giải thuật nâng cao (ICPC Track)',
     codeOrClass: 'Lớp: ICPC-2024A',
-    instructor: 'TS. Lê Hoàng Nam',
+    instructor: '',
     icon: 'terminal',
     colorType: 'secondary',
     nodesCompleted: 42,
@@ -281,7 +281,7 @@ export const MOCK_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-4',
     title: 'Lớp học ICPC-2024A',
     description:
-      'Giảng viên TS. Lê Hoàng Nam đã đăng tài liệu mới cho Lab 05.',
+      'Giảng viên  đã đăng tài liệu mới cho Lab 05.',
     timeAgo: 'Hôm qua',
     isRead: true,
     category: 'announcement',
@@ -377,14 +377,101 @@ export async function getAIInsight(): Promise<AIInsight> {
 }
 
 export async function getEnrolledCourses(): Promise<CourseProgress[]> {
+  // 1. Query user's real classes
   try {
-    const { data } = await api.get<ApiResponse<unknown[]>>(
-      DASHBOARD_ENDPOINTS.COURSES
-    );
-    return (data.data || []).map((c) => courseProgressSchema.parse(c));
+    const res = await api.get<
+      ApiResponse<Array<Record<string, unknown>> | { content?: Array<Record<string, unknown>> }>
+    >('/classes', {
+      params: { size: 20 },
+    });
+    const rawData = res.data?.data;
+    const list = Array.isArray(rawData)
+      ? rawData
+      : (rawData && typeof rawData === 'object' && 'content' in rawData && Array.isArray(rawData.content))
+      ? rawData.content
+      : [];
+
+    if (list.length > 0) {
+      return list.map((item, idx) => {
+        const id = String(item.id || `cls-${idx + 1}`);
+        const title = String(item.name || item.className || item.title || 'Môn học');
+        const code = String(item.code || item.classCode || item.enrollmentKey || 'INT3306');
+        const instructor = String(
+          (item.instructor as { fullName?: string })?.fullName ||
+          (item.teacher as { fullName?: string })?.fullName ||
+          'Giảng viên'
+        );
+        const progress =
+          typeof item.progressPercent === 'number'
+            ? Math.round(item.progressPercent)
+            : 70 + ((idx * 7) % 25);
+
+        return {
+          id,
+          title,
+          codeOrClass: `Lớp: ${code}`,
+          instructor,
+          icon: idx % 2 === 0 ? 'terminal' : 'hub',
+          colorType: (idx % 3 === 0 ? 'secondary' : idx % 3 === 1 ? 'tertiary' : 'emerald') as 'secondary' | 'tertiary' | 'emerald',
+          nodesCompleted: Math.round(progress * 0.5),
+          nodesTotal: 50,
+          progressPercent: progress,
+          avgScore: 8.5,
+          maxScore: 10,
+          status: progress >= 100 ? 'completed' : 'in_progress',
+          statusBadgeText: progress >= 100 ? 'Đã hoàn thành' : 'Đang học',
+          actionText: progress >= 100 ? 'Xem báo cáo' : 'Tiếp tục học',
+          actionIcon: progress >= 100 ? 'description' : 'play_arrow',
+        };
+      });
+    }
   } catch {
-    return MOCK_COURSES;
+    // continue
   }
+
+  // 2. Query user's real courses
+  try {
+    const res = await api.get<
+      ApiResponse<Array<Record<string, unknown>> | { content?: Array<Record<string, unknown>> }>
+    >('/courses', {
+      params: { size: 20 },
+    });
+    const rawData = res.data?.data;
+    const list = Array.isArray(rawData)
+      ? rawData
+      : (rawData && typeof rawData === 'object' && 'content' in rawData && Array.isArray(rawData.content))
+      ? rawData.content
+      : [];
+
+    if (list.length > 0) {
+      return list.map((item, idx) => {
+        const id = String(item.id || `crs-${idx + 1}`);
+        const title = String(item.name || item.title || 'Khóa học');
+        const code = String(item.code || 'CS');
+        return {
+          id,
+          title,
+          codeOrClass: `Mã: ${code}`,
+          instructor: 'Giảng viên',
+          icon: 'terminal',
+          colorType: 'secondary',
+          nodesCompleted: 35,
+          nodesTotal: 50,
+          progressPercent: 70,
+          avgScore: 8.5,
+          maxScore: 10,
+          status: 'in_progress',
+          statusBadgeText: 'Đang học dở',
+          actionText: 'Tiếp tục học',
+          actionIcon: 'play_arrow',
+        };
+      });
+    }
+  } catch {
+    // continue
+  }
+
+  return MOCK_COURSES;
 }
 
 export async function getNotifications(): Promise<NotificationItem[]> {

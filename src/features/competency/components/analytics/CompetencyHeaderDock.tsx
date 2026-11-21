@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { CustomSelect } from '@/components/shared';
 
 export type MainTabType = 'profile' | 'tree' | 'heatmap';
 
@@ -75,20 +76,17 @@ export function CompetencyHeaderDock({
         {/* Controls & Quick Actions Dock */}
         <div className="flex flex-wrap items-center gap-2.5 xl:justify-end">
           {/* Course Selector Pill */}
-          <div className="relative inline-flex items-center">
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="appearance-none bg-[#F0F4F9] dark:bg-[#1E1F20] text-[#1F1F1F] dark:text-[#E3E3E3] text-xs font-medium pl-4 pr-9 py-2.5 rounded-full border-none shadow-none focus:outline-none cursor-pointer"
-            >
-              <option value="CS-301">Cấu trúc dữ liệu &amp; Giải thuật nâng cao (CS-301)</option>
-              <option value="CP-402">Lập trình thi đấu ICPC Master (CP-402)</option>
-              <option value="SE-208">Kiến trúc Phần mềm &amp; Hệ thống Phân tán (SE-208)</option>
-            </select>
-            <span className="material-symbols-outlined absolute right-3 text-[18px] text-[#444746] dark:text-[#8E918F] pointer-events-none">
-              expand_more
-            </span>
-          </div>
+          <CustomSelect<string>
+            variant="pill"
+            value={selectedCourse}
+            onChange={setSelectedCourse}
+            options={[
+              { value: 'CS-301', label: 'Cấu trúc dữ liệu & Giải thuật nâng cao (CS-301)' },
+              { value: 'CP-402', label: 'Lập trình thi đấu ICPC Master (CP-402)' },
+              { value: 'SE-208', label: 'Kiến trúc Phần mềm & Hệ thống Phân tán (SE-208)' },
+            ]}
+            className="min-w-[260px]"
+          />
 
           {/* Sync Socratic AI CTA */}
           <button

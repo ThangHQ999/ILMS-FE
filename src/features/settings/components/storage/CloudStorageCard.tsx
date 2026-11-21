@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useStorageSummary, useStorageBreakdown } from '../../hooks/useStorage';
+import { useMySubscription } from '../../hooks/useSubscriptions';
 import { ManageStorageFilesModal } from '../modals/ManageStorageFilesModal';
 
 interface CloudStorageCardProps {
@@ -15,6 +16,7 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
 
   const { data: summary, isLoading: isLoadingSummary } = useStorageSummary();
   const { data: breakdown, isLoading: isLoadingBreakdown } = useStorageBreakdown();
+  const { data: mySub } = useMySubscription();
 
   if (isLoadingSummary || !summary) {
     return (
@@ -24,10 +26,24 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
     );
   }
 
-  const isNearLimit = summary.isStorageNearLimit || summary.usagePercentage >= 85;
+  const displayPlanName =
+    mySub?.planName || summary.planName;
+  const displayUsedStorage =
+    (summary.usedStorageBytes > 0 ? summary.usedStorageFormatted : null) ||
+    (mySub?.limits?.usedStorageBytes ? mySub.limits.usedStorageFormatted : null) ||
+    summary.usedStorageFormatted ||
+    mySub?.limits?.usedStorageFormatted ||
+    '0 B';
+  const displayMaxStorage =
+    summary.maxStorageFormatted || mySub?.limits?.maxStorageFormatted || '1.0 GB';
+  const displayUsagePercentage =
+    summary.usedStorageBytes > 0
+      ? summary.usagePercentage
+      : mySub?.limits?.storageUsagePercentage || summary.usagePercentage || 0;
+  const isNearLimit = summary.isStorageNearLimit || displayUsagePercentage >= 85;
   const progressColor = isNearLimit
     ? 'bg-rose-500'
-    : summary.usagePercentage > 60
+    : displayUsagePercentage > 60
     ? 'bg-amber-500'
     : 'bg-[#0B57D0] dark:bg-[#A8C7FA]';
 
@@ -46,7 +62,7 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
                   Dung lượng lưu trữ Đám mây (Cloud Storage)
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5] text-[10px] font-bold">
-                  {summary.planName}
+                  {displayPlanName}
                 </span>
               </div>
               <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
@@ -70,10 +86,10 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[#1F1F1F] dark:text-[#E3E3E3] text-sm">
-                {summary.usedStorageFormatted}
+                {displayUsedStorage}
               </span>
               <span className="text-[#747775] dark:text-[#C4C7C5]">
-                / {summary.maxStorageFormatted} ({summary.usagePercentage.toFixed(1)}%)
+                / {displayMaxStorage} ({displayUsagePercentage.toFixed(1)}%)
               </span>
             </div>
             {isNearLimit ? (
@@ -92,7 +108,13 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
           <div className="w-full h-3 bg-white dark:bg-[#1E1F20] rounded-full overflow-hidden flex">
             <div
               className={`h-full transition-all duration-500 rounded-full ${progressColor}`}
-              style={{ width: `${Math.min(100, Math.max(1, summary.usagePercentage))}%` }}
+              style={{
+                width: `${
+                  displayUsagePercentage > 0
+                    ? Math.min(100, Math.max(2, displayUsagePercentage))
+                    : 0
+                }%`,
+              }}
             />
           </div>
 

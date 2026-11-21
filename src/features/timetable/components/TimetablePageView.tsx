@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { TeacherWeeklyTimetableView } from './TeacherWeeklyTimetableView';
@@ -14,7 +15,7 @@ export function TimetablePageView({
   userFullName = 'TS. Nguyễn Văn An',
 }: TimetablePageViewProps) {
   const router = useRouter();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isFocusMode, setIsFocusMode] = useState(false);
 
   return (

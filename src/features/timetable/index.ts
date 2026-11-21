@@ -13,3 +13,4 @@ export * from './components/TimetableSessionCard';
 export * from './components/TimetableSessionDetailModal';
 export * from './components/TimetableSwapRoomModal';
 export * from './components/TimetableExportModal';
+export * from './components/TimetableCreateSessionModal';

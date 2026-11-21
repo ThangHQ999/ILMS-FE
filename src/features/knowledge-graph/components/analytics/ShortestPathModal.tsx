@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { KnowledgeNodeData, ShortestPathResult } from '../../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { CustomSelect } from '@/components/shared';
+import { KnowledgeEdgeData, KnowledgeNodeData, ShortestPathResult } from '../../types';
 import { findDijkstraShortestPath } from '../../services/knowledge-graph.service';
 
 interface ShortestPathModalProps {
   isOpen: boolean;
   onClose: () => void;
   nodes: KnowledgeNodeData[];
+  edges?: KnowledgeEdgeData[];
   onConfirmPath: (result: ShortestPathResult) => void;
 }
 
@@ -15,14 +17,25 @@ export function ShortestPathModal({
   isOpen,
   onClose,
   nodes,
+  edges = [],
   onConfirmPath,
 }: ShortestPathModalProps) {
-  const [sourceId, setSourceId] = useState('prefix-sum');
-  const [targetId, setTargetId] = useState('lazy-prop');
+  const [sourceId, setSourceId] = useState(nodes[0]?.id ?? '');
+  const [targetId, setTargetId] = useState(nodes[nodes.length - 1]?.id ?? nodes[0]?.id ?? '');
+
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    if (!nodes.some((n) => n.id === sourceId)) {
+      setSourceId(nodes[0].id);
+    }
+    if (!nodes.some((n) => n.id === targetId)) {
+      setTargetId(nodes[nodes.length - 1]?.id ?? nodes[0].id);
+    }
+  }, [nodes, sourceId, targetId]);
 
   const pathResult = useMemo(() => {
-    return findDijkstraShortestPath(sourceId, targetId, nodes);
-  }, [sourceId, targetId, nodes]);
+    return findDijkstraShortestPath(sourceId, targetId, nodes, edges);
+  }, [sourceId, targetId, nodes, edges]);
 
   if (!isOpen) return null;
 
@@ -63,22 +76,16 @@ export function ShortestPathModal({
             <label className="text-xs font-semibold text-slate-600 dark:text-[#C4C7C5] mb-1 block">
               Điểm xuất phát (Node nguồn):
             </label>
-            <div className="flex items-center bg-[#F0F4F9] dark:bg-[#282A2C] px-3.5 py-2.5 rounded-2xl border-none">
-              <span className="material-symbols-outlined text-slate-400 text-[18px] mr-2">
-                trip_origin
-              </span>
-              <select
-                value={sourceId}
-                onChange={(e) => setSourceId(e.target.value)}
-                className="bg-transparent border-0 outline-none w-full text-xs font-semibold text-slate-900 dark:text-[#E3E3E3] cursor-pointer"
-              >
-                {nodes.map((n) => (
-                  <option key={n.id} value={n.id} className="dark:bg-[#1E1F20]">
-                    {n.label} ({n.complexity.time})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect<string>
+              value={sourceId}
+              onChange={setSourceId}
+              options={nodes.map((n) => ({
+                value: n.id,
+                label: `${n.label} (${n.complexity.time})`,
+                icon: 'trip_origin',
+              }))}
+              triggerClassName="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl border-none h-11"
+            />
           </div>
 
           <div className="flex justify-center -my-1 text-slate-400">
@@ -89,22 +96,16 @@ export function ShortestPathModal({
             <label className="text-xs font-semibold text-slate-600 dark:text-[#C4C7C5] mb-1 block">
               Mục tiêu chinh phục (Node đích):
             </label>
-            <div className="flex items-center bg-[#F0F4F9] dark:bg-[#282A2C] px-3.5 py-2.5 rounded-2xl border-none">
-              <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px] mr-2">
-                location_on
-              </span>
-              <select
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                className="bg-transparent border-0 outline-none w-full text-xs font-semibold text-slate-900 dark:text-[#E3E3E3] cursor-pointer"
-              >
-                {nodes.map((n) => (
-                  <option key={n.id} value={n.id} className="dark:bg-[#1E1F20]">
-                    {n.label} ({n.complexity.time})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect<string>
+              value={targetId}
+              onChange={setTargetId}
+              options={nodes.map((n) => ({
+                value: n.id,
+                label: `${n.label} (${n.complexity.time})`,
+                icon: 'location_on',
+              }))}
+              triggerClassName="bg-[#F0F4F9] dark:bg-[#282A2C] rounded-2xl border-none h-11"
+            />
           </div>
         </div>
 

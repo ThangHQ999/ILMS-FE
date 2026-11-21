@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { AVAILABLE_MAJORS } from '../constants';
 import type { ClassFilters } from '../types';
 
@@ -151,46 +152,34 @@ export function MobileFilterBottomSheet({
         </div>
 
         {/* Major Filter */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-foreground">
-            {t('fieldMajor')}
-          </label>
-          <select
-            value={localFilters.major || ''}
-            onChange={(e) =>
-              setLocalFilters((prev) => ({ ...prev, major: e.target.value || undefined }))
-            }
-            className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary border border-border/40 transition-all"
-          >
-            <option value="">{t('filterMajorAll')}</option>
-            {AVAILABLE_MAJORS.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CustomSelect<string>
+          label={t('fieldMajor')}
+          value={localFilters.major || ''}
+          onChange={(val) =>
+            setLocalFilters((prev) => ({ ...prev, major: val || undefined }))
+          }
+          options={[
+            { value: '', label: t('filterMajorAll') },
+            ...AVAILABLE_MAJORS.map((m) => ({ value: m, label: m })),
+          ]}
+        />
 
         {/* Sort Filter */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-foreground">
-            {t('sortUpdated')} / {t('sortName')}
-          </label>
-          <select
-            value={localFilters.sort || 'updated_desc'}
-            onChange={(e) =>
-              setLocalFilters((prev) => ({
-                ...prev,
-                sort: e.target.value as 'updated_desc' | 'name_asc' | 'students_desc',
-              }))
-            }
-            className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary border border-border/40 transition-all"
-          >
-            <option value="updated_desc">{t('sortUpdated')}</option>
-            <option value="name_asc">{t('sortName')}</option>
-            <option value="students_desc">{t('sortStudents')}</option>
-          </select>
-        </div>
+        <CustomSelect<'updated_desc' | 'name_asc' | 'students_desc'>
+          label={`${t('sortUpdated')} / ${t('sortName')}`}
+          value={localFilters.sort || 'updated_desc'}
+          onChange={(val) =>
+            setLocalFilters((prev) => ({
+              ...prev,
+              sort: val,
+            }))
+          }
+          options={[
+            { value: 'updated_desc', label: t('sortUpdated') },
+            { value: 'name_asc', label: t('sortName') },
+            { value: 'students_desc', label: t('sortStudents') },
+          ]}
+        />
 
         {/* Footer Actions */}
         <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-3">

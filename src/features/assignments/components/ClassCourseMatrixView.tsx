@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomSelect } from '@/components/shared';
 
 export interface ClassCourseMatrixViewProps {
   onSwitchView?: (view: 'cards' | 'matrix') => void;
@@ -61,7 +62,7 @@ interface MatrixCell {
 export function ClassCourseMatrixView({
   onSwitchView,
   activeView = 'matrix',
-  onToast = () => {},
+  onToast = () => { },
 }: ClassCourseMatrixViewProps) {
   const router = useRouter();
 
@@ -95,7 +96,7 @@ export function ClassCourseMatrixView({
     {
       code: 'CS-202',
       name: 'Mạng máy tính & TT Dữ liệu',
-      instructor: 'TS. Lê Hoàng Nam',
+      instructor: '',
       credits: 3,
       quizzesCount: 12,
       passRate: 91,
@@ -557,11 +558,10 @@ export function ClassCourseMatrixView({
           <button
             type="button"
             onClick={() => onSwitchView?.('cards')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeView === 'cards'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeView === 'cards'
                 ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[16px]">grid_view</span>
             <span>Dạng thẻ bài tập</span>
@@ -569,11 +569,10 @@ export function ClassCourseMatrixView({
           <button
             type="button"
             onClick={() => onSwitchView?.('matrix')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeView === 'matrix'
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeView === 'matrix'
                 ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span
               className="material-symbols-outlined text-[16px]"
@@ -640,15 +639,15 @@ export function ClassCourseMatrixView({
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                 Kỳ khảo thí
               </label>
-              <select
+              <CustomSelect<string>
                 value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-              >
-                <option value="2024.2">Học kỳ 2024.2</option>
-                <option value="2024.1">Học kỳ 2024.1</option>
-                <option value="2023.2">Học kỳ 2023.2</option>
-              </select>
+                onChange={setSelectedSemester}
+                options={[
+                  { value: '2024.2', label: 'Học kỳ 2024.2' },
+                  { value: '2024.1', label: 'Học kỳ 2024.1' },
+                  { value: '2023.2', label: 'Học kỳ 2023.2' },
+                ]}
+              />
             </div>
 
             {/* Assessment Type Select */}
@@ -656,16 +655,16 @@ export function ClassCourseMatrixView({
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                 Hình thức đánh giá
               </label>
-              <select
+              <CustomSelect<'all' | 'quiz' | 'lab' | 'flashcard'>
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-              >
-                <option value="all">Tất cả hình thức (Quiz, Lab, Card)</option>
-                <option value="quiz">Chỉ bài kiểm tra Trắc nghiệm (Quiz)</option>
-                <option value="lab">Chỉ bài thực hành & Lab Terminal</option>
-                <option value="flashcard">Chỉ bộ thẻ ghi nhớ (Flashcard)</option>
-              </select>
+                onChange={setSelectedType}
+                options={[
+                  { value: 'all', label: 'Tất cả hình thức (Quiz, Lab, Card)' },
+                  { value: 'quiz', label: 'Chỉ bài kiểm tra Trắc nghiệm (Quiz)' },
+                  { value: 'lab', label: 'Chỉ bài thực hành & Lab Terminal' },
+                  { value: 'flashcard', label: 'Chỉ bộ thẻ ghi nhớ (Flashcard)' },
+                ]}
+              />
             </div>
 
             {/* Quick Search */}
@@ -701,11 +700,10 @@ export function ClassCourseMatrixView({
                     : 'Đã hiển thị lại toàn bộ ma trận bài tập.'
                 );
               }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                isUrgentOnly
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${isUrgentOnly
                   ? 'bg-rose-600 text-white shadow-xs'
                   : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 border border-rose-200 dark:border-rose-900'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[18px]">notification_important</span>
               <span>Chỉ bài cần làm gấp</span>
@@ -725,11 +723,10 @@ export function ClassCourseMatrixView({
                     : 'Đã ẩn phần trăm tiến độ để tinh gọn giao diện.'
                 );
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                showMetrics
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${showMetrics
                   ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[18px]">percent</span>
               <span>{showMetrics ? 'Đang hiện tiến độ' : 'Hiện tiến độ & Điểm số'}</span>
@@ -838,13 +835,12 @@ export function ClassCourseMatrixView({
                           </span>
                           {course.tag && (
                             <span
-                              className={`text-[11px] font-semibold flex items-center gap-1 ${
-                                course.tagType === 'urgent'
+                              className={`text-[11px] font-semibold flex items-center gap-1 ${course.tagType === 'urgent'
                                   ? 'text-rose-600 dark:text-rose-400'
                                   : course.tagType === 'completed'
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-blue-600 dark:text-blue-400'
-                              }`}
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-blue-600 dark:text-blue-400'
+                                }`}
                             >
                               {course.tagType === 'urgent' && (
                                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
@@ -974,11 +970,10 @@ export function ClassCourseMatrixView({
                                 </span>
                                 {showMetrics && cell.badge && (
                                   <span
-                                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
-                                      cell.badge.includes('18h') || cell.badge.includes('nợ')
+                                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${cell.badge.includes('18h') || cell.badge.includes('nợ')
                                         ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
                                         : 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                                    }`}
+                                      }`}
                                   >
                                     {cell.badge}
                                   </span>
@@ -989,28 +984,26 @@ export function ClassCourseMatrixView({
                               {cell.items.map((item) => (
                                 <div
                                   key={item.id}
-                                  className={`p-2.5 rounded-lg flex flex-col gap-1 transition-all ${
-                                    item.status === 'urgent'
+                                  className={`p-2.5 rounded-lg flex flex-col gap-1 transition-all ${item.status === 'urgent'
                                       ? 'bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/60'
                                       : 'bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-start justify-between gap-1">
                                     <div className="flex items-center gap-1.5 min-w-0">
                                       <span
-                                        className={`material-symbols-outlined text-[16px] shrink-0 ${
-                                          item.status === 'urgent'
+                                        className={`material-symbols-outlined text-[16px] shrink-0 ${item.status === 'urgent'
                                             ? 'text-rose-600'
                                             : item.status === 'completed'
-                                            ? 'text-emerald-600'
-                                            : 'text-blue-600'
-                                        }`}
+                                              ? 'text-emerald-600'
+                                              : 'text-blue-600'
+                                          }`}
                                       >
                                         {item.status === 'urgent'
                                           ? 'timer'
                                           : item.status === 'completed'
-                                          ? 'task_alt'
-                                          : 'assignment'}
+                                            ? 'task_alt'
+                                            : 'assignment'}
                                       </span>
                                       <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                                         {item.title}
@@ -1294,19 +1287,18 @@ export function ClassCourseMatrixView({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`material-symbols-outlined text-[20px] ${
-                            it.status === 'urgent'
+                          className={`material-symbols-outlined text-[20px] ${it.status === 'urgent'
                               ? 'text-rose-600'
                               : it.status === 'completed'
-                              ? 'text-emerald-600'
-                              : 'text-blue-600'
-                          }`}
+                                ? 'text-emerald-600'
+                                : 'text-blue-600'
+                            }`}
                         >
                           {it.type === 'lab'
                             ? 'terminal'
                             : it.type === 'flashcard'
-                            ? 'style'
-                            : 'assignment'}
+                              ? 'style'
+                              : 'assignment'}
                         </span>
                         <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                           {it.title}
@@ -1346,8 +1338,8 @@ export function ClassCourseMatrixView({
                         {it.status === 'completed'
                           ? 'Xem lại kết quả'
                           : it.type === 'lab'
-                          ? 'Mở Terminal Lab'
-                          : 'Bắt đầu làm bài'}
+                            ? 'Mở Terminal Lab'
+                            : 'Bắt đầu làm bài'}
                       </button>
                     </div>
                   </div>
@@ -1419,37 +1411,28 @@ export function ClassCourseMatrixView({
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Lớp nguồn
                   </label>
-                  <select
+                  <CustomSelect<string>
                     value={crossAssignForm.sourceClass}
-                    onChange={(e) =>
-                      setCrossAssignForm((prev) => ({ ...prev, sourceClass: e.target.value }))
+                    onChange={(val) =>
+                      setCrossAssignForm((prev) => ({ ...prev, sourceClass: val }))
                     }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                  >
-                    {classes.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code}
-                      </option>
-                    ))}
-                  </select>
+                    options={classes.map((c) => ({ value: c.code, label: c.code }))}
+                  />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Học phần áp dụng
                   </label>
-                  <select
+                  <CustomSelect<string>
                     value={crossAssignForm.sourceCourse}
-                    onChange={(e) =>
-                      setCrossAssignForm((prev) => ({ ...prev, sourceCourse: e.target.value }))
+                    onChange={(val) =>
+                      setCrossAssignForm((prev) => ({ ...prev, sourceCourse: val }))
                     }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                  >
-                    {courses.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code} - {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    options={courses.map((c) => ({
+                      value: c.code,
+                      label: `${c.code} - ${c.name}`,
+                    }))}
+                  />
                 </div>
               </div>
 
@@ -1457,21 +1440,18 @@ export function ClassCourseMatrixView({
                 <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Đích gán chéo (Target Class)
                 </label>
-                <select
+                <CustomSelect<string>
                   value={crossAssignForm.targetClass}
-                  onChange={(e) =>
-                    setCrossAssignForm((prev) => ({ ...prev, targetClass: e.target.value }))
+                  onChange={(val) =>
+                    setCrossAssignForm((prev) => ({ ...prev, targetClass: val }))
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                >
-                  {classes
+                  options={classes
                     .filter((c) => c.code !== crossAssignForm.sourceClass)
-                    .map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code} ({c.name})
-                      </option>
-                    ))}
-                </select>
+                    .map((c) => ({
+                      value: c.code,
+                      label: `${c.code} (${c.name})`,
+                    }))}
+                />
               </div>
 
               <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300 flex items-start gap-2">

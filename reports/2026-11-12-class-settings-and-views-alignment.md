@@ -40,7 +40,7 @@
 - **Cột phải (8 cột / Form chi tiết):**
   - **Mục 1:** Tên lớp học, Mã lớp hệ thống (khóa chỉ đọc bởi P. Đào tạo), Niên khóa & Học kỳ, Sĩ số tối đa (60 SV), Trạng thái vận hành, Mô tả & Đề cương tóm tắt.
   - **Mục 2:** Khối mã bảo mật Enrollment Secret Key (`MATKHAU123`), sao chép mã 1-click, tạo mã mới ngẫu nhiên, sao chép liên kết mời trực tiếp; 3 công tắc chính sách (Tự đăng ký, Yêu cầu GV phê duyệt, Chỉ cho phép email trường @edu.vn).
-  - **Mục 3:** Phân quyền Chủ nhiệm môn (TS. Lê Hoàng Nam) và Trợ giảng TA (ThS. Trần Phương Thảo), nút thêm cán bộ.
+  - **Mục 3:** Phân quyền Chủ nhiệm môn () và Trợ giảng TA (ThS. Trần Phương Thảo), nút thêm cán bộ.
   - **Mục 4:** Cấu hình AI Tutor v4.2 bật/tắt 24/7, 2 thẻ lựa chọn phương pháp sư phạm (Socratic vs Direct Fix), định mức hỏi đáp mỗi ngày (35 lượt/SV/ngày), nguồn dữ liệu Grounding (Slide, Bài giảng, Kiến thức CS mở rộng).
   - **Mục 5:** Tích hợp xuất Bảng điểm & PLO (.xlsx), đồng bộ Moodle LMS, sao lưu toàn bộ kho lớp SCORM/Zip.
   - **Mục 6 (Vùng nguy hiểm):** Lưu trữ lớp học (Read-only) và Xóa vĩnh viễn không gian lớp với cảnh báo xác nhận.

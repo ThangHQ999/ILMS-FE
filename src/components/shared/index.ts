@@ -11,3 +11,5 @@ export * from './GlobalSocraticCoach';
 export * from './LatexFormulaPicker';
 export * from './PublicHeader';
 export * from './PublicMinimalFooter';
+export * from './MarkdownContent';
+export * from './QuotaUpgradeModal';

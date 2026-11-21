@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { useDashboardMode } from '../hooks/useDashboardMode';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardSidebar } from './DashboardSidebar';
@@ -19,30 +20,11 @@ export function DashboardPageView() {
   const { isFocus, toggleMode, switchMode } = useDashboardMode();
   const { analytics, competency, aiInsight, courses, aiTasks, isLoading } = useDashboardData();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('ilms_analytics_sidebar_collapsed');
-      if (stored === 'true') {
-        setIsSidebarCollapsed(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
   const handleToggleSidebarCollapse = useCallback(() => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('ilms_analytics_sidebar_collapsed', String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
+    setIsSidebarCollapsed((prev) => !prev);
+  }, [setIsSidebarCollapsed]);
 
   const userFullName =
     user?.firstName || user?.lastName

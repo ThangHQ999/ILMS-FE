@@ -9,6 +9,17 @@ export type KnowledgeRelationshipType =
   | 'solves'
   | 'evaluates';
 
+export type Neo4jRelationType =
+  | 'REQUIRES'
+  | 'DEPENDS_ON'
+  | 'IS_A'
+  | 'PART_OF'
+  | 'CONTRASTS_WITH'
+  | 'USES'
+  | 'APPLIES_TO'
+  | 'PREREQUISITE'
+  | 'RELATED_TO';
+
 export interface NodeComplexity {
   time: string;
   space: string;
@@ -19,6 +30,13 @@ export interface KnowledgeNodeData {
   id: string;
   label: string;
   sublabel?: string;
+  canonicalCode?: string;
+  topic?: string;
+  kind?: string;
+  isAuxiliary?: boolean;
+  materialId?: string;
+  materialTitle?: string;
+  linkedLessonIds?: string[];
   category: Exclude<KnowledgeCategory, 'all'>;
   status: KnowledgeStatus;
   masteryScore: number;
@@ -29,6 +47,43 @@ export interface KnowledgeNodeData {
   relatedCount?: number;
   prerequisites?: string[];
   successors?: string[];
+  definitionText?: string;
+  exceptions?: string[];
+  conditions?: string[];
+  parentEntityId?: string;
+  parentEntityLabel?: string;
+  auxiliaryActionText?: string;
+  auxiliaryContentText?: string;
+  stepNumber?: number;
+  processes?: Array<{
+    id?: string;
+    name: string;
+    description?: string;
+    steps: Array<{ stepNumber: number; action: string }>;
+  }>;
+  exercises?: Array<{
+    id?: string;
+    title: string;
+    content: string;
+    steps?: Array<{ stepNumber: number; action: string }>;
+  }>;
+  examples?: Array<{
+    id?: string;
+    title: string;
+    explanation?: string;
+    codeSnippet?: string;
+  }>;
+  arguments?: Array<{
+    id?: string;
+    hypothesis: string;
+    evidence: string;
+    conclusion?: string;
+  }>;
+  chunks?: Array<{
+    id?: string;
+    locator?: string;
+    text?: string;
+  }>;
 }
 
 export interface KnowledgeEdgeData {
@@ -37,10 +92,12 @@ export interface KnowledgeEdgeData {
   source: string;
   target: string;
   label?: string;
+  rawRelation?: string;
   relationshipType: KnowledgeRelationshipType;
   animated?: boolean;
   dashed?: boolean;
   weight?: number;
+  isAuxiliary?: boolean;
 }
 
 export type EditTool = 'select' | 'add-node' | 'connect' | 'delete';

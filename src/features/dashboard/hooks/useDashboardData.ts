@@ -20,15 +20,15 @@ export function useDashboardData() {
   const analyticsQuery = useQuery({
     queryKey: dashboardKeys.analytics(),
     queryFn: getDashboardAnalytics,
-    staleTime: 5 * 60 * 1000,
-    initialData: MOCK_STAT_OVERVIEW,
+    staleTime: 60_000,
+    placeholderData: MOCK_STAT_OVERVIEW,
   });
 
   const competencyQuery = useQuery({
     queryKey: dashboardKeys.competency(),
     queryFn: getCompetencyData,
-    staleTime: 5 * 60 * 1000,
-    initialData: {
+    staleTime: 60_000,
+    placeholderData: {
       heatmap: MOCK_HEATMAP_CELLS,
       pillars: MOCK_COMPETENCY_PILLARS,
     },
@@ -37,22 +37,22 @@ export function useDashboardData() {
   const aiInsightQuery = useQuery({
     queryKey: dashboardKeys.aiInsight(),
     queryFn: getAIInsight,
-    staleTime: 5 * 60 * 1000,
-    initialData: MOCK_AI_INSIGHT,
+    staleTime: 60_000,
+    placeholderData: MOCK_AI_INSIGHT,
   });
 
   const coursesQuery = useQuery({
     queryKey: dashboardKeys.courses(),
     queryFn: getEnrolledCourses,
-    staleTime: 5 * 60 * 1000,
-    initialData: MOCK_COURSES,
+    staleTime: 60_000,
+    placeholderData: MOCK_COURSES,
   });
 
   const aiTasksQuery = useQuery({
     queryKey: dashboardKeys.aiTasks(),
     queryFn: getAITasks,
-    staleTime: 5 * 60 * 1000,
-    initialData: MOCK_AI_TASKS,
+    staleTime: 60_000,
+    placeholderData: MOCK_AI_TASKS,
   });
 
   return {

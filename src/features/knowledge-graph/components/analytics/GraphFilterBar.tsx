@@ -12,6 +12,9 @@ interface GraphFilterBarProps {
   onDepthChange: (depth: number) => void;
   isSmartDimActive: boolean;
   onToggleSmartDim: () => void;
+  showAuxiliaryNodes?: boolean;
+  onToggleAuxiliaryNodes?: () => void;
+  auxiliaryCount?: number;
   nodes: KnowledgeNodeData[];
   onSelectNode: (id: string) => void;
 }
@@ -25,10 +28,16 @@ export function GraphFilterBar({
   onDepthChange,
   isSmartDimActive,
   onToggleSmartDim,
+  showAuxiliaryNodes = false,
+  onToggleAuxiliaryNodes,
+  auxiliaryCount = 0,
   nodes,
   onSelectNode,
 }: GraphFilterBarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const coreNodes = React.useMemo(() => nodes.filter((n) => !n.isAuxiliary), [nodes]);
+  const countNodes = showAuxiliaryNodes ? nodes : coreNodes;
 
   const filteredDropdownNodes = nodes
     .filter(
@@ -40,11 +49,31 @@ export function GraphFilterBar({
     .slice(0, 5);
 
   const categories: Array<{ id: KnowledgeCategory; label: string; count: number; color?: string }> = [
-    { id: 'all', label: 'Tất cả', count: 24 },
-    { id: 'ds', label: 'Cấu trúc DL', count: 8, color: 'bg-[#0B57D0] dark:bg-[#A8C7FA]' },
-    { id: 'algo', label: 'Thuật toán', count: 6, color: 'bg-purple-600' },
-    { id: 'icpc', label: 'ICPC Lab', count: 6, color: 'bg-emerald-600' },
-    { id: 'plo', label: 'Chuẩn PLO', count: 4, color: 'bg-amber-600' },
+    { id: 'all', label: 'Tất cả', count: countNodes.length },
+    {
+      id: 'ds',
+      label: 'Khái niệm lõi',
+      count: countNodes.filter((n) => n.category === 'ds').length,
+      color: 'bg-[#0B57D0] dark:bg-[#A8C7FA]',
+    },
+    {
+      id: 'algo',
+      label: 'Quy trình / Thuật toán',
+      count: countNodes.filter((n) => n.category === 'algo').length,
+      color: 'bg-purple-600',
+    },
+    {
+      id: 'icpc',
+      label: 'Bài tập / Thực hành',
+      count: countNodes.filter((n) => n.category === 'icpc').length,
+      color: 'bg-emerald-600',
+    },
+    {
+      id: 'plo',
+      label: 'Chủ đề / PLO',
+      count: countNodes.filter((n) => n.category === 'plo').length,
+      color: 'bg-amber-600',
+    },
   ];
 
   return (
@@ -138,10 +167,33 @@ export function GraphFilterBar({
         })}
       </div>
 
-      {/* Depth Slider & Smart Dimming Controls */}
-      <div className="flex items-center gap-4 w-full lg:w-auto justify-end">
+      {/* Depth Slider, Auxiliary Toggle & Smart Dimming Controls */}
+      <div className="flex items-center flex-wrap gap-3 w-full lg:w-auto justify-end">
+        {/* Toggle Auxiliary Nodes Button */}
+        {auxiliaryCount > 0 && onToggleAuxiliaryNodes && (
+          <button
+            onClick={onToggleAuxiliaryNodes}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold border-none shadow-none transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              showAuxiliaryNodes
+                ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-200'
+                : 'bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3]'
+            }`}
+            title="Bật/tắt hiển thị các node phụ trợ: Định nghĩa, Bước quy trình, Bài tập, Đoạn trích"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {showAuxiliaryNodes ? 'layers' : 'layers_clear'}
+            </span>
+            <span>
+              {showAuxiliaryNodes
+                ? `Ẩn chi tiết phụ trợ (${auxiliaryCount})`
+                : `Hiện chi tiết phụ trợ (${auxiliaryCount})`}
+            </span>
+          </button>
+        )}
+
         {/* Depth (F1 - F4) */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-slate-500 dark:text-[#C4C7C5] font-medium">Bậc:</span>
           <div className="flex items-center bg-[#F0F4F9] dark:bg-[#282A2C] px-3 py-1.5 rounded-full gap-2 border-none">
             <span className="text-xs font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
@@ -161,7 +213,7 @@ export function GraphFilterBar({
         {/* Smart Dimming Toggle */}
         <button
           onClick={onToggleSmartDim}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border-none shadow-none transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border-none shadow-none transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             isSmartDimActive
               ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
               : 'bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3]'

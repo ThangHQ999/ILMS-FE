@@ -68,7 +68,7 @@ export function ClassListView({
                       {item.title || item.name}
                     </Link>
                     <span className="text-[11px] text-muted-foreground">
-                      {item.major} • GV: {item.instructor?.fullName || 'TS. Lê Hoàng Nam'}
+                      {item.major} • GV: {item.instructor?.fullName || ''}
                     </span>
                   </td>
 

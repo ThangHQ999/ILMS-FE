@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
-import { BackgroundTasksPageView } from '@/features/materials';
+import { MaterialsHubPageView } from '@/features/materials';
 
 export default function MaterialBackgroundTasksPage() {
   const router = useRouter();
@@ -15,6 +15,15 @@ export default function MaterialBackgroundTasksPage() {
     }
   }, [isLoading, isError, user, router]);
 
-  return <BackgroundTasksPageView />;
-}
+  if (isLoading || !user || isError) return null;
 
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 animate-pulse" />
+      }
+    >
+      <MaterialsHubPageView />
+    </Suspense>
+  );
+}

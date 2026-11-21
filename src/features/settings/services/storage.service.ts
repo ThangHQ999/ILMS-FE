@@ -13,12 +13,12 @@ import {
 const delay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const defaultStorageSummary: StorageSummary = {
-  usedStorageBytes: 52428800,
-  usedStorageFormatted: '50.0 MB',
+  usedStorageBytes: 0,
+  usedStorageFormatted: '0 B',
   maxStorageBytes: 1073741824,
   maxStorageFormatted: '1.0 GB',
-  usagePercentage: 4.88,
-  totalFilesCount: 4,
+  usagePercentage: 0,
+  totalFilesCount: 0,
   planName: 'Gói Cơ bản',
   planCode: 'FREE',
   isStorageNearLimit: false,
@@ -155,53 +155,91 @@ export async function getStorageSummary(): Promise<StorageSummary> {
 
 export async function getStorageBreakdown(): Promise<StorageBreakdown> {
   try {
-    const { data } = await api.get<ApiResponse<StorageBreakdown>>('/storage/breakdown');
-    if (data?.data) return storageBreakdownSchema.parse(data.data);
+    const { data } = await api.get<ApiResponse<unknown>>('/storage/breakdown');
+    const raw = data?.data ?? data;
+    if (raw && typeof raw === 'object') {
+      const rec = raw as Record<string, unknown>;
+      return storageBreakdownSchema.parse({
+        byFileType: Array.isArray(rec.byFileType) ? rec.byFileType : [],
+        byCourse: Array.isArray(rec.byCourse) ? rec.byCourse : [],
+      });
+    }
   } catch {
-    // Fallback
+    // Backend unavailable
   }
-  await delay(80);
-  return storageBreakdownSchema.parse(mockBreakdown);
+  return { byFileType: [], byCourse: [] };
+}
+
+function formatBytesFallback(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 export async function getStorageFiles(
   filters?: StorageFilesFilter
 ): Promise<StorageFileItem[]> {
   try {
-    const { data } = await api.get<ApiResponse<PaginatedResponse<StorageFileItem> | StorageFileItem[]>>(
-      '/storage/files',
-      { params: filters }
-    );
-    if (data?.data) {
-      const items = Array.isArray(data.data) ? data.data : data.data.items;
-      return items.map((f) => storageFileItemSchema.parse(f));
-    }
+    const { data } = await api.get<ApiResponse<unknown>>('/storage/files', {
+      params: filters,
+    });
+    const raw = data?.data ?? data;
+    const list = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === 'object'
+        ? (raw as { content?: unknown[]; items?: unknown[]; files?: unknown[] }).content ??
+          (raw as { items?: unknown[] }).items ??
+          (raw as { files?: unknown[] }).files ??
+          []
+        : [];
+
+    return list.map((entry, idx) => {
+      const rec = entry as Record<string, unknown>;
+      const sizeBytes = Number(rec.sizeBytes ?? rec.fileSizeBytes ?? rec.bytes ?? 0);
+      const publicId = rec.publicId
+        ? String(rec.publicId)
+        : rec.fileId
+          ? String(rec.fileId)
+          : undefined;
+      return storageFileItemSchema.parse({
+        id: String(rec.id ?? rec.materialId ?? publicId ?? idx + 1),
+        publicId,
+        fileId: rec.fileId ? String(rec.fileId) : publicId,
+        name: String(
+          rec.name ?? rec.title ?? rec.originalFilename ?? rec.fileName ?? 'Tệp không tên'
+        ),
+        fileType: String(rec.fileType ?? rec.format ?? 'OTHER').toUpperCase(),
+        sizeBytes,
+        sizeFormatted: String(
+          rec.sizeFormatted ?? rec.fileSizeFormatted ?? formatBytesFallback(sizeBytes)
+        ),
+        courseId: rec.courseId ? String(rec.courseId) : undefined,
+        courseName: rec.courseName ? String(rec.courseName) : undefined,
+        uploadedAt: String(rec.uploadedAt ?? rec.createdAt ?? ''),
+        downloadUrl: rec.downloadUrl
+          ? String(rec.downloadUrl)
+          : rec.fileUrl
+            ? String(rec.fileUrl)
+            : rec.url
+              ? String(rec.url)
+              : undefined,
+      });
+    });
   } catch {
-    // Fallback
+    return [];
   }
-  await delay(100);
-  let filtered = [...mockFiles];
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    filtered = filtered.filter(
-      (f) => f.name.toLowerCase().includes(q) || f.courseName?.toLowerCase().includes(q)
-    );
-  }
-  if (filters?.fileType && filters.fileType !== 'ALL') {
-    filtered = filtered.filter((f) => f.fileType === filters.fileType);
-  }
-  return filtered.map((f) => storageFileItemSchema.parse(f));
 }
 
-export async function deleteStorageFile(materialId: string): Promise<{ success: boolean; message: string }> {
-  try {
-    const { data } = await api.delete<ApiResponse<{ message: string }>>(`/storage/files/${materialId}`);
-    mockFiles = mockFiles.filter((f) => f.id !== materialId);
-    return { success: true, message: data?.message || 'Xóa tệp thành công' };
-  } catch {
-    // Fallback
-  }
-  await delay(150);
-  mockFiles = mockFiles.filter((f) => f.id !== materialId);
-  return { success: true, message: 'Đã xóa tệp để giải phóng dung lượng' };
+export async function deleteStorageFile(
+  publicIdOrMaterialId: string
+): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.delete<ApiResponse<{ message?: string }>>('/uploads', {
+    params: { publicId: publicIdOrMaterialId },
+  });
+  return {
+    success: true,
+    message: data?.message || 'Đã xóa tệp và giải phóng dung lượng thành công',
+  };
 }

@@ -2,12 +2,30 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { useClassKpiSummary, useClasses } from '@/features/classes/hooks/useClasses';
 
 export function TeacherOverviewTopMetrics() {
   const t = useTranslations('dashboard.teacher');
+  const { data: kpiData } = useClassKpiSummary();
+  const { data: classesData } = useClasses({ role: 'TEACHER', page: 0, size: 50 });
+  const classesList = classesData?.items ?? [];
+
+  const totalStudentsCalculated = classesList.reduce(
+    (acc, c) => acc + (c.enrolledCount || 0),
+    0
+  );
+  const activeClassesCount = kpiData?.activeClassesCount ?? classesList.length;
+  const totalLearnersCount =
+    kpiData?.totalStudentsCount && kpiData.totalStudentsCount > 0
+      ? kpiData.totalStudentsCount
+      : totalStudentsCalculated;
+  const pendingGradingCount =
+    kpiData?.ungradedAssignmentsCount ??
+    classesList.reduce((acc, c) => acc + (c.stats?.ungradedAssignmentsCount || 0), 0);
+  const attendanceRateFormatted = '95.2%';
 
   return (
-    <div className="grid grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Card 1: Lớp đang phụ trách */}
       <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 border-none shadow-sm dark:shadow-none flex flex-col justify-between h-[160px] transition-transform hover:-translate-y-0.5 duration-200">
         {/* Top part: Title and Icon */}
@@ -24,7 +42,7 @@ export function TeacherOverviewTopMetrics() {
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 font-sans">
             <span className="text-4xl font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight">
-              4
+              {activeClassesCount}
             </span>
             <span className="text-lg font-medium text-gray-500 dark:text-[#8E918F]">
               {t('kpiClassesUnit')}
@@ -52,7 +70,7 @@ export function TeacherOverviewTopMetrics() {
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 font-sans">
             <span className="text-4xl font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight">
-              185
+              {totalLearnersCount}
             </span>
             <span className="text-lg font-medium text-gray-500 dark:text-[#8E918F]">
               {t('kpiStudentsUnit')}
@@ -80,14 +98,16 @@ export function TeacherOverviewTopMetrics() {
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 font-sans">
             <span className="text-4xl font-semibold text-orange-800 dark:text-[#FFB784] tracking-tight">
-              34
+              {pendingGradingCount}
             </span>
             <span className="text-lg font-medium text-orange-800/80 dark:text-[#FFB784]/80">
               {t('kpiSubmissionsUnit')}
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-[#FFB784] animate-pulse shrink-0" />
+            {pendingGradingCount > 0 && (
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-[#FFB784] animate-pulse shrink-0" />
+            )}
             <p className="text-sm text-orange-800/80 dark:text-[#FFB784]/80 leading-snug font-medium font-sans truncate">
               {t('kpiPendingGradingSub')}
             </p>
@@ -111,7 +131,7 @@ export function TeacherOverviewTopMetrics() {
         <div className="mt-auto">
           <div className="flex items-baseline gap-2 font-sans">
             <span className="text-4xl font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight">
-              94.5%
+              {attendanceRateFormatted}
             </span>
           </div>
           <p className="text-sm text-emerald-700 dark:text-[#81C995] font-medium mt-2 leading-snug flex items-center gap-1 font-sans truncate">

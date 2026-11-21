@@ -70,8 +70,12 @@ export const classItemSchema = z
     enrollmentKey: z.string().nullish().transform((v) => v ?? ''),
     classCode: z.string().optional(),
     code: z.string().optional(),
-    thumbnailUrl: z.string().optional(),
-    backgroundUrl: z.string().optional(),
+    thumbnailUrl: z.string().nullish().transform((v) => (v && v.trim() ? v : undefined)).optional(),
+    backgroundUrl: z.string().nullish().transform((v) => (v && v.trim() ? v : undefined)).optional(),
+    visibility: z.enum(['PUBLIC', 'PRIVATE']).nullish().transform((v) => v ?? undefined).optional(),
+    requireApproval: z.boolean().nullish().transform((v) => v ?? undefined).optional(),
+    startAt: z.string().nullish().transform((v) => (v && v.trim() ? v : undefined)).optional(),
+    endAt: z.string().nullish().transform((v) => (v && v.trim() ? v : undefined)).optional(),
     isCodeClosed: z.boolean().nullish().transform((v) => v ?? false),
     isCodeActive: z.boolean().optional(),
     status: classStatusSchema,
@@ -173,10 +177,18 @@ export const createClassRequestSchema = z.object({
   description: z.string().max(500).optional().default(''),
   academicYear: z.string().min(4, 'classes.validation.academicYearRequired').default('2026-2027'),
   major: z.string().min(2, 'classes.validation.majorRequired').default('Khoa học Máy tính'),
-  maxStudents: z.coerce.number().min(1).max(500).default(60),
+  maxStudents: z.coerce.number().min(1).max(500).optional().default(60),
+  maxCapacity: z.coerce.number().min(1).max(500).optional(),
+  visibility: z.enum(['PUBLIC', 'PRIVATE']).default('PUBLIC'),
+  requireApproval: z.boolean().default(true),
+  isCodeActive: z.boolean().default(true),
+  thumbnailUrl: z.string().optional(),
+  backgroundUrl: z.string().optional(),
+  startAt: z.string().optional(),
+  endAt: z.string().optional(),
   enrollmentKey: z.string().max(30).optional().default(''),
 });
-export type CreateClassRequest = z.infer<typeof createClassRequestSchema>;
+export type CreateClassRequest = z.input<typeof createClassRequestSchema>;
 
 export const updateClassRequestSchema = createClassRequestSchema.partial().extend({
   id: z.string(),

@@ -5,8 +5,8 @@ import { GraphCanvas } from '../canvas/GraphCanvas';
 import { SketchCanvasOverlay } from '../canvas/SketchCanvasOverlay';
 import { FloatingNodeCard } from './FloatingNodeCard';
 import { FocusPillToolbar } from './FocusPillToolbar';
-import { DraggableMinimap } from './DraggableMinimap';
 import { KnowledgeNodeData } from '../../types';
+import type { ConceptDetail } from '../../knowledge-graph.schema';
 import type { Node, Edge } from '@xyflow/react';
 
 interface KnowledgeFocusViewProps {
@@ -16,9 +16,14 @@ interface KnowledgeFocusViewProps {
   rawEdges: Edge[];
   selectedNodeId: string | null;
   selectedNode: KnowledgeNodeData | null;
+  conceptDetail?: ConceptDetail | null;
+  isConceptDetailLoading?: boolean;
+  canOpenLesson?: boolean;
   onSelectNode: (id: string | null) => void;
   hoveredNodeId: string | null;
   onHoverNode: (id: string | null) => void;
+  onOpenLesson?: (node: KnowledgeNodeData) => void;
+  onAskAiTutor?: (node: KnowledgeNodeData) => void;
   onExitFocus: () => void;
 }
 
@@ -28,9 +33,14 @@ export function KnowledgeFocusView({
   rawEdges,
   selectedNodeId,
   selectedNode,
+  conceptDetail = null,
+  isConceptDetailLoading = false,
+  canOpenLesson = false,
   onSelectNode,
   hoveredNodeId,
   onHoverNode,
+  onOpenLesson,
+  onAskAiTutor,
   onExitFocus,
 }: KnowledgeFocusViewProps) {
   const [isSpotlightActive, setIsSpotlightActive] = useState(true);
@@ -53,8 +63,7 @@ export function KnowledgeFocusView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onExitFocus]);
 
-  const activeFocusNode =
-    selectedNode || nodesData.find((n) => n.id === 'seg-tree') || nodesData[0];
+  const activeFocusNode = selectedNode || nodesData[0] || null;
 
   return (
     <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#F0F4F9] dark:bg-[#131314] font-sans text-slate-800 dark:text-[#E3E3E3] select-none">
@@ -80,7 +89,7 @@ export function KnowledgeFocusView({
           <span className="text-slate-400 font-medium">Đang học:</span>
           <span className="font-medium text-[#041E49] dark:text-[#A8C7FA] px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center gap-1.5 shadow-none">
             <span className="material-symbols-outlined text-[15px]">schema</span>
-            {activeFocusNode?.label || 'Segment Tree'}
+            {activeFocusNode?.label || 'Chưa chọn khái niệm'}
           </span>
         </div>
 
@@ -137,6 +146,9 @@ export function KnowledgeFocusView({
           activeTool="select"
           layoutMode="force"
           isFocusMode={true}
+          isMinimapVisible={isMinimapVisible}
+          onToggleMinimap={() => setIsMinimapVisible((prev) => !prev)}
+          onCloseMinimap={() => setIsMinimapVisible(false)}
         />
       </div>
 
@@ -144,26 +156,26 @@ export function KnowledgeFocusView({
       {selectedNode && (
         <FloatingNodeCard
           node={selectedNode}
+          conceptDetail={conceptDetail}
+          isConceptLoading={isConceptDetailLoading}
+          canOpenLesson={canOpenLesson}
           onClose={() => onSelectNode(null)}
-          onOpenLesson={(n) => alert(`Chuyển hướng vào bài học: ${n.label}`)}
-          onAskAiTutor={(n) => alert(`Mở gia sư Socratic AI phân tích: ${n.label}`)}
+          onOpenLesson={onOpenLesson}
+          onAskAiTutor={onAskAiTutor}
         />
       )}
 
-      {/* 6. Draggable Minimap */}
-      <DraggableMinimap
-        isVisible={isMinimapVisible}
-        onClose={() => setIsMinimapVisible(false)}
-      />
-
-      {/* 7. Bottom Pill Toolbar */}
+      {/* 6. Bottom Pill Toolbar */}
       <FocusPillToolbar
         isMinimapVisible={isMinimapVisible}
         onToggleMinimap={() => setIsMinimapVisible((prev) => !prev)}
         isDrawingMode={isDrawingMode}
         onToggleDrawingMode={() => setIsDrawingMode((prev) => !prev)}
         onClearDrawing={() => setClearDrawingTrigger((prev) => prev + 1)}
-        onCenterSegmentTree={() => onSelectNode('seg-tree')}
+        onCenterSegmentTree={() => {
+          const center = nodesData.find((n) => n.isCenterpiece) ?? nodesData[0];
+          if (center) onSelectNode(center.id);
+        }}
       />
     </div>
   );

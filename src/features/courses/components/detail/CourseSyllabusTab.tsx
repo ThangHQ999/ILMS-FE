@@ -2,26 +2,35 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import type { Chapter, Lesson, LessonType } from '../../schemas/course.schema';
 
 interface CourseSyllabusTabProps {
   chapters: Chapter[];
+  canEdit?: boolean;
   onOpenAddChapter: () => void;
   onOpenAddLessonForChapter: (chapterId: string) => void;
+  onDeleteChapter?: (chapter: Chapter) => void;
   onSelectLesson: (lesson: Lesson, chapter: Chapter) => void;
+  onEditLesson?: (lesson: Lesson) => void;
+  onDeleteLesson?: (lesson: Lesson) => void;
 }
 
 export function CourseSyllabusTab({
   chapters,
+  canEdit = false,
   onOpenAddChapter,
   onOpenAddLessonForChapter,
+  onDeleteChapter,
   onSelectLesson,
+  onEditLesson,
+  onDeleteLesson,
 }: CourseSyllabusTabProps) {
   const t = useTranslations('courses.detail');
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
   // Accordion open/close map (default all open)
   const [openChapterIds, setOpenChapterIds] = useState<Record<string, boolean>>(() => {
@@ -66,9 +75,10 @@ export function CourseSyllabusTab({
             les.title.toLowerCase().includes(q) ||
             (les.description && les.description.toLowerCase().includes(q));
 
-          const matchType = selectedType === 'ALL' || les.lessonType === selectedType;
+          const matchStatus =
+            selectedStatus === 'ALL' || les.status === selectedStatus;
 
-          return matchQuery && matchType;
+          return matchQuery && matchStatus;
         });
 
         const chapterTitleMatch = !q || ch.title.toLowerCase().includes(q);
@@ -80,43 +90,13 @@ export function CourseSyllabusTab({
         };
       })
       .filter((ch) => ch.isVisible);
-  }, [chapters, searchQuery, selectedType]);
+  }, [chapters, searchQuery, selectedStatus]);
 
-  const getLessonTypeIcon = (type: LessonType) => {
-    switch (type) {
-      case 'VIDEO':
-        return {
-          icon: 'play_circle',
-          containerClass:
-            'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border-2 border-rose-200 dark:border-rose-800/60 group-hover:bg-rose-100 dark:group-hover:bg-rose-900/60',
-        };
-      case 'ASSIGNMENT':
-        return {
-          icon: 'code',
-          containerClass:
-            'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-800/60 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/60',
-        };
-      case 'QUIZ':
-        return {
-          icon: 'quiz',
-          containerClass:
-            'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-2 border-amber-200 dark:border-amber-800/60 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/60',
-        };
-      case 'DOCUMENT':
-        return {
-          icon: 'description',
-          containerClass:
-            'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border-2 border-indigo-200 dark:border-indigo-800/60 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/60',
-        };
-      case 'THEORY':
-      default:
-        return {
-          icon: 'menu_book',
-          containerClass:
-            'bg-slate-100 text-[#0059bb] dark:bg-blue-950/60 dark:text-blue-400 border-2 border-slate-300/60 dark:border-blue-800/60 group-hover:bg-[#d8e2ff] dark:group-hover:bg-blue-900/60 group-hover:border-[#0059bb]/50',
-        };
-    }
-  };
+  const getNotionLessonStyle = () => ({
+    icon: 'article',
+    containerClass:
+      'bg-blue-50 text-[#0059bb] dark:bg-blue-950/60 dark:text-blue-400 border-2 border-blue-200/80 dark:border-blue-800/60 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/60',
+  });
 
   const getLessonStatusBadge = (status: Lesson['status']) => {
     switch (status) {
@@ -170,17 +150,17 @@ export function CourseSyllabusTab({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none cursor-pointer hover:text-slate-900 dark:hover:text-white px-2 py-1.5 rounded-lg border-2 border-slate-300/60 dark:border-slate-700"
-          >
-            <option value="ALL" className="bg-white dark:bg-slate-900">{t('filterTypeAll')}</option>
-            <option value="THEORY" className="bg-white dark:bg-slate-900">{t('filterTypeTheory')}</option>
-            <option value="VIDEO" className="bg-white dark:bg-slate-900">{t('filterTypeVideo')}</option>
-            <option value="ASSIGNMENT" className="bg-white dark:bg-slate-900">{t('filterTypeAssignment')}</option>
-            <option value="QUIZ" className="bg-white dark:bg-slate-900">{t('filterTypeQuiz')}</option>
-          </select>
+          <CustomSelect<string>
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'COMPLETED', label: 'Đã hoàn thành' },
+              { value: 'IN_PROGRESS', label: 'Đang học' },
+              { value: 'NOT_STARTED', label: 'Chưa học' },
+            ]}
+            className="min-w-[160px]"
+          />
 
           <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
@@ -202,14 +182,16 @@ export function CourseSyllabusTab({
             <span>{t('collapseAll')}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onOpenAddChapter}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#0059bb] hover:bg-[#004899] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm ml-2 border-2 border-[#0059bb] transition-colors cursor-pointer active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            <span>{t('btnAddChapter')}</span>
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onOpenAddChapter}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#0059bb] hover:bg-[#004899] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm ml-2 border-2 border-[#0059bb] transition-colors cursor-pointer active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <span>{t('btnAddChapter')}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -227,7 +209,7 @@ export function CourseSyllabusTab({
               ? 'Thử tìm với từ khóa khác hoặc xóa bộ lọc định dạng.'
               : 'Bắt đầu xây dựng đề cương môn học bằng cách thêm chương học đầu tiên.'}
           </p>
-          {!searchQuery && (
+          {!searchQuery && canEdit && (
             <button
               type="button"
               onClick={onOpenAddChapter}
@@ -243,6 +225,8 @@ export function CourseSyllabusTab({
           {filteredChapters.map((ch, chIdx) => {
             const isOpen = openChapterIds[ch.id] ?? true;
             const displayedLessons = ch.matchedLessons;
+            const originalIdx = chapters.findIndex((c) => c.id === ch.id);
+            const displayChapterNum = (originalIdx >= 0 ? originalIdx : chIdx) + 1;
 
             return (
               <div
@@ -254,7 +238,7 @@ export function CourseSyllabusTab({
                   <div className="flex items-start gap-4">
                     {/* Circle Chapter Index */}
                     <div className="w-12 h-12 rounded-full bg-[#d6e3ff] text-[#0d1c32] dark:bg-blue-950 dark:text-blue-200 flex items-center justify-center text-lg shrink-0 font-bold border-[3px] border-[#b9c7e4] dark:border-blue-800">
-                      {ch.orderIndex || chIdx + 1}
+                      {displayChapterNum}
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -275,15 +259,28 @@ export function CourseSyllabusTab({
                   </div>
 
                   {/* Actions Right */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => onOpenAddLessonForChapter(ch.id)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[#0059bb] dark:text-blue-400 border-2 border-[#0059bb]/30 hover:border-[#0059bb] hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors text-xs sm:text-sm font-medium cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">add</span>
-                      <span>{t('btnAddLesson')}</span>
-                    </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenAddLessonForChapter(ch.id)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[#0059bb] dark:text-blue-400 border-2 border-[#0059bb]/30 hover:border-[#0059bb] hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors text-xs sm:text-sm font-medium cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">add</span>
+                        <span>{t('btnAddLesson')}</span>
+                      </button>
+                    )}
+
+                    {canEdit && onDeleteChapter && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteChapter(ch)}
+                        title="Xóa chương học"
+                        className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer border-none bg-transparent"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -298,16 +295,18 @@ export function CourseSyllabusTab({
                   </div>
                 </div>
 
-                {/* Danh sách Bài học Chương */}
+                    {/* Danh sách Bài học Chương */}
                 {isOpen && (
                   <div className="flex flex-col gap-4">
-                    {displayedLessons.length === 0 ? (
+                    {displayedLessons.filter((les) => canEdit || les.isPublished !== false).length === 0 ? (
                       <div className="py-6 text-center text-xs text-slate-400 italic">
                         {t('emptyLessons')}
                       </div>
                     ) : (
-                      displayedLessons.map((les) => {
-                        const typeInfo = getLessonTypeIcon(les.lessonType);
+                      displayedLessons
+                        .filter((les) => canEdit || les.isPublished !== false)
+                        .map((les) => {
+                        const pageStyle = getNotionLessonStyle();
 
                         return (
                           <div
@@ -315,12 +314,12 @@ export function CourseSyllabusTab({
                             className="bg-white dark:bg-slate-900 border-[3px] border-slate-200 dark:border-slate-800 hover:border-[#0059bb] dark:hover:border-blue-500 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all group shadow-sm"
                           >
                             <div className="flex items-start md:items-center gap-4 min-w-0 flex-1">
-                              {/* Type Icon Box */}
+                              {/* Page Icon Box */}
                               <div
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${typeInfo.containerClass}`}
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${pageStyle.containerClass}`}
                               >
                                 <span className="material-symbols-outlined text-[22px]">
-                                  {typeInfo.icon}
+                                  {pageStyle.icon}
                                 </span>
                               </div>
 
@@ -332,7 +331,7 @@ export function CourseSyllabusTab({
 
                                 <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                                   <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
-                                    {t(`lessonType.${les.lessonType}`)}
+                                    Bài giảng dạng khối
                                   </span>
                                   <span>•</span>
                                   <span className="flex items-center gap-1">
@@ -352,9 +351,37 @@ export function CourseSyllabusTab({
                               </div>
                             </div>
 
-                            {/* Right Status Badge & Action Button */}
-                            <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                            {/* Right Status Badge & Action Buttons */}
+                            <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-center">
+                              {les.isPublished === false && (
+                                <span className="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-bold">
+                                  Bản nháp
+                                </span>
+                              )}
                               {getLessonStatusBadge(les.status)}
+
+                              {canEdit && onEditLesson && (
+                                <button
+                                  type="button"
+                                  onClick={() => onEditLesson(les)}
+                                  title="Mở Không gian Biên soạn Khối (Notion Editor)"
+                                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 transition-colors text-xs font-semibold cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">edit_note</span>
+                                  <span>Biên soạn</span>
+                                </button>
+                              )}
+
+                              {canEdit && onDeleteLesson && (
+                                <button
+                                  type="button"
+                                  onClick={() => onDeleteLesson(les)}
+                                  title="Xóa bài học"
+                                  className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer border-none bg-transparent"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                              )}
 
                               <button
                                 type="button"

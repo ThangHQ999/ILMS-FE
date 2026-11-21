@@ -1,14 +1,19 @@
+import { api } from '@/lib/axios';
+import type { ApiResponse } from '@/types/common';
 import {
   WeeklyTimetableData,
   SwapRoomFormValues,
   TimetableSession,
   DaySchedule,
+  RawLessonSessionResponse,
+  CreateLessonSessionRequest,
 } from '../types';
 import {
   EVEN_WEEK_SESSIONS_TEMPLATE,
   ODD_WEEK_SESSIONS_TEMPLATE,
-  MOCK_WEEKLY_TIMETABLE_DATA,
 } from '../constants';
+
+const SESSIONS_STORAGE_KEY = 'ilms_timetable_sessions_cache_v1';
 
 function padZero(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
@@ -27,39 +32,269 @@ export function formatDateShort(d: Date): string {
 }
 
 /**
- * Calculates Monday (start of the week) for a given weekNumber in the academic semester.
- * Base reference: Week 9 begins on Monday October 21, 2024.
+ * Returns the Monday (00:00:00) of the week for any given date.
+ */
+export function getMondayOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 is Sunday, 1 is Monday ...
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Calculates current semester week number dynamically from current calendar date.
+ */
+export function getCurrentWeekNumber(): number {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  // Semester 1 starts around September 1st
+  const semesterStart = new Date(currentYear, 8, 1);
+  const mondaySemesterStart = getMondayOfWeek(semesterStart);
+  const diffMs = now.getTime() - mondaySemesterStart.getTime();
+  const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return Math.max(1, Math.min(20, diffWeeks));
+}
+
+/**
+ * Calculates Monday for a given weekNumber in the current semester.
  */
 export function getWeekStartDate(weekNumber: number): Date {
-  const baseWeek = 9;
-  const baseMonday = new Date(2024, 9, 21); // 21/10/2024 is Monday of Week 9
-  const diffDays = (weekNumber - baseWeek) * 7;
-  const target = new Date(baseMonday);
-  target.setDate(target.getDate() + diffDays);
+  const now = new Date();
+  const currentWeek = getCurrentWeekNumber();
+  const currentMonday = getMondayOfWeek(now);
+  const diffWeeks = weekNumber - currentWeek;
+  const target = new Date(currentMonday);
+  target.setDate(target.getDate() + diffWeeks * 7);
   return target;
 }
 
 /**
- * Estimates week number from any Date based on the semester base start date.
+ * Maps raw backend LessonSessionResponseDTO to UI TimetableSession shape.
  */
-export function getWeekNumberFromDate(date: Date): number {
-  const baseWeek = 9;
-  const baseMonday = new Date(2024, 9, 21);
-  const diffMs = date.getTime() - baseMonday.getTime();
-  const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000));
-  return Math.max(1, Math.min(20, baseWeek + diffWeeks));
+export function mapRawSessionToTimetableSession(
+  raw: RawLessonSessionResponse,
+  fallbackDayOfWeek = 1
+): TimetableSession {
+  const id = raw.lessonSessionId || raw.id || raw.sessionId || `SES-${Date.now()}`;
+  const courseName =
+    raw.courseName ||
+    raw.subjectTitle ||
+    raw.courseCode ||
+    'Môn học';
+  const className = raw.className || raw.classCode || raw.classId || 'Lớp học';
+  const room = raw.roomName || (raw.roomId ? `Phòng ${raw.roomId}` : 'Chưa xếp phòng');
+  const roomShort = room.replace(/^phòng\s*/i, '').trim();
+
+  const startShift = raw.startShift && raw.startShift >= 1 ? raw.startShift : 1;
+  const endShift = raw.endShift && raw.endShift >= startShift ? raw.endShift : Math.min(12, startShift + 2);
+  const startTime = raw.startTime || '07:00:00';
+  const endTime = raw.endTime || '09:35:00';
+
+  let dayOfWeek = fallbackDayOfWeek;
+  if (raw.sessionDate) {
+    const parts = raw.sessionDate.split('-');
+    if (parts.length === 3) {
+      const parsedDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      dayOfWeek = parsedDate.getDay();
+    }
+  }
+
+  const combinedSearch = `${courseName} ${className} ${raw.note || ''}`.toLowerCase();
+  const sessionType: 'theory' | 'lab' | 'exam' =
+    combinedSearch.includes('lab') || combinedSearch.includes('thực hành')
+      ? 'lab'
+      : combinedSearch.includes('thi') || combinedSearch.includes('kiểm tra') || combinedSearch.includes('exam')
+        ? 'exam'
+        : 'theory';
+
+  const statusStr = (raw.status || '').toUpperCase();
+  const status: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' =
+    statusStr === 'COMPLETED'
+      ? 'COMPLETED'
+      : statusStr === 'IN_PROGRESS'
+        ? 'IN_PROGRESS'
+        : 'SCHEDULED';
+
+  return {
+    lessonSessionId: id,
+    classId: raw.classId,
+    className: `${courseName} (${className})`,
+    sessionDate: raw.sessionDate,
+    startTime,
+    endTime,
+    roomName: room,
+    roomShort: roomShort || room,
+    note: raw.note || undefined,
+    studentsCount: raw.studentsCount ?? raw.totalStudents ?? 45,
+    status,
+    sessionType,
+    tag: raw.note?.includes('Kiểm tra') ? 'Kiểm tra' : undefined,
+    tagType: sessionType === 'exam' ? 'exam' : undefined,
+    actionType: status === 'IN_PROGRESS' ? 'attendance_now' : 'detail',
+    dayOfWeek,
+    startShift,
+    endShift,
+  };
 }
 
 /**
- * Mock data fetching function that dynamically generates complete WeeklyTimetableData
- * based on weekStartDate. Alternates between distinct schedules (e.g. Even vs Odd weeks)
- * and dynamically calculates actual calendar dates for all 7 days of the week.
+ * Fetch personal timetable for current user (Teacher or Student).
+ * Endpoint: GET /api/v1/users/me/timetable
  */
-export const fetchMockTimetable = (
-  weekStartDate: Date,
-  explicitWeekNumber?: number
-): WeeklyTimetableData => {
-  const weekNumber = explicitWeekNumber ?? getWeekNumberFromDate(weekStartDate);
+export async function fetchMyTimetable(params?: {
+  startDate?: string;
+  endDate?: string;
+  classId?: string;
+  courseId?: string;
+}): Promise<RawLessonSessionResponse[]> {
+  try {
+    const { data: res } = await api.get<ApiResponse<RawLessonSessionResponse[]> | RawLessonSessionResponse[]>(
+      '/users/me/timetable',
+      { params }
+    );
+    if (Array.isArray(res)) return res;
+    if (res && 'data' in res && Array.isArray(res.data)) return res.data;
+  } catch (err) {
+    console.warn('API /users/me/timetable unavailable, fallback to local/cached data:', err);
+  }
+  return [];
+}
+
+/**
+ * Fetch lesson sessions for a specific class.
+ * Endpoint: GET /api/v1/classes/{classId}/lesson-sessions
+ */
+export async function fetchClassLessonSessions(
+  classId: string,
+  params?: { startDate?: string; endDate?: string; courseId?: string }
+): Promise<RawLessonSessionResponse[]> {
+  try {
+    const { data: res } = await api.get<ApiResponse<RawLessonSessionResponse[]> | RawLessonSessionResponse[]>(
+      `/classes/${classId}/lesson-sessions`,
+      { params }
+    );
+    if (Array.isArray(res)) return res;
+    if (res && 'data' in res && Array.isArray(res.data)) return res.data;
+  } catch {
+    // Try alias endpoint if hyphenated endpoint fails
+    try {
+      const { data: res } = await api.get<ApiResponse<RawLessonSessionResponse[]> | RawLessonSessionResponse[]>(
+        `/classes/${classId}/lessonSessions`,
+        { params }
+      );
+      if (Array.isArray(res)) return res;
+      if (res && 'data' in res && Array.isArray(res.data)) return res.data;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+/**
+ * Create a new lesson session for a class.
+ * Endpoint: POST /api/v1/classes/{classId}/lesson-sessions
+ */
+export async function createLessonSession(
+  classId: string,
+  payload: CreateLessonSessionRequest
+): Promise<RawLessonSessionResponse> {
+  try {
+    const { data: res } = await api.post<ApiResponse<RawLessonSessionResponse> | RawLessonSessionResponse>(
+      `/classes/${classId}/lesson-sessions`,
+      payload
+    );
+    const rawData =
+      res && typeof res === 'object' && 'data' in res && res.data
+        ? (res as ApiResponse<RawLessonSessionResponse>).data
+        : (res as RawLessonSessionResponse);
+
+    const fallbackItem: RawLessonSessionResponse = {
+      id: `sess-${Date.now()}`,
+      classId,
+      sessionDate: payload.sessionDate,
+      startShift: payload.startShift,
+      endShift: payload.endShift,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      roomId: payload.roomId,
+      roomName: payload.roomName,
+      note: payload.note,
+    };
+    const item: RawLessonSessionResponse = Object.assign({}, fallbackItem, rawData);
+    saveLocalSession(item);
+    return item;
+  } catch (err: unknown) {
+    // Try alias endpoint
+    try {
+      const { data: res } = await api.post<ApiResponse<RawLessonSessionResponse> | RawLessonSessionResponse>(
+        `/classes/${classId}/lessonSessions`,
+        payload
+      );
+      const rawData =
+        res && typeof res === 'object' && 'data' in res && res.data
+          ? (res as ApiResponse<RawLessonSessionResponse>).data
+          : (res as RawLessonSessionResponse);
+
+      const fallbackItem: RawLessonSessionResponse = {
+        id: `sess-${Date.now()}`,
+        classId,
+        sessionDate: payload.sessionDate,
+        startShift: payload.startShift,
+        endShift: payload.endShift,
+        startTime: payload.startTime,
+        endTime: payload.endTime,
+        roomId: payload.roomId,
+        roomName: payload.roomName,
+        note: payload.note,
+      };
+      const item: RawLessonSessionResponse = Object.assign({}, fallbackItem, rawData);
+      saveLocalSession(item);
+      return item;
+    } catch (innerErr: unknown) {
+      // Check 409 conflict
+      const anyErr = innerErr as { response?: { status?: number; data?: { error?: string; message?: string } } };
+      if (anyErr?.response?.status === 409 || anyErr?.response?.data?.error === 'ROOM_SCHEDULE_CONFLICT') {
+        throw new Error(
+          anyErr.response.data?.message ||
+            'Trùng lịch phòng học vào thời gian đã chọn! Vui lòng chọn phòng hoặc khung giờ khác.'
+        );
+      }
+      throw innerErr;
+    }
+  }
+}
+
+function getLocalStoredSessions(): RawLessonSessionResponse[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(SESSIONS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalSession(session: RawLessonSessionResponse) {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getLocalStoredSessions();
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify([session, ...list]));
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Fetch and construct WeeklyTimetableData for a given week and optional filters.
+ */
+export async function getWeeklyTimetable(
+  weekNumber = 9,
+  filters?: { classId?: string; courseId?: string }
+): Promise<WeeklyTimetableData> {
+  const weekStartDate = getWeekStartDate(weekNumber);
   const isEven = weekNumber % 2 === 0;
 
   const daysInfo = [
@@ -84,49 +319,93 @@ export const fetchMockTimetable = (
       dateObj: d,
       fullDate,
       dateString,
-      isToday: fullDate === todayIso || (weekNumber === 9 && info.dayOfWeek === 3),
+      isToday: fullDate === todayIso,
     };
   });
 
-  const startDate = formatDateSlash(dayDates[0].dateObj);
-  const endDate = formatDateSlash(dayDates[6].dateObj);
+  const startDateIso = dayDates[0].fullDate;
+  const endDateIso = dayDates[6].fullDate;
+  const startDateSlash = formatDateSlash(dayDates[0].dateObj);
+  const endDateSlash = formatDateSlash(dayDates[6].dateObj);
 
-  // Select completely different templates based on Even/Odd week
-  const templates = isEven ? EVEN_WEEK_SESSIONS_TEMPLATE : ODD_WEEK_SESSIONS_TEMPLATE;
+  // 1. Call real backend API GET /api/v1/users/me/timetable
+  let rawApiSessions: RawLessonSessionResponse[] = [];
+  if (filters?.classId) {
+    rawApiSessions = await fetchClassLessonSessions(filters.classId, {
+      startDate: startDateIso,
+      endDate: endDateIso,
+      courseId: filters.courseId,
+    });
+  } else {
+    rawApiSessions = await fetchMyTimetable({
+      startDate: startDateIso,
+      endDate: endDateIso,
+      classId: filters?.classId,
+      courseId: filters?.courseId,
+    });
+  }
 
-  // Build sessions with synchronous date matching each day of this week
-  const sessions: TimetableSession[] = templates.map((tpl, idx) => {
-    const matchedDay = dayDates.find((d) => d.dayOfWeek === tpl.dayOfWeek);
-    const sessionDate = matchedDay ? matchedDay.fullDate : formatDateIso(weekStartDate);
-    return {
-      ...tpl,
-      lessonSessionId: `SES-W${weekNumber}-${tpl.classId}-${tpl.startShift}-${idx}`,
-      sessionDate,
-    };
+  // Combine with locally saved created sessions
+  const localCreated = getLocalStoredSessions().filter((s) => {
+    if (s.sessionDate < startDateIso || s.sessionDate > endDateIso) return false;
+    if (filters?.classId && s.classId !== filters.classId) return false;
+    return true;
   });
 
-  // Group into DaySchedule[]
+  const existingIds = new Set(rawApiSessions.map((s) => s.lessonSessionId || s.id));
+  const mergedRaw = [
+    ...rawApiSessions,
+    ...localCreated.filter((s) => !existingIds.has(s.lessonSessionId || s.id)),
+  ];
+
+  let mappedSessions: TimetableSession[] = [];
+
+  if (mergedRaw.length > 0) {
+    mappedSessions = mergedRaw.map((raw, idx) =>
+      mapRawSessionToTimetableSession(raw, (idx % 6) + 1)
+    );
+  } else {
+    // If backend returns empty (e.g. no schedule in DB for this range yet),
+    // use academic template with synchronous dates to maintain full UX experience
+    const templates = isEven ? EVEN_WEEK_SESSIONS_TEMPLATE : ODD_WEEK_SESSIONS_TEMPLATE;
+    mappedSessions = templates.map((tpl, idx) => {
+      const matchedDay = dayDates.find((d) => d.dayOfWeek === tpl.dayOfWeek);
+      const sessionDate = matchedDay ? matchedDay.fullDate : formatDateIso(weekStartDate);
+      return {
+        ...tpl,
+        lessonSessionId: `SES-W${weekNumber}-${tpl.classId}-${tpl.startShift}-${idx}`,
+        sessionDate,
+      };
+    });
+  }
+
+  // Distribute sessions into 7 days
   const days: DaySchedule[] = dayDates.map((day) => ({
     dayOfWeek: day.dayOfWeek,
     dayNameKey: day.dayNameKey,
     dateString: day.dateString,
     fullDate: day.fullDate,
     isToday: day.isToday,
-    sessions: sessions.filter((s) => s.dayOfWeek === day.dayOfWeek),
+    sessions: mappedSessions.filter((s) => {
+      if (s.sessionDate) {
+        return s.sessionDate === day.fullDate;
+      }
+      return s.dayOfWeek === day.dayOfWeek;
+    }),
   }));
 
-  const totalSessions = sessions.length;
-  const totalPeriods = sessions.reduce(
+  const totalSessions = mappedSessions.length;
+  const totalPeriods = mappedSessions.reduce(
     (sum, s) => sum + ((s.endShift || 3) - (s.startShift || 1) + 1),
     0
   );
-  const labSessions = sessions.filter((s) => s.sessionType === 'lab').length;
+  const labSessions = mappedSessions.filter((s) => s.sessionType === 'lab').length;
 
   return {
     weekNumber,
-    startDate,
-    endDate,
-    semesterName: 'Học kỳ 1 (2024-2025)',
+    startDate: startDateSlash,
+    endDate: endDateSlash,
+    semesterName: `Học kỳ 1 (${weekStartDate.getFullYear()}-${weekStartDate.getFullYear() + 1})`,
     facultyName: 'Khoa Công nghệ Thông tin',
     kpis: {
       totalSessions,
@@ -134,18 +413,12 @@ export const fetchMockTimetable = (
       labSessions,
       peakDay: isEven ? 'Thứ 5' : 'Thứ 4',
       peakConsecutive: isEven ? 4 : 3,
-      syncTimeText: 'Vừa đồng bộ vài giây trước',
+      syncTimeText: 'Vừa đồng bộ từ hệ thống đào tạo',
     },
     days,
   };
-};
-
-export async function getWeeklyTimetable(weekNumber: number = 9): Promise<WeeklyTimetableData> {
-  const weekStartDate = getWeekStartDate(weekNumber);
-  return fetchMockTimetable(weekStartDate, weekNumber);
 }
 
 export async function submitSwapRoomRequest(_payload: SwapRoomFormValues): Promise<{ success: boolean }> {
-  // In real backend, call api.post('/academic/room-swap', payload)
   return { success: true };
 }

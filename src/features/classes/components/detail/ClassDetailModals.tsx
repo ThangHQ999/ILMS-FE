@@ -122,15 +122,16 @@ interface AddSubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (subjectCodes: string[]) => void;
+  availableCourses?: Array<{ id: string; code: string; name: string; credits: number }>;
 }
 
-export function AddSubjectModal({ isOpen, onClose, onConfirm }: AddSubjectModalProps) {
-  const [selectedCodes, setSelectedCodes] = useState<string[]>(['CS-205']);
-  const availableSubjects = [
-    { code: 'CS-205', name: 'Mạng máy tính & An toàn thông tin', credits: 3 },
-    { code: 'CS-206', name: 'Hệ điều hành hiện đại', credits: 4 },
-    { code: 'CS-207', name: 'Kỹ thuật phần mềm ứng dụng', credits: 3 },
-  ];
+export function AddSubjectModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  availableCourses = [],
+}: AddSubjectModalProps) {
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
 
   if (!isOpen) return null;
 
@@ -162,36 +163,43 @@ export function AddSubjectModal({ isOpen, onClose, onConfirm }: AddSubjectModalP
         </p>
 
         <div className="space-y-2 max-h-60 overflow-y-auto">
-          {availableSubjects.map((sub) => {
-            const isSelected = selectedCodes.includes(sub.code);
-            return (
-              <label
-                key={sub.code}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border-none cursor-pointer transition-colors ${
-                  isSelected
-                    ? 'bg-[#D3E3FD]/40 dark:bg-[#A8C7FA]/20 text-gray-900 dark:text-[#E3E3E3]'
-                    : 'bg-[#F0F4F8] dark:bg-[#131314] text-gray-800 dark:text-[#C4C7C5] hover:opacity-90'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleCode(sub.code)}
-                    className="w-4 h-4 accent-blue-600 rounded"
-                  />
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-[#E3E3E3] text-sm">
-                      {sub.name}
-                    </div>
-                    <div className="text-xs font-mono text-gray-500 dark:text-[#8E918F]">
-                      {sub.code} • {sub.credits} tín chỉ
+          {availableCourses.length === 0 ? (
+            <div className="p-6 text-center rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-xs text-gray-500 dark:text-[#8E918F]">
+              Không có môn học khả dụng nào để gán thêm vào lớp này.
+            </div>
+          ) : (
+            availableCourses.map((sub) => {
+              const valueKey = sub.id || sub.code;
+              const isSelected = selectedCodes.includes(valueKey);
+              return (
+                <label
+                  key={valueKey}
+                  className={`flex items-center justify-between p-3.5 rounded-2xl border-none cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-[#D3E3FD]/40 dark:bg-[#A8C7FA]/20 text-gray-900 dark:text-[#E3E3E3]'
+                      : 'bg-[#F0F4F8] dark:bg-[#131314] text-gray-800 dark:text-[#C4C7C5] hover:opacity-90'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleCode(valueKey)}
+                      className="w-4 h-4 accent-blue-600 rounded"
+                    />
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-[#E3E3E3] text-sm">
+                        {sub.name}
+                      </div>
+                      <div className="text-xs font-mono text-gray-500 dark:text-[#8E918F]">
+                        {sub.code} • {sub.credits} tín chỉ
+                      </div>
                     </div>
                   </div>
-                </div>
-              </label>
-            );
-          })}
+                </label>
+              );
+            })
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2.5 pt-2">

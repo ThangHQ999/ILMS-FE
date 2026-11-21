@@ -1,15 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { generateQrMatrix } from '@/lib/qr';
+import {
+  regenerateClassCode,
+  inviteMemberByEmail,
+} from '@/features/classes/services/class.service';
 
 export interface InviteMemberModalProps {
+  classId?: string;
   classCode: string;
   isOpen: boolean;
   onClose: () => void;
   onInvite?: (emailOrEmails: string) => void;
+  onCodeRegenerated?: (newCode: string) => void;
   instructorName?: string;
   enrolledCount?: number;
   maxStudents?: number;
+  endAt?: string | null;
   currentRole?: 'student' | 'teacher' | 'owner';
   onSaveSettings?: (settings: {
     autoApprove: boolean;
@@ -20,33 +28,34 @@ export interface InviteMemberModalProps {
 }
 
 export function InviteMemberModal({
+  classId,
   classCode,
   isOpen,
   onClose,
   onInvite,
-  instructorName = 'TS. Lê Hoàng Nam',
-  enrolledCount = 45,
+  onCodeRegenerated,
+  instructorName = '',
+  enrolledCount = 0,
   maxStudents = 60,
+  endAt,
   currentRole = 'teacher',
   onSaveSettings,
   onToast,
 }: InviteMemberModalProps) {
   const isStudent = currentRole === 'student';
   // State
-  const initialKey = `${classCode.toUpperCase()}-MATKHAU123`;
-  const [enrollmentKey, setEnrollmentKey] = useState(initialKey);
+  const [enrollmentKey, setEnrollmentKey] = useState(classCode || '');
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [autoApprove, setAutoApprove] = useState(true);
   const [limitCap, setLimitCap] = useState(true);
   const [bulkEmails, setBulkEmails] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
-  // Synchronize key when classCode changes
+  // Synchronize key when classCode prop updates
   useEffect(() => {
-    if (classCode) {
-      setEnrollmentKey(`${classCode.toUpperCase()}-MATKHAU123`);
-    }
+    setEnrollmentKey(classCode || '');
   }, [classCode]);
 
   // Handle ESC key to close
@@ -69,14 +78,38 @@ export function InviteMemberModal({
     [onToast]
   );
 
-  if (!isOpen) return null;
+  const baseFrontendUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : 'https://ilms.page')
+  ).replace(/\/+$/, '');
 
-  const directInviteLink = `https://ilms.edutech.edu.vn/join?class=${encodeURIComponent(
-    classCode
-  )}&key=${encodeURIComponent(enrollmentKey.toLowerCase())}`;
+  const directInviteLink = enrollmentKey
+    ? `${baseFrontendUrl}/classes?code=${encodeURIComponent(enrollmentKey)}`
+    : `${baseFrontendUrl}/classes`;
+
+  const qrSvgData = useMemo(() => {
+    const matrix = generateQrMatrix(directInviteLink);
+    const size = matrix.length;
+    const quietZone = 2;
+    const parts: string[] = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (matrix[r][c]) {
+          parts.push(`M${c + quietZone} ${r + quietZone}h1v1h-1z`);
+        }
+      }
+    }
+    return {
+      viewBoxSize: size + quietZone * 2,
+      path: parts.join(''),
+    };
+  }, [directInviteLink]);
+
+  if (!isOpen) return null;
 
   // Copy enrollment code
   const handleCopyCode = () => {
+    if (!enrollmentKey) return;
     navigator.clipboard
       .writeText(enrollmentKey)
       .then(() => {
@@ -99,16 +132,23 @@ export function InviteMemberModal({
       .catch(() => {});
   };
 
-  // Generate random new key
-  const handleResetCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let randomPart = '';
-    for (let i = 0; i < 6; i++) {
-      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  // Regenerate enrollment code via backend API
+  const handleResetCode = async () => {
+    if (!classId) {
+      notify('Không tìm thấy mã lớp học để tạo lại mã mời.');
+      return;
     }
-    const newCode = `${classCode.toUpperCase()}-${randomPart}`;
-    setEnrollmentKey(newCode);
-    notify(`Đã tạo mã mời mới ngẫu nhiên: ${newCode}`);
+    setIsResetting(true);
+    try {
+      const newCode = await regenerateClassCode(classId);
+      setEnrollmentKey(newCode);
+      onCodeRegenerated?.(newCode);
+      notify(`Đã tạo lại mã mời mới: ${newCode}`);
+    } catch {
+      notify('Không thể tạo lại mã mời lúc này. Vui lòng thử lại.');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   // Download QR code as PNG
@@ -146,23 +186,50 @@ export function InviteMemberModal({
   };
 
   // Send bulk invitations
-  const handleSendBulkInvites = (e: React.FormEvent) => {
+  const handleSendBulkInvites = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = bulkEmails.trim();
-    if (!trimmed) {
-      notify('Vui lòng nhập ít nhất một địa chỉ email sinh viên.');
+    const emails = bulkEmails
+      .split(/[\s,;]+/)
+      .map((item) => item.trim())
+      .filter((item) => item.includes('@'));
+
+    if (emails.length === 0) {
+      notify('Vui lòng nhập ít nhất một địa chỉ email hợp lệ.');
+      return;
+    }
+
+    if (!classId) {
+      if (onInvite) onInvite(emails.join(', '));
+      notify(`Đã gửi thư mời tham gia lớp tới: ${emails.join(', ')}`);
+      setBulkEmails('');
       return;
     }
 
     setIsSending(true);
-    setTimeout(() => {
-      setIsSending(false);
-      if (onInvite) {
-        onInvite(trimmed);
+    try {
+      const results = await Promise.allSettled(
+        emails.map((email) => inviteMemberByEmail(classId, email, 'STUDENT'))
+      );
+      const succeeded = emails.filter((_, idx) => results[idx].status === 'fulfilled');
+      const failed = emails.filter((_, idx) => results[idx].status === 'rejected');
+
+      if (succeeded.length > 0) {
+        if (onInvite) onInvite(succeeded.join(', '));
+        setBulkEmails(failed.join(', '));
       }
-      notify(`Đã gửi thư mời kích hoạt tham gia lớp ${classCode} tới các email đã nhập!`);
-      setBulkEmails('');
-    }, 600);
+
+      if (failed.length === 0) {
+        notify(`Đã gửi thư mời tham gia lớp tới ${succeeded.length} email!`);
+      } else if (succeeded.length > 0) {
+        notify(
+          `Đã mời ${succeeded.length} email. Không thể mời: ${failed.join(', ')}.`
+        );
+      } else {
+        notify('Không thể gửi lời mời qua email lúc này. Vui lòng thử lại.');
+      }
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Save settings
@@ -255,7 +322,9 @@ export function InviteMemberModal({
                 <span className="text-xs text-gray-500 dark:text-[#8E918F] block mt-1">
                   Hiệu lực đến:{' '}
                   <span className="font-semibold text-gray-800 dark:text-[#E3E3E3]">
-                    23:59, 31/12/2026
+                    {endAt && !Number.isNaN(new Date(endAt).getTime())
+                      ? new Date(endAt).toLocaleDateString('vi-VN')
+                      : 'Không giới hạn thời gian'}
                   </span>
                 </span>
               </div>
@@ -265,7 +334,8 @@ export function InviteMemberModal({
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className={`flex-1 py-2.5 px-4 rounded-full font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-none ${
+                  disabled={!enrollmentKey}
+                  className={`flex-1 py-2.5 px-4 rounded-full font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-none disabled:opacity-50 ${
                     copiedKey
                       ? 'bg-emerald-600 text-white'
                       : 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs'
@@ -282,13 +352,18 @@ export function InviteMemberModal({
                   <button
                     type="button"
                     onClick={handleResetCode}
+                    disabled={isResetting || !classId}
                     title="Tạo lại mã ngẫu nhiên"
-                    className="py-2.5 px-4 rounded-full bg-white dark:bg-[#1E1F20] text-gray-800 dark:text-[#C4C7C5] hover:opacity-85 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border-none shadow-sm dark:shadow-none"
+                    className="py-2.5 px-4 rounded-full bg-white dark:bg-[#1E1F20] text-gray-800 dark:text-[#C4C7C5] hover:opacity-85 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border-none shadow-sm dark:shadow-none disabled:opacity-50"
                   >
-                    <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                    <span
+                      className={`material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA] ${
+                        isResetting ? 'animate-spin' : ''
+                      }`}
+                    >
                       cached
                     </span>
-                    <span>Reset Code</span>
+                    <span>{isResetting ? 'Đang tạo...' : 'Reset Code'}</span>
                   </button>
                 )}
               </div>
@@ -306,76 +381,23 @@ export function InviteMemberModal({
                 </span>
               </div>
 
-              {/* Crisp 160x160 SVG QR Visual */}
+              {/* Real Scannable ISO/IEC 18004 SVG QR Code */}
               <div className="my-3 p-3 bg-white rounded-2xl shadow-xs border-none flex items-center justify-center">
                 <svg
                   id="enrollment-qr-svg"
                   className="w-36 h-36"
-                  fill="none"
-                  viewBox="0 0 160 160"
+                  shapeRendering="crispEdges"
+                  viewBox={`0 0 ${qrSvgData.viewBoxSize} ${qrSvgData.viewBoxSize}`}
                   xmlns="http://www.w3.org/2000/svg"
+                  role="img"
+                  aria-label={`Mã QR tham gia lớp ${enrollmentKey}`}
                 >
-                  {/* Background Plate */}
-                  <rect fill="#FFFFFF" height="160" rx="8" width="160" />
-                  {/* QR Finder Top-Left */}
-                  <rect fill="#001a41" height="40" rx="4" width="40" x="12" y="12" />
-                  <rect fill="#FFFFFF" height="28" width="28" x="18" y="18" />
-                  <rect fill="#0059bb" height="16" width="16" x="24" y="24" />
-                  {/* QR Finder Top-Right */}
-                  <rect fill="#001a41" height="40" rx="4" width="40" x="108" y="12" />
-                  <rect fill="#FFFFFF" height="28" width="28" x="114" y="18" />
-                  <rect fill="#0059bb" height="16" width="16" x="120" y="24" />
-                  {/* QR Finder Bottom-Left */}
-                  <rect fill="#001a41" height="40" rx="4" width="40" x="12" y="108" />
-                  <rect fill="#FFFFFF" height="28" width="28" x="18" y="114" />
-                  <rect fill="#0059bb" height="16" width="16" x="24" y="120" />
-                  {/* Data Pixels & Patterns */}
-                  <rect fill="#0059bb" height="8" width="8" x="60" y="14" />
-                  <rect fill="#001a41" height="8" width="8" x="76" y="14" />
-                  <rect fill="#0059bb" height="8" width="8" x="88" y="14" />
-                  <rect fill="#001a41" height="8" width="8" x="60" y="26" />
-                  <rect fill="#0059bb" height="8" width="16" x="72" y="26" />
-                  <rect fill="#0059bb" height="8" width="8" x="64" y="38" />
-                  <rect fill="#001a41" height="8" width="8" x="80" y="38" />
-                  {/* Middle Row Alignments */}
-                  <rect fill="#0059bb" height="8" width="8" x="14" y="60" />
-                  <rect fill="#001a41" height="8" width="12" x="26" y="60" />
-                  <rect fill="#0059bb" height="8" width="8" x="44" y="60" />
-                  <rect fill="#0059bb" height="16" width="16" x="60" y="60" />
-                  <rect fill="#001a41" height="8" width="12" x="84" y="60" />
-                  <rect fill="#0059bb" height="8" width="8" x="104" y="60" />
-                  <rect fill="#001a41" height="8" width="8" x="120" y="60" />
-                  <rect fill="#0059bb" height="8" width="12" x="136" y="60" />
-                  <rect fill="#001a41" height="8" width="16" x="14" y="76" />
-                  <rect fill="#0059bb" height="8" width="8" x="38" y="76" />
-                  <rect fill="#0059bb" height="8" width="8" x="84" y="76" />
-                  <rect fill="#001a41" height="8" width="16" x="100" y="76" />
-                  <rect fill="#0059bb" height="8" width="8" x="124" y="76" />
-                  <rect fill="#001a41" height="8" width="8" x="140" y="76" />
-                  <rect fill="#0059bb" height="8" width="8" x="14" y="92" />
-                  <rect fill="#001a41" height="8" width="8" x="30" y="92" />
-                  <rect fill="#0059bb" height="8" width="8" x="46" y="92" />
-                  <rect fill="#001a41" height="16" width="8" x="62" y="84" />
-                  <rect fill="#0059bb" height="8" width="16" x="76" y="92" />
-                  <rect fill="#001a41" height="8" width="8" x="108" y="92" />
-                  <rect fill="#0059bb" height="8" width="24" x="124" y="92" />
-                  {/* Bottom Area Data */}
-                  <rect fill="#001a41" height="8" width="16" x="60" y="108" />
-                  <rect fill="#0059bb" height="8" width="8" x="84" y="108" />
-                  <rect fill="#001a41" height="8" width="8" x="100" y="108" />
-                  <rect fill="#0059bb" height="8" width="16" x="116" y="108" />
-                  <rect fill="#001a41" height="8" width="8" x="140" y="108" />
-                  <rect fill="#0059bb" height="8" width="8" x="60" y="124" />
-                  <rect fill="#001a41" height="8" width="8" x="76" y="124" />
-                  <rect fill="#0059bb" height="12" width="16" x="92" y="120" />
-                  <rect fill="#001a41" height="8" width="8" x="116" y="124" />
-                  <rect fill="#0059bb" height="8" width="16" x="132" y="124" />
-                  <rect fill="#001a41" height="8" width="24" x="60" y="140" />
-                  <rect fill="#0059bb" height="8" width="8" x="92" y="140" />
-                  <rect fill="#001a41" height="12" width="16" x="108" y="136" />
-                  <rect fill="#0059bb" height="8" width="16" x="132" y="140" />
-                  {/* Center Tech Dot */}
-                  <circle cx="80" cy="80" fill="#0070ea" r="5" />
+                  <rect
+                    width={qrSvgData.viewBoxSize}
+                    height={qrSvgData.viewBoxSize}
+                    fill="#FFFFFF"
+                  />
+                  <path d={qrSvgData.path} fill="#1E1F20" />
                 </svg>
               </div>
 

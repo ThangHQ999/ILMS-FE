@@ -3,7 +3,7 @@
 - **Ngày thực hiện:** 2026-11-14
 - **Branch:** `tung_anh_branch`
 - **Mục tiêu:**
-  1. Triển khai hoàn chỉnh Tab Chương trình học (`modules`) tại `/classes/[id]` theo đúng mẫu HTML "Edit Mode Studio" (CS-202 Mạng máy tính & Truyền thông dữ liệu - TS. Lê Hoàng Nam).
+  1. Triển khai hoàn chỉnh Tab Chương trình học (`modules`) tại `/classes/[id]` theo đúng mẫu HTML "Edit Mode Studio" (CS-202 Mạng máy tính & Truyền thông dữ liệu - ).
   2. Bố cục không gian 2 cột (8 cột bên trái cho Cây giáo trình, 4 cột bên phải cho Công cụ Sư phạm & AI Copilot).
   3. Thanh điều khiển Studio Command Bar: Công tắc gạt Chế độ chỉnh sửa (Đang bật/tắt), tìm kiếm bài giảng live, bộ lọc trạng thái 3 nút (Tất cả, Đã xuất bản, Bản nháp), 4 nút hành động CTA (Xem góc nhìn học sinh, Tải lên hàng loạt, +Thêm Bài học, +Thêm Chương mới).
   4. Banner tuần học hiện tại (Tuần 09 - Trọng tâm thi giữa kỳ).

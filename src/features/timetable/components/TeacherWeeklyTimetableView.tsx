@@ -3,12 +3,16 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useClasses } from '@/features/classes/hooks/useClasses';
 import { useWeeklyTimetable } from '../hooks/useWeeklyTimetable';
+import { formatDateIso } from '../services/timetable.service';
 import { TimetableHeaderControls } from './TimetableHeaderControls';
 import { TimetableGridMatrix } from './TimetableGridMatrix';
 import { TimetableClassStudentsModal } from './TimetableClassStudentsModal';
 import { TimetableSwapRoomModal } from './TimetableSwapRoomModal';
 import { TimetableExportModal } from './TimetableExportModal';
+import { TimetableCreateSessionModal } from './TimetableCreateSessionModal';
 
 interface TeacherWeeklyTimetableViewProps {
   userFullName?: string;
@@ -21,18 +25,27 @@ export function TeacherWeeklyTimetableView({
 }: TeacherWeeklyTimetableViewProps) {
   const router = useRouter();
   const t = useTranslations('timetable');
+  const { isTeacher } = useUserRole();
+  const { data: classesData } = useClasses({ page: 0, size: 50 });
 
   const {
     currentWeek,
+    selectedClassId,
+    setSelectedClassId,
     filterType,
     setFilterType,
     timetableData,
+    isLoading,
+    isFetching,
     selectedSession,
     isDetailModalOpen,
     isSwapRoomModalOpen,
     isExportModalOpen,
+    isCreateModalOpen,
     setIsSwapRoomModalOpen,
     setIsExportModalOpen,
+    setIsCreateModalOpen,
+    createSessionMutation,
     openSessionDetail,
     closeSessionDetail,
     navigateWeek,
@@ -103,13 +116,20 @@ export function TeacherWeeklyTimetableView({
         onGoToCurrentWeek={goToCurrentWeek}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onOpenSwapRoomModal={() => setIsSwapRoomModalOpen(true)}
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        selectedClassId={selectedClassId}
+        onSelectClassId={setSelectedClassId}
+        classesList={classesData?.items ?? []}
+        isTeacher={isTeacher}
       />
 
       {/* 3. 2D Academic Schedule Grid Matrix (Time/Shifts on Y-axis, Days on X-axis) */}
-      <TimetableGridMatrix
-        days={timetableData.days}
-        onSelectSession={openSessionDetail}
-      />
+      <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
+        <TimetableGridMatrix
+          days={timetableData.days}
+          onSelectSession={openSessionDetail}
+        />
+      </div>
 
       {/* 4. Class Students Roster Modal (Shown when clicking any class block) */}
       <TimetableClassStudentsModal
@@ -131,6 +151,21 @@ export function TeacherWeeklyTimetableView({
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={handleExport}
+      />
+
+      {/* 7. Create Lesson Session Modal (Teachers only) */}
+      <TimetableCreateSessionModal
+        isOpen={isCreateModalOpen}
+        defaultDate={timetableData.startDate ? formatDateIso(new Date()) : undefined}
+        defaultClassId={selectedClassId}
+        isSubmitting={createSessionMutation.isPending}
+        errorMessage={
+          createSessionMutation.error instanceof Error
+            ? createSessionMutation.error.message
+            : null
+        }
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={(payload) => createSessionMutation.mutate(payload)}
       />
 
       {/* Floating Toast Notification */}

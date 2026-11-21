@@ -2,15 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
 import { useStorageSummary } from '../../hooks/useStorage';
 import {
   useMySubscription,
   useSubscriptionPlans,
   useCancelAutoRenew,
+  useCancelScheduledSubscription,
   useSubscriptionHistory,
 } from '../../hooks/useSubscriptions';
+import { formatSubscriptionDate } from '../../utils/subscription.utils';
 import { CloudStorageCard } from '../storage/CloudStorageCard';
 import { SubscriptionPlansModal } from '../modals/SubscriptionPlansModal';
 
@@ -20,6 +22,7 @@ interface BillingTabProps {
 
 export function BillingTab({ onSuccessToast }: BillingTabProps) {
   const t = useTranslations('settings');
+  const locale = useLocale();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const { data: currentUser } = useCurrentUser();
@@ -29,6 +32,10 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
   const { data: history = [] } = useSubscriptionHistory();
 
   const cancelAutoRenewMutation = useCancelAutoRenew(() => {
+    onSuccessToast();
+  });
+
+  const cancelScheduledMutation = useCancelScheduledSubscription(() => {
     onSuccessToast();
   });
 
@@ -64,11 +71,17 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
   const autoRenewActive = mySub?.autoRenew ?? false;
   const daysRemaining = mySub?.daysRemaining;
   const limits = mySub?.limits;
+  const hasScheduledSwitch = Boolean(mySub?.nextPlanCode);
+  const nextPlanDisplayName = mySub?.nextPlanName || mySub?.nextPlanCode || '';
+  const scheduledSwitchDate = formatSubscriptionDate(
+    mySub?.nextPlanStartDate || mySub?.endDate,
+    locale
+  );
 
   const maxStorageText =
-    storageSummary?.maxStorageFormatted ||
     limits?.maxStorageFormatted ||
     activePlan?.maxStorageFormatted ||
+    storageSummary?.maxStorageFormatted ||
     (isFree ? '1.0 GB' : '50.0 GB');
 
   const aiDailyLimitText =
@@ -241,6 +254,45 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
             </div>
           </div>
         </div>
+
+        {/* Scheduled Plan Switch Banner (Gemini / Google One style) */}
+        {hasScheduledSwitch && (
+          <div className="rounded-2xl bg-[#F0F4F9] dark:bg-[#162B4D]/50 border border-[#D3E3FD] dark:border-[#A8C7FA]/25 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#D3E3FD] dark:bg-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-[20px]">info</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                  {t('scheduledPlanTitle')}
+                </span>
+                <p className="text-xs text-[#444746] dark:text-[#C4C7C5] leading-relaxed">
+                  {scheduledSwitchDate
+                    ? t('scheduledPlanDesc', {
+                        nextPlanName: nextPlanDisplayName,
+                        date: scheduledSwitchDate,
+                        currentPlanName,
+                      })
+                    : t('scheduledPlanDescNoDate', {
+                        nextPlanName: nextPlanDisplayName,
+                        currentPlanName,
+                      })}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={cancelScheduledMutation.isPending}
+              onClick={() => cancelScheduledMutation.mutate()}
+              className="px-4 py-2 rounded-full bg-white hover:bg-slate-100 dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA] border border-[#D3E3FD] dark:border-[#A8C7FA]/30 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+            >
+              {cancelScheduledMutation.isPending
+                ? t('btnCancelingScheduledPlan')
+                : t('btnCancelScheduledPlan')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. Cloud Storage Quota & Breakdown Section (PROMINENT RIGHT BELOW HERO CARD) */}

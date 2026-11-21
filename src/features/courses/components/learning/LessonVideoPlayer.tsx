@@ -23,7 +23,7 @@ interface LessonVideoPlayerProps {
 }
 
 export function LessonVideoPlayer({
-  instructorName = 'TS. Lê Hoàng Nam',
+  instructorName = '',
   onToast,
 }: LessonVideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -119,9 +119,8 @@ export function LessonVideoPlayer({
             <button
               type="button"
               onClick={handleToggleBookmark}
-              className={`p-1.5 rounded-xl bg-black/40 hover:bg-black/70 text-white transition-colors cursor-pointer ${
-                isBookmarked ? 'text-amber-400' : ''
-              }`}
+              className={`p-1.5 rounded-xl bg-black/40 hover:bg-black/70 text-white transition-colors cursor-pointer ${isBookmarked ? 'text-amber-400' : ''
+                }`}
               title="Bookmark khoảnh khắc bài giảng"
             >
               <span className="material-symbols-outlined text-[19px]">
@@ -257,9 +256,8 @@ export function LessonVideoPlayer({
                   setIsSubtitlesOn((prev) => !prev);
                   onToast(isSubtitlesOn ? 'Đã tắt phụ đề' : 'Đã bật phụ đề Tiếng Việt');
                 }}
-                className={`transition-colors cursor-pointer ${
-                  isSubtitlesOn ? 'text-blue-400' : 'hover:text-blue-300'
-                }`}
+                className={`transition-colors cursor-pointer ${isSubtitlesOn ? 'text-blue-400' : 'hover:text-blue-300'
+                  }`}
                 title="Phụ đề Tiếng Việt"
               >
                 <span className="material-symbols-outlined text-[20px]">subtitles</span>
@@ -304,11 +302,10 @@ export function LessonVideoPlayer({
               key={ch.id}
               type="button"
               onClick={() => handleSeekChapter(ch)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap shadow-xs shrink-0 cursor-pointer ${
-                isActive
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap shadow-xs shrink-0 cursor-pointer ${isActive
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-600 hover:text-blue-600'
-              }`}
+                }`}
             >
               {ch.time} • {ch.title}
             </button>

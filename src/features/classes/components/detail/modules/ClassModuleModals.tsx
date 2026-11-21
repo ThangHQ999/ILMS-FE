@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { CustomSelect } from '@/components/shared';
 
 // ----------------------------------------------------
 // UNIFIED STUDIO CURRICULUM AUTHORING MODAL FOR CLASSES
@@ -25,7 +26,7 @@ export function ClassCurriculumModal({
   const [activeTab, setActiveTab] = useState<'chapter' | 'lesson'>(initialTab);
 
   // Lesson Form States
-  const [lessonTitle, setLessonTitle] = useState('Bài 2.3: Thao tác xoay cây và cân bằng AVL Tree');
+  const [lessonTitle, setLessonTitle] = useState('');
   const [lessonFormat, setLessonFormat] = useState<'reading' | 'video' | 'document' | 'lab'>('video');
   const [duration, setDuration] = useState('45 Phút');
   const [targetWeek, setTargetWeek] = useState('w04');
@@ -107,11 +108,10 @@ export function ClassCurriculumModal({
             <button
               type="button"
               onClick={() => setActiveTab('chapter')}
-              className={`flex-1 py-2 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer border-none ${
-                activeTab === 'chapter'
+              className={`flex-1 py-2 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer border-none ${activeTab === 'chapter'
                   ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                   : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[18px]">create_new_folder</span>
               <span>Tạo Chương mới (Module Root)</span>
@@ -120,11 +120,10 @@ export function ClassCurriculumModal({
             <button
               type="button"
               onClick={() => setActiveTab('lesson')}
-              className={`flex-1 py-2 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer truncate border-none ${
-                activeTab === 'lesson'
+              className={`flex-1 py-2 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer truncate border-none ${activeTab === 'lesson'
                   ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                   : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[18px]">library_add</span>
               <span className="truncate">Thêm Bài giảng vào {moduleTitle}</span>
@@ -187,14 +186,15 @@ export function ClassCurriculumModal({
                     </span>
                     Thiết lập lộ trình học
                   </label>
-                  <select
+                  <CustomSelect<'sequential' | 'free'>
                     value={chapterPacing}
-                    onChange={(e) => setChapterPacing(e.target.value as 'sequential' | 'free')}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-[#1E1F20] rounded-xl text-xs sm:text-sm text-gray-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer"
-                  >
-                    <option value="sequential">Lộ trình tuần tự (Sequential - Mở bài kế tiếp khi đạt bài trước)</option>
-                    <option value="free">Lộ trình tự do (Free-flow - Mở toàn bộ bài học)</option>
-                  </select>
+                    onChange={setChapterPacing}
+                    options={[
+                      { value: 'sequential', label: 'Lộ trình tuần tự (Sequential - Mở bài kế tiếp khi đạt bài trước)' },
+                      { value: 'free', label: 'Lộ trình tự do (Free-flow - Mở toàn bộ bài học)' },
+                    ]}
+                    triggerClassName="bg-white dark:bg-[#1E1F20] border-none rounded-xl"
+                  />
                 </div>
               </div>
 
@@ -253,11 +253,10 @@ export function ClassCurriculumModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <label
-                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${
-                      lessonFormat === 'reading'
+                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${lessonFormat === 'reading'
                         ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40 shadow-xs'
                         : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -269,20 +268,18 @@ export function ClassCurriculumModal({
                     />
                     <div className="flex items-center justify-between">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${
-                          lessonFormat === 'reading'
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${lessonFormat === 'reading'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                        }`}
+                          }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">menu_book</span>
                       </div>
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          lessonFormat === 'reading'
+                        className={`w-5 h-5 rounded-full flex items-center justify-center ${lessonFormat === 'reading'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'border border-black/10 dark:border-white/10'
-                        }`}
+                          }`}
                       >
                         {lessonFormat === 'reading' && (
                           <span className="material-symbols-outlined text-[14px]">check</span>
@@ -300,11 +297,10 @@ export function ClassCurriculumModal({
                   </label>
 
                   <label
-                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${
-                      lessonFormat === 'video'
+                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${lessonFormat === 'video'
                         ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40 shadow-xs'
                         : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -316,20 +312,18 @@ export function ClassCurriculumModal({
                     />
                     <div className="flex items-center justify-between">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${
-                          lessonFormat === 'video'
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${lessonFormat === 'video'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                        }`}
+                          }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">smart_display</span>
                       </div>
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          lessonFormat === 'video'
+                        className={`w-5 h-5 rounded-full flex items-center justify-center ${lessonFormat === 'video'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'border border-black/10 dark:border-white/10'
-                        }`}
+                          }`}
                       >
                         {lessonFormat === 'video' && (
                           <span className="material-symbols-outlined text-[14px]">check</span>
@@ -347,11 +341,10 @@ export function ClassCurriculumModal({
                   </label>
 
                   <label
-                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${
-                      lessonFormat === 'document'
+                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${lessonFormat === 'document'
                         ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40 shadow-xs'
                         : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -363,20 +356,18 @@ export function ClassCurriculumModal({
                     />
                     <div className="flex items-center justify-between">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${
-                          lessonFormat === 'document'
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${lessonFormat === 'document'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                        }`}
+                          }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
                       </div>
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          lessonFormat === 'document'
+                        className={`w-5 h-5 rounded-full flex items-center justify-center ${lessonFormat === 'document'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'border border-black/10 dark:border-white/10'
-                        }`}
+                          }`}
                       >
                         {lessonFormat === 'document' && (
                           <span className="material-symbols-outlined text-[14px]">check</span>
@@ -394,11 +385,10 @@ export function ClassCurriculumModal({
                   </label>
 
                   <label
-                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${
-                      lessonFormat === 'lab'
+                    className={`relative flex flex-col gap-3 p-4 rounded-2xl cursor-pointer transition-all border-none ${lessonFormat === 'lab'
                         ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40 shadow-xs'
                         : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -410,20 +400,18 @@ export function ClassCurriculumModal({
                     />
                     <div className="flex items-center justify-between">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${
-                          lessonFormat === 'lab'
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors border-none ${lessonFormat === 'lab'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                        }`}
+                          }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">terminal</span>
                       </div>
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          lessonFormat === 'lab'
+                        className={`w-5 h-5 rounded-full flex items-center justify-center ${lessonFormat === 'lab'
                             ? 'bg-[#007BFF] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F]'
                             : 'border border-black/10 dark:border-white/10'
-                        }`}
+                          }`}
                       >
                         {lessonFormat === 'lab' && (
                           <span className="material-symbols-outlined text-[14px]">check</span>
@@ -471,20 +459,16 @@ export function ClassCurriculumModal({
                     </span>
                     Gán vào Phân phối Tuần học
                   </label>
-                  <div className="relative w-full">
-                    <select
-                      value={targetWeek}
-                      onChange={(e) => setTargetWeek(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white dark:bg-[#1E1F20] rounded-xl text-xs sm:text-sm text-gray-900 dark:text-[#E3E3E3] appearance-none border-none outline-none cursor-pointer font-medium"
-                    >
-                      <option value="w03">Tuần 03: BST Fundamentals &amp; Search Logic</option>
-                      <option value="w04">Tuần 04: AVL Tree Rotations &amp; Heights</option>
-                      <option value="w05">Tuần 05: Red-Black Trees &amp; Multiway Search</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[20px]">
-                      unfold_more
-                    </span>
-                  </div>
+                  <CustomSelect<string>
+                    value={targetWeek}
+                    onChange={setTargetWeek}
+                    options={[
+                      { value: 'w03', label: 'Tuần 03: BST Fundamentals & Search Logic' },
+                      { value: 'w04', label: 'Tuần 04: AVL Tree Rotations & Heights' },
+                      { value: 'w05', label: 'Tuần 05: Red-Black Trees & Multiway Search' },
+                    ]}
+                    triggerClassName="bg-white dark:bg-[#1E1F20] border-none rounded-xl"
+                  />
                 </div>
               </div>
 
@@ -507,20 +491,16 @@ export function ClassCurriculumModal({
                     <label className="text-[11px] text-gray-500 dark:text-[#8E918F] font-medium">
                       Bài học bắt buộc phải hoàn thành trước:
                     </label>
-                    <div className="relative w-full">
-                      <select
-                        value={prerequisite}
-                        onChange={(e) => setPrerequisite(e.target.value)}
-                        className="w-full pl-3.5 pr-9 py-2.5 bg-white dark:bg-[#1E1F20] rounded-xl text-xs text-gray-900 dark:text-[#E3E3E3] appearance-none border-none outline-none cursor-pointer font-medium truncate"
-                      >
-                        <option value="l21">Bài 2.1: Cấu trúc Node &amp; Duyệt cây nhị phân (Đã học)</option>
-                        <option value="l22">Bài 2.2: Các phép chèn và xóa nút trong BST (Yêu cầu &gt;= 80% điểm)</option>
-                        <option value="none">Không yêu cầu tiên quyết (Mở tự do)</option>
-                      </select>
-                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[20px]">
-                        arrow_drop_down
-                      </span>
-                    </div>
+                    <CustomSelect<string>
+                      value={prerequisite}
+                      onChange={setPrerequisite}
+                      options={[
+                        { value: 'l21', label: 'Bài 2.1: Cấu trúc Node & Duyệt cây nhị phân (Đã học)' },
+                        { value: 'l22', label: 'Bài 2.2: Các phép chèn và xóa nút trong BST (Yêu cầu >= 80% điểm)' },
+                        { value: 'none', label: 'Không yêu cầu tiên quyết (Mở tự do)' },
+                      ]}
+                      triggerClassName="bg-white dark:bg-[#1E1F20] border-none rounded-xl"
+                    />
                   </div>
 
                   <div className="md:col-span-5 flex flex-col justify-between sm:pl-3 sm:border-l border-black/5 dark:border-white/5">
@@ -537,14 +517,12 @@ export function ClassCurriculumModal({
                       <button
                         type="button"
                         onClick={() => setInstantUnlock(!instantUnlock)}
-                        className={`w-12 h-6 rounded-full p-0.5 flex items-center transition-colors shadow-inner cursor-pointer border-none ${
-                          instantUnlock ? 'bg-[#007BFF] dark:bg-[#A8C7FA]' : 'bg-gray-300 dark:bg-gray-700'
-                        }`}
+                        className={`w-12 h-6 rounded-full p-0.5 flex items-center transition-colors shadow-inner cursor-pointer border-none ${instantUnlock ? 'bg-[#007BFF] dark:bg-[#A8C7FA]' : 'bg-gray-300 dark:bg-gray-700'
+                          }`}
                       >
                         <span
-                          className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                            instantUnlock ? 'translate-x-6' : 'translate-x-0'
-                          }`}
+                          className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${instantUnlock ? 'translate-x-6' : 'translate-x-0'
+                            }`}
                         />
                       </button>
                     </div>
@@ -748,11 +726,10 @@ export function BatchUploadModal({ isOpen, onClose, onUpload }: BatchUploadModal
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`rounded-3xl p-8 text-center transition-all border-none ${
-              dragActive
+            className={`rounded-3xl p-8 text-center transition-all border-none ${dragActive
                 ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40'
                 : 'bg-[#F0F4F8] dark:bg-[#131314]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-4xl text-gray-400 dark:text-[#8E918F] mb-2 block">
               cloud_upload

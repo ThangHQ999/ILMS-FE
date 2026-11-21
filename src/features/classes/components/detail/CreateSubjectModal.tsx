@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { CustomSelect } from '@/components/shared';
 import { api } from '@/lib/axios';
 import { ApiResponse } from '@/types/common';
 import type { ClassCourse } from '../../schemas/class-detail.schema';
@@ -207,17 +208,16 @@ export function CreateSubjectModal({
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="sub-credits">
                 Số tín chỉ
               </label>
-              <select
-                id="sub-credits"
+              <CustomSelect<number>
                 value={credits}
-                onChange={(e) => setCredits(Number(e.target.value))}
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs sm:text-sm text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all cursor-pointer font-medium"
-              >
-                <option value={2}>2 Tín chỉ</option>
-                <option value={3}>3 Tín chỉ (Mặc định)</option>
-                <option value={4}>4 Tín chỉ</option>
-                <option value={5}>5 Tín chỉ (Đồ án / Khóa luận)</option>
-              </select>
+                onChange={(val) => setCredits(val)}
+                options={[
+                  { value: 2, label: '2 Tín chỉ' },
+                  { value: 3, label: '3 Tín chỉ (Mặc định)' },
+                  { value: 4, label: '4 Tín chỉ' },
+                  { value: 5, label: '5 Tín chỉ (Đồ án / Khóa luận)' },
+                ]}
+              />
             </div>
 
             {/* Instructor Name */}

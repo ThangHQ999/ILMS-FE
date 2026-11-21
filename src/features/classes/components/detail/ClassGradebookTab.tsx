@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import type {
   GradebookStudent,
   GradebookAiAnalysis,
@@ -34,6 +35,9 @@ export function ClassGradebookTab({
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState('20');
+  const [customQuizPlo, setCustomQuizPlo] = useState(
+    'PLO-03: Cây AVL, Cây Đỏ - Đen & Cây B-Tree (Khuyến nghị)'
+  );
 
   // Interactive Modals
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
@@ -300,49 +304,33 @@ export function ClassGradebookTab({
             </div>
 
             {/* Course Select */}
-            <div className="flex items-center bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-2.5 rounded-full border-none gap-2 shrink-0">
-              <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[20px]">
-                menu_book
-              </span>
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="bg-transparent text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer max-w-[280px] truncate"
-              >
-                <option value="CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)">
-                  CS-202: Cấu trúc dữ liệu &amp; Giải thuật nâng cao (Trọng tâm)
-                </option>
-                <option value="CS-301: Thiết kế & Phân tích thuật toán">
-                  CS-301: Thiết kế &amp; Phân tích thuật toán
-                </option>
-                <option value="IT-101: Nhập môn Kỹ thuật Lập trình">
-                  IT-101: Nhập môn Kỹ thuật Lập trình
-                </option>
-                <option value="CS-205: Cơ sở dữ liệu quan hệ">
-                  CS-205: Cơ sở dữ liệu quan hệ
-                </option>
-                <option value="Tất cả các môn (4 môn tổng hợp)">
-                  Tất cả các môn (4 môn tổng hợp)
-                </option>
-              </select>
-            </div>
+            <CustomSelect<string>
+              variant="pill"
+              value={selectedCourse}
+              onChange={setSelectedCourse}
+              options={[
+                { value: 'CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)', label: 'CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)', icon: 'menu_book' },
+                { value: 'CS-301: Thiết kế & Phân tích thuật toán', label: 'CS-301: Thiết kế & Phân tích thuật toán', icon: 'menu_book' },
+                { value: 'IT-101: Nhập môn Kỹ thuật Lập trình', label: 'IT-101: Nhập môn Kỹ thuật Lập trình', icon: 'menu_book' },
+                { value: 'CS-205: Cơ sở dữ liệu quan hệ', label: 'CS-205: Cơ sở dữ liệu quan hệ', icon: 'menu_book' },
+                { value: 'Tất cả các môn (4 môn tổng hợp)', label: 'Tất cả các môn (4 môn tổng hợp)', icon: 'menu_book' },
+              ]}
+              className="shrink-0 max-w-[300px]"
+            />
 
             {/* Evaluation Filter */}
-            <div className="flex items-center bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-2.5 rounded-full border-none gap-2 shrink-0">
-              <span className="material-symbols-outlined text-gray-400 text-[20px]">
-                filter_list
-              </span>
-              <select
-                value={evaluationFilter}
-                onChange={(e) => setEvaluationFilter(e.target.value)}
-                className="bg-transparent text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] border-none outline-none cursor-pointer"
-              >
-                <option value="all">Cả học kỳ (Tổng kết điểm &amp; PLO)</option>
-                <option value="quiz">Chuyên cần &amp; Quiz tự học</option>
-                <option value="lab">Bài tập lớn &amp; Lab thực hành</option>
-                <option value="exam">Thi giữa kỳ &amp; Thi kết thúc môn</option>
-              </select>
-            </div>
+            <CustomSelect<string>
+              variant="pill"
+              value={evaluationFilter}
+              onChange={setEvaluationFilter}
+              options={[
+                { value: 'all', label: 'Cả học kỳ (Tổng kết điểm & PLO)', icon: 'filter_list' },
+                { value: 'quiz', label: 'Chuyên cần & Quiz tự học', icon: 'filter_list' },
+                { value: 'lab', label: 'Bài tập lớn & Lab thực hành', icon: 'filter_list' },
+                { value: 'exam', label: 'Thi giữa kỳ & Thi kết thúc môn', icon: 'filter_list' },
+              ]}
+              className="shrink-0 min-w-[230px]"
+            />
           </div>
 
           {/* View Toggle Mode & Main Actions */}
@@ -923,18 +911,20 @@ export function ClassGradebookTab({
             <span>
               Hiển thị <strong className="text-gray-900 dark:text-[#E3E3E3]">{filteredStudents.length}</strong> / 42 học viên (Trang {currentPage}/5)
             </span>
-            <div className="flex items-center gap-1.5 bg-[#F0F4F8] dark:bg-[#131314] px-3 py-1 rounded-full border-none">
+            <div className="flex items-center gap-2">
               <span>Xem mỗi trang:</span>
-              <select
+              <CustomSelect<string>
+                variant="pill"
                 value={pageSize}
-                onChange={(e) => setPageSize(e.target.value)}
-                className="bg-transparent font-semibold text-gray-900 dark:text-[#E3E3E3] outline-none cursor-pointer border-none"
-              >
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="all">Tất cả</option>
-              </select>
+                onChange={setPageSize}
+                options={[
+                  { value: '10', label: '10' },
+                  { value: '20', label: '20' },
+                  { value: '50', label: '50' },
+                  { value: 'all', label: 'Tất cả' },
+                ]}
+                className="min-w-[85px]"
+              />
             </div>
           </div>
 
@@ -1380,12 +1370,16 @@ export function ClassGradebookTab({
             <div className="space-y-3 text-xs text-slate-700 dark:text-slate-300">
               <div>
                 <label className="font-bold block mb-1">Mục tiêu chuẩn đầu ra (PLO):</label>
-                <select className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium">
-                  <option>PLO-03: Cây AVL, Cây Đỏ - Đen & Cây B-Tree (Khuyến nghị)</option>
-                  <option>PLO-01: Phân tích độ phức tạp thời gian Big-O</option>
-                  <option>PLO-02: Cấu trúc dữ liệu tuyến tính</option>
-                  <option>PLO-04: Cấu trúc Đồ thị & Dijkstra</option>
-                </select>
+                <CustomSelect<string>
+                  value={customQuizPlo}
+                  onChange={setCustomQuizPlo}
+                  options={[
+                    { value: 'PLO-03: Cây AVL, Cây Đỏ - Đen & Cây B-Tree (Khuyến nghị)', label: 'PLO-03: Cây AVL, Cây Đỏ - Đen & Cây B-Tree (Khuyến nghị)' },
+                    { value: 'PLO-01: Phân tích độ phức tạp thời gian Big-O', label: 'PLO-01: Phân tích độ phức tạp thời gian Big-O' },
+                    { value: 'PLO-02: Cấu trúc dữ liệu tuyến tính', label: 'PLO-02: Cấu trúc dữ liệu tuyến tính' },
+                    { value: 'PLO-04: Cấu trúc Đồ thị & Dijkstra', label: 'PLO-04: Cấu trúc Đồ thị & Dijkstra' },
+                  ]}
+                />
               </div>
 
               <div>

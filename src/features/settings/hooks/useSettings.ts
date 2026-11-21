@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { authKeys } from '@/features/auth';
 import {
   getUserProfile,
   updateUserProfile,
@@ -52,7 +53,7 @@ export function useUpdateProfile(onSuccessToast?: () => void) {
     mutationFn: (input: UpdateProfileInput) => updateUserProfile(input),
     onSuccess: (data) => {
       queryClient.setQueryData(settingsKeys.profile(), data);
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: authKeys.me() });
       onSuccessToast?.();
     },
   });
@@ -67,7 +68,7 @@ export function useUploadAvatar(options?: {
     mutationFn: (file: File) => uploadUserAvatar(file),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.profile() });
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: authKeys.me() });
       options?.onSuccess?.(data.avatarUrl);
     },
     onError: (err) => {
@@ -76,14 +77,29 @@ export function useUploadAvatar(options?: {
   });
 }
 
-export function usePreferences() {
+export function usePreferences(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: settingsKeys.preferences(),
     queryFn: getUserPreferences,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    enabled: options?.enabled ?? true,
+    initialData: () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = localStorage.getItem('ilms_user_preferences');
+          if (cached) {
+            return JSON.parse(cached) as UserPreferencesDto;
+          }
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 }
 

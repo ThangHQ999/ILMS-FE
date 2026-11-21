@@ -5,6 +5,9 @@ export const courseKeys = {
   details: () => [...courseKeys.all, 'detail'] as const,
   detail: (id: string) => [...courseKeys.details(), id] as const,
   contentTree: (id: string) => [...courseKeys.all, 'content-tree', id] as const,
+  materials: (id: string) => [...courseKeys.all, 'materials', id] as const,
+  knowledgeGraph: (id: string) => [...courseKeys.all, 'knowledge-graph', id] as const,
+  lessonBlocks: (lessonId: string) => [...courseKeys.all, 'lesson-blocks', lessonId] as const,
 };
 
 export const DEFAULT_MOCK_CHAPTERS: Record<string, Chapter[]> = {

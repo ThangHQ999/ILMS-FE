@@ -84,7 +84,7 @@ export function StudentClassListView({
       return {
         grade: '8.4',
         gradeColor: 'bg-emerald-50 dark:bg-[#142E20] text-emerald-700 dark:text-[#81C995]',
-        teacher: 'TS. Lê Hoàng Nam',
+        teacher: '',
         progressPercent: 28,
         nodesUnlocked: '110 Node tri thức',
         schedule: 'Thứ 4 (Tiết 1-3) • Phòng Lab A3-201',

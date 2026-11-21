@@ -26,17 +26,24 @@ export function PricingPageView() {
   });
   const [checkoutModal, setCheckoutModal] = useState<{
     isOpen: boolean;
+    planId?: string;
     planCode: string;
     planName: string;
     price: number;
   }>({
     isOpen: false,
+    planId: undefined,
     planCode: 'PLUS',
     planName: 'Gói Nâng cao (Plus)',
     price: 99000,
   });
 
-  const handleSelectPlan = (planCode: string, planName: string, price: number) => {
+  const handleSelectPlan = (
+    planCode: string,
+    planName: string,
+    price: number,
+    planId?: string
+  ) => {
     if (!user) {
       setAuthPromptModal({
         isOpen: true,
@@ -46,6 +53,7 @@ export function PricingPageView() {
     }
     setCheckoutModal({
       isOpen: true,
+      planId,
       planCode,
       planName,
       price,
@@ -102,6 +110,7 @@ export function PricingPageView() {
       <VietQrCheckoutModal
         isOpen={checkoutModal.isOpen}
         onClose={handleCloseModal}
+        planId={checkoutModal.planId}
         planCode={checkoutModal.planCode}
         planName={checkoutModal.planName}
         price={checkoutModal.price}

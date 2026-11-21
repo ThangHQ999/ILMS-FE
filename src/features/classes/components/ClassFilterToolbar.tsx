@@ -1,37 +1,37 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import type { ClassFilters, ClassViewMode, WorkspaceRoleMode } from '../types';
+import { CustomSelect } from '@/components/shared';
+import type { ClassFilters, ClassViewMode } from '../types';
+
+export type ClassRoleTab = 'TEACHING' | 'ENROLLED' | 'ARCHIVED';
 
 interface ClassFilterToolbarProps {
-  workspaceMode?: WorkspaceRoleMode;
-  onWorkspaceModeChange?: (mode: WorkspaceRoleMode) => void;
+  activeTab: ClassRoleTab;
+  onTabChange: (tab: ClassRoleTab) => void;
+  showTeachingTab: boolean;
+  teachingCount: number;
+  enrolledCount: number;
+  archivedCount: number;
   filters: ClassFilters;
   onFilterChange: (updates: Partial<ClassFilters>) => void;
   viewMode: ClassViewMode;
   onViewModeChange: (mode: ClassViewMode) => void;
-  activeCount?: number;
-  enrolledCount?: number;
-  archivedCount?: number;
-  allCount?: number;
-  displayedCount?: number;
-  onOpenMobileFilter?: () => void;
   activeKpi?: string | null;
   onClearKpi?: () => void;
 }
 
 export function ClassFilterToolbar({
-  workspaceMode = 'faculty',
+  activeTab,
+  onTabChange,
+  showTeachingTab,
+  teachingCount,
+  enrolledCount,
+  archivedCount,
   filters,
   onFilterChange,
   viewMode,
   onViewModeChange,
-  activeCount = 0,
-  enrolledCount = 0,
-  archivedCount = 0,
-  allCount = 0,
-  displayedCount = 0,
-  onOpenMobileFilter,
   activeKpi,
   onClearKpi,
 }: ClassFilterToolbarProps) {
@@ -59,67 +59,56 @@ export function ClassFilterToolbar({
   };
 
   const isFiltered = Boolean(
-    filters.search || (filters.role && filters.role !== 'ALL') || filters.major
+    filters.search ||
+      (activeTab === 'TEACHING' && filters.role && filters.role !== 'ALL') ||
+      filters.major ||
+      activeKpi
   );
+
+  const tabs: Array<{ id: ClassRoleTab; label: string; count: number; visible: boolean }> = [
+    { id: 'TEACHING', label: 'Đang giảng dạy', count: teachingCount, visible: showTeachingTab },
+    { id: 'ENROLLED', label: 'Đang theo học', count: enrolledCount, visible: true },
+    { id: 'ARCHIVED', label: 'Đã lưu trữ', count: archivedCount, visible: true },
+  ];
 
   return (
     <section className="bg-white dark:bg-[#1E1F20] rounded-3xl p-5 shadow-sm dark:shadow-none border-none space-y-4">
-      {/* 1. Top row: Tabs & View switcher (Zero borders, Pill MD3 styling) */}
+      {/* 1. Top row: Role-based Tabs & View switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Pill tabs: Đang hoạt động & Đã lưu trữ */}
-        <div className="inline-flex p-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C]" role="tablist">
-          {/* Tab: Đang hoạt động */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filters.status === 'ACTIVE'}
-            onClick={() => {
-              onFilterChange({ status: 'ACTIVE', page: 0 });
-            }}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
-              filters.status === 'ACTIVE'
-                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] font-bold shadow-xs'
-                : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-white bg-transparent'
-            }`}
-          >
-            <span>Đang hoạt động</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                filters.status === 'ACTIVE'
-                  ? 'bg-blue-100 dark:bg-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
-                  : 'bg-gray-200 dark:bg-[#383A3C] text-gray-600 dark:text-[#C4C7C5]'
-              }`}
-            >
-              {workspaceMode === 'student' ? enrolledCount : activeCount}
-            </span>
-          </button>
-
-          {/* Tab: Đã lưu trữ */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filters.status === 'ARCHIVED'}
-            onClick={() => onFilterChange({ status: 'ARCHIVED', page: 0 })}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
-              filters.status === 'ARCHIVED'
-                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] font-bold shadow-xs'
-                : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-white bg-transparent'
-            }`}
-          >
-            <span>Đã lưu trữ</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                filters.status === 'ARCHIVED'
-                  ? 'bg-blue-100 dark:bg-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
-                  : 'bg-gray-200 dark:bg-[#383A3C] text-gray-600 dark:text-[#C4C7C5]'
-              }`}
-            >
-              {archivedCount}
-            </span>
-          </button>
+        <div className="inline-flex flex-wrap p-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C]" role="tablist">
+          {tabs
+            .filter((tab) => tab.visible)
+            .map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => onTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
+                    isSelected
+                      ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] font-bold shadow-xs'
+                      : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-white bg-transparent'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                      isSelected
+                        ? 'bg-blue-100 dark:bg-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
+                        : 'bg-gray-200 dark:bg-[#383A3C] text-gray-600 dark:text-[#C4C7C5]'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
         </div>
 
-        {/* View Mode Toggle (Grid / List) */}
+        {/* View Mode Toggle (List / Grid) */}
         <div className="flex items-center gap-1 p-1 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full">
           <button
             type="button"
@@ -148,9 +137,8 @@ export function ClassFilterToolbar({
         </div>
       </div>
 
-      {/* 2. DECLUTTER THE SEARCH & FILTER BAR: Single sleek flex row (gap-3) */}
+      {/* 2. Search & Filter Bar */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Search Input - Pill shaped with flat tonal styling */}
         <div className="relative flex-1 min-w-[240px]">
           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#8E918F] text-[18px] pointer-events-none">
             search
@@ -174,50 +162,39 @@ export function ClassFilterToolbar({
           )}
         </div>
 
-        {/* Role Filter Select - Pill shaped */}
-        <div className="relative shrink-0">
-          <select
+        {/* Role Filter Select: ONLY shown on Đang giảng dạy tab */}
+        {activeTab === 'TEACHING' && (
+          <CustomSelect<string>
+            variant="pill"
             value={filters.role || 'ALL'}
-            onChange={(e) =>
+            onChange={(val) =>
               onFilterChange({
-                role: e.target.value as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
+                role: val as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
                 page: 0,
               })
             }
-            className="appearance-none pl-4 pr-9 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-xs sm:text-sm font-medium border-none outline-none cursor-pointer"
-          >
-            <option value="ALL">Tất cả vai trò</option>
-            <option value="PRIMARY_INSTRUCTOR">Chủ lớp</option>
-            <option value="TA">Giảng viên</option>
-            <option value="STUDENT">Học viên</option>
-          </select>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 dark:text-[#8E918F] text-[18px]">
-            expand_more
-          </span>
-        </div>
+            options={[
+              { value: 'ALL', label: 'Tất cả vai trò' },
+              { value: 'PRIMARY_INSTRUCTOR', label: 'Chủ lớp' },
+              { value: 'TA', label: 'Giảng viên' },
+            ]}
+            className="shrink-0 min-w-[150px]"
+          />
+        )}
 
-        {/* Sort Filter Select - Pill shaped */}
-        <div className="relative shrink-0">
-          <select
-            value={filters.sort || 'updated_desc'}
-            onChange={(e) =>
-              onFilterChange({
-                sort: e.target.value as 'updated_desc' | 'name_asc' | 'students_desc',
-                page: 0,
-              })
-            }
-            className="appearance-none pl-4 pr-9 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-xs sm:text-sm font-medium border-none outline-none cursor-pointer"
-          >
-            <option value="updated_desc">Mới cập nhật</option>
-            <option value="name_asc">Tên lớp A–Z</option>
-            <option value="students_desc">Sĩ số giảm dần</option>
-          </select>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 dark:text-[#8E918F] text-[18px]">
-            expand_more
-          </span>
-        </div>
+        {/* Sort Filter Select */}
+        <CustomSelect<'updated_desc' | 'name_asc' | 'students_desc'>
+          variant="pill"
+          value={filters.sort || 'updated_desc'}
+          onChange={(val) => onFilterChange({ sort: val, page: 0 })}
+          options={[
+            { value: 'updated_desc', label: 'Mới cập nhật' },
+            { value: 'name_asc', label: 'Tên lớp A–Z' },
+            { value: 'students_desc', label: 'Sĩ số giảm dần' },
+          ]}
+          className="shrink-0 min-w-[155px]"
+        />
 
-        {/* Clear Filters Button (if active) */}
         {isFiltered && (
           <button
             type="button"

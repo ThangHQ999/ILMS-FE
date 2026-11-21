@@ -361,15 +361,25 @@ function getPersistedLanguage(): 'vi' | 'en' {
   return 'vi';
 }
 
+const PREFERENCES_CACHE_KEY = 'ilms_user_preferences';
+
+function saveCachedPreferences(prefs: UserPreferencesDto): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PREFERENCES_CACHE_KEY, JSON.stringify(prefs));
+    if (prefs.language) {
+      localStorage.setItem('ilms_language', prefs.language);
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export async function getUserPreferences(): Promise<UserPreferencesDto> {
   try {
     const { data } = await api.get<ApiResponse<UserPreferencesDto>>('/user/preferences');
     if (data?.data) {
-      if (data.data.language && typeof window !== 'undefined') {
-        try {
-          localStorage.setItem('ilms_language', data.data.language);
-        } catch {}
-      }
+      saveCachedPreferences(data.data);
       return data.data;
     }
   } catch {
@@ -394,13 +404,18 @@ export async function updateUserPreferences(
       '/user/preferences',
       input
     );
-    if (data?.data) return data.data;
+    if (data?.data) {
+      saveCachedPreferences(data.data);
+      return data.data;
+    }
   } catch {
     // Fallback
   }
   await delay(100);
   Object.assign(mockPreferences, input);
-  return { ...mockPreferences };
+  const updated = { ...mockPreferences };
+  saveCachedPreferences(updated);
+  return updated;
 }
 
 export async function patchUserPreferences(
@@ -419,6 +434,7 @@ export async function patchUserPreferences(
     );
     if (data?.data) {
       Object.assign(mockPreferences, data.data);
+      saveCachedPreferences(data.data);
       return data.data;
     }
   } catch {
@@ -430,6 +446,7 @@ export async function patchUserPreferences(
       );
       if (data?.data) {
         Object.assign(mockPreferences, data.data);
+        saveCachedPreferences(data.data);
         return data.data;
       }
     } catch {
@@ -437,7 +454,9 @@ export async function patchUserPreferences(
     }
   }
   Object.assign(mockPreferences, input);
-  return { ...mockPreferences };
+  const updated = { ...mockPreferences };
+  saveCachedPreferences(updated);
+  return updated;
 }
 
 export async function getNotificationSettings(): Promise<NotificationSettingsDto> {

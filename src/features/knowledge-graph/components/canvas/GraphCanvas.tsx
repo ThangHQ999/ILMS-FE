@@ -20,6 +20,7 @@ import '@xyflow/react/dist/style.css';
 import { KnowledgeNode } from '../nodes/KnowledgeNode';
 import { KnowledgeNodeData, KnowledgeCategory, EditTool, LayoutMode } from '../../types';
 import { useForceLayout } from '../../hooks/useForceLayout';
+import { DraggableMinimap } from '../focus/DraggableMinimap';
 
 const nodeTypes = {
   knowledgeNode: KnowledgeNode,
@@ -44,6 +45,9 @@ export interface GraphCanvasProps {
   onConnectNodes?: (source: string, target: string) => void;
   highlightPathIds?: string[] | null;
   isFocusMode?: boolean;
+  isMinimapVisible?: boolean;
+  onToggleMinimap?: () => void;
+  onCloseMinimap?: () => void;
 }
 
 function GraphCanvasContent({
@@ -65,9 +69,32 @@ function GraphCanvasContent({
   onConnectNodes,
   highlightPathIds,
   isFocusMode = false,
+  isMinimapVisible,
+  onToggleMinimap,
+  onCloseMinimap,
 }: GraphCanvasProps) {
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const { applyLayout } = useForceLayout();
+
+  const [internalMinimapVisible, setInternalMinimapVisible] = useState(false);
+  const effectiveMinimapVisible =
+    isMinimapVisible !== undefined ? isMinimapVisible : internalMinimapVisible;
+
+  const handleCloseMinimap = useCallback(() => {
+    if (onCloseMinimap) {
+      onCloseMinimap();
+    } else {
+      setInternalMinimapVisible(false);
+    }
+  }, [onCloseMinimap]);
+
+  const handleToggleMinimap = useCallback(() => {
+    if (onToggleMinimap) {
+      onToggleMinimap();
+    } else {
+      setInternalMinimapVisible((prev) => !prev);
+    }
+  }, [onToggleMinimap]);
 
   const [connectStartNodeId, setConnectStartNodeId] = useState<string | null>(null);
 
@@ -303,6 +330,13 @@ function GraphCanvasContent({
             className="!bg-white dark:!bg-[#1E1F20] !border-none !rounded-2xl !shadow-none overflow-hidden"
           />
         )}
+        {effectiveMinimapVisible && (
+          <DraggableMinimap
+            isVisible={effectiveMinimapVisible}
+            onClose={handleCloseMinimap}
+            onSelectNode={onSelectNode ? (id) => onSelectNode(id) : undefined}
+          />
+        )}
       </ReactFlow>
 
       {/* Floating Canvas Dock (Bottom-Right) */}
@@ -339,6 +373,19 @@ function GraphCanvasContent({
           type="button"
         >
           <span className="material-symbols-outlined text-[20px]">filter_center_focus</span>
+        </button>
+        <div className="w-[1px] h-5 bg-[#E1E5EA] dark:bg-[#282A2C] my-auto" />
+        <button
+          onClick={handleToggleMinimap}
+          className={`p-2 rounded-full transition-colors border-none cursor-pointer ${
+            effectiveMinimapVisible
+              ? 'text-[#0B57D0] dark:text-[#A8C7FA] bg-[#D3E3FD]/50 dark:bg-[#162B4D]'
+              : 'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
+          }`}
+          title={effectiveMinimapVisible ? 'Ẩn minimap vùng nhìn' : 'Hiện minimap vùng nhìn'}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">explore</span>
         </button>
       </div>
     </div>

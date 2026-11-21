@@ -6,8 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
-import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 
 const routeMap: Record<string, string> = {
@@ -64,6 +62,8 @@ interface DashboardHeaderProps {
   workspaceMode?: 'faculty' | 'student';
   onToggleWorkspaceMode?: () => void;
   title?: string;
+  showFocusMode?: boolean;
+  showRoleSwitcher?: boolean;
 }
 
 export function DashboardHeader({
@@ -74,6 +74,8 @@ export function DashboardHeader({
   workspaceMode = 'faculty',
   onToggleWorkspaceMode,
   title,
+  showFocusMode = true,
+  showRoleSwitcher = false,
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
@@ -111,8 +113,6 @@ export function DashboardHeader({
               <span className="material-symbols-outlined text-[18px]">fullscreen_exit</span>
               <span>{t('exitFocusModeBtn')}</span>
             </button>
-            <ThemeToggle />
-            <LanguageSwitcher variant="minimal" />
             <div className="h-4 w-px bg-[#E1E5EA] dark:bg-[#282A2C]" />
             <UserMenuDropdown userFullName={userFullName} isFocus={true} />
           </div>
@@ -124,9 +124,8 @@ export function DashboardHeader({
   // Header matching unified layout
   return (
     <header
-      className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-[72px]' : 'left-64'
-      } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-6 sm:px-8 flex items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
+      className={`fixed top-0 ${isSidebarCollapsed ? 'left-[72px]' : 'left-64'
+        } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-6 sm:px-8 flex items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
     >
       {/* 1. Left: Breadcrumb */}
       <div className="flex items-center gap-1.5 shrink-0 flex-nowrap select-none">
@@ -182,25 +181,18 @@ export function DashboardHeader({
         )}
 
         {/* Focus Mode Button */}
-        <button
-          onClick={onToggleMode}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] transition-colors text-xs font-medium whitespace-nowrap border-none cursor-pointer"
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
-            center_focus_strong
-          </span>
-          <span>{t('focusModeBtn')}</span>
-        </button>
-
-        {/* Role Switcher */}
-        <RoleSwitcher compact />
-
-        {/* Theme Toggle */}
-        <ThemeToggle />
-
-        {/* Language Switcher */}
-        <LanguageSwitcher />
+        {showFocusMode && (
+          <button
+            onClick={onToggleMode}
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] transition-colors text-xs font-medium whitespace-nowrap border-none cursor-pointer"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+              center_focus_strong
+            </span>
+            <span>{t('focusModeBtn')}</span>
+          </button>
+        )}
 
         {/* Notification Bell with alert badge */}
         <NotificationDropdown />

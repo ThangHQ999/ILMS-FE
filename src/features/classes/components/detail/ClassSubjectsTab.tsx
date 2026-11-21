@@ -4,16 +4,18 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ArrowRight as ArrowRightIcon } from 'lucide-react';
-import type { ClassCourse, CourseTemplate } from '../../schemas/class-detail.schema';
-import { MOCK_TEMPLATES } from '../../services/class-detail.service';
+import { CustomSelect } from '@/components/shared';
+import type { ClassCourse } from '../../schemas/class-detail.schema';
+import type { AvailableClassCourse } from '../../services/class-detail.service';
 import { CourseCard } from './CourseCard';
 
 interface ClassSubjectsTabProps {
   courses: ClassCourse[];
-  templates?: CourseTemplate[];
+  availableCourses?: AvailableClassCourse[];
   currentRole: 'owner' | 'teacher' | 'student';
   onAddExistingClick: () => void;
   onCreateNewClick: () => void;
+  onAssignCourse?: (courseId: string) => void;
   onRemoveClick: (course: ClassCourse) => void;
   onAssignTeacherClick: (course: ClassCourse) => void;
   onToast?: (message: string) => void;
@@ -21,23 +23,21 @@ interface ClassSubjectsTabProps {
 
 export function ClassSubjectsTab({
   courses: initialCourses,
-  templates = MOCK_TEMPLATES,
+  availableCourses = [],
   currentRole,
   onAddExistingClick,
   onCreateNewClick,
+  onAssignCourse,
   onRemoveClick,
   onAssignTeacherClick,
   onToast,
 }: ClassSubjectsTabProps) {
   const t = useTranslations('classes.detail');
 
-  // Course state (supports cloning)
   const [courseList, setCourseList] = useState<ClassCourse[]>(initialCourses);
 
   useEffect(() => {
-    if (initialCourses && initialCourses.length > 0) {
-      setCourseList(initialCourses);
-    }
+    setCourseList(initialCourses);
   }, [initialCourses]);
 
   // Filters & Sorters
@@ -49,7 +49,18 @@ export function ClassSubjectsTab({
 
   // Modals state
   const [isAllTemplatesOpen, setIsAllTemplatesOpen] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState('');
   const [extractingCourse, setExtractingCourse] = useState<ClassCourse | null>(null);
+
+  const filteredAvailableCourses = useMemo(() => {
+    const q = templateSearch.trim().toLowerCase();
+    if (!q) return availableCourses;
+    return availableCourses.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.code && c.code.toLowerCase().includes(q))
+    );
+  }, [availableCourses, templateSearch]);
 
   const notify = (msg: string) => {
     if (onToast) onToast(msg);
@@ -94,24 +105,13 @@ export function ClassSubjectsTab({
     return result;
   }, [courseList, search, semesterFilter, instructorFilter, sortFilter]);
 
-  // Clone template action
-  const handleCloneTemplate = (tpl: CourseTemplate) => {
-    const newCourse: ClassCourse = {
-      id: `course-${Date.now()}`,
-      code: `CS-${Math.floor(100 + Math.random() * 900)}`,
-      name: tpl.title,
-      credits: tpl.credits,
-      semester: 'Học kỳ I (2024-2025)',
-      status: 'ACTIVE',
-      instructorName: 'TS. Lê Hoàng Nam',
-      teachingProgress: 0,
-      currentWeek: 'Tuần 1/15',
-      studentsCount: 42,
-      knowledgeNodesCount: 115,
-      classAvgScore: 8.4,
-    };
-    setCourseList((prev) => [newCourse, ...prev]);
-    notify(`Đã nhân bản mẫu "${tpl.title}" vào danh sách môn học liên kết!`);
+  // Assign shared/available course to class via API
+  const handleAssignSharedCourse = (course: AvailableClassCourse) => {
+    if (onAssignCourse) {
+      onAssignCourse(course.id);
+    } else {
+      notify(`Đã thêm môn "${course.name}" vào lớp!`);
+    }
     setIsAllTemplatesOpen(false);
   };
 
@@ -160,57 +160,46 @@ export function ClassSubjectsTab({
           </div>
 
           {/* Semester Filter */}
-          <div className="relative">
-            <select
-              value={semesterFilter}
-              onChange={(e) => setSemesterFilter(e.target.value)}
-              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold pl-4 pr-8 py-2 rounded-full outline-none border-none cursor-pointer"
-            >
-              <option value="ALL">{t('filterSemesterAll')}</option>
-              <option value="Học kỳ II (2024-2025)">{t('filterSemester2')}</option>
-              <option value="Học kỳ I (2024-2025)">{t('filterSemester1')}</option>
-            </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-[17px] text-gray-500 dark:text-[#8E918F]">
-              expand_more
-            </span>
-          </div>
+          <CustomSelect<string>
+            variant="pill"
+            value={semesterFilter}
+            onChange={(val) => setSemesterFilter(val)}
+            options={[
+              { value: 'ALL', label: t('filterSemesterAll') },
+              { value: 'Học kỳ II (2024-2025)', label: t('filterSemester2') },
+              { value: 'Học kỳ I (2024-2025)', label: t('filterSemester1') },
+            ]}
+            className="min-w-[160px]"
+          />
 
           {/* Instructor Filter */}
-          <div className="relative">
-            <select
-              value={instructorFilter}
-              onChange={(e) => setInstructorFilter(e.target.value)}
-              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold pl-4 pr-8 py-2 rounded-full outline-none border-none cursor-pointer"
-            >
-              <option value="ALL">{t('filterInstructorAll')}</option>
-              <option value="Nguyễn Văn An">TS. Nguyễn Văn An (Chủ nhiệm)</option>
-              <option value="Lê Hoàng Nam">ThS. Lê Hoàng Nam</option>
-              <option value="Đặng Minh Quân">TS. Đặng Minh Quân</option>
-              <option value="Ban Giảng huấn">Ban Giảng huấn CNTT</option>
-            </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-[17px] text-gray-500 dark:text-[#8E918F]">
-              expand_more
-            </span>
-          </div>
+          <CustomSelect<string>
+            variant="pill"
+            value={instructorFilter}
+            onChange={(val) => setInstructorFilter(val)}
+            options={[
+              { value: 'ALL', label: t('filterInstructorAll') },
+              { value: 'Nguyễn Văn An', label: 'TS. Nguyễn Văn An (Chủ nhiệm)' },
+              { value: 'Lê Hoàng Nam', label: 'ThS. Lê Hoàng Nam' },
+              { value: 'Đặng Minh Quân', label: 'TS. Đặng Minh Quân' },
+              { value: 'Ban Giảng huấn', label: 'Ban Giảng huấn CNTT' },
+            ]}
+            className="min-w-[170px]"
+          />
 
           {/* Sort Filter */}
-          <div className="relative">
-            <select
-              value={sortFilter}
-              onChange={(e) =>
-                setSortFilter(e.target.value as 'progress' | 'code' | 'name' | 'recent')
-              }
-              className="appearance-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold pl-4 pr-8 py-2 rounded-full outline-none border-none cursor-pointer"
-            >
-              <option value="progress">{t('sortProgress')}</option>
-              <option value="code">{t('sortCode')}</option>
-              <option value="name">{t('sortName')}</option>
-              <option value="recent">{t('sortRecent')}</option>
-            </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-[17px] text-gray-500 dark:text-[#8E918F]">
-              swap_vert
-            </span>
-          </div>
+          <CustomSelect<'progress' | 'code' | 'name' | 'recent'>
+            variant="pill"
+            value={sortFilter}
+            onChange={(val) => setSortFilter(val)}
+            options={[
+              { value: 'progress', label: t('sortProgress') },
+              { value: 'code', label: t('sortCode') },
+              { value: 'name', label: t('sortName') },
+              { value: 'recent', label: t('sortRecent') },
+            ]}
+            className="min-w-[150px]"
+          />
         </div>
 
         {/* View Mode Switcher & Primary Action */}
@@ -396,60 +385,78 @@ export function ClassSubjectsTab({
             onClick={() => setIsAllTemplatesOpen(true)}
             className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline inline-flex items-center gap-1 shrink-0 self-start sm:self-auto border-none bg-transparent cursor-pointer"
           >
-            <span>{t('viewAllTemplates', { count: 28 })}</span>
+            <span>{t('viewAllTemplates', { count: availableCourses.length })}</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </button>
         </div>
 
-        {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-          {templates.map((tpl) => (
-            <div
-              key={tpl.id}
-              className="p-5 rounded-2xl bg-gray-50 dark:bg-[#131314] hover:bg-gray-100/70 dark:hover:bg-[#282A2C] transition-all flex flex-col justify-between gap-4 border-none"
-            >
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] border-none">
-                    {tpl.badge}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-gray-500 dark:text-[#8E918F]">
-                    {t('credits', { count: tpl.credits })}
-                  </span>
-                </div>
-
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] mt-0.5 line-clamp-1">
-                  {tpl.title}
-                </h4>
-
-                <p className="text-xs text-gray-500 dark:text-[#8E918F] line-clamp-2 leading-relaxed">
-                  {tpl.description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-1 text-gray-500 dark:text-[#8E918F] text-xs">
-                  <span className="material-symbols-outlined text-[16px]">
-                    download_for_offline
-                  </span>
-                  <span>{t('timesUsed', { count: tpl.usedCount })}</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleCloneTemplate(tpl)}
-                  className="px-3.5 py-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs transition-all inline-flex items-center gap-1.5 border-none cursor-pointer"
+        {/* Shared / Available Courses Grid */}
+        {availableCourses.length === 0 ? (
+          <div className="p-6 rounded-2xl bg-gray-50 dark:bg-[#131314] text-center text-xs text-gray-500 dark:text-[#8E918F]">
+            Không có môn học chuẩn dùng chung khả dụng nào để gán thêm vào lớp.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            {availableCourses.slice(0, 6).map((course) => {
+              const bgUrl = course.backgroundUrl || course.thumbnailUrl;
+              return (
+                <div
+                  key={course.id}
+                  className="relative overflow-hidden p-5 rounded-2xl bg-gray-50 dark:bg-[#131314] hover:bg-gray-100/70 dark:hover:bg-[#282A2C] transition-all flex flex-col justify-between gap-4 border-none"
                 >
-                  <span className="material-symbols-outlined text-[15px]">content_copy</span>
-                  <span>{t('btnCloneSubject')}</span>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                  {bgUrl && (
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
+                      <img src={bgUrl} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/85 to-white/65 dark:from-[#131314]/95 dark:via-[#131314]/85 dark:to-[#131314]/65" />
+                    </div>
+                  )}
+
+                  <div className="relative z-10 flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] border-none">
+                        {course.code}
+                      </span>
+                      <span className="font-mono text-xs font-semibold text-gray-500 dark:text-[#8E918F]">
+                        {t('credits', { count: course.credits })}
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] mt-0.5 line-clamp-1">
+                      {course.name}
+                    </h4>
+
+                    <p className="text-xs text-gray-500 dark:text-[#8E918F] line-clamp-2 leading-relaxed">
+                      {course.description || 'Môn học chuẩn dùng chung trong hệ thống ILMS.'}
+                    </p>
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-1 text-gray-500 dark:text-[#8E918F] text-xs truncate">
+                      <span className="material-symbols-outlined text-[16px]">
+                        library_books
+                      </span>
+                      <span className="truncate">{course.instructorName || 'Môn dùng chung'}</span>
+                    </div>
+
+                    {currentRole !== 'student' && (
+                      <button
+                        type="button"
+                        onClick={() => handleAssignSharedCourse(course)}
+                        className="px-3.5 py-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs transition-all inline-flex items-center gap-1.5 border-none cursor-pointer shrink-0"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">add</span>
+                        <span>Thêm vào lớp</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* MODAL 1: VIEW ALL 28 TEMPLATES */}
+      {/* MODAL 1: VIEW ALL SHARED COURSES */}
       {isAllTemplatesOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 sm:p-7 max-w-3xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-scaleUp">
@@ -460,91 +467,120 @@ export function ClassSubjectsTab({
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3]">
-                    Kho Khung Môn Học &amp; Giáo Trình Chuẩn (28 Mẫu)
+                    Danh sách Môn học Chuẩn Dùng chung ({availableCourses.length})
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-[#8E918F]">
-                    Tương thích chuẩn ABET, Bộ GD&amp;ĐT và Chứng chỉ Quốc tế
+                    Chọn môn học khả dụng từ hệ thống để gắn trực tiếp vào lớp học
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsAllTemplatesOpen(false)}
+                onClick={() => {
+                  setIsAllTemplatesOpen(false);
+                  setTemplateSearch('');
+                }}
                 className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-[#282A2C] text-gray-500 dark:text-[#8E918F] flex items-center justify-center border-none bg-transparent cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="overflow-y-auto space-y-3 pr-1 flex-1">
-              {[
-                ...templates,
-                {
-                  id: 'tpl-04',
-                  title: 'Thị giác Máy tính & Học sâu (Computer Vision with PyTorch)',
-                  badge: 'AI Advanced',
-                  credits: 4,
-                  description:
-                    '18 bài lab thực hành CNN, YOLOv8, Vision Transformer và trích xuất đặc trưng hình ảnh.',
-                  usedCount: 215,
-                },
-                {
-                  id: 'tpl-05',
-                  title: 'Kiến trúc Vi dịch vụ & Phân tán (Distributed Systems)',
-                  badge: 'ABET-CS',
-                  credits: 4,
-                  description:
-                    'Thuật toán đồng thuận Raft/Paxos, thiết kế Event-driven với Apache Kafka và gRPC.',
-                  usedCount: 180,
-                },
-                {
-                  id: 'tpl-06',
-                  title: 'Phát triển Ứng dụng Di động Đa nền tảng (Flutter & Native)',
-                  badge: 'Doanh nghiệp IT',
-                  credits: 3,
-                  description:
-                    'Xây dựng ứng dụng hoàn chỉnh tích hợp Firebase Auth, Cloud Firestore và chuẩn UI Material 3.',
-                  usedCount: 264,
-                },
-              ].map((tpl) => (
-                <div
-                  key={tpl.id}
-                  className="p-4 rounded-2xl bg-gray-50 dark:bg-[#131314] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-100/70 transition-all"
+            {/* Search bar */}
+            <div className="relative shrink-0">
+              <span className="material-symbols-outlined text-[18px] text-gray-400 dark:text-[#8E918F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                search
+              </span>
+              <input
+                type="text"
+                value={templateSearch}
+                onChange={(e) => setTemplateSearch(e.target.value)}
+                placeholder="Tìm kiếm theo tên môn học hoặc mã môn..."
+                className="w-full pl-10 pr-9 py-2.5 rounded-full bg-gray-100 dark:bg-[#131314] text-xs sm:text-sm text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] border border-transparent focus:border-blue-500 dark:focus:border-[#A8C7FA] focus:outline-none transition-colors"
+              />
+              {templateSearch && (
+                <button
+                  type="button"
+                  onClick={() => setTemplateSearch('')}
+                  aria-label="Xóa tìm kiếm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-gray-200 dark:hover:bg-[#282A2C] text-gray-400 flex items-center justify-center border-none bg-transparent cursor-pointer text-xs"
                 >
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]">
-                        {tpl.badge}
-                      </span>
-                      <span className="text-xs font-mono font-semibold text-gray-500">
-                        {tpl.credits} Tín chỉ
-                      </span>
-                    </div>
-                    <h5 className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3]">
-                      {tpl.title}
-                    </h5>
-                    <p className="text-xs text-gray-500 dark:text-[#8E918F]">
-                      {tpl.description}
-                    </p>
-                  </div>
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div className="overflow-y-auto space-y-3 pr-1 flex-1">
+              {availableCourses.length === 0 ? (
+                <div className="p-8 text-center text-xs text-gray-500 dark:text-[#8E918F]">
+                  Không có môn học khả dụng nào.
+                </div>
+              ) : filteredAvailableCourses.length === 0 ? (
+                <div className="p-8 text-center space-y-2">
+                  <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+                    Không tìm thấy môn học nào khớp với &ldquo;{templateSearch}&rdquo;.
+                  </p>
                   <button
                     type="button"
-                    onClick={() => handleCloneTemplate(tpl)}
-                    className="px-4 py-2 rounded-full bg-blue-100 dark:bg-[#A8C7FA] text-blue-900 dark:text-[#062E6F] font-semibold text-xs inline-flex items-center gap-1.5 self-start sm:self-center shrink-0 border-none cursor-pointer hover:opacity-90"
+                    onClick={() => setTemplateSearch('')}
+                    className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] hover:opacity-85 border-none cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      content_copy
-                    </span>
-                    <span>Nhân bản vào lớp</span>
+                    Xóa tìm kiếm
                   </button>
                 </div>
-              ))}
+              ) : (
+                filteredAvailableCourses.map((course) => {
+                  const bgUrl = course.backgroundUrl || course.thumbnailUrl;
+                  return (
+                    <div
+                      key={course.id}
+                      className="relative overflow-hidden p-4 rounded-2xl bg-gray-50 dark:bg-[#131314] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-100/70 transition-all"
+                    >
+                      {bgUrl && (
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
+                          <img src={bgUrl} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/88 to-white/70 dark:from-[#131314]/95 dark:via-[#131314]/88 dark:to-[#131314]/70" />
+                        </div>
+                      )}
+                      <div className="relative z-10 space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]">
+                            {course.code}
+                          </span>
+                          <span className="text-xs font-mono font-semibold text-gray-500">
+                            {course.credits} Tín chỉ
+                          </span>
+                        </div>
+                        <h5 className="text-sm font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                          {course.name}
+                        </h5>
+                        <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+                          {course.description || 'Môn học chuẩn dùng chung trong hệ thống.'}
+                        </p>
+                      </div>
+                      {currentRole !== 'student' && (
+                        <button
+                          type="button"
+                          onClick={() => handleAssignSharedCourse(course)}
+                          className="relative z-10 px-4 py-2 rounded-full bg-blue-100 dark:bg-[#A8C7FA] text-blue-900 dark:text-[#062E6F] font-semibold text-xs inline-flex items-center gap-1.5 self-start sm:self-center shrink-0 border-none cursor-pointer hover:opacity-90"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">add</span>
+                          <span>Thêm vào lớp</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <div className="flex justify-end pt-2 shrink-0">
               <button
                 type="button"
-                onClick={() => setIsAllTemplatesOpen(false)}
+                onClick={() => {
+                  setIsAllTemplatesOpen(false);
+                  setTemplateSearch('');
+                }}
                 className="px-5 py-2 rounded-full text-xs font-semibold bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] hover:opacity-85 border-none cursor-pointer"
               >
                 Đóng

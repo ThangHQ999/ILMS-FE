@@ -1225,6 +1225,16 @@
     "billingHeaderTitle": "Plans & Pro Subscription",
     "billingHeaderSubtitle": "License details for AI Lab Sandbox, GPU Cloud, and 24/7 AI tutoring.",
     "btnCancelAutoRenew": "Cancel auto-renewal",
+    "scheduledPlanTitle": "Scheduled plan change",
+    "scheduledPlanDesc": "You are scheduled to switch to {nextPlanName} on {date} (when your current plan ends). You keep full access to {currentPlanName} until then.",
+    "scheduledPlanDescNoDate": "You are scheduled to switch to {nextPlanName} when your current plan ends. You keep full access to {currentPlanName} until then.",
+    "btnCancelScheduledPlan": "Cancel scheduled change",
+    "btnCancelingScheduledPlan": "Canceling...",
+    "downgradeNoticeWithDate": "Your current {currentPlanName} remains active through {endDate}. Your plan will switch only after that date.",
+    "downgradeNoticeFallback": "Your current {currentPlanName} remains active until the end of the current cycle. Your plan will switch only after that date.",
+    "btnScheduleDowngradeWithDate": "Schedule switch after {endDate}",
+    "btnScheduleDowngradeFallback": "Schedule switch at period end",
+    "btnProceedPayment": "Proceed to Payment",
     "btnUpgradeEnterprise": "Upgrade to Enterprise",
     "lblPlanCost": "Plan Cost",
     "paidStatus": "Paid",
@@ -1281,7 +1291,7 @@
     "mainPageTitle": "Settings & System Preferences",
     "mainPageSubtitle": "Manage your profile, identity security, EduTech Pro subscription, and customize your online learning space.",
     "searchPlaceholder": "Quick find: Password, 2FA, Dark mode...",
-    "searchHintCount": "Instant access to 18+ personalized settings"
+    "searchHintCount": "Quick search"
   },
   "competency": {
     "pageTitle": "Competency Map & Skill Tree",
@@ -1371,6 +1381,34 @@
     "modalCreateDesc": "Initialize a new class workspace for the current academic semester",
     "fieldName": "Class Code",
     "fieldNamePlaceholder": "e.g., CS201.N12",
+    "createPage": {
+      "breadcrumbTitle": "Create New Class",
+      "backToClasses": "Back to Classes",
+      "heading": "Create New Class",
+      "subheading": "Configure class details, enrollment rules, and background cover for your workspace.",
+      "sectionBasic": "Basic Information",
+      "sectionBackground": "Class Background",
+      "backgroundHint": "PNG, JPG, WEBP • Max 10MB",
+      "uploadCta": "Click to upload background image",
+      "uploadSubtext": "Automatically uploaded to Cloud and rendered behind class cards & banner.",
+      "uploadingLabel": "Uploading image to Cloud...",
+      "uploadedLabel": "Background uploaded",
+      "uploadFailed": "Failed to upload background image. Please try again.",
+      "changeBgBtn": "Change",
+      "removeBgBtn": "Remove",
+      "sectionSettings": "Schedule & Enrollment",
+      "visibilityLabel": "Visibility",
+      "visibilityPublic": "Public",
+      "visibilityPrivate": "Private",
+      "startDateLabel": "Start Date",
+      "endDateLabel": "End Date",
+      "isCodeActiveLabel": "Allow join by code",
+      "isCodeActiveHint": "Students can enter the class code to join",
+      "requireApprovalLabel": "Require approval",
+      "requireApprovalHint": "Instructor approves join requests",
+      "previewTitle": "Live Class Card Preview",
+      "previewDefaultTitle": "Software Engineering 01"
+    },
     "fieldTitle": "Course / Subject Title",
     "fieldTitlePlaceholder": "e.g., Advanced Database Systems",
     "fieldDescription": "Class Description",
@@ -1747,6 +1785,8 @@
       "lessonsInChapter": "{count} lessons",
       "lessonDuration": "{minutes} mins",
       "lessonType": {
+        "MODULAR": "Modular Lesson",
+        "TEXT": "Theory",
         "THEORY": "Theory",
         "VIDEO": "Video Lecture",
         "QUIZ": "Quiz",
@@ -2092,7 +2132,7 @@
         "bank": "Beneficiary Bank:",
         "bankName": "MB Bank (Military Bank)",
         "accountHolder": "Account Holder:",
-        "accountHolderName": "CONG TY EDUTECH INNOVATIONS",
+        "accountHolderName": "HOANG QUANG THANG",
         "accountNumber": "Account Number:",
         "amount": "Amount:",
         "transferNote": "Transfer Note:",
@@ -2258,5 +2298,105 @@
         }
       }
     }
+  },
+  "materialsHub": {
+    "title": "AI Knowledge Ingestion & Review Hub",
+    "subtitle": "Monitor the Spring Boot → FastAPI 4-Agent pipeline, inspect BLOCKER issues, and publish knowledge graphs to Neo4j & ChromaDB.",
+    "livePolling": "Live Polling 4s",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search by material title, subject, or Job ID...",
+    "kpi": {
+      "active": "Queued / Processing",
+      "awaitingReview": "Awaiting Instructor Review",
+      "completed": "Published to Neo4j",
+      "failed": "Failed / Needs Retry"
+    },
+    "filters": {
+      "all": "All",
+      "awaitingReview": "Needs Review",
+      "active": "In Progress",
+      "completed": "Published",
+      "failed": "Failed",
+      "reset": "Reset filters"
+    },
+    "status": {
+      "NOT_EXTRACTED": "Not Extracted",
+      "QUEUED": "Queued",
+      "PROCESSING": "AI Analyzing (4 Agents)",
+      "AWAITING_REVIEW": "Awaiting Instructor Review",
+      "PUBLISHING": "Publishing to Neo4j & ChromaDB",
+      "SUCCESS": "Published to Neo4j",
+      "COMPLETED": "Published to Neo4j",
+      "FAILED": "Extraction Failed"
+    },
+    "steps": {
+      "header": "AI Ingestion Pipeline (5 Stages)",
+      "queued": "Queued",
+      "queuedSub": "QUEUED · Local Staging",
+      "aiDraft": "4-Agent AI",
+      "aiDraftSub": "Extractor → Reviewer",
+      "draftReady": "Draft Ready",
+      "draftReadySub": "MySQL & Neo4j Sync",
+      "review": "Review",
+      "reviewSub": "BLOCKER Checks",
+      "publish": "Published",
+      "publishSub": "Neo4j + ChromaDB"
+    },
+    "draftGraph": {
+      "heading": "Revision Draft Graph",
+      "syncing": "Syncing draft graph to Neo4j (auto-retrying every 2.5s)...",
+      "reload": "Reload graph",
+      "nodesUnit": "nodes",
+      "edgesUnit": "edges",
+      "selectHint": "Click any node on the graph to inspect or edit its fields.",
+      "moveExercise": "Move exercise to concept",
+      "addEntity": "Add Knowledge Entity",
+      "addRelation": "Add Relation",
+      "addTopic": "Add Topic",
+      "deleteNode": "Delete Node"
+    },
+    "actions": {
+      "uploadDirect": "Upload to Pipeline (Manual Review)",
+      "autoPublishOn": "Auto Publish",
+      "autoPublishOff": "Stop for Manual Review",
+      "approveAndPublish": "Approve & Publish to Neo4j",
+      "requestChanges": "Request Changes",
+      "reject": "Reject",
+      "retry": "Retry Job",
+      "rawJson": "Raw JSON",
+      "viewPublishedGraph": "View Published Graph",
+      "downloadSource": "Source File"
+    },
+    "empty": {
+      "noJobsTitle": "No AI extraction jobs yet",
+      "noJobsDesc": "Upload a document directly here or trigger AI Extraction from any course's Materials tab.",
+      "uploadFirst": "Upload first document",
+      "noMatch": "No jobs match your current filters."
+    }
+  },
+  "courseMaterials": {
+    "title": "Course Materials & Resources",
+    "filesUnit": "files",
+    "publishedUnit": "published to Neo4j",
+    "syncing": "Syncing...",
+    "uploadButton": "Upload material",
+    "uploadingButton": "Uploading...",
+    "extractAll": "Extract all",
+    "searchPlaceholder": "Search materials, chapters, or lessons...",
+    "openHub": "Open AI Processing Hub",
+    "emptyTitle": "No course materials yet",
+    "emptyFilterTitle": "No materials match your filters",
+    "resetFilters": "Reset filters"
+  },
+  "courseKg": {
+    "title": "Course Knowledge Graph",
+    "conceptsUnit": "concepts",
+    "edgesUnit": "links",
+    "viewGraph": "Network Graph",
+    "viewTopics": "By Topic",
+    "openStudio": "Open Full Studio",
+    "searchPlaceholder": "Search concepts, topics, or keywords...",
+    "emptyTitle": "No published knowledge graph for this course yet",
+    "askSocraticAi": "Ask Socratic AI about this concept"
   }
 }

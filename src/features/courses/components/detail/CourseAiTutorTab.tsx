@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { api } from '@/lib/axios';
+import { MarkdownContent } from '@/components/shared';
+import type { ApiResponse } from '@/types/common';
 
 interface CourseAiTutorTabProps {
   courseName: string;
+  subjectCode: string;
+  materialIds?: string[];
+  initialPrompt?: string | null;
+  onConsumeInitialPrompt?: () => void;
 }
 
 interface ChatMessage {
@@ -14,59 +21,264 @@ interface ChatMessage {
   timestamp: string;
 }
 
-export function CourseAiTutorTab({ courseName }: CourseAiTutorTabProps) {
+export function CourseAiTutorTab({
+  courseName,
+  subjectCode,
+  materialIds = [],
+  initialPrompt,
+  onConsumeInitialPrompt,
+}: CourseAiTutorTabProps) {
   const t = useTranslations('courses.detail');
   const [inputVal, setInputVal] = useState('');
+
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setInputVal(initialPrompt);
+      onConsumeInitialPrompt?.();
+    }
+  }, [initialPrompt, onConsumeInitialPrompt]);
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: 'msg-1',
+      id: 'msg-welcome',
       sender: 'ai',
-      text: `Xin chào thầy/cô! Tôi là Trợ lý ảo AI Socratic chuyên biệt cho môn học "${courseName}". Tôi đã lập chỉ mục toàn bộ slide, đề cương và mã nguồn bài tập. Tôi có thể hỗ trợ thầy/cô tạo câu hỏi gợi mở tư duy, giải thích thuật toán hoặc tạo đề kiểm tra nhanh theo chuẩn ABET. Thầy/cô cần tôi trợ giúp nội dung nào hôm nay?`,
-      timestamp: 'Vừa xong',
+      text: `Xin chào! Tôi là **Trợ lý AI Socratic** cho môn **${courseName}** (\`${subjectCode}\`). Bạn đang cần giải thích khái niệm, ôn tập hay gợi mở bài tập nào?`,
+      timestamp: 'Sẵn sàng',
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const SUGGESTED_PROMPTS = [
-    'Giải thích trực quan phép xoay kép (Double Rotation) của Cây AVL',
-    'Tại sao bộ nhớ của Segment Tree cần tối đa 4N phần tử?',
-    'Tạo 3 câu trắc nghiệm mức độ Vận dụng cao cho Dijkstra',
+    `Tóm tắt các khái niệm trọng tâm của môn ${courseName}`,
+    'Đặt câu hỏi gợi mở giúp tôi tự kiểm tra kiến thức chương hiện tại',
+    'Giải thích từng bước một bài tập tiêu biểu trong tài liệu môn học',
   ];
 
-  const handleSend = (textToSend?: string) => {
+  // Load latest chat session for this subjectCode: GET /api/v1/student/chat/sessions?subject={subjectCode}
+  useEffect(() => {
+    if (!subjectCode) return;
+    let isCancelled = false;
+
+    async function loadSessionHistory() {
+      try {
+        const { data } = await api.get<ApiResponse<unknown>>('/student/chat/sessions', {
+          params: { subject: subjectCode },
+        });
+        const raw = data?.data ?? data;
+        const sessions = Array.isArray(raw)
+          ? raw
+          : raw && typeof raw === 'object' && Array.isArray((raw as { content?: unknown[] }).content)
+            ? (raw as { content: unknown[] }).content
+            : raw && typeof raw === 'object' && Array.isArray((raw as { items?: unknown[] }).items)
+              ? (raw as { items: unknown[] }).items
+              : [];
+
+        if (isCancelled || sessions.length === 0) return;
+
+        const latest = sessions[0] as Record<string, unknown>;
+        const latestId = latest.id || latest.sessionId || latest.session_id;
+        if (!latestId) return;
+
+        const resolvedSessionId = String(latestId);
+        setSessionId(resolvedSessionId);
+
+        // Load messages of latest session
+        const { data: detailRes } = await api.get<ApiResponse<unknown>>(
+          `/student/chat/sessions/${resolvedSessionId}`
+        );
+        if (isCancelled) return;
+        const detailRaw = detailRes?.data ?? detailRes;
+        const rawMessages = Array.isArray(detailRaw)
+          ? detailRaw
+          : detailRaw && typeof detailRaw === 'object'
+            ? ((detailRaw as { messages?: unknown[] }).messages ?? [])
+            : [];
+
+        if (rawMessages.length > 0) {
+          const mapped: ChatMessage[] = rawMessages.map((item, idx) => {
+            const rec = item as Record<string, unknown>;
+            const role = String(rec.role ?? rec.sender ?? 'assistant').toLowerCase();
+            return {
+              id: String(rec.id ?? `hist-${idx}`),
+              sender: role === 'user' || role === 'student' ? 'user' : 'ai',
+              text: String(rec.content ?? rec.message ?? rec.text ?? ''),
+              timestamp: rec.createdAt ? String(rec.createdAt) : '',
+            };
+          });
+          setMessages(mapped);
+        }
+      } catch {
+        // Keep welcome message when no prior session exists
+      }
+    }
+
+    loadSessionHistory();
+    return () => {
+      isCancelled = true;
+    };
+  }, [subjectCode]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputVal).trim();
-    if (!text) return;
+    if (!text || isTyping) return;
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
+      id: `msg-user-${Date.now()}`,
       sender: 'user',
       text,
       timestamp: 'Vừa xong',
     };
+    const aiMsgId = `msg-ai-${Date.now()}`;
 
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: aiMsgId, sender: 'ai', text: '', timestamp: 'Đang trả lời...' },
+    ]);
     if (!textToSend) setInputVal('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      let aiReply = '';
-      if (text.includes('Cây AVL') || text.includes('xoay')) {
-        aiReply = `**Phân tích Socratic về Cây AVL:**\n\nPhép xoay kép (Left-Right hoặc Right-Left) xảy ra khi node con bị lệch "dạng gấp khúc" (zig-zag). Thay vì chỉ xoay 1 lần làm cây vẫn mất cân bằng, ta cần:\n1. **Bước 1**: Xoay đơn tại node con để duỗi thẳng nhánh (thành dạng thẳng hàng Left-Left hoặc Right-Right).\n2. **Bước 2**: Xoay đơn tại node cha để đưa node trung gian lên làm gốc mới.\n\n*Gợi ý gợi mở cho sinh viên:* Thầy/cô có muốn yêu cầu sinh viên vẽ cây trước và sau bước xoay 1 để tự nhận thấy vì sao độ cao cân bằng trở lại?`;
-      } else if (text.includes('Segment Tree') || text.includes('4N')) {
-        aiReply = `**Về độ phức tạp không gian 4N của Segment Tree:**\n\nNếu số lượng lá là N, trong trường hợp xấu nhất N không phải là lũy thừa của 2, cây phân đoạn sẽ mở rộng xuống tầng thứ $\\lceil \\log_2 N \\rceil + 1$. Tổng số node trên một cây nhị phân hoàn chỉnh có chiều cao $h$ là $2^{h+1} - 1 < 4N$.\n\nThầy/cô có thể giao bài tập cho sinh viên kiểm chứng với N = 5 (cần mảng kích thước 16).`;
-      } else {
-        aiReply = `Cảm ơn thầy/cô! Yêu cầu "${text}" đã được AI phân tích đối chiếu với đề cương học phần. Hệ thống đã chuẩn bị câu trả lời theo phương pháp Socratic để kích thích tư duy giải quyết vấn đề của người học. Thầy/cô có muốn tích hợp nội dung này vào bài giảng tiếp theo không?`;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+      const response = await fetch(`${baseUrl}/student/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          message: text,
+          ...(sessionId ? { session_id: sessionId } : {}),
+          subject: subjectCode,
+          ...(materialIds.length > 0 ? { material_ids: materialIds } : {}),
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        let errText = `Không thể kết nối Trợ lý AI (${response.status})`;
+        try {
+          const errJson = await response.json();
+          if (errJson?.message) errText = String(errJson.message);
+        } catch {}
+        throw new Error(errText);
       }
 
-      const aiMsg: ChatMessage = {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'ai',
-        text: aiReply,
-        timestamp: 'Vừa xong',
-      };
-      setMessages((prev) => [...prev, aiMsg]);
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Trình duyệt không hỗ trợ luồng SSE ReadableStream.');
+      }
+
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let accumulated = '';
+      let currentEvent = 'message';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            currentEvent = 'message';
+            continue;
+          }
+          if (trimmed.startsWith('event:')) {
+            currentEvent = trimmed.slice(6).trim();
+            continue;
+          }
+          if (!trimmed.startsWith('data:')) continue;
+
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === '[DONE]') continue;
+
+          let parsedObj: Record<string, unknown> | null = null;
+          try {
+            const candidate = JSON.parse(dataStr);
+            if (candidate && typeof candidate === 'object') {
+              parsedObj = candidate as Record<string, unknown>;
+            }
+          } catch {
+            // Plain text delta
+          }
+
+          if (parsedObj) {
+            const newSid = parsedObj.session_id ?? parsedObj.sessionId;
+            if (newSid && !sessionId) {
+              setSessionId(String(newSid));
+            }
+            if (currentEvent === 'session_init') continue;
+
+            const delta =
+              parsedObj.delta ??
+              parsedObj.token ??
+              parsedObj.content ??
+              parsedObj.chunk ??
+              parsedObj.text ??
+              '';
+            if (typeof delta === 'string' && delta.length > 0) {
+              accumulated += delta;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === aiMsgId ? { ...m, text: accumulated } : m))
+              );
+            }
+          } else if (dataStr) {
+            accumulated += dataStr;
+            setMessages((prev) =>
+              prev.map((m) => (m.id === aiMsgId ? { ...m, text: accumulated } : m))
+            );
+          }
+        }
+      }
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === aiMsgId
+            ? {
+                ...m,
+                text:
+                  accumulated ||
+                  'AI đã hoàn tất phản hồi nhưng không có nội dung văn bản.',
+                timestamp: 'Vừa xong',
+              }
+            : m
+        )
+      );
+    } catch (err: unknown) {
+      if (controller.signal.aborted) return;
+      const errMsg =
+        err instanceof Error ? err.message : 'Đã xảy ra lỗi khi kết nối Trợ lý AI.';
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === aiMsgId ? { ...m, text: `⚠️ ${errMsg}`, timestamp: 'Lỗi' } : m
+        )
+      );
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -120,13 +332,17 @@ export function CourseAiTutorTab({ courseName }: CourseAiTutorTabProps) {
               </div>
 
               <div
-                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
+                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                   isAi
                     ? 'bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-100 dark:border-slate-700/60'
-                    : 'bg-blue-600 text-white'
+                    : 'bg-blue-600 text-white whitespace-pre-wrap'
                 }`}
               >
-                {m.text}
+                {isAi ? (
+                  <MarkdownContent content={m.text || (isTyping ? '...' : '')} />
+                ) : (
+                  m.text
+                )}
               </div>
             </div>
           );
@@ -138,6 +354,7 @@ export function CourseAiTutorTab({ courseName }: CourseAiTutorTabProps) {
             <span>AI Socratic đang tư duy và soạn phản hồi...</span>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Suggested prompts */}

@@ -218,55 +218,106 @@ function saveStoredAttendances(
 
 /**
  * Fetch Lesson Sessions for a class.
- * Endpoint: GET /api/v1/classes/{classId}/lessonSessions
+ * Endpoints:
+ * - GET /api/v1/classes/{classId}/lesson-sessions (primary)
+ * - GET /api/v1/classes/{classId}/lessonSessions (alias)
+ * - GET /api/v1/users/me/timetable (user timetable fallback)
  */
 export async function getLessonSessions(classId: string): Promise<LessonSession[]> {
-  try {
-    const res = await api.get<ApiResponse<LessonSession[]> | LessonSession[]>(
-      `/classes/${classId}/lessonSessions`
-    );
-    const data = res.data;
-    let list: LessonSession[] = [];
-    if (Array.isArray(data)) {
-      list = data;
-    } else if (data && 'data' in data && Array.isArray(data.data)) {
-      list = data.data;
+  const todayStr = new Date().toISOString().split('T')[0];
+  let list: Array<Record<string, unknown>> = [];
+
+  // Attempt 1: GET /classes/{classId}/lesson-sessions
+  if (classId && classId !== 'all') {
+    try {
+      const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+        `/classes/${classId}/lesson-sessions`
+      );
+      const data = res.data;
+      if (Array.isArray(data)) list = data;
+      else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
+    } catch {
+      // Attempt 2: Alias /classes/{classId}/lessonSessions
+      try {
+        const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+          `/classes/${classId}/lessonSessions`
+        );
+        const data = res.data;
+        if (Array.isArray(data)) list = data;
+        else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
+      } catch {
+        // continue
+      }
     }
-
-    if (list.length > 0) {
-      return list.map((item) => {
-        let attended = item.attendedCount ?? 0;
-        let total = item.totalStudents || 45;
-        let st: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' = item.status || 'SCHEDULED';
-
-        // Check local attendance cache if present
-        if (typeof window !== 'undefined') {
-          try {
-            const raw = localStorage.getItem(`${ATTENDANCE_KEY_PREFIX}${item.lessonSessionId}`);
-            if (raw) {
-              const recs: AttendanceRecord[] = JSON.parse(raw);
-              if (Array.isArray(recs)) {
-                attended = recs.filter((a) => a.status !== null && a.status !== undefined).length;
-                total = recs.length || total;
-                st = attended >= total && total > 0 ? 'COMPLETED' : attended > 0 ? 'IN_PROGRESS' : 'SCHEDULED';
-              }
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        return {
-          ...item,
-          attendedCount: attended,
-          totalStudents: total,
-          status: st,
-        };
-      });
-    }
-  } catch {
-    // Fallback quietly to local mock data
   }
+
+  // Attempt 3: If specific class endpoint is empty or classId is 'all', query personal timetable
+  if (list.length === 0) {
+    try {
+      const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+        '/users/me/timetable',
+        {
+          params: classId && classId !== 'all' ? { classId } : undefined,
+        }
+      );
+      const data = res.data;
+      if (Array.isArray(data)) list = data;
+      else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
+    } catch {
+      // continue
+    }
+  }
+
+  if (list.length > 0) {
+    return list.map((item, index) => {
+      const sessionId = String(item.lessonSessionId || item.id || `sess-${index + 1}`);
+      let attended = typeof item.attendedCount === 'number' ? item.attendedCount : 0;
+      let total = typeof item.totalStudents === 'number' ? item.totalStudents : typeof item.studentsCount === 'number' ? item.studentsCount : 45;
+      let st: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' = (item.status as 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED') || 'SCHEDULED';
+
+      // Check local attendance cache if present
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem(`${ATTENDANCE_KEY_PREFIX}${sessionId}`);
+          if (raw) {
+            const recs: AttendanceRecord[] = JSON.parse(raw);
+            if (Array.isArray(recs)) {
+              attended = recs.filter((a) => a.status !== null && a.status !== undefined).length;
+              total = recs.length || total;
+              st = attended >= total && total > 0 ? 'COMPLETED' : attended > 0 ? 'IN_PROGRESS' : 'SCHEDULED';
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const startTime = item.startTime ? String(item.startTime).slice(0, 5) : '07:30';
+      const endTime = item.endTime ? String(item.endTime).slice(0, 5) : '09:30';
+
+      return {
+        classId: String(item.classId || classId),
+        lessonSessionId: sessionId,
+        sessionCode: String(item.sessionCode || `CA-${index + 1}`),
+        className: String(item.className || item.courseName || 'Lớp học phần'),
+        subjectCode: String(item.courseCode || item.classCode || item.subjectCode || 'INT3306'),
+        sessionDate: String(item.sessionDate || todayStr),
+        startTime,
+        endTime,
+        startShift: typeof item.startShift === 'number' ? item.startShift : 1,
+        endShift: typeof item.endShift === 'number' ? item.endShift : 3,
+        roomId: String(item.roomId || 'room-1'),
+        roomName: String(item.roomName || 'Phòng B1-204'),
+        building: String(item.building || 'Tòa B1'),
+        instructorName: String(item.teacherName || item.instructorName || 'Giảng viên'),
+        note: String(item.note || ''),
+        status: st,
+        attendedCount: attended,
+        totalStudents: total,
+      };
+    });
+  }
+
   return getStoredSessions();
 }
 
@@ -308,14 +359,24 @@ export async function createLessonSession(
 
   try {
     const res = await api.post<ApiResponse<LessonSession> | LessonSession>(
-      `/classes/${classId}/lessonSessions`,
+      `/classes/${classId}/lesson-sessions`,
       payload
     );
     const data = res.data;
     if (data && 'data' in data && data.data) return data.data;
     if (data && 'lessonSessionId' in data) return data as LessonSession;
   } catch {
-    // Fallback quietly to local mock store
+    try {
+      const res = await api.post<ApiResponse<LessonSession> | LessonSession>(
+        `/classes/${classId}/lessonSessions`,
+        payload
+      );
+      const data = res.data;
+      if (data && 'data' in data && data.data) return data.data;
+      if (data && 'lessonSessionId' in data) return data as LessonSession;
+    } catch {
+      // Fallback quietly to local mock store
+    }
   }
 
   const newSession: LessonSession = {
@@ -351,11 +412,19 @@ export async function getAttendances(
   sessionId: string
 ): Promise<AttendanceRecord[]> {
   try {
-    const res = await api.get<
-      ApiResponse<Array<{ studentId: string; status: string; note?: string }>>
-    >(`/classes/${classId}/lessonSessions/${sessionId}/attendances`);
+    let data: unknown = null;
+    try {
+      const res = await api.get<
+        ApiResponse<Array<{ studentId: string; status: string; note?: string }>>
+      >(`/classes/${classId}/lesson-sessions/${sessionId}/attendances`);
+      data = res.data?.data || res.data;
+    } catch {
+      const res = await api.get<
+        ApiResponse<Array<{ studentId: string; status: string; note?: string }>>
+      >(`/classes/${classId}/lessonSessions/${sessionId}/attendances`);
+      data = res.data?.data || res.data;
+    }
 
-    const data = res.data?.data || (res.data as unknown as Array<{ studentId: string; status: string; note?: string }>);
     if (Array.isArray(data) && data.length > 0) {
       const mapped: AttendanceRecord[] = data.map((item) => ({
         studentId: String(item.studentId),
@@ -381,7 +450,9 @@ export async function getAttendances(
 
 /**
  * Save batch attendances for a session.
- * Endpoint: POST /api/v1/classes/{classId}/lessonSessions/{sessionId}/attendances
+ * Endpoints:
+ * - POST /api/v1/classes/{classId}/lesson-sessions/{sessionId}/attendances
+ * - POST /api/v1/classes/{classId}/lessonSessions/{sessionId}/attendances
  * Note: Backend requires @NotNull on status. Only non-null entries are submitted.
  */
 export async function saveAttendances(
@@ -404,11 +475,17 @@ export async function saveAttendances(
 
   if (validAttendances.length > 0) {
     try {
-      await api.post(`/classes/${classId}/lessonSessions/${sessionId}/attendances`, {
+      await api.post(`/classes/${classId}/lesson-sessions/${sessionId}/attendances`, {
         attendances: validAttendances,
       });
-    } catch (err) {
-      console.warn('Backend batch attendance sync failed (operating in offline/fallback mode):', err);
+    } catch {
+      try {
+        await api.post(`/classes/${classId}/lessonSessions/${sessionId}/attendances`, {
+          attendances: validAttendances,
+        });
+      } catch (err) {
+        console.warn('Backend batch attendance sync failed (operating in offline/fallback mode):', err);
+      }
     }
   }
 }
@@ -470,24 +547,119 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
 
 /**
  * Fetch Today Sessions for Teacher Overview Dashboard.
- * Tries backend endpoints or aggregates class sessions for today,
+ * Tries real timetable API (/api/v1/users/me/timetable) for today,
+ * then checks upcoming 7-day sessions from classes,
  * falling back gracefully to DEFAULT_TEACHER_SESSIONS synced with localStorage.
  */
 export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
   const todayStr = new Date().toISOString().split('T')[0];
 
+  // Attempt 1: GET /api/v1/users/me/timetable for today
   try {
-    // Attempt 1: If backend provides a dedicated today-sessions endpoint
-    try {
-      const res = await api.get<ApiResponse<TodaySessionItem[]>>('/teacher/today-sessions');
-      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        return res.data.data;
+    const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+      '/users/me/timetable',
+      {
+        params: { startDate: todayStr, endDate: todayStr },
       }
-    } catch {
-      // Continue to aggregation
-    }
+    );
+    const rawList = Array.isArray(res.data)
+      ? res.data
+      : (res.data && typeof res.data === 'object' && 'data' in res.data && Array.isArray(res.data.data))
+      ? res.data.data
+      : [];
 
-    // Attempt 2: Aggregation via classes
+    if (rawList.length > 0) {
+      return rawList.map((m, idx) => {
+        const id = String(m.lessonSessionId || m.id || `today-${idx}`);
+        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 45;
+        let attended = typeof m.attendedCount === 'number' ? m.attendedCount : 0;
+
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem(`${ATTENDANCE_KEY_PREFIX}${id}`);
+            if (raw) {
+              const list: AttendanceRecord[] = JSON.parse(raw);
+              if (Array.isArray(list)) {
+                attended = list.filter((a) => a.status !== null && a.status !== undefined).length;
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        const st: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' =
+          attended >= total && total > 0
+            ? 'COMPLETED'
+            : attended > 0
+            ? 'IN_PROGRESS'
+            : (m.status as 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED') || 'SCHEDULED';
+
+        const startTime = m.startTime ? String(m.startTime).slice(0, 5) : '07:30';
+        const endTime = m.endTime ? String(m.endTime).slice(0, 5) : '09:30';
+
+        return {
+          id,
+          timeSlot: `${startTime} - ${endTime}`,
+          subjectTitle: String(m.courseName || m.className || 'Ca học'),
+          subjectCode: String(m.courseCode || m.classCode || 'CS-202'),
+          roomName: String(m.roomName || 'Phòng học'),
+          studentsCount: total,
+          classId: String(m.classId || ''),
+          status: st,
+          attendedCount: attended,
+        };
+      });
+    }
+  } catch {
+    // continue
+  }
+
+  // Attempt 2: If no sessions strictly on today's calendar date, fetch upcoming 7-day timetable
+  try {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeekStr = nextWeek.toISOString().split('T')[0];
+
+    const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+      '/users/me/timetable',
+      {
+        params: { startDate: todayStr, endDate: nextWeekStr },
+      }
+    );
+    const rawList = Array.isArray(res.data)
+      ? res.data
+      : (res.data && typeof res.data === 'object' && 'data' in res.data && Array.isArray(res.data.data))
+      ? res.data.data
+      : [];
+
+    if (rawList.length > 0) {
+      return rawList.slice(0, 5).map((m, idx) => {
+        const id = String(m.lessonSessionId || m.id || `up-${idx}`);
+        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 45;
+        let attended = typeof m.attendedCount === 'number' ? m.attendedCount : 0;
+        const startTime = m.startTime ? String(m.startTime).slice(0, 5) : '07:30';
+        const endTime = m.endTime ? String(m.endTime).slice(0, 5) : '09:30';
+
+        return {
+          id,
+          timeSlot: `${startTime} - ${endTime}`,
+          subjectTitle: String(m.courseName || m.className || 'Ca học'),
+          subjectCode: String(m.courseCode || m.classCode || 'CS'),
+          roomName: String(m.roomName || 'Phòng học'),
+          studentsCount: total,
+          classId: String(m.classId || ''),
+          status: (m.status as 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED') || 'SCHEDULED',
+          attendedCount: attended,
+        };
+      });
+    }
+  } catch {
+    // continue
+  }
+
+  // Attempt 3: Aggregation via classes
+  try {
     const classesRes = await api.get<ApiResponse<{ content?: Array<{ id: string; name?: string; title?: string }> }>>('/classes', {
       params: { size: 10 },
     });
@@ -498,7 +670,7 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
 
       for (const cls of classes.slice(0, 5)) {
         try {
-          const sessRes = await api.get<ApiResponse<LessonSession[]>>(`/classes/${cls.id}/lessonSessions`);
+          const sessRes = await api.get<ApiResponse<LessonSession[]>>(`/classes/${cls.id}/lesson-sessions`);
           const sessList = sessRes.data?.data || [];
           const matches = sessList.filter((s) => s.sessionDate === todayStr);
 
@@ -506,10 +678,9 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
             let attended = m.attendedCount || 0;
             const total = m.totalStudents || 45;
 
-            // Attempt to get attendance count
             try {
               const attRes = await api.get<ApiResponse<Array<{ status: string }>>>(
-                `/classes/${cls.id}/lessonSessions/${m.lessonSessionId}/attendances`
+                `/classes/${cls.id}/lesson-sessions/${m.lessonSessionId}/attendances`
               );
               const atts = attRes.data?.data || [];
               if (Array.isArray(atts) && atts.length > 0) {
@@ -584,5 +755,25 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
 }
 
 export async function getRooms(): Promise<Room[]> {
+  try {
+    const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>('/rooms');
+    const raw = Array.isArray(res.data)
+      ? res.data
+      : res.data && typeof res.data === 'object' && 'data' in res.data && Array.isArray(res.data.data)
+      ? res.data.data
+      : [];
+
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((r, index) => ({
+        roomId: String(r.id || r.roomId || `room-${index + 1}`),
+        roomName: String(r.name || r.roomName || `Phòng ${index + 1}`),
+        building: String(r.building || 'Tòa nhà'),
+        capacity: typeof r.capacity === 'number' ? r.capacity : 50,
+        isAvailable: typeof r.isAvailable === 'boolean' ? r.isAvailable : true,
+      }));
+    }
+  } catch {
+    // fallback
+  }
   return MOCK_ROOMS;
 }

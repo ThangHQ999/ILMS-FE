@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
@@ -29,7 +29,6 @@ export default function KnowledgeGraphPage() {
   const { data: user, isLoading, isError } = useCurrentUser();
 
   useEffect(() => {
-    // Protected route check
     if (!isLoading && (isError || !user)) {
       router.replace('/login');
     }
@@ -52,5 +51,13 @@ export default function KnowledgeGraphPage() {
     return null;
   }
 
-  return <KnowledgeGraphPageView />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] animate-pulse" />
+      }
+    >
+      <KnowledgeGraphPageView />
+    </Suspense>
+  );
 }

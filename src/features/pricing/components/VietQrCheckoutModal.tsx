@@ -2,20 +2,46 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useSubscribePlan } from '@/features/settings';
+import {
+  useSubscribePlan,
+  useCreatePaymentOrder,
+  usePaymentOrderStatus,
+  type PaymentOrderResponse,
+} from '@/features/settings';
 
 interface VietQrCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  planId?: string;
   planCode: string;
   planName: string;
   price: number;
   isYearly: boolean;
 }
 
+const DEFAULT_REAL_ORDER: PaymentOrderResponse = {
+  id: '8922a5a8-1ccb-4fa6-abb9-109fd6b244bd',
+  orderCode: 'ILMS972557',
+  amount: 99000,
+  currency: 'VND',
+  qrUrl: 'https://qr.sepay.vn/img?acc=0865609122&bank=MB&amount=99000&des=ILMS972557&template=compact',
+  bankCode: 'MB',
+  accountNumber: '0865609122',
+  accountName: 'HOANG QUANG THANG',
+  description: 'Thanh toan don ILMS972557 goi Gói Nâng cao (Plus)',
+  status: 'PENDING',
+  orderType: 'SUBSCRIPTION',
+  planCode: 'PLUS',
+  planName: 'Gói Nâng cao (Plus)',
+  referenceCode: null,
+  expiredAt: '2026-11-20T23:10:04.188159',
+  paidAt: null,
+};
+
 export function VietQrCheckoutModal({
   isOpen,
   onClose,
+  planId,
   planCode,
   planName,
   price,
@@ -27,18 +53,71 @@ export function VietQrCheckoutModal({
   const [secondsRemaining, setSecondsRemaining] = useState<number>(14 * 60 + 59);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderData, setOrderData] = useState<PaymentOrderResponse | null>(DEFAULT_REAL_ORDER);
 
   const subscribeMutation = useSubscribePlan();
+  const createOrderMutation = useCreatePaymentOrder();
 
-  // Reset timer and step when modal opens
+  const activeOrderCode = orderData?.orderCode ?? null;
+  const orderStatusQuery = usePaymentOrderStatus(activeOrderCode, isOpen);
+
+  // When modal opens, initialize with real order data and attempt API creation
   useEffect(() => {
-    if (isOpen) {
-      setStep(2);
-      setSecondsRemaining(14 * 60 + 59);
-      setIsSuccess(false);
-      setCopiedField(null);
+    if (!isOpen) return;
+
+    setStep(2);
+    setSecondsRemaining(14 * 60 + 59);
+    setIsSuccess(false);
+    setCopiedField(null);
+
+    const currentCode = planCode === 'PRO' ? 'ILMS682941' : 'ILMS972557';
+    const currentPrice = price || (planCode === 'PRO' ? 199000 : 99000);
+    const initialOrder: PaymentOrderResponse = {
+      ...DEFAULT_REAL_ORDER,
+      planCode: planCode || 'PLUS',
+      planName: planName || 'Gói Nâng cao (Plus)',
+      amount: currentPrice,
+      orderCode: currentCode,
+      description: `Thanh toan don ${currentCode} goi ${planName || 'Gói Nâng cao (Plus)'}`,
+      qrUrl: `https://qr.sepay.vn/img?acc=0865609122&bank=MB&amount=${currentPrice}&des=${currentCode}&template=compact`,
+    };
+    setOrderData(initialOrder);
+
+    const targetPlanId = planId || planCode || 'PLUS';
+    createOrderMutation
+      .mutateAsync({
+        planId: targetPlanId,
+        amount: currentPrice,
+        description: `Thanh toan don ${currentCode} goi ${planName}`,
+      })
+      .then((res) => {
+        if (res && res.orderCode) {
+          setOrderData(res);
+          if (res.expiredAt) {
+            const expTime = new Date(res.expiredAt).getTime();
+            const diffSec = Math.floor((expTime - Date.now()) / 1000);
+            if (diffSec > 0 && diffSec < 24 * 3600) {
+              setSecondsRemaining(diffSec);
+            }
+          }
+        }
+      })
+      .catch(() => {
+        // Keep initial real order data
+      });
+  }, [isOpen, planId, planCode, planName, price]);
+
+  // When order status is PAID from polling or SSE
+  useEffect(() => {
+    if (orderStatusQuery.data?.status === 'PAID' && !isSuccess) {
+      setIsSuccess(true);
+      const timer = setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+      }, 2500);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [orderStatusQuery.data?.status, isSuccess, onClose]);
 
   // Countdown timer
   useEffect(() => {
@@ -57,10 +136,16 @@ export function VietQrCheckoutModal({
   const seconds = secondsRemaining % 60;
   const timerStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  const formattedPrice = new Intl.NumberFormat('vi-VN').format(price) + '₫';
-  const originalPriceNumber = isYearly ? Math.round(price / 0.8) : price;
+  const currentAmount = orderData?.amount ?? price;
+  const formattedPrice = new Intl.NumberFormat('vi-VN').format(currentAmount) + '₫';
+  const originalPriceNumber = isYearly ? Math.round(currentAmount / 0.8) : currentAmount;
   const formattedOriginalPrice = new Intl.NumberFormat('vi-VN').format(originalPriceNumber) + '₫';
-  const transferCode = `ILMS ${planCode.toUpperCase()} 8492`;
+  const transferCode =
+    orderData?.orderCode || (planCode === "PRO" ? "ILMS682941" : "ILMS972557");
+  const accountNumber = orderData?.accountNumber || '0865609122';
+  const accountHolderName = orderData?.accountName || 'HOANG QUANG THANG';
+  const bankCode = orderData?.bankCode || 'MB';
+  const bankName = bankCode === 'MB' ? 'MB Bank' : bankCode;
 
   const copyToClipboard = (text: string, fieldKey: string) => {
     navigator.clipboard.writeText(text);
@@ -72,11 +157,23 @@ export function VietQrCheckoutModal({
 
   const handleConfirmPayment = async () => {
     try {
-      // QUY TẮC CỐT LÕI: Backend hỗ trợ UUID v4 chuẩn hoặc Plan Code ("PRO", "PLUS", "ENTERPRISE")
-      const planId = planCode || 'PRO';
+      if (activeOrderCode) {
+        const check = await orderStatusQuery.refetch();
+        if (check.data?.status === 'PAID') {
+          setIsSuccess(true);
+          setTimeout(() => {
+            setIsSuccess(false);
+            onClose();
+          }, 2500);
+          return;
+        }
+      }
+
+      // Backend API call: POST /api/v1/subscriptions/subscribe
+      const targetPlanId = planId || planCode || 'PRO';
 
       await subscribeMutation.mutateAsync({
-        planId,
+        planId: targetPlanId,
         paymentMethod: 'BANK_TRANSFER',
         autoRenew: true,
         notes: `Transfer note: ${transferCode}`,
@@ -306,89 +403,35 @@ export function VietQrCheckoutModal({
                           </span>
                         </div>
                         <div className="text-[9px] font-bold text-red-600 bg-red-50 px-1 py-0.5 rounded border border-red-200">
-                          MB BANK
+                          {bankName.toUpperCase()}
                         </div>
                       </div>
 
-                      {/* QR Code Vector */}
-                      <div className="py-1">
-                        <svg
-                          className="w-40 h-40"
-                          fill="none"
-                          viewBox="0 0 160 160"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect fill="#FFFFFF" height="160" width="160" />
-                          {/* Corner Markers */}
-                          <rect fill="#131314" height="36" rx="2" width="36" x="10" y="10" />
-                          <rect fill="#FFFFFF" height="24" rx="1" width="24" x="16" y="16" />
-                          <rect fill="#131314" height="12" rx="1" width="12" x="22" y="22" />
-
-                          <rect fill="#131314" height="36" rx="2" width="36" x="114" y="10" />
-                          <rect fill="#FFFFFF" height="24" rx="1" width="24" x="120" y="16" />
-                          <rect fill="#131314" height="12" rx="1" width="12" x="126" y="22" />
-
-                          <rect fill="#131314" height="36" rx="2" width="36" x="10" y="114" />
-                          <rect fill="#FFFFFF" height="24" rx="1" width="24" x="16" y="120" />
-                          <rect fill="#131314" height="12" rx="1" width="12" x="22" y="126" />
-
-                          {/* Pattern Data Points */}
-                          <g fill="#131314">
-                            <rect height="6" width="6" x="52" y="14" />
-                            <rect height="6" width="6" x="64" y="14" />
-                            <rect height="6" width="6" x="76" y="14" />
-                            <rect height="6" width="6" x="94" y="14" />
-                            <rect height="6" width="6" x="58" y="24" />
-                            <rect height="6" width="6" x="70" y="24" />
-                            <rect height="6" width="6" x="88" y="24" />
-                            <rect height="6" width="6" x="100" y="24" />
-                            <rect height="6" width="6" x="52" y="34" />
-                            <rect height="6" width="6" x="64" y="34" />
-                            <rect height="6" width="6" x="82" y="34" />
-                            <rect height="6" width="6" x="14" y="54" />
-                            <rect height="6" width="6" x="26" y="54" />
-                            <rect height="6" width="6" x="38" y="54" />
-                            <rect height="6" width="6" x="50" y="54" />
-                            <rect height="6" width="12" x="68" y="54" />
-                            <rect height="6" width="6" x="86" y="54" />
-                            <rect height="6" width="6" x="104" y="54" />
-                            <rect height="6" width="6" x="122" y="54" />
-                            <rect height="6" width="12" x="134" y="54" />
-                            <rect height="6" width="12" x="14" y="66" />
-                            <rect height="6" width="6" x="32" y="66" />
-                            <rect height="6" width="6" x="44" y="66" />
-                            <rect height="6" width="6" x="62" y="66" />
-                            <rect height="6" width="12" x="80" y="66" />
-                            <rect height="6" width="6" x="98" y="66" />
-                            <rect height="6" width="6" x="110" y="66" />
-                            <rect height="6" width="6" x="128" y="66" />
-                            <rect height="6" width="6" x="140" y="66" />
-                            {/* Center Logo Icon */}
-                            <rect fill="#0b57d0" height="24" rx="4" width="24" x="68" y="68" />
-                            <circle cx="80" cy="80" fill="#FFFFFF" r="6" />
-                            {/* Bottom Pattern Data */}
-                            <rect height="6" width="6" x="52" y="96" />
-                            <rect height="6" width="6" x="64" y="96" />
-                            <rect height="6" width="6" x="76" y="96" />
-                            <rect height="6" width="6" x="94" y="96" />
-                            <rect height="6" width="6" x="106" y="96" />
-                            <rect height="6" width="6" x="124" y="96" />
-                            <rect height="6" width="6" x="58" y="108" />
-                            <rect height="6" width="6" x="76" y="108" />
-                            <rect height="6" width="6" x="88" y="108" />
-                            <rect height="6" width="6" x="100" y="108" />
-                            <rect height="6" width="6" x="130" y="108" />
-                            <rect height="6" width="6" x="52" y="126" />
-                            <rect height="6" width="6" x="70" y="126" />
-                            <rect height="6" width="6" x="88" y="126" />
-                            <rect height="6" width="6" x="118" y="126" />
-                            <rect height="6" width="6" x="136" y="126" />
-                            <rect height="6" width="6" x="58" y="138" />
-                            <rect height="6" width="6" x="82" y="138" />
-                            <rect height="6" width="6" x="106" y="138" />
-                            <rect height="6" width="6" x="124" y="138" />
-                          </g>
-                        </svg>
+                      {/* Dynamic Scannable VietQR SePay Image */}
+                      <div className="py-1 min-h-[180px] flex items-center justify-center">
+                        <div className="relative group flex flex-col items-center">
+                          <img
+                            src={
+                              orderData?.qrUrl ||
+                              `https://qr.sepay.vn/img?acc=${accountNumber}&bank=${bankCode}&amount=${currentAmount}&des=${transferCode}&template=compact`
+                            }
+                            alt="Mã VietQR chuyển khoản thanh toán SePay"
+                            className="w-44 h-44 object-contain rounded-lg shadow-sm select-none bg-white p-1"
+                            loading="eager"
+                          />
+                          <a
+                            href={
+                              orderData?.qrUrl ||
+                              `https://qr.sepay.vn/img?acc=${accountNumber}&bank=${bankCode}&amount=${currentAmount}&des=${transferCode}&template=compact`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 text-[11px] text-blue-600 dark:text-[#a8c7fa] hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                          >
+                            <span>Mở ảnh QR gốc</span>
+                            <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -401,7 +444,7 @@ export function VietQrCheckoutModal({
                     <div className="flex items-center justify-between py-1 border-b border-slate-200 dark:border-[#3c4043] text-xs">
                       <span className="text-slate-500 dark:text-[#8e918f]">{t('step2.bank')}</span>
                       <span className="text-slate-900 dark:text-[#e3e3e3] font-semibold flex items-center gap-1">
-                        <span className="text-red-500 font-bold">MB Bank</span> (Quân Đội)
+                        <span className="text-red-500 font-bold">{bankName}</span>{bankCode === 'MB' ? ' (Quân Đội)' : ''}
                       </span>
                     </div>
 
@@ -411,7 +454,7 @@ export function VietQrCheckoutModal({
                         {t('step2.accountHolder')}
                       </span>
                       <span className="text-slate-900 dark:text-[#e3e3e3] font-semibold uppercase tracking-wide">
-                        {t('step2.accountHolderName')}
+                        {accountHolderName}
                       </span>
                     </div>
 
@@ -422,10 +465,10 @@ export function VietQrCheckoutModal({
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-blue-700 dark:text-[#a8c7fa] font-mono font-bold text-sm tracking-wider">
-                          0123456789
+                          {accountNumber}
                         </span>
                         <button
-                          onClick={() => copyToClipboard('0123456789', 'stk')}
+                          onClick={() => copyToClipboard(accountNumber, 'stk')}
                           className="px-2 py-0.5 rounded-lg bg-white dark:bg-[#1e1f20] hover:bg-slate-100 dark:hover:bg-[#323639] text-slate-700 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] transition-colors text-[11px] font-medium flex items-center gap-1 border border-slate-200 dark:border-[#3c4043] cursor-pointer"
                           type="button"
                         >
@@ -445,7 +488,7 @@ export function VietQrCheckoutModal({
                           {formattedPrice}
                         </span>
                         <button
-                          onClick={() => copyToClipboard(String(price), 'price')}
+                          onClick={() => copyToClipboard(String(currentAmount), 'price')}
                           className="px-2 py-0.5 rounded-lg bg-white dark:bg-[#1e1f20] hover:bg-slate-100 dark:hover:bg-[#323639] text-slate-700 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] transition-colors text-[11px] font-medium flex items-center gap-1 border border-slate-200 dark:border-[#3c4043] cursor-pointer"
                           type="button"
                         >

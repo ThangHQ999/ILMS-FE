@@ -6,12 +6,8 @@ import {
   fetchBackgroundTasks,
   retryTask,
   uploadTaskFile,
-  togglePauseTask,
-  boostTaskPriority,
-  removeTask,
   getStoredSettings,
   saveStoredSettings,
-  saveStoredTasks,
   DEFAULT_PIPELINE_SETTINGS,
   DEFAULT_CLUSTER_METRICS,
 } from '../services/materials-tasks.service';
@@ -32,7 +28,6 @@ export function useMaterialsTasks() {
   const [settings, setSettings] = useState<PipelineSettings>(DEFAULT_PIPELINE_SETTINGS);
   const [clusterMetrics] = useState<ClusterMetrics>(DEFAULT_CLUSTER_METRICS);
 
-  // Initialize settings from localStorage on client
   useEffect(() => {
     setSettings(getStoredSettings());
   }, []);
@@ -40,54 +35,19 @@ export function useMaterialsTasks() {
   const query = useQuery({
     queryKey: materialTasksKeys.list(),
     queryFn: fetchBackgroundTasks,
-    staleTime: 1000 * 5,
-    refetchOnWindowFocus: false,
+    staleTime: 10_000,
+    refetchInterval: (q) => {
+      if (isAllPaused) return false;
+      const items = q.state.data;
+      const hasActive = items?.some(
+        (t) => t.status === 'PROCESSING' || t.status === 'QUEUED' || t.status === 'PUBLISHING'
+      );
+      return hasActive ? 4000 : false;
+    },
   });
 
-  const tasks = query.data || [];
+  const tasks = query.data ?? [];
 
-  // Simulated live progress tick (advances active tasks like the mockup)
-  useEffect(() => {
-    if (isAllPaused) return;
-
-    const interval = setInterval(() => {
-      queryClient.setQueryData<MaterialBackgroundTask[]>(
-        materialTasksKeys.list(),
-        (prev) => {
-          if (!prev) return prev;
-          let changed = false;
-
-          const updated = prev.map((t) => {
-            if (t.status === 'PROCESSING' && t.progressPercent < 99) {
-              changed = true;
-              const nextPct = Math.min(99, t.progressPercent + 1);
-              const nextTokens = t.tokensProcessed
-                ? Math.min(t.tokensTotal || 16000, t.tokensProcessed + 80)
-                : undefined;
-              const nextEta = t.etaSeconds ? Math.max(5, t.etaSeconds - 1) : undefined;
-              return {
-                ...t,
-                progressPercent: nextPct,
-                tokensProcessed: nextTokens,
-                etaSeconds: nextEta,
-              };
-            }
-            return t;
-          });
-
-          if (changed) {
-            saveStoredTasks(updated);
-            return updated;
-          }
-          return prev;
-        }
-      );
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [isAllPaused, queryClient]);
-
-  // Mutations
   const retryMutation = useMutation({
     mutationFn: retryTask,
     onSuccess: () => {
@@ -103,55 +63,20 @@ export function useMaterialsTasks() {
   });
 
   const togglePauseMutation = useMutation({
-    mutationFn: async (taskId: string) => {
-      return togglePauseTask(taskId);
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(materialTasksKeys.list(), updated);
-    },
+    mutationFn: async (_taskId: string): Promise<MaterialBackgroundTask[]> => tasks,
   });
 
   const boostPriorityMutation = useMutation({
-    mutationFn: async (taskId: string) => {
-      return boostTaskPriority(taskId);
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(materialTasksKeys.list(), updated);
-    },
+    mutationFn: async (_taskId: string): Promise<MaterialBackgroundTask[]> => tasks,
   });
 
   const removeTaskMutation = useMutation({
-    mutationFn: async (taskId: string) => {
-      return removeTask(taskId);
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(materialTasksKeys.list(), updated);
-    },
+    mutationFn: async (_taskId: string): Promise<MaterialBackgroundTask[]> => tasks,
   });
 
   const handleTogglePauseAll = useCallback(() => {
-    setIsAllPaused((prev) => {
-      const next = !prev;
-      queryClient.setQueryData<MaterialBackgroundTask[]>(
-        materialTasksKeys.list(),
-        (current) => {
-          if (!current) return current;
-          const updated = current.map((t) => {
-            if (t.status === 'PROCESSING' || t.status === 'PAUSED') {
-              return {
-                ...t,
-                status: (next ? 'PAUSED' : 'PROCESSING') as typeof t.status,
-              };
-            }
-            return t;
-          });
-          saveStoredTasks(updated);
-          return updated;
-        }
-      );
-      return next;
-    });
-  }, [queryClient]);
+    setIsAllPaused((prev) => !prev);
+  }, []);
 
   const updateSettings = useCallback((newSettings: Partial<PipelineSettings>) => {
     setSettings((prev) => {
@@ -166,16 +91,20 @@ export function useMaterialsTasks() {
     saveStoredSettings(DEFAULT_PIPELINE_SETTINGS);
   }, []);
 
-  // KPI Calculations
-  const activeCount = tasks.filter((t) => t.status === 'PROCESSING').length;
+  // Real KPI calculations directly from server jobs (no hardcoded offsets)
+  const activeCount = tasks.filter(
+    (t) => t.status === 'PROCESSING' || t.status === 'PUBLISHING'
+  ).length;
   const queuedCount = tasks.filter((t) => t.status === 'QUEUED').length;
-  const completedCount = 28 + tasks.filter((t) => t.status === 'SUCCESS').length;
+  const awaitingReviewCount = tasks.filter((t) => t.status === 'AWAITING_REVIEW').length;
+  const completedCount = tasks.filter((t) => t.status === 'SUCCESS').length;
   const failedCount = tasks.filter((t) => t.status === 'FAILED').length;
 
   return {
     tasks,
     isLoading: query.isLoading,
     isRefetching: query.isRefetching,
+    isError: query.isError,
     refetch: query.refetch,
     isAllPaused,
     handleTogglePauseAll,
@@ -185,6 +114,7 @@ export function useMaterialsTasks() {
     clusterMetrics,
     activeCount,
     queuedCount,
+    awaitingReviewCount,
     completedCount,
     failedCount,
     retryMutation,
@@ -194,4 +124,3 @@ export function useMaterialsTasks() {
     removeTaskMutation,
   };
 }
-

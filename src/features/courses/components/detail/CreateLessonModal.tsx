@@ -1,19 +1,26 @@
 'use client';
 
 import React from 'react';
-import type { CreateLessonInput } from '../../schemas/course.schema';
-import { CurriculumAuthoringModal } from './CurriculumAuthoringModal';
+import {
+  CurriculumAuthoringModal,
+  type LessonCreateAuthoringPayload,
+} from './CurriculumAuthoringModal';
 
 export interface CreateLessonModalProps {
   isOpen: boolean;
   chapterId: string | null;
   chapterTitle?: string;
   onClose: () => void;
-  onSubmit: (input: CreateLessonInput) => void;
+  onSubmit: (input: LessonCreateAuthoringPayload) => void;
   isLoading?: boolean;
   courseCode?: string;
   courseTitle?: string;
-  chapters?: Array<{ id: string; title: string }>;
+  chapters?: Array<{
+    id: string;
+    title: string;
+    orderIndex?: number;
+    lessons?: Array<{ id: string; title?: string }>;
+  }>;
   onToast?: (message: string) => void;
 }
 
@@ -24,7 +31,7 @@ export function CreateLessonModal({
   onClose,
   onSubmit,
   isLoading = false,
-  courseCode = 'CS-202',
+  courseCode = 'COURSE',
   courseTitle,
   chapters = [],
   onToast,

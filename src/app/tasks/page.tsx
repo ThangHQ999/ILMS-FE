@@ -2,16 +2,15 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BackgroundTasksPageView } from '@/features/materials';
 
 export default function TasksPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Optionally keep URL clean as /materials/tasks
     router.replace('/materials/tasks');
   }, [router]);
 
-  return <BackgroundTasksPageView />;
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 animate-pulse" />
+  );
 }
-

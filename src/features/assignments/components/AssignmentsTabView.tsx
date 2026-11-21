@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { ClassHubHeader } from './ClassHubHeader';
@@ -34,7 +35,7 @@ export function AssignmentsTabView({
   const t = useTranslations('assignments');
 
   // Shell Layout States
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isFocusMode, setIsFocusMode] = useState(false);
 
   // View Mode: 'matrix' (Ma trận Lớp - Môn N:N) or 'cards' (Dạng thẻ bài tập)
