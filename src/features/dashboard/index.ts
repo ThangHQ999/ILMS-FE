@@ -7,6 +7,8 @@ export { NotificationDropdown } from './components/NotificationDropdown';
 export { AnalyticsView } from './components/AnalyticsView/AnalyticsView';
 export { FocusView } from './components/FocusView/FocusView';
 export { SocraticAICoach } from './components/FocusView/SocraticAICoach';
+export { TeacherOverviewView } from './components/TeacherOverview/TeacherOverviewView';
+export * from './components/TeacherOverview';
 
 export * from './types';
 export * from './constants';

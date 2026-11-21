@@ -38,8 +38,8 @@ export function OnboardingPersonaSection({
 
   return (
     <fieldset className="flex flex-col border-none p-0 m-0">
-      <legend className="text-base font-semibold text-slate-900 dark:text-white mb-3.5 flex items-center gap-2.5">
-        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+      <legend className="text-base font-semibold text-slate-900 dark:text-[#E3E3E3] mb-3.5 flex items-center gap-2.5">
+        <span className="w-6 h-6 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] whitespace-nowrap text-xs font-bold flex items-center justify-center">
           2
         </span>
         {t('legend')}
@@ -55,26 +55,26 @@ export function OnboardingPersonaSection({
               role="radio"
               aria-checked={isSelected}
               onClick={() => onSelectPersona(item.id)}
-              className={`text-left relative rounded-xl p-4 transition-all duration-200 border ${
+              className={`text-left relative rounded-3xl p-5 transition-all duration-200 border-none ${
                 isSelected
-                  ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-600 dark:border-[#38BDF8] shadow-sm'
-                  : 'bg-slate-50 dark:bg-[#161D2F] border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                  ? 'bg-[#D3E3FD]/50 dark:bg-[#162B4D] shadow-none'
+                  : 'bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] shadow-none'
               }`}
             >
               {isSelected && (
-                <span className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full bg-blue-600 dark:bg-[#38BDF8] text-white dark:text-slate-900 flex items-center justify-center shadow-sm">
+                <span className="absolute top-4 right-4 w-5 h-5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-[#062E6F] flex items-center justify-center shadow-none">
                   <span className="material-symbols-outlined text-[14px]">check</span>
                 </span>
               )}
 
-              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-[#38BDF8] mb-3 pointer-events-none">
+              <div className="w-10 h-10 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA] mb-3 pointer-events-none">
                 <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
               </div>
 
-              <div className="text-sm font-semibold text-slate-900 dark:text-white">
+              <div className="text-sm font-semibold text-slate-900 dark:text-[#E3E3E3]">
                 {item.title}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              <div className="text-xs text-slate-500 dark:text-[#C4C7C5] mt-1 leading-relaxed">
                 {item.desc}
               </div>
             </button>

@@ -28,44 +28,44 @@ export function OnboardingLivePreview({
   };
 
   return (
-    <div className="md:col-span-7 bg-slate-50 dark:bg-[#161D2F] rounded-xl p-4 flex flex-col justify-between relative overflow-hidden border border-slate-200 dark:border-slate-800">
+    <div className="md:col-span-7 bg-[#F0F4F9] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden border-none shadow-none">
       <div>
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#38BDF8]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs uppercase tracking-wider text-[#444746] dark:text-[#C4C7C5] font-semibold flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">
               preview
             </span>
             {t('title')}
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-[#38BDF8]/20 text-blue-700 dark:text-[#38BDF8] text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] text-xs font-semibold border-none">
             {t('activePreset')}
           </span>
         </div>
 
         {/* Simulated Mini UI Widget */}
         <div
-          className="bg-white dark:bg-[#0B0F19] rounded-xl p-3.5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-2.5 transition-all"
+          className="bg-white dark:bg-[#131314] rounded-2xl p-4 shadow-none border-none flex flex-col gap-3 transition-all"
           style={{ fontFamily: `'${fontFamily}', sans-serif` }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[13px] font-bold shadow-sm transition-colors duration-200"
+                className="w-7 h-7 rounded-xl flex items-center justify-center text-white text-[13px] font-bold shadow-none transition-colors duration-200"
                 style={{ backgroundColor: primaryColor.hex }}
               >
                 AI
               </div>
               <div>
-                <div className="text-[13px] font-bold leading-tight text-slate-900 dark:text-white">
+                <div className="text-[13px] font-bold leading-tight text-[#1F1F1F] dark:text-[#E3E3E3]">
                   {getPersonaTitle()}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="text-[11px] text-[#444746] dark:text-[#C4C7C5]">
                   {t('syncing')}
                 </div>
               </div>
             </div>
             <span
-              className="px-2 py-0.5 rounded text-[10px] font-semibold text-white shadow-xs transition-colors duration-200"
+              className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold text-white transition-colors duration-200"
               style={{ backgroundColor: secondaryColor.hex }}
             >
               {secondaryColor.name}
@@ -74,13 +74,13 @@ export function OnboardingLivePreview({
 
           {/* Progress Bar with Tertiary Accent */}
           <div className="space-y-1">
-            <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="flex justify-between text-[11px] text-[#444746] dark:text-[#C4C7C5]">
               <span>{t('progressLabel')}</span>
               <span className="font-semibold transition-colors duration-200" style={{ color: tertiaryColor.hex }}>
                 {t('progressValue')}
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
+            <div className="w-full h-2 rounded-full bg-[#F0F4F9] dark:bg-[#1E1F20] overflow-hidden flex">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{ width: '75%', backgroundColor: tertiaryColor.hex }}
@@ -92,14 +92,14 @@ export function OnboardingLivePreview({
           <div className="flex items-center gap-2 pt-1">
             <button
               type="button"
-              className="px-3 py-1.5 rounded-lg text-white text-[12px] font-medium shadow-sm transition-all"
+              className="px-4 py-1.5 rounded-full text-white text-[12px] font-medium border-none shadow-none transition-all cursor-pointer"
               style={{ backgroundColor: primaryColor.hex }}
             >
               {t('ctaBtn')}
             </button>
             <button
               type="button"
-              className="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 text-[12px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="px-4 py-1.5 rounded-full text-[#1F1F1F] dark:text-[#E3E3E3] text-[12px] font-medium bg-[#F0F4F9] dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
             >
               {t('detailsBtn')}
             </button>
@@ -107,9 +107,9 @@ export function OnboardingLivePreview({
         </div>
       </div>
 
-      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2.5 flex items-center justify-between">
+      <div className="text-[11px] text-[#444746] dark:text-[#C4C7C5] mt-3 flex items-center justify-between">
         <span>{t('caption')}</span>
-        <span className="font-mono text-[10px] text-blue-600 dark:text-[#38BDF8] font-medium">
+        <span className="font-mono text-[10px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
           Font: {fontFamily}
         </span>
       </div>

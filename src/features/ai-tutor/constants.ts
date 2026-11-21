@@ -49,7 +49,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Từng bước với ví dụ đồ thị thực tế, tại sao cần hàng đợi ưu tiên (Priority Queue)?',
     prompt: 'Giải thích thuật toán Dijkstra từng bước với ví dụ đồ thị thực tế kèm minh họa cấu trúc dữ liệu Priority Queue',
     icon: 'lightbulb',
-    colorClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    colorClass: 'bg-blue-100 text-blue-700 dark:bg-[#162B4D] dark:text-[#A8C7FA]',
   },
   {
     id: 'segment-tree',
@@ -57,7 +57,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Chứng minh hình học & đại số vì sao cây phân đoạn nhị phân cần 4*N node để tránh tràn bộ nhớ.',
     prompt: 'Phân tích chi tiết vì sao mảng biểu diễn Segment Tree trên mảng 1D cần kích thước 4*N phần tử?',
     icon: 'account_tree',
-    colorClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    colorClass: 'bg-emerald-100 text-emerald-700 dark:bg-[#142E20] dark:text-[#81C995]',
   },
   {
     id: 'avl-vs-rb',
@@ -73,7 +73,7 @@ export const SUGGESTION_TOPICS: SuggestionTopic[] = [
     description: 'Tạo 5 bài toán con gối nhau (Overlapping Subproblems) và hệ thức truy hồi để tự kiểm tra kiến thức.',
     prompt: 'Hãy tạo 5 câu hỏi trắc nghiệm kiểm tra độ hiểu thuật toán Quy hoạch động (Dynamic Programming), có phân tích tư duy lời giải.',
     icon: 'quiz',
-    colorClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    colorClass: 'bg-amber-100 text-amber-700 dark:bg-[#3C2A1E] dark:text-[#FFB784]',
   },
 ];
 
@@ -207,79 +207,7 @@ int randomizedPartition(vector<int>& arr, int low, int high) {
   },
 ];
 
-export interface FormulaItem {
-  id: string;
-  latex: string;
-  title: string;
-}
+export type { FormulaItem, FormulaCategory } from '@/constants/latex-formulas';
+export { LATEX_FORMULA_CATEGORIES } from '@/constants/latex-formulas';
 
-export interface FormulaCategory {
-  key: string;
-  name: string;
-  items: FormulaItem[];
-}
-
-export const LATEX_FORMULA_CATEGORIES: FormulaCategory[] = [
-  {
-    key: 'complexity',
-    name: 'Độ phức tạp',
-    items: [
-      { id: 'c1', latex: 'O(1)', title: 'Hằng số' },
-      { id: 'c2', latex: 'O(\\log n)', title: 'Logarit' },
-      { id: 'c3', latex: 'O(n)', title: 'Tuyến tính' },
-      { id: 'c4', latex: 'O(n \\log n)', title: 'Linearithmic' },
-      { id: 'c5', latex: 'O(n^2)', title: 'Bậc hai' },
-      { id: 'c6', latex: 'O(2^n)', title: 'Hàm mũ' },
-      { id: 'c7', latex: '\\Omega(n)', title: 'Chặn dưới' },
-      { id: 'c8', latex: '\\Theta(n)', title: 'Chặn chặt' },
-    ],
-  },
-  {
-    key: 'algebra',
-    name: 'Đại số & Giải tích',
-    items: [
-      { id: 'a1', latex: '\\frac{a}{b}', title: 'Phân số' },
-      { id: 'a2', latex: '\\sqrt{x}', title: 'Căn bậc hai' },
-      { id: 'a3', latex: 'x^{n}', title: 'Lũy thừa' },
-      { id: 'a4', latex: 'a_{i}', title: 'Chỉ số dưới' },
-      { id: 'a5', latex: '\\sum_{i=1}^{n}', title: 'Tổng Sigma' },
-      { id: 'a6', latex: '\\prod_{i=1}^{n}', title: 'Tích Pi' },
-      { id: 'a7', latex: '\\lim_{x \\to \\infty}', title: 'Giới hạn' },
-      { id: 'a8', latex: '\\int_{a}^{b} f(x) dx', title: 'Tích phân' },
-      { id: 'a9', latex: '\\log_2(n)', title: 'Logarit cơ số 2' },
-    ],
-  },
-  {
-    key: 'relations',
-    name: 'Quan hệ & Tập hợp',
-    items: [
-      { id: 'r1', latex: '\\le', title: 'Nhỏ hơn hoặc bằng' },
-      { id: 'r2', latex: '\\ge', title: 'Lớn hơn hoặc bằng' },
-      { id: 'r3', latex: '\\neq', title: 'Khác' },
-      { id: 'r4', latex: '\\approx', title: 'Xấp xỉ' },
-      { id: 'r5', latex: '\\in', title: 'Thuộc tập hợp' },
-      { id: 'r6', latex: '\\notin', title: 'Không thuộc' },
-      { id: 'r7', latex: '\\subset', title: 'Tập con' },
-      { id: 'r8', latex: '\\cup', title: 'Hợp' },
-      { id: 'r9', latex: '\\cap', title: 'Giao' },
-      { id: 'r10', latex: '\\emptyset', title: 'Tập rỗng' },
-    ],
-  },
-  {
-    key: 'symbols',
-    name: 'Ký hiệu & Hy Lạp',
-    items: [
-      { id: 's1', latex: '\\infty', title: 'Vô cực' },
-      { id: 's2', latex: '\\alpha', title: 'Alpha' },
-      { id: 's3', latex: '\\beta', title: 'Beta' },
-      { id: 's4', latex: '\\theta', title: 'Theta' },
-      { id: 's5', latex: '\\lambda', title: 'Lambda' },
-      { id: 's6', latex: '\\pi', title: 'Số Pi' },
-      { id: 's7', latex: '\\forall', title: 'Với mọi' },
-      { id: 's8', latex: '\\exists', title: 'Tồn tại' },
-      { id: 's9', latex: '\\implies', title: 'Suy ra' },
-      { id: 's10', latex: '\\iff', title: 'Tương đương' },
-    ],
-  },
-];
 

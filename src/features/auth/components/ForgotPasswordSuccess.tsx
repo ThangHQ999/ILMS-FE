@@ -24,23 +24,20 @@ export function ForgotPasswordSuccess({
   return (
     <div className="w-full space-y-6">
       {/* Success Badge */}
-      <div className="relative w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 shadow-xs group">
-        <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-30" />
-        <div className="relative flex items-center justify-center w-full h-full rounded-full">
-          <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-        </div>
+      <div className="relative w-14 h-14 rounded-full bg-[#C4EED0] dark:bg-[#142E20] flex items-center justify-center mx-auto text-[#0D652D] dark:text-[#81C995] border-none shadow-none">
+        <CheckCircle2 className="w-8 h-8 text-[#0D652D] dark:text-[#81C995]" />
       </div>
 
       {/* Heading & Subtext */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white text-center mb-2 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#E3E3E3] text-center mb-2 tracking-tight">
           {t('successTitle')}
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 text-center px-1 leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-[#C4C7C5] text-center px-1 leading-relaxed">
           {t.rich('successDescription', {
             email,
             bold: (chunks) => (
-              <span className="font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono text-xs inline-block my-0.5">
+              <span className="font-semibold text-slate-900 dark:text-[#E3E3E3] bg-white dark:bg-[#282A2C] px-2.5 py-0.5 rounded-full font-mono text-xs inline-block my-0.5">
                 {chunks}
               </span>
             ),
@@ -49,23 +46,23 @@ export function ForgotPasswordSuccess({
       </div>
 
       {/* Recipient Details Card */}
-      <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-800 text-left space-y-2.5">
+      <div className="p-5 rounded-3xl bg-[#F0F4F9] dark:bg-[#1E1F20] border-none shadow-none text-left space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium">
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-[#C4C7C5] font-medium">
             {t('recipientLabel')}
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/80 font-medium">
+          <span className="inline-flex items-center gap-1 font-mono text-xs text-[#0D652D] dark:text-[#81C995] bg-[#C4EED0] dark:bg-[#142E20] px-2.5 py-0.5 rounded-full border-none font-medium">
             <BadgeCheck className="w-3.5 h-3.5" />
             <span>{t('sentStatus')}</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-slate-900 dark:text-slate-100 text-sm font-medium">
-          <Mail className="w-4 h-4 text-blue-600 dark:text-[#38BDF8]" />
+        <div className="flex items-center gap-2 font-mono text-slate-900 dark:text-[#E3E3E3] text-sm font-medium">
+          <Mail className="w-4 h-4 text-[#0B57D0] dark:text-[#A8C7FA]" />
           <span>{email}</span>
         </div>
 
-        <div className="pt-1 text-slate-500 dark:text-slate-400 text-xs flex items-start gap-1.5 leading-relaxed">
+        <div className="pt-1 text-slate-500 dark:text-[#C4C7C5] text-xs flex items-start gap-1.5 leading-relaxed">
           <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <span>{t('spamNotice')}</span>
         </div>
@@ -74,7 +71,7 @@ export function ForgotPasswordSuccess({
       {/* Open Email Client CTA */}
       <a
         href="mailto:"
-        className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-[#38BDF8] dark:hover:bg-[#60A5FA] active:scale-[0.99] text-white dark:text-slate-950 font-semibold text-sm sm:text-base py-3.5 px-6 rounded-xl shadow-md shadow-blue-500/20 dark:shadow-cyan-500/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 group cursor-pointer"
+        className="w-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-sm sm:text-base py-3.5 px-6 rounded-full border-none shadow-none transition-colors flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
       >
         <ExternalLink className="w-4 h-4" />
         <span>{t('openEmailApp')}</span>
@@ -88,8 +85,8 @@ export function ForgotPasswordSuccess({
           disabled={!canResend || isLoading}
           className={`text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
             canResend && !isLoading
-              ? 'text-blue-600 dark:text-[#38BDF8] hover:underline'
-              : 'text-slate-400 dark:text-slate-500 cursor-not-allowed'
+              ? 'text-[#0B57D0] dark:text-[#A8C7FA] hover:underline'
+              : 'text-slate-400 dark:text-[#8E918F] cursor-not-allowed'
           }`}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />

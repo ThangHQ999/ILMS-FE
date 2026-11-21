@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import {
@@ -15,8 +16,8 @@ import {
 import { CompetencyHeaderDock, MainTabType } from './CompetencyHeaderDock';
 import { StudentProfileTab } from './StudentProfileTab';
 import { SkillTreeTab } from './SkillTreeTab';
+import { StudentCompetencyMapView } from '../StudentCompetencyMapView';
 import { ClassHeatmapTab } from './ClassHeatmapTab';
-import { SocraticAICoach } from '@/features/dashboard';
 
 interface CompetencyAnalyticsViewProps {
   userFullName?: string;
@@ -41,8 +42,8 @@ export function CompetencyAnalyticsView({
   heatmapData,
   onSwitchToFocus,
 }: CompetencyAnalyticsViewProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<MainTabType>('profile');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
+  const [activeTab, setActiveTab] = useState<MainTabType>('tree');
 
   // Benchmark toggle states
   const [showClassAvg, setShowClassAvg] = useState(true);
@@ -62,7 +63,7 @@ export function CompetencyAnalyticsView({
   };
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-blue-500/20 selection:text-blue-600">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-[#D3E3FD] selection:text-[#041E49]">
       {/* Existing Dashboard Sidebar in Analytics mode */}
       <DashboardSidebar
         isFocus={false}
@@ -73,7 +74,7 @@ export function CompetencyAnalyticsView({
       {/* Main Content Area */}
       <div
         className={`transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-20' : 'pl-[260px]'
+          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         {/* Existing Dashboard Header */}
@@ -85,21 +86,23 @@ export function CompetencyAnalyticsView({
         />
 
         <main className="w-full min-h-screen pt-16">
-          {/* Header & Benchmark Dock */}
-          <CompetencyHeaderDock
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onSwitchToFocus={onSwitchToFocus}
-            showClassAvg={showClassAvg}
-            onToggleClassAvg={setShowClassAvg}
-            showPloTarget={showPloTarget}
-            onTogglePloTarget={setShowPloTarget}
-            showPersonalTarget={showPersonalTarget}
-            onTogglePersonalTarget={setShowPersonalTarget}
-          />
+          {/* Header & Benchmark Dock - Only rendered for Profile and Heatmap views to keep Tree Map clean */}
+          {activeTab !== 'tree' && (
+            <CompetencyHeaderDock
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onSwitchToFocus={onSwitchToFocus}
+              showClassAvg={showClassAvg}
+              onToggleClassAvg={setShowClassAvg}
+              showPloTarget={showPloTarget}
+              onTogglePloTarget={setShowPloTarget}
+              showPersonalTarget={showPersonalTarget}
+              onTogglePersonalTarget={setShowPersonalTarget}
+            />
+          )}
 
           {/* Dynamic Content Body based on tab */}
-          <div className="p-6 lg:p-10">
+          <div className={activeTab === 'tree' ? 'p-4 sm:p-6 lg:p-8' : 'p-6 lg:p-10'}>
             {activeTab === 'profile' && (
               <StudentProfileTab
                 radarData={radarData}
@@ -116,10 +119,14 @@ export function CompetencyAnalyticsView({
             )}
 
             {activeTab === 'tree' && (
-              <SkillTreeTab
-                stages={skillTreeStages}
-                onOpenAICoach={handleOpenAICoachWithTopic}
+              <StudentCompetencyMapView
+                userFullName={userFullName}
+                onToast={() => {}}
                 onSwitchToFocus={onSwitchToFocus}
+                onOpenRadarView={() => setActiveTab('profile')}
+                onOpenHeatmap={() => setActiveTab('heatmap')}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
               />
             )}
 
@@ -127,16 +134,6 @@ export function CompetencyAnalyticsView({
           </div>
         </main>
       </div>
-
-      {/* Embedded Socratic AI Coach (Mini / Dockable) */}
-      <SocraticAICoach
-        userFullName={userFullName}
-        width={aiWidth}
-        onWidthChange={setAiWidth}
-        isMinimized={isAiMinimized}
-        onToggleMinimize={() => setIsAiMinimized((prev) => !prev)}
-        floatingDock={true}
-      />
     </div>
   );
 }

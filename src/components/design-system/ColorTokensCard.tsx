@@ -70,14 +70,14 @@ interface ColorTokensCardProps {
 
 export function ColorTokensCard({ colorTokens, onSelectColor }: ColorTokensCardProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-4">
+    <div className="rounded-3xl bg-white dark:bg-[#1E1F20] p-6 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none transition-all">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-base font-bold tracking-tight text-foreground uppercase">
+          <h2 className="text-base font-bold tracking-tight text-[#1F1F1F] dark:text-[#E3E3E3] uppercase">
             Hệ màu chuẩn Design System - Color Palette Tokens
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Tùy biến các kênh màu cốt lõi được định nghĩa trong Tailwind config thông qua alpha-value syntax.
+          <p className="mt-1 text-xs text-[#444746] dark:text-[#C4C7C5]">
+            Tùy biến các kênh màu cốt lõi được định nghĩa trong Tailwind config thông qua alpha-value syntax theo chuẩn MD3 Tonal Palette.
           </p>
         </div>
       </div>
@@ -90,11 +90,11 @@ export function ColorTokensCard({ colorTokens, onSelectColor }: ColorTokensCardP
           return (
             <div
               key={col.key}
-              className="flex flex-col justify-between rounded-xl border border-border/80 bg-background/50 p-4 transition-all"
+              className="flex flex-col justify-between rounded-3xl bg-[#F0F4F9] dark:bg-[#282A2C] p-5 border-none shadow-none transition-all"
             >
               <div>
-                <span className="text-xs font-bold text-foreground block">{col.title}</span>
-                <span className="text-[11px] text-muted-foreground block mt-0.5 min-h-[32px]">
+                <span className="text-xs font-bold text-[#1F1F1F] dark:text-[#E3E3E3] block">{col.title}</span>
+                <span className="text-[11px] text-[#444746] dark:text-[#C4C7C5] block mt-0.5 min-h-[32px]">
                   {col.subtitle}
                 </span>
 
@@ -109,9 +109,9 @@ export function ColorTokensCard({ colorTokens, onSelectColor }: ColorTokensCardP
                         onClick={() => onSelectColor(col.key, preset.rgb)}
                         aria-label={`${col.title} - ${preset.name}`}
                         style={{ backgroundColor: preset.hex }}
-                        className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-95 ${
+                        className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-95 border-none cursor-pointer ${
                           isActive
-                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-sm'
+                            ? 'ring-2 ring-[#0B57D0] dark:ring-[#A8C7FA] ring-offset-2 ring-offset-[#F0F4F9] dark:ring-offset-[#282A2C] scale-110'
                             : 'hover:scale-105 opacity-85 hover:opacity-100'
                         }`}
                       >
@@ -132,9 +132,9 @@ export function ColorTokensCard({ colorTokens, onSelectColor }: ColorTokensCardP
               </div>
 
               {/* Active Hex & Name Info */}
-              <div className="flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs">
-                <span className="font-medium text-foreground">{activePreset?.name || 'Custom'}</span>
-                <span className="font-mono text-[11px] text-muted-foreground">{activePreset?.hex || ''}</span>
+              <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-[#1E1F20] px-3.5 py-2 text-xs border-none shadow-none">
+                <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">{activePreset?.name || 'Custom'}</span>
+                <span className="font-mono text-[11px] text-[#444746] dark:text-[#8E918F]">{activePreset?.hex || ''}</span>
               </div>
             </div>
           );

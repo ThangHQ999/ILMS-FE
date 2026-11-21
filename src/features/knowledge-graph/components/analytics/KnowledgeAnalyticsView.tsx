@@ -1,26 +1,58 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { CustomSelect } from '@/components/shared';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { GraphCanvas } from '../canvas/GraphCanvas';
 import { GraphFilterBar } from './GraphFilterBar';
-import { EditFloatingPalette } from './EditFloatingPalette';
 import { NodeInspectorPanel } from './NodeInspectorPanel';
 import { KnowledgeMatrixTable } from './KnowledgeMatrixTable';
 import { ShortestPathModal } from './ShortestPathModal';
-import {
+import type {
   KnowledgeNodeData,
+  KnowledgeEdgeData,
   KnowledgeCategory,
   EditTool,
   LayoutMode,
   ShortestPathResult,
 } from '../../types';
+import type {
+  ConceptDetail,
+  PublishedGraphSummary,
+} from '../../knowledge-graph.schema';
+import type { StudioCourseOption } from '../../services/knowledge-graph.service';
 import type { Node, Edge } from '@xyflow/react';
 
 interface KnowledgeAnalyticsViewProps {
   userFullName?: string;
+  canManageGraph?: boolean;
+  graphTitle?: string;
+  courseOptions?: StudioCourseOption[];
+  publishedGraphs?: PublishedGraphSummary[];
+  selectedCourseId?: string | null;
+  onSelectCourse?: (courseId: string | null) => void;
+  selectedMaterialId?: string | null;
+  onSelectMaterial?: (materialId: string | null) => void;
+  isLoading?: boolean;
+  isFetching?: boolean;
+  isError?: boolean;
+  onRefetch?: () => void;
+  conceptDetail?: ConceptDetail | null;
+  isConceptDetailLoading?: boolean;
+  activePublicationId?: string | null;
+  activePublicationStatus?: string | null;
+  isStartingDraft?: boolean;
+  isWithdrawing?: boolean;
+  isRetryingPublication?: boolean;
+  onStartDraftEdit?: (materialId: string) => void;
+  onWithdrawPublication?: (materialId: string, publicationId: string, reason?: string) => void;
+  onRetryPublication?: (publicationId: string) => void;
+  externalToastMessage?: string | null;
   nodesData: KnowledgeNodeData[];
+  edgesData?: KnowledgeEdgeData[];
   rawNodes: Node<KnowledgeNodeData>[];
   rawEdges: Edge[];
   selectedNodeId: string | null;
@@ -36,6 +68,10 @@ interface KnowledgeAnalyticsViewProps {
   onDepthChange: (d: number) => void;
   isSmartDimActive: boolean;
   onToggleSmartDim: () => void;
+  showAuxiliaryNodes?: boolean;
+  onToggleAuxiliaryNodes?: () => void;
+  auxiliaryCount?: number;
+  allNodesData?: KnowledgeNodeData[];
   isEditMode: boolean;
   onToggleEditMode: () => void;
   activeTool: EditTool;
@@ -50,8 +86,32 @@ interface KnowledgeAnalyticsViewProps {
 }
 
 export function KnowledgeAnalyticsView({
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
+  canManageGraph = false,
+  graphTitle,
+  courseOptions = [],
+  publishedGraphs = [],
+  selectedCourseId = null,
+  onSelectCourse,
+  selectedMaterialId = null,
+  onSelectMaterial,
+  isLoading = false,
+  isFetching = false,
+  isError = false,
+  onRefetch,
+  conceptDetail = null,
+  isConceptDetailLoading = false,
+  activePublicationId = null,
+  activePublicationStatus = null,
+  isStartingDraft = false,
+  isWithdrawing = false,
+  isRetryingPublication = false,
+  onStartDraftEdit,
+  onWithdrawPublication,
+  onRetryPublication,
+  externalToastMessage = null,
   nodesData,
+  edgesData = [],
   rawNodes,
   rawEdges,
   selectedNodeId,
@@ -67,19 +127,18 @@ export function KnowledgeAnalyticsView({
   onDepthChange,
   isSmartDimActive,
   onToggleSmartDim,
-  isEditMode,
-  onToggleEditMode,
+  showAuxiliaryNodes = false,
+  onToggleAuxiliaryNodes,
+  auxiliaryCount = 0,
+  allNodesData = [],
   activeTool,
-  onSelectTool,
   layoutMode,
   onLayoutModeChange,
-  onAddNode,
-  onUpdateNode,
   onDeleteNode,
   onConnectNodes,
   onSwitchToFocus,
 }: KnowledgeAnalyticsViewProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isInspectorCollapsed, setIsInspectorCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'graph' | 'table'>('graph');
   const [isPathModalOpen, setIsPathModalOpen] = useState(false);
@@ -91,60 +150,45 @@ export function KnowledgeAnalyticsView({
     setTimeout(() => setToastMessage(null), 3200);
   };
 
-  const handleToolSelect = (tool: EditTool) => {
-    onSelectTool(tool);
-    if (tool === 'connect') {
-      showToast('Công cụ Nối dây: Chọn Node gốc rồi chọn Node tiếp theo');
-    } else if (tool === 'add-node') {
-      showToast('Click vào vị trí trống trên khung vẽ để tạo Node mới');
-    } else if (tool === 'delete') {
-      showToast('Click vào bất kỳ Node nào để xóa khỏi đồ thị');
-    } else {
-      showToast('Chế độ Con trỏ chọn & di chuyển');
-    }
-  };
-
-  const handleAddNodeAtPosition = (pos: { x: number; y: number }) => {
-    const newId = `node-custom-${Date.now()}`;
-    const newNode: KnowledgeNodeData = {
-      id: newId,
-      label: 'Khái niệm mới',
-      sublabel: 'Tự định nghĩa',
-      category: 'algo',
-      status: 'learning',
-      masteryScore: 0,
-      complexity: { time: 'O(N)', space: 'O(1)' },
-      description: 'Mô tả khái niệm tri thức vừa được thêm vào bản đồ.',
-      icon: 'school',
-      prerequisites: [],
-      successors: [],
-    };
-    onAddNode(newNode);
-    showToast('Đã thêm một Node tri thức mới vào canvas!');
-  };
-
   const handleConfirmPath = (result: ShortestPathResult) => {
     setHighlightPathIds(result.pathIds);
-    showToast(`Đã kích hoạt lộ trình học tối ưu (${result.stepsCount} chặng - ${result.totalTimeEstimate})`);
+    showToast(
+      `Đã kích hoạt lộ trình học tối ưu (${result.stepsCount} chặng - ${result.totalTimeEstimate})`
+    );
   };
 
-  const handleExportData = (type: 'svg' | 'png' | 'json') => {
-    if (type === 'json') {
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ nodes: nodesData, edges: rawEdges }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', dataStr);
-      downloadAnchor.setAttribute('download', `knowledge_graph_${Date.now()}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showToast('Đã xuất JSON Graph Schema thành công!');
-    } else {
-      showToast(`Đã xuất đồ thị định dạng ${type.toUpperCase()} thành công!`);
-    }
+  const handleExportJson = () => {
+    const dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify({ nodes: nodesData, edges: edgesData }, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `knowledge_graph_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast('Đã xuất dữ liệu đồ thị JSON thành công!');
   };
+
+  const activeScopeLabel =
+    graphTitle ||
+    publishedGraphs.find((g) => g.materialId === selectedMaterialId)?.title ||
+    courseOptions.find((c) => c.courseId === selectedCourseId)?.name ||
+    'Neo4j Knowledge Graph';
+
+  const visibleToast = externalToastMessage || toastMessage;
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#070A10] font-sans text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] font-sans text-[#1F1F1F] dark:text-[#E3E3E3]">
+      {visibleToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px] text-emerald-400 dark:text-emerald-600">
+            check_circle
+          </span>
+          <span>{visibleToast}</span>
+        </div>
+      )}
+
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar
         isFocus={false}
@@ -162,174 +206,252 @@ export function KnowledgeAnalyticsView({
 
       {/* 3. Main Stage Content */}
       <div
-        className={`pt-20 px-6 pb-12 transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-26' : 'pl-72'
+        className={`pt-20 px-4 sm:px-6 pb-12 transition-all duration-300 ${
+          isSidebarCollapsed ? 'md:pl-[96px]' : 'md:pl-[280px]'
         }`}
       >
-        <div className="flex flex-col w-full max-w-[1720px] mx-auto gap-6">
-          {/* Top Ribbon & Quick Analytics Bar */}
-          <div className="w-full flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm border border-blue-200/50 dark:border-blue-900/50">
-                <span className="material-symbols-outlined text-[26px]">hub</span>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                    Knowledge Graph Studio
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-semibold text-[11px]">
-                    Bản đồ kiến trúc CS
-                  </span>
+        <div className="flex flex-col w-full max-w-[1720px] mx-auto gap-5">
+          {/* Top Ribbon & Scope Selector */}
+          <div className="w-full flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center text-[#041E49] dark:text-[#A8C7FA]">
+                  <span className="material-symbols-outlined text-[26px]">hub</span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Mạng lưới {nodesData.length} thực thể tri thức, liên kết suy luận đồ thị & lộ trình cá nhân hóa
-                </p>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight">
+                      Knowledge Graph Studio
+                    </h1>
+                    <span className="px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] font-medium text-[11px] max-w-[260px] truncate">
+                      {activeScopeLabel}
+                    </span>
+                    {isFetching && !isLoading && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0B57D0] dark:text-[#A8C7FA]">
+                        <span className="material-symbols-outlined text-[14px] animate-spin">
+                          sync
+                        </span>
+                        Đang tải...
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-[#C4C7C5] mt-0.5">
+                    {nodesData.length} khái niệm tri thức · {edgesData.length} liên kết học tập
+                    {auxiliaryCount > 0 && !showAuxiliaryNodes && (
+                      <span className="text-slate-400 dark:text-slate-500 font-normal">
+                        {' '}(đã gom gọn {auxiliaryCount} chi tiết phụ trợ)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Action Tools */}
+              <div className="flex items-center flex-wrap gap-2">
+                <CustomSelect<LayoutMode>
+                  variant="pill"
+                  value={layoutMode}
+                  onChange={onLayoutModeChange}
+                  options={[
+                    { value: 'force', label: 'Force-Directed (Lực hút đẩy)', icon: 'account_tree' },
+                    { value: 'hierarchical', label: 'Hierarchical (Phân cấp DAG)', icon: 'account_tree' },
+                    { value: 'circular', label: 'Circular (Cụm xoay tròn)', icon: 'account_tree' },
+                  ]}
+                  className="min-w-[220px]"
+                />
+
+                {nodesData.length >= 2 && (
+                  <button
+                    onClick={() => setIsPathModalOpen(true)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white dark:bg-[#1E1F20] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">
+                      route
+                    </span>
+                    <span>Lộ trình A → B</span>
+                  </button>
+                )}
+
+                {nodesData.length > 0 && (
+                  <button
+                    onClick={handleExportJson}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white dark:bg-[#1E1F20] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">download</span>
+                    <span>Xuất JSON</span>
+                  </button>
+                )}
+
+                <div className="flex items-center bg-white/70 dark:bg-[#1E1F20] p-1 rounded-full">
+                  <button
+                    onClick={() => setActiveTab('graph')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                      activeTab === 'graph'
+                        ? 'bg-[#D3E3FD] dark:bg-[#282A2C] text-[#041E49] dark:text-[#E3E3E3]'
+                        : 'text-slate-600 dark:text-[#C4C7C5]'
+                    }`}
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">bubble_chart</span>
+                    <span>Mạng lưới 2D</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('table')}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                      activeTab === 'table'
+                        ? 'bg-[#D3E3FD] dark:bg-[#282A2C] text-[#041E49] dark:text-[#E3E3E3]'
+                        : 'text-slate-600 dark:text-[#C4C7C5]'
+                    }`}
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">table_rows</span>
+                    <span>Bảng ma trận</span>
+                  </button>
+                </div>
+
+                {nodesData.length > 0 && (
+                  <button
+                    onClick={onSwitchToFocus}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      center_focus_strong
+                    </span>
+                    <span>Chế độ Tập trung</span>
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Right Action Tools */}
-            <div className="flex items-center flex-wrap gap-2.5">
-              {/* Layout Mode Selector */}
-              <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded-xl shadow-sm">
-                <span className="material-symbols-outlined text-slate-400 text-[18px] ml-1 mr-1">
-                  account_tree
-                </span>
-                <select
-                  value={layoutMode}
-                  onChange={(e) => onLayoutModeChange(e.target.value as LayoutMode)}
-                  className="bg-transparent text-xs font-semibold text-slate-800 dark:text-slate-200 py-1 pr-3 pl-1 outline-none cursor-pointer"
-                >
-                  <option value="force" className="dark:bg-slate-900">Force-Directed (Lực hút đẩy)</option>
-                  <option value="hierarchical" className="dark:bg-slate-900">Hierarchical (Phân cấp DAG)</option>
-                  <option value="circular" className="dark:bg-slate-900">Circular (Cụm xoay tròn)</option>
-                </select>
-              </div>
+            {/* Scope Selector Strip (Course -> Published Material) */}
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3 flex-1">
+                <div className="flex items-center gap-2 min-w-[230px]">
+                  <span className="text-xs font-bold text-slate-500 dark:text-[#C4C7C5] whitespace-nowrap">
+                    Khóa học:
+                  </span>
+                  <CustomSelect<string>
+                    value={selectedCourseId ?? ''}
+                    onChange={(val) => onSelectCourse?.(val || null)}
+                    options={[
+                      { value: '', label: 'Tất cả đồ thị đã xuất bản' },
+                      ...courseOptions.map((c) => ({
+                        value: c.courseId,
+                        label: c.className ? `${c.name} (${c.className})` : c.name,
+                      })),
+                    ]}
+                    className="flex-1 min-w-[200px]"
+                  />
+                </div>
 
-              {/* Shortest Path Finder Trigger */}
-              <button
-                onClick={() => setIsPathModalOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px]">
-                  route
-                </span>
-                <span>Lộ trình ngắn nhất (A → B)</span>
-              </button>
-
-              {/* Edit Mode Toggle */}
-              <button
-                onClick={() => {
-                  onToggleEditMode();
-                  showToast(
-                    !isEditMode
-                      ? 'Đã kích hoạt Chế độ Chỉnh sửa đồ thị tri thức'
-                      : 'Đã chuyển về chế độ Xem (Read-only)'
-                  );
-                }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-                  isEditMode
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
-                }`}
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">edit_note</span>
-                <span>{isEditMode ? 'Chế độ Chỉnh sửa' : 'Bật Chỉnh sửa'}</span>
-                {isEditMode && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
-                )}
-              </button>
-
-              {/* Export Data Dropdown */}
-              <div className="relative group">
-                <button
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">download</span>
-                  <span>Xuất dữ liệu</span>
-                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
-                </button>
-                <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 hidden group-hover:block z-50">
-                  <button
-                    onClick={() => handleExportData('svg')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">image</span>
-                    SVG Vector HD
-                  </button>
-                  <button
-                    onClick={() => handleExportData('png')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">photo_camera</span>
-                    PNG 300 DPI
-                  </button>
-                  <button
-                    onClick={() => handleExportData('json')}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-blue-600">data_object</span>
-                    JSON Graph Schema
-                  </button>
+                <div className="flex items-center gap-2 min-w-[260px]">
+                  <span className="text-xs font-bold text-slate-500 dark:text-[#C4C7C5] whitespace-nowrap">
+                    Tài liệu:
+                  </span>
+                  <CustomSelect<string>
+                    value={selectedMaterialId ?? ''}
+                    onChange={(val) => onSelectMaterial?.(val || null)}
+                    options={[
+                      ...(selectedCourseId
+                        ? [{ value: '', label: 'Toàn bộ đồ thị của khóa học' }]
+                        : [{ value: '', label: 'Chọn tài liệu đã xuất bản...' }]),
+                      ...publishedGraphs.map((g) => ({
+                        value: g.materialId,
+                        label: `${g.title}${g.conceptsCount ? ` (${g.conceptsCount} kn)` : ''}`,
+                      })),
+                    ]}
+                    className="flex-1 min-w-[220px]"
+                  />
                 </div>
               </div>
 
-              {/* View Switcher (2D Graph vs Matrix Table) */}
-              <div className="flex items-center bg-slate-200 dark:bg-slate-800 p-1 rounded-xl">
-                <button
-                  onClick={() => setActiveTab('graph')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === 'graph'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                  }`}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">bubble_chart</span>
-                  <span>Mạng lưới 2D</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('table')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === 'table'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                  }`}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">table_rows</span>
-                  <span>Bảng ma trận</span>
-                </button>
-              </div>
+              <div className="flex items-center gap-2">
+                {canManageGraph && selectedMaterialId && onStartDraftEdit && (
+                  <button
+                    type="button"
+                    disabled={isStartingDraft}
+                    onClick={() => onStartDraftEdit(selectedMaterialId)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-100 dark:bg-amber-950/70 hover:bg-amber-200 dark:hover:bg-amber-900/70 text-amber-800 dark:text-amber-200 text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit_note</span>
+                    <span>
+                      {isStartingDraft ? 'Đang tạo bản nháp...' : 'Chỉnh sửa bản nháp'}
+                    </span>
+                  </button>
+                )}
 
-              {/* Enter Zen Focus Mode Button */}
-              <button
-                onClick={onSwitchToFocus}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">center_focus_strong</span>
-                <span>Chế độ Tập trung</span>
-              </button>
+                {canManageGraph && (
+                  <Link
+                    href="/materials/tasks"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-slate-200 dark:hover:bg-[#333537] text-slate-700 dark:text-[#E3E3E3] text-xs font-semibold transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">fact_check</span>
+                    <span>Quản lý &amp; Duyệt AI</span>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Main Stage Grid: Canvas & Inspector */}
-          {activeTab === 'graph' ? (
+          {/* 7-State Matrix for Main Stage */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 animate-pulse">
+              <div className="xl:col-span-8 h-[640px] rounded-3xl bg-white dark:bg-[#1E1F20]" />
+              <div className="xl:col-span-4 h-[640px] rounded-3xl bg-white dark:bg-[#1E1F20]" />
+            </div>
+          ) : isError ? (
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-12 text-center flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[30px]">cloud_off</span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-[#E3E3E3]">
+                Không thể tải dữ liệu Đồ thị tri thức từ Neo4j
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-[#C4C7C5] max-w-md">
+                Vui lòng kiểm tra kết nối máy chủ hoặc thử tải lại.
+              </p>
+              <button
+                type="button"
+                onClick={() => onRefetch?.()}
+                className="px-5 py-2.5 rounded-full bg-[#0B57D0] text-white text-xs font-bold cursor-pointer hover:bg-blue-700"
+              >
+                Thử lại
+              </button>
+            </div>
+          ) : nodesData.length === 0 ? (
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-14 text-center flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-3xl bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] flex items-center justify-center">
+                <span className="material-symbols-outlined text-[34px]">hub</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-[#E3E3E3]">
+                Chưa có Đồ thị tri thức nào được xuất bản trong phạm vi này
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-[#C4C7C5] max-w-lg">
+                {canManageGraph
+                  ? 'Hãy tải lên giáo trình ở Trung tâm Xử lý AI hoặc trong tab Tài liệu của khóa học, chạy bóc tách 4 Agent AI và duyệt xuất bản lên Neo4j.'
+                  : 'Giảng viên chưa xuất bản đồ thị tri thức cho khóa học hoặc tài liệu này. Hãy thử chọn khóa học khác ở thanh phạm vi phía trên.'}
+              </p>
+              {canManageGraph && (
+                <Link
+                  href="/materials/tasks"
+                  className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0B57D0] hover:bg-blue-700 text-white text-xs font-bold transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+                  <span>Mở Trung tâm Xử lý &amp; Xuất bản AI</span>
+                </Link>
+              )}
+            </div>
+          ) : activeTab === 'graph' ? (
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-              {/* Left Canvas Column (xl:col-span-8 or 12 when inspector collapsed) */}
+              {/* Left Canvas Column */}
               <div
                 className={`flex flex-col gap-4 transition-all duration-300 ${
                   isInspectorCollapsed ? 'xl:col-span-12' : 'xl:col-span-8'
                 }`}
               >
-                {/* Filter and Search Bar */}
                 <GraphFilterBar
                   searchQuery={searchQuery}
                   onSearchChange={onSearchChange}
@@ -339,22 +461,14 @@ export function KnowledgeAnalyticsView({
                   onDepthChange={onDepthChange}
                   isSmartDimActive={isSmartDimActive}
                   onToggleSmartDim={onToggleSmartDim}
+                  showAuxiliaryNodes={showAuxiliaryNodes}
+                  onToggleAuxiliaryNodes={onToggleAuxiliaryNodes}
+                  auxiliaryCount={auxiliaryCount}
                   nodes={nodesData}
                   onSelectNode={(id) => onSelectNode(id)}
                 />
 
-                {/* Graph Stage Canvas Wrapper */}
-                <div className="relative w-full h-[640px] bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-md border border-slate-200/80 dark:border-slate-800">
-                  {/* Floating Edit Palette if Edit Mode Active */}
-                  {isEditMode && (
-                    <EditFloatingPalette
-                      activeTool={activeTool}
-                      onSelectTool={handleToolSelect}
-                      toastMessage={toastMessage}
-                    />
-                  )}
-
-                  {/* React Flow Graph Canvas */}
+                <div className="relative w-full h-[640px] bg-white dark:bg-[#1E1F20] rounded-3xl overflow-hidden">
                   <GraphCanvas
                     nodes={rawNodes}
                     edges={rawEdges}
@@ -366,26 +480,24 @@ export function KnowledgeAnalyticsView({
                     searchQuery={searchQuery}
                     depth={depth}
                     isSmartDimActive={isSmartDimActive}
-                    isEditMode={isEditMode}
+                    isEditMode={false}
                     activeTool={activeTool}
                     layoutMode={layoutMode}
-                    onAddNodeAtPosition={handleAddNodeAtPosition}
                     onDeleteNode={onDeleteNode}
                     onConnectNodes={onConnectNodes}
                     highlightPathIds={highlightPathIds}
                     isFocusMode={false}
                   />
 
-                  {/* Floating Expand Inspector Strip if Collapsed */}
                   {isInspectorCollapsed && (
                     <button
                       onClick={() => setIsInspectorCollapsed(false)}
-                      className="absolute right-4 top-4 z-30 bg-white dark:bg-slate-900 shadow-lg border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all flex items-center gap-2 cursor-pointer"
+                      className="absolute right-4 top-4 z-30 bg-white dark:bg-[#1E1F20] px-4 py-2 rounded-full text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-all flex items-center gap-2 cursor-pointer shadow-sm"
                       title="Mở rộng Bảng chi tiết thực thể"
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[20px]">first_page</span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100 pr-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-[#E3E3E3] pr-1">
                         Chi tiết Node
                       </span>
                     </button>
@@ -393,13 +505,27 @@ export function KnowledgeAnalyticsView({
                 </div>
               </div>
 
-              {/* Right Inspector Panel Column (xl:col-span-4) */}
+              {/* Right Inspector Panel Column */}
               {!isInspectorCollapsed && (
                 <div className="xl:col-span-4 w-full">
                   <NodeInspectorPanel
                     node={selectedNode}
-                    onSaveNode={onUpdateNode}
-                    onDeleteNode={onDeleteNode}
+                    allNodes={allNodesData.length > 0 ? allNodesData : nodesData}
+                    conceptDetail={conceptDetail}
+                    isConceptLoading={isConceptDetailLoading}
+                    canManageGraph={canManageGraph}
+                    selectedMaterialId={selectedMaterialId}
+                    selectedCourseId={selectedCourseId}
+                    activePublicationId={activePublicationId}
+                    activePublicationStatus={activePublicationStatus}
+                    isStartingDraft={isStartingDraft}
+                    isWithdrawing={isWithdrawing}
+                    isRetryingPublication={isRetryingPublication}
+                    onSelectNode={(id) => onSelectNode(id)}
+                    onStartDraftEdit={onStartDraftEdit}
+                    onWithdrawPublication={onWithdrawPublication}
+                    onRetryPublication={onRetryPublication}
+                    onSwitchToFocus={onSwitchToFocus}
                     isCollapsed={isInspectorCollapsed}
                     onToggleCollapse={() => setIsInspectorCollapsed(true)}
                   />
@@ -407,11 +533,13 @@ export function KnowledgeAnalyticsView({
               )}
             </div>
           ) : (
-            /* Table Fallback View */
             <KnowledgeMatrixTable
               nodes={nodesData}
               selectedNodeId={selectedNodeId}
-              onSelectNode={onSelectNode}
+              onSelectNode={(id) => {
+                onSelectNode(id);
+                setActiveTab('graph');
+              }}
               onSwitchToGraph={() => setActiveTab('graph')}
             />
           )}
@@ -423,6 +551,7 @@ export function KnowledgeAnalyticsView({
         isOpen={isPathModalOpen}
         onClose={() => setIsPathModalOpen(false)}
         nodes={nodesData}
+        edges={edgesData}
         onConfirmPath={handleConfirmPath}
       />
     </div>

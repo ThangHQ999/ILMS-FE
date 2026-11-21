@@ -20,6 +20,7 @@ import '@xyflow/react/dist/style.css';
 import { KnowledgeNode } from '../nodes/KnowledgeNode';
 import { KnowledgeNodeData, KnowledgeCategory, EditTool, LayoutMode } from '../../types';
 import { useForceLayout } from '../../hooks/useForceLayout';
+import { DraggableMinimap } from '../focus/DraggableMinimap';
 
 const nodeTypes = {
   knowledgeNode: KnowledgeNode,
@@ -44,6 +45,9 @@ export interface GraphCanvasProps {
   onConnectNodes?: (source: string, target: string) => void;
   highlightPathIds?: string[] | null;
   isFocusMode?: boolean;
+  isMinimapVisible?: boolean;
+  onToggleMinimap?: () => void;
+  onCloseMinimap?: () => void;
 }
 
 function GraphCanvasContent({
@@ -65,9 +69,32 @@ function GraphCanvasContent({
   onConnectNodes,
   highlightPathIds,
   isFocusMode = false,
+  isMinimapVisible,
+  onToggleMinimap,
+  onCloseMinimap,
 }: GraphCanvasProps) {
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const { applyLayout } = useForceLayout();
+
+  const [internalMinimapVisible, setInternalMinimapVisible] = useState(false);
+  const effectiveMinimapVisible =
+    isMinimapVisible !== undefined ? isMinimapVisible : internalMinimapVisible;
+
+  const handleCloseMinimap = useCallback(() => {
+    if (onCloseMinimap) {
+      onCloseMinimap();
+    } else {
+      setInternalMinimapVisible(false);
+    }
+  }, [onCloseMinimap]);
+
+  const handleToggleMinimap = useCallback(() => {
+    if (onToggleMinimap) {
+      onToggleMinimap();
+    } else {
+      setInternalMinimapVisible((prev) => !prev);
+    }
+  }, [onToggleMinimap]);
 
   const [connectStartNodeId, setConnectStartNodeId] = useState<string | null>(null);
 
@@ -300,16 +327,23 @@ function GraphCanvasContent({
         {!isFocusMode && (
           <Controls
             showInteractive={false}
-            className="!bg-white/90 dark:!bg-slate-900/90 !border !border-slate-200 dark:!border-slate-800 !rounded-2xl !shadow-lg backdrop-blur-md overflow-hidden"
+            className="!bg-white dark:!bg-[#1E1F20] !border-none !rounded-2xl !shadow-none overflow-hidden"
+          />
+        )}
+        {effectiveMinimapVisible && (
+          <DraggableMinimap
+            isVisible={effectiveMinimapVisible}
+            onClose={handleCloseMinimap}
+            onSelectNode={onSelectNode ? (id) => onSelectNode(id) : undefined}
           />
         )}
       </ReactFlow>
 
       {/* Floating Canvas Dock (Bottom-Right) */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl gap-1">
+      <div className="absolute bottom-4 right-4 z-20 flex items-center bg-white dark:bg-[#1E1F20] px-2 py-1.5 rounded-full border-none shadow-none gap-1">
         <button
           onClick={() => zoomIn({ duration: 300 })}
-          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
           title="Phóng to (+)"
           type="button"
         >
@@ -317,16 +351,16 @@ function GraphCanvasContent({
         </button>
         <button
           onClick={() => zoomOut({ duration: 300 })}
-          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
           title="Thu nhỏ (-)"
           type="button"
         >
           <span className="material-symbols-outlined text-[20px]">remove</span>
         </button>
-        <div className="w-[1px] h-5 bg-slate-200 dark:bg-slate-800 my-auto" />
+        <div className="w-[1px] h-5 bg-[#E1E5EA] dark:bg-[#282A2C] my-auto" />
         <button
           onClick={() => fitView({ duration: 600, padding: 0.2 })}
-          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
           title="Vừa khung hình"
           type="button"
         >
@@ -334,11 +368,24 @@ function GraphCanvasContent({
         </button>
         <button
           onClick={handleCenterCenterpiece}
-          className="p-2 rounded-xl text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+          className="p-2 rounded-full text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#D3E3FD]/50 dark:hover:bg-[#162B4D] transition-colors border-none cursor-pointer"
           title="Căn giữa Segment Tree"
           type="button"
         >
           <span className="material-symbols-outlined text-[20px]">filter_center_focus</span>
+        </button>
+        <div className="w-[1px] h-5 bg-[#E1E5EA] dark:bg-[#282A2C] my-auto" />
+        <button
+          onClick={handleToggleMinimap}
+          className={`p-2 rounded-full transition-colors border-none cursor-pointer ${
+            effectiveMinimapVisible
+              ? 'text-[#0B57D0] dark:text-[#A8C7FA] bg-[#D3E3FD]/50 dark:bg-[#162B4D]'
+              : 'text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]'
+          }`}
+          title={effectiveMinimapVisible ? 'Ẩn minimap vùng nhìn' : 'Hiện minimap vùng nhìn'}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">explore</span>
         </button>
       </div>
     </div>

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { savePostLoginRedirect } from '@/lib/auth-redirect';
 import { OAuthProvider } from '../types';
 import { getOAuthUrlPublic } from '../services/auth.service';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.ilms.page/api/v1';
 
 export function useOAuthLogin() {
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
@@ -15,6 +16,12 @@ export function useOAuthLogin() {
       setLoadingProvider(provider);
       setError(null);
 
+      const rawRedirect =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('redirect')
+          : null;
+      savePostLoginRedirect(rawRedirect);
+
       // Fetch OAuth URL without credentials to avoid stale cookie issues
       const targetUrl = await getOAuthUrlPublic(provider);
 
@@ -24,10 +31,12 @@ export function useOAuthLogin() {
       }
 
       // Fallback to direct redirect endpoint if no URL returned
-      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login`;
+      const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
+      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login${originQuery}`;
     } catch {
       // Fallback to server-side redirect
-      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login`;
+      const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
+      window.location.href = `${API_BASE_URL}/auth/oauth/${provider}/login${originQuery}`;
     }
   };
 

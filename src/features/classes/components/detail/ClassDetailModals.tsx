@@ -1,0 +1,258 @@
+'use client';
+
+import React, { useState } from 'react';
+import type { ClassCourse } from '../../schemas/class-detail.schema';
+
+interface RemoveSubjectModalProps {
+  course: ClassCourse | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (course: ClassCourse) => void;
+}
+
+export function RemoveSubjectModal({
+  course,
+  isOpen,
+  onClose,
+  onConfirm,
+}: RemoveSubjectModalProps) {
+  if (!isOpen || !course) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-[#3C1919] text-red-600 dark:text-[#F28B82] flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-2xl">warning</span>
+        </div>
+
+        <div className="text-center space-y-1.5">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E3E3E3]">
+            Gỡ môn học khỏi lớp?
+          </h3>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-[#C4C7C5]">
+            Bạn có chắc chắn muốn gỡ môn{' '}
+            <strong className="text-gray-900 dark:text-[#E3E3E3] font-bold">
+              {course.name} ({course.code})
+            </strong>{' '}
+            khỏi lớp này?
+          </p>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-[#332200] border-none text-xs text-amber-800 dark:text-[#FFB784] space-y-1">
+          <p className="font-semibold flex items-center gap-1">
+            <span className="material-symbols-outlined text-[15px]">info</span> Phạm vi ảnh hưởng:
+          </p>
+          <p className="leading-relaxed">
+            Môn học sẽ không còn xuất hiện trong lớp này, nhưng dữ liệu bài giảng và cây đồ thị tri thức gốc trong kho học liệu vẫn được bảo lưu nguyên vẹn.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+          >
+            Hủy bỏ
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(course)}
+            className="px-5 py-2.5 rounded-full text-xs font-semibold bg-red-100 dark:bg-[#F2B8B5] text-red-900 dark:text-[#601410] hover:brightness-95 transition-all cursor-pointer border-none"
+          >
+            Xác nhận gỡ môn
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ArchiveModalProps {
+  classNameTitle: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+export function ArchiveModal({
+  classNameTitle,
+  isOpen,
+  onClose,
+  onConfirm,
+}: ArchiveModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-[#332200] text-amber-700 dark:text-[#FFB784] flex items-center justify-center mx-auto">
+          <span className="material-symbols-outlined text-2xl">inventory_2</span>
+        </div>
+        <div className="text-center space-y-1">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E3E3E3]">
+            Xác nhận lưu trữ lớp học?
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+            Lớp &quot;{classNameTitle}&quot; sẽ chuyển sang trạng thái lưu trữ (chỉ đọc). Bạn có thể mở lại lớp bất kỳ lúc nào từ tab Đã lưu trữ.
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="px-5 py-2.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-[#5C3B00] text-amber-900 dark:text-[#FFB784] hover:brightness-95 transition-all cursor-pointer border-none"
+          >
+            Lưu trữ lớp
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface AddSubjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (subjectCodes: string[]) => void;
+  availableCourses?: Array<{ id: string; code: string; name: string; credits: number }>;
+}
+
+export function AddSubjectModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  availableCourses = [],
+}: AddSubjectModalProps) {
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
+
+  if (!isOpen) return null;
+
+  const toggleCode = (code: string) => {
+    setSelectedCodes((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-2xl max-w-lg w-full p-6 space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/5">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-[#E3E3E3] flex items-center gap-2">
+            <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA]">library_add</span>
+            Thêm môn học có sẵn vào lớp
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-[#E3E3E3] cursor-pointer border-none bg-transparent"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+          Chọn các môn học đã có trong chương trình đào tạo để kích hoạt không gian giảng dạy và cây đồ thị tri thức cho lớp.
+        </p>
+
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {availableCourses.length === 0 ? (
+            <div className="p-6 text-center rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-xs text-gray-500 dark:text-[#8E918F]">
+              Không có môn học khả dụng nào để gán thêm vào lớp này.
+            </div>
+          ) : (
+            availableCourses.map((sub) => {
+              const valueKey = sub.id || sub.code;
+              const isSelected = selectedCodes.includes(valueKey);
+              return (
+                <label
+                  key={valueKey}
+                  className={`flex items-center justify-between p-3.5 rounded-2xl border-none cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-[#D3E3FD]/40 dark:bg-[#A8C7FA]/20 text-gray-900 dark:text-[#E3E3E3]'
+                      : 'bg-[#F0F4F8] dark:bg-[#131314] text-gray-800 dark:text-[#C4C7C5] hover:opacity-90'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleCode(valueKey)}
+                      className="w-4 h-4 accent-blue-600 rounded"
+                    />
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-[#E3E3E3] text-sm">
+                        {sub.name}
+                      </div>
+                      <div className="text-xs font-mono text-gray-500 dark:text-[#8E918F]">
+                        {sub.code} • {sub.credits} tín chỉ
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              );
+            })
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border-none bg-transparent transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            disabled={selectedCodes.length === 0}
+            onClick={() => onConfirm(selectedCodes)}
+            className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 shadow-xs disabled:opacity-50 transition-all cursor-pointer border-none"
+          >
+            Thêm {selectedCodes.length} môn học
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export { InviteMemberModal } from './InviteMemberModal';
+export type { InviteMemberModalProps } from './InviteMemberModal';
+export { CreateAnnouncementModal } from './CreateAnnouncementModal';
+export type {
+  CreateAnnouncementModalProps,
+  CreateAnnouncementData,
+  AttachedFile,
+  TargetClassOption,
+} from './CreateAnnouncementModal';
+
+
+interface ToastNotificationProps {
+  message: string | null;
+}
+
+export function ToastNotification({ message }: ToastNotificationProps) {
+  if (!message) return null;
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
+      <div className="bg-[#1E1F20] text-[#E3E3E3] px-4 py-3 rounded-full shadow-xl flex items-center gap-3 text-xs font-medium border-none">
+        <span className="material-symbols-outlined text-emerald-400 text-[18px]">
+          check_circle
+        </span>
+        <span>{message}</span>
+      </div>
+    </div>
+  );
+}
+
+export { UploadMaterialModal } from './UploadMaterialModal';
+

@@ -2,8 +2,13 @@
 
 import { useEffect } from 'react';
 import { FONT_VARIABLE_MAP, FontFamilyName, ColorTokens } from '@/hooks/useDesignSystem';
+import { useCurrentUser } from '@/features/auth';
+import { usePreferences } from '@/features/settings/hooks/useSettings';
 
 export function DesignSystemSync() {
+  const { data: currentUser } = useCurrentUser();
+  const { data: prefs } = usePreferences({ enabled: Boolean(currentUser) });
+
   useEffect(() => {
     function applySavedSystem() {
       try {
@@ -24,12 +29,12 @@ export function DesignSystemSync() {
         if (storedFont && FONT_VARIABLE_MAP[storedFont]) {
           root.style.setProperty('--font-sans', FONT_VARIABLE_MAP[storedFont]);
         }
-      } catch (err) {
-        console.error('Failed to sync design system tokens:', err);
+      } catch {
+        // ignore
       }
     }
 
-    // Apply on initial mount
+    // 1. Instant local render (prevents flash of unstyled content)
     applySavedSystem();
 
     // Listen to changes from other tabs or same tab events
@@ -41,6 +46,36 @@ export function DesignSystemSync() {
       window.removeEventListener('ilms_design_system_change', applySavedSystem);
     };
   }, []);
+
+  // 2. Sync cached user preferences to CSS variables / localStorage
+  useEffect(() => {
+    if (!prefs) return;
+    const root = document.documentElement;
+
+    if (prefs.primaryColor) root.style.setProperty('--color-primary', prefs.primaryColor);
+    if (prefs.secondaryColor) root.style.setProperty('--color-secondary', prefs.secondaryColor);
+    if (prefs.tertiaryColor) root.style.setProperty('--color-tertiary', prefs.tertiaryColor);
+    if (prefs.neutralColor) root.style.setProperty('--color-neutral', prefs.neutralColor);
+
+    if (prefs.fontFamily && FONT_VARIABLE_MAP[prefs.fontFamily as FontFamilyName]) {
+      root.style.setProperty('--font-sans', FONT_VARIABLE_MAP[prefs.fontFamily as FontFamilyName]);
+      try {
+        localStorage.setItem('ilms_font_family', prefs.fontFamily);
+      } catch {}
+    }
+
+    if (prefs.defaultDashboardMode) {
+      try {
+        localStorage.setItem('ilms_dashboard_mode', prefs.defaultDashboardMode);
+      } catch {}
+    }
+
+    if (typeof prefs.sidebarCollapsed === 'boolean') {
+      try {
+        localStorage.setItem('ilms_analytics_sidebar_collapsed', String(prefs.sidebarCollapsed));
+      } catch {}
+    }
+  }, [prefs]);
 
   return null;
 }

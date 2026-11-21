@@ -10,16 +10,16 @@ interface MasteryProgressCardProps {
 
 export function MasteryProgressCard({ topics, trendPoints }: MasteryProgressCardProps) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
+    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 font-mono">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA] font-mono">
               Cấp độ thông thạo
             </span>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">Tiến độ Chủ đề Trọng tâm</h2>
+            <h2 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] mt-0.5">Tiến độ Chủ đề Trọng tâm</h2>
           </div>
-          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+          <span className="px-3 py-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5] font-mono text-[11px] font-medium border-none">
             4 Mức Năng lực
           </span>
         </div>
@@ -29,26 +29,26 @@ export function MasteryProgressCard({ topics, trendPoints }: MasteryProgressCard
           {topics.map((item) => {
             if (item.isBottleneck) {
               return (
-                <div key={item.id} className="flex flex-col gap-1 p-3 rounded-xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-300/50 dark:border-amber-900/40">
+                <div key={item.id} className="flex flex-col gap-1 p-3.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none">
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[17px] text-amber-600 dark:text-amber-400">
+                    <span className="text-[#1F1F1F] dark:text-[#E3E3E3] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[17px] text-[#B3261E] dark:text-[#F28B82]">
                         lightbulb
                       </span>
                       {item.name}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold">
+                      <span className="px-3 py-1 rounded-full bg-[#FAD2CF] dark:bg-[#3C1919] text-[#B3261E] dark:text-[#F28B82] text-[11px] font-medium border-none">
                         {item.tierLabel}
                       </span>
-                      <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{item.progress}%</span>
+                      <span className="font-mono font-bold text-[#B3261E] dark:text-[#F28B82]">{item.progress}%</span>
                     </div>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                    <div className="h-full rounded-full bg-amber-500" style={{ width: `${item.progress}%` }} />
+                  <div className="w-full h-2 rounded-full bg-white dark:bg-[#1E1F20] overflow-hidden border-none">
+                    <div className="h-full rounded-full bg-[#B3261E] dark:bg-[#F28B82]" style={{ width: `${item.progress}%` }} />
                   </div>
                   {item.subtitle && (
-                    <span className="text-[11px] text-amber-700 dark:text-amber-300/90 mt-0.5">
+                    <span className="text-[11px] text-[#444746] dark:text-[#C4C7C5] mt-0.5">
                       {item.subtitle}
                     </span>
                   )}
@@ -59,30 +59,28 @@ export function MasteryProgressCard({ topics, trendPoints }: MasteryProgressCard
             return (
               <div key={item.id} className="flex flex-col gap-1">
                 <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-slate-900 dark:text-slate-100">{item.name}</span>
+                  <span className="text-[#1F1F1F] dark:text-[#E3E3E3]">{item.name}</span>
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                      className={`px-3 py-1 rounded-full text-[11px] font-medium border-none ${
                         item.tier === 'excellent'
-                          ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300'
+                          ? 'bg-[#C4EED0] dark:bg-[#142E20] text-[#0D652D] dark:text-[#81C995]'
                           : item.tier === 'master'
-                          ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                          ? 'bg-[#C4EED0] dark:bg-[#142E20] text-[#0D652D] dark:text-[#81C995]'
+                          : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
                       }`}
                     >
                       {item.tierLabel}
                     </span>
-                    <span className="font-mono font-medium text-slate-800 dark:text-slate-200">{item.progress}%</span>
+                    <span className="font-mono font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">{item.progress}%</span>
                   </div>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] overflow-hidden border-none">
                   <div
                     className={`h-full rounded-full ${
-                      item.tier === 'excellent'
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                        : item.tier === 'master'
-                        ? 'bg-blue-600'
-                        : 'bg-slate-400 dark:bg-slate-500'
+                      item.tier === 'excellent' || item.tier === 'master'
+                        ? 'bg-[#1EA85A] dark:bg-[#81C995]'
+                        : 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
                     }`}
                     style={{ width: `${item.progress}%` }}
                   />
@@ -94,10 +92,10 @@ export function MasteryProgressCard({ topics, trendPoints }: MasteryProgressCard
       </div>
 
       {/* Mini Trend Line (Progress Over Time 12 Weeks) */}
-      <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+      <div className="pt-4 mt-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Lịch sử tiến bộ (Tuần 1 → 12)</span>
-          <span className="text-xs text-blue-600 dark:text-blue-400 font-bold">+27.5% tổng thể</span>
+          <span className="text-xs text-[#444746] dark:text-[#C4C7C5] font-medium">Lịch sử tiến bộ (Tuần 1 → 12)</span>
+          <span className="text-xs text-[#0B57D0] dark:text-[#A8C7FA] font-bold">+27.5% tổng thể</span>
         </div>
         <div className="relative h-14 w-full">
           <svg
@@ -109,28 +107,28 @@ export function MasteryProgressCard({ topics, trendPoints }: MasteryProgressCard
             <path
               d="M 10 50 Q 80 44, 110 32 T 210 22 T 310 8"
               fill="none"
-              stroke="#2563eb"
+              stroke="#0B57D0"
               strokeLinecap="round"
               strokeWidth="2.5"
             />
             {/* Area Fill */}
             <path
               d="M 10 50 Q 80 44, 110 32 T 210 22 T 310 8 L 310 60 L 10 60 Z"
-              fill="#2563eb"
-              opacity="0.12"
+              fill="#0B57D0"
+              opacity="0.1"
             />
             {/* Points */}
-            <circle cx="10" cy="50" r="3.5" fill="#1d4ed8" stroke="#ffffff" strokeWidth="1.5" />
-            <circle cx="110" cy="32" r="3.5" fill="#1d4ed8" stroke="#ffffff" strokeWidth="1.5" />
-            <circle cx="210" cy="22" r="3.5" fill="#1d4ed8" stroke="#ffffff" strokeWidth="1.5" />
-            <circle cx="310" cy="8" r="4.5" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
+            <circle cx="10" cy="50" r="3.5" fill="#0B57D0" />
+            <circle cx="110" cy="32" r="3.5" fill="#0B57D0" />
+            <circle cx="210" cy="22" r="3.5" fill="#0B57D0" />
+            <circle cx="310" cy="8" r="4.5" fill="#0B57D0" />
           </svg>
         </div>
-        <div className="flex justify-between text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-1">
+        <div className="flex justify-between text-[11px] font-mono text-[#747775] dark:text-[#8E918F] mt-1">
           {trendPoints.map((tp, idx) => (
             <span
               key={tp.week}
-              className={idx === trendPoints.length - 1 ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}
+              className={idx === trendPoints.length - 1 ? 'text-[#0B57D0] dark:text-[#A8C7FA] font-bold' : ''}
             >
               {tp.week} ({tp.label})
             </span>

@@ -12,7 +12,13 @@ export function useLogin() {
     mutationFn: (input: LoginInput) => login(input),
     onSuccess: (user) => {
       queryClient.setQueryData(authKeys.me(), user);
-      queryClient.invalidateQueries({ queryKey: authKeys.all });
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('ilms_user', JSON.stringify(user));
+        } catch {
+          // ignore localStorage error
+        }
+      }
     },
   });
 }

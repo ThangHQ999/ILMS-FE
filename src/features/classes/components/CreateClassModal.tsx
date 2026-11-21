@@ -1,17 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { createClassRequestSchema, type CreateClassRequest } from '../schemas/class.schema';
+import { CustomSelect } from '@/components/shared';
+import { createClassRequestSchema, type CreateClassRequest, type ClassItem } from '../schemas/class.schema';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
 import { useCreateClass } from '../hooks/useCreateClass';
 
 interface CreateClassModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (created: ClassItem) => void;
 }
 
-export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
+export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModalProps) {
   const t = useTranslations('classes');
   const { mutateAsync: createClassMutate, isPending } = useCreateClass();
 
@@ -26,6 +29,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateClassRequest, string>>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -40,6 +44,7 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
     if (errors[name as keyof CreateClassRequest]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+    if (apiError) setApiError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +64,8 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
     }
 
     try {
-      await createClassMutate(result.data);
+      setApiError(null);
+      const created = await createClassMutate(result.data);
       setFormData({
         name: '',
         title: '',
@@ -70,34 +76,45 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
         enrollmentKey: '',
       });
       setErrors({});
+      onSuccess?.(created);
       onClose();
-    } catch {
-      // Error handled by TanStack Query / global ApiError
+    } catch (err: unknown) {
+      let msg = 'Có lỗi xảy ra khi gửi yêu cầu tới API Spring Boot.';
+      if (typeof err === 'object' && err !== null) {
+        const anyErr = err as { httpStatus?: number; message?: string };
+        if (anyErr.httpStatus === 401) {
+          msg =
+            'Lỗi 401 Unauthorized: Bạn cần đăng nhập tài khoản Giảng viên / Quản trị viên (tại /login) để thực hiện tạo lớp học!';
+        } else if (typeof anyErr.message === 'string') {
+          msg = anyErr.message;
+        }
+      }
+      setApiError(msg);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
+        className="w-full max-w-lg rounded-3xl bg-surface border border-border/80 shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">add_circle</span>
+        <div className="px-6 sm:px-8 py-5 flex items-center justify-between border-b border-border/60">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[22px]">add_circle</span>
             </div>
             <div>
               <h3
                 id="modal-title"
-                className="text-base font-display font-bold text-slate-900 dark:text-slate-100"
+                className="text-base font-bold text-foreground"
               >
                 {t('modalCreateTitle')}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-muted-foreground">
                 {t('modalCreateDesc')}
               </p>
             </div>
@@ -105,19 +122,43 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="w-8 h-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-4">
+          {apiError && (
+            <div className="p-4 rounded-xl bg-destructive/15 text-destructive text-xs flex items-start gap-2.5 border border-destructive/30">
+              <span className="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5">
+                error
+              </span>
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                <span className="leading-relaxed font-medium">{apiError}</span>
+                {(apiError.includes('hạn mức') ||
+                  apiError.includes('CLASS_CREATION_LIMIT') ||
+                  apiError.includes('nâng cấp') ||
+                  apiError.includes('tối đa')) && (
+                  <Link
+                    href="/pricing"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground font-semibold whitespace-nowrap shadow-xs shrink-0 self-start sm:self-auto hover:opacity-90 active:scale-95 transition-all"
+                  >
+                    <span>Nâng cấp gói</span>
+                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Class Code / Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t('fieldName')} <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldName')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -125,27 +166,27 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder={t('fieldNamePlaceholder')}
-                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 font-mono transition-all"
               />
               {errors.name && (
-                <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.name}</p>
+                <p className="mt-1 text-[11px] text-destructive font-medium">{errors.name}</p>
               )}
             </div>
 
             {/* Academic Year */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t('fieldAcademicYear')} <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldAcademicYear')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
                 name="academicYear"
                 value={formData.academicYear}
                 onChange={handleChange}
-                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />
               {errors.academicYear && (
-                <p className="mt-1 text-[11px] text-red-500 font-medium">
+                <p className="mt-1 text-[11px] text-destructive font-medium">
                   {errors.academicYear}
                 </p>
               )}
@@ -154,8 +195,8 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              {t('fieldTitle')} <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
+              {t('fieldTitle')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -163,36 +204,31 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.title}
               onChange={handleChange}
               placeholder={t('fieldTitlePlaceholder')}
-              className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
             />
             {errors.title && (
-              <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.title}</p>
+              <p className="mt-1 text-[11px] text-destructive font-medium">{errors.title}</p>
             )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Major */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t('fieldMajor')} <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                {t('fieldMajor')} <span className="text-destructive">*</span>
               </label>
-              <select
-                name="major"
-                value={formData.major}
-                onChange={handleChange}
-                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              >
-                {AVAILABLE_MAJORS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect<string>
+                value={formData.major || AVAILABLE_MAJORS[0]}
+                onChange={(val) =>
+                  setFormData((prev) => ({ ...prev, major: val }))
+                }
+                options={AVAILABLE_MAJORS.map((m) => ({ value: m, label: m }))}
+              />
             </div>
 
             {/* Max Students */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 {t('fieldMaxStudents')}
               </label>
               <input
@@ -200,16 +236,16 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
                 name="maxStudents"
                 min="1"
                 max="500"
-                value={formData.maxStudents}
+                value={Number(formData.maxStudents ?? 60)}
                 onChange={handleChange}
-                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />
             </div>
           </div>
 
           {/* Enrollment Key */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               {t('fieldEnrollmentKey')}
             </label>
             <input
@@ -218,13 +254,13 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.enrollmentKey || ''}
               onChange={handleChange}
               placeholder={t('fieldEnrollmentKeyPlaceholder')}
-              className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+              className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 font-mono transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               {t('fieldDescription')}
             </label>
             <textarea
@@ -233,28 +269,28 @@ export function CreateClassModal({ isOpen, onClose }: CreateClassModalProps) {
               value={formData.description || ''}
               onChange={handleChange}
               placeholder={t('fieldDescriptionPlaceholder')}
-              className="w-full p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+              className="w-full p-3.5 rounded-2xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all resize-none"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-border/60 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
+              className="px-5 py-2.5 rounded-xl border border-border bg-surface text-foreground hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
             >
               {t('btnCancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground hover:opacity-90 active:scale-95 disabled:opacity-50 text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               {isPending ? (
                 <>
-                  <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
                   <span>{t('btnCreating')}</span>
                 </>
               ) : (

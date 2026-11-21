@@ -23,29 +23,29 @@ export function SupportTab({ onSuccessToast }: SupportTabProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-5">
+      <div className="bg-white dark:bg-[#1E1F20] p-6 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none border-none flex flex-col gap-5">
         <div className="flex flex-col">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-[#E3E3E3]">
             {t('supportHeaderTitle')}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-[#C4C7C5]">
             {t('supportHeaderSubtitle')}
           </p>
         </div>
 
         {/* Support Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[22px]">
                 contact_support
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                 {t('helpCenterTitle')}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
                 {t('helpCenterDesc')}
               </span>
               <button
@@ -61,17 +61,17 @@ export function SupportTab({ onSuccessToast }: SupportTabProps) {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[22px]">
                 support_agent
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
                 {t('chatSupportTitle')}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
                 {t('chatSupportDesc')}
               </span>
               <button
@@ -87,30 +87,30 @@ export function SupportTab({ onSuccessToast }: SupportTabProps) {
         </div>
 
         {/* System Specs & Legal */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+        <div className="pt-4 border-t border-slate-200 dark:border-transparent flex flex-col gap-4">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
             {t('appInfoTitle')}
           </h3>
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 flex flex-col gap-2.5 text-xs">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent flex flex-col gap-2.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
+              <span className="text-slate-500 dark:text-[#C4C7C5]">
                 {t('lblAppVersion')}
               </span>
-              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">
+              <span className="font-mono font-semibold text-slate-900 dark:text-[#E3E3E3]">
                 {sysInfo.appVersion}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
+              <span className="text-slate-500 dark:text-[#C4C7C5]">
                 {t('lblServerStatus')}
               </span>
-              <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-[#81C995]">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />{' '}
                 {t('serverOperational')} ({sysInfo.uptime})
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
+              <span className="text-slate-500 dark:text-[#C4C7C5]">
                 {t('lblPoliciesTerms')}
               </span>
               <div className="flex items-center gap-3">

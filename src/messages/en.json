@@ -1,4 +1,23 @@
 {
+  "seo": {
+    "siteTitle": "ILMS — AI-Powered Intelligent Learning Management System",
+    "siteTitleTemplate": "%s | ILMS",
+    "siteDescription": "Smart learning platform integrating Socratic AI Coaching, RAG Knowledge Graphs, and 6-tier Bloom Competency Analytics for students and instructors.",
+    "homeTitle": "ILMS — Smart Learning with Socratic AI Coaching",
+    "homeDescription": "Awaken critical thinking step-by-step with our Socratic AI Owl, explore interactive RAG Knowledge Graphs, and master 6-tier Bloom competency at ilms.page.",
+    "pricingTitle": "Pricing & Plans",
+    "pricingDescription": "Explore Free, Plus, Pro, and Enterprise plans with instant VietQR checkout for Socratic AI Coaching & Cloud Storage on ILMS.",
+    "loginTitle": "Sign In",
+    "loginDescription": "Sign in to your ILMS smart workspace to continue learning with Socratic AI Coaching.",
+    "registerTitle": "Create Account",
+    "registerDescription": "Join ILMS for free to experience Socratic AI Coaching, interactive Knowledge Graphs, and smart classrooms.",
+    "termsTitle": "Terms of Service",
+    "termsDescription": "Terms of service for the ILMS smart learning platform (EduTech Innovations).",
+    "privacyTitle": "Privacy Policy",
+    "privacyDescription": "Information security and learner privacy policy for the ILMS platform.",
+    "aboutTitle": "About Us",
+    "aboutDescription": "Learn how ILMS (EduTech Innovations) combines Socratic AI Tutoring, Knowledge Graphs, and Bloom mastery tracking."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -245,6 +264,24 @@
       "openEmailApp": "Open Email App",
       "resendCountdown": "Resend Email ({seconds}s)",
       "resendNow": "Resend Email Now"
+    },
+    "resetPasswordPage": {
+      "backToPlatform": "Back to Platform",
+      "supportAssistance": "Support & Assistance",
+      "securityBadge": "Security",
+      "formTitle": "Reset Your Password",
+      "formDescription": "Please enter a new password with at least 8 characters to secure your account.",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Minimum 8 characters",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "submitButton": "Update Password",
+      "submitting": "Updating...",
+      "successTitle": "Password Reset Successfully!",
+      "successDescription": "Your password has been updated successfully. You can now sign in with your new password.",
+      "loginNow": "Sign In Now",
+      "missingToken": "Missing authentication token in reset password link. Please verify the link in your email.",
+      "backToLogin": "Back to Sign In"
     }
   },
   "onboarding": {
@@ -495,6 +532,239 @@
       "terms": "Terms of Service",
       "privacy": "Privacy Policy",
       "contact": "Contact Us"
+    },
+    "story": {
+      "stationNavLabel": "Navigate knowledge stations",
+      "scenes": {
+        "hero": "01 • Launch Station",
+        "socratic": "02 • Socratic Dialectic",
+        "classroom": "03 • Smart Classroom",
+        "bloom": "04 • Bloom Mastery Tower",
+        "action": "05 • Get Started"
+      },
+      "roleSwitcher": {
+        "label": "Select experience perspective",
+        "student": "Student Perspective",
+        "teacher": "Instructor Perspective"
+      },
+      "hero": {
+        "studentTitle1": "Master Deep Thinking with",
+        "studentTitleHighlight": "Socratic Owl AI Tutor.",
+        "teacherTitle1": "Architect Smart Classrooms with",
+        "teacherTitleHighlight": "Knowledge Graph & AI.",
+        "studentSub": "Instead of handing out passive answers, our wise Socratic Owl guides you step-by-step through complex problems and heals knowledge gaps on a live 3D graph.",
+        "teacherSub": "Automatically extract knowledge entities from syllabi, monitor real-time EduPulse comprehension metrics, and generate Bloom-aligned quizzes in 3 seconds.",
+        "playgroundTitle": "Challenge the Socratic Owl Live",
+        "playgroundHint": "Tap a topic pill or type any question",
+        "askOwlBtn": "Ask Owl AI",
+        "explore3DBtn": "Explore 3D Journey",
+        "mascotBadge": "Socratic Owl AI • Live Online",
+        "nextHintBtn": "Next Hint",
+        "tagTop": "24/7 Socratic Guidance",
+        "tagBottom": "Zero Passive Copying",
+        "mascotDefaultQuote": "Hello! Tap me or pick a sample problem on the left to experience how I guide your critical thinking!",
+        "customReply": "Great question about \"{query}\"! Before jumping to the final formula, which input variable do you think governs the boundary state of this problem?",
+        "samples": {
+          "calculus": {
+            "subject": "📐 Calculus & Algebra",
+            "question": "Why does a quadratic equation with Δ = 0 produce a double root?",
+            "hint": "Look at the distance between the two x-axis intercepts when the parabola vertex touches the axis: what is the value of √Δ at that moment?",
+            "followUp": "Spot on! When √Δ = 0, both symmetric branches converge to the single vertex coordinate x = -b / (2a)."
+          },
+          "physics": {
+            "subject": "⚡ Mechanics & Energy",
+            "question": "How can we find impact velocity without knowing the time of fall?",
+            "hint": "At maximum height h_max, all energy is stored as potential energy. At ground impact (h = 0), where has that potential energy transformed?",
+            "followUp": "Brilliant! Equating peak potential energy to kinetic energy cancels mass m and yields v = √(2gh)."
+          },
+          "algorithms": {
+            "subject": "💻 Graph & Trees",
+            "question": "Why does a Segment Tree array require up to 4*N allocated elements?",
+            "hint": "A full binary tree with N leaves has height h = ⌈log₂N⌉. What is the maximum total node count of a binary tree of height h + 1?",
+            "followUp": "Exactly! The maximum node count is 2^(⌈log₂N⌉ + 1) - 1, which is strictly bounded by 4N."
+          }
+        }
+      },
+      "socratic": {
+        "badge": "Station 02 • Socratic Dialectic Method",
+        "title": "No Passive Spoon-Feeding — Awaken Root Understanding",
+        "subtitle": "Traditional chatbots output full answers that students copy and forget. Our Socratic Owl asks targeted guiding questions so learners discover principles themselves.",
+        "traditionalTitle": "Traditional AI Chatbots",
+        "traditionalDesc": "Dumps full solutions in 1 second → Students copy passively without grasping core logic and forget 80% of material right after exams.",
+        "traditionalFormulaNote": "v = √(2gh) → Copy ready-made answer, forgotten in 24h",
+        "ilmsTitle": "ILMS Socratic Owl Coach",
+        "ilmsDesc": "Breaks problems into a 3-step guiding inquiry → Activates deep analytical neural pathways with 94% long-term retention.",
+        "ilmsFormulaNote": "ΔE_p ⇔ ΔE_k → Self-derived & permanently retained",
+        "owlSpeakerName": "Socratic Owl",
+        "labTitle": "Interactive 3-Step Socratic Reasoning Lab",
+        "clickStepHint": "Click each step to unlock the reasoning chain",
+        "stepLabel": "Step 0{num}",
+        "studentTag": "Student",
+        "nextStepBtn": "Proceed to next step",
+        "tagTop": "Step-by-Step Inquiry",
+        "tagBottom": "+94% Deep Retention",
+        "mascotQuote2": "One well-crafted guiding question is worth ten ready-made answers!",
+        "mascotQuote3": "Break down each physical quantity calmly—you are already 80% there!",
+        "steps": {
+          "s1": {
+            "title": "Isolate Boundary Conditions",
+            "student": "I am stuck on the pendulum problem: how do I find velocity at the equilibrium point?",
+            "owl": "Hold off on memorizing formulas! At the highest turning point of the swing, what is the pendulum's instantaneous velocity?",
+            "badge": "Step 1 • Identify Anchor State"
+          },
+          "s2": {
+            "title": "Connect Conservation Laws",
+            "student": "Aha! At the highest point, velocity is 0 so kinetic energy is 0!",
+            "owl": "Sharp observation! Now as it swings down to the lowest point, what does the lost potential energy Δh convert into?",
+            "badge": "Step 2 • Energy Transformation"
+          },
+          "s3": {
+            "title": "Derive the Formula Yourself",
+            "student": "It converts entirely into kinetic energy ½mv²! Canceling m on both sides gives v = √(2g·Δh)!",
+            "owl": "Outstanding! You just proved the time-independent velocity equation yourself without rote memorization!",
+            "badge": "Step 3 • True Mastery"
+          }
+        }
+      },
+      "classroom": {
+        "badge": "Station 03 • Virtual Smart Classroom & Knowledge Graph",
+        "title": "X-Ray Competency Diagnostics on a 3D Knowledge Mesh",
+        "subtitle": "Every concept in your curriculum is mapped into a living constellation. Click any node on the graph to inspect real-time mastery and prerequisite gaps.",
+        "graphCardTitle": "Interactive Constellation Knowledge Map",
+        "clickNodeHint": "Tap any node on the graph to inspect diagnostics",
+        "kpi1Teacher": "Automated AI Attendance & Sync",
+        "kpi1Student": "Knowledge Graph Node Coverage",
+        "kpi2": "Learning Gap Recovery Velocity",
+        "kpi3": "Personalized Socratic Mentorship",
+        "tagTop": "Neo4j Graph Engine",
+        "tagBottom": "28+ Connected Entities",
+        "mascotQuote2": "Whenever an advanced node turns red, I trace back to the exact prerequisite concept you need to shore up!",
+        "mascotQuote3": "Every PDF or slide deck uploaded by instructors is automatically parsed into this interactive graph!",
+        "nodes": {
+          "recursion": {
+            "title": "Recursion",
+            "category": "Foundation Node • Mastered",
+            "diagnostic": "Solid grasp of base cases and call stack recursion trees.",
+            "action": "Ready for Dynamic Programming"
+          },
+          "pointers": {
+            "title": "Pointers & Memory",
+            "category": "Gap Detected • Needs Reinforcement",
+            "diagnostic": "Warning: Confusion detected in dynamic heap allocation and tree node pointer references.",
+            "action": "Start 3 Targeted Remedial Labs"
+          },
+          "dp": {
+            "title": "Dynamic Programming",
+            "category": "Core Node • Mastered",
+            "diagnostic": "Strong optimization of overlapping subproblems and 2D state transitions.",
+            "action": "Unlock ICPC Challenge Set"
+          },
+          "segmentTree": {
+            "title": "Segment Tree",
+            "category": "Active Node • 74% Progress",
+            "diagnostic": "Mastered O(log N) range queries; currently practicing Lazy Propagation updates.",
+            "action": "Continue Lazy Update Lab"
+          },
+          "dijkstra": {
+            "title": "Dijkstra Graph",
+            "category": "Advanced Node • Mastered",
+            "diagnostic": "Optimal priority queue shortest-path implementation verified.",
+            "action": "View Skill Credential"
+          },
+          "fenwick": {
+            "title": "Fenwick Tree",
+            "category": "Gap Detected • Review Recommended",
+            "diagnostic": "Needs practice isolating lowest set bits using bitwise (idx & -idx).",
+            "action": "Open Socratic Bitwise Guide"
+          }
+        }
+      },
+      "bloom": {
+        "badge": "Station 04 • International Bloom's Taxonomy Ascent",
+        "title": "Climb the 6-Tier Bloom Cognitive Mastery Tower",
+        "subtitle": "ILMS continuously measures and elevates learner cognition from foundational Recall up to Critical Evaluation and Original Creation.",
+        "towerTitle": "6-Tier Isometric Bloom Tower & 6-Axis Radar",
+        "clickTierHint": "Tap any tower tier to morph the live Competency Radar",
+        "tagTop": "Bloom's Taxonomy Standard",
+        "tagBottom": "Multi-Axis Assessment",
+        "mascotQuoteDefault": "The pinnacle of education is not repeating facts—it is architecting brand-new solutions!",
+        "levels": {
+          "l1": {
+            "name": "Remember",
+            "badge": "Tier 1 • Foundational Recall",
+            "desc": "Accurately identify core definitions, constants, and fundamental data structures.",
+            "sample": "Sample L1 Prompt: Define a Binary Search Tree and state its space complexity."
+          },
+          "l2": {
+            "name": "Understand",
+            "badge": "Tier 2 • Conceptual Interpretation",
+            "desc": "Explain underlying principles in your own words and illustrate with concrete examples.",
+            "sample": "Sample L2 Prompt: Why does binary search strictly require a pre-sorted input array?"
+          },
+          "l3": {
+            "name": "Apply",
+            "badge": "Tier 3 • Practical Execution",
+            "desc": "Deploy theorems and algorithms to solve real-world practical exercises.",
+            "sample": "Sample L3 Prompt: Implement Dijkstra's algorithm to route traffic across a 1,000-node city grid."
+          },
+          "l4": {
+            "name": "Analyze",
+            "badge": "Tier 4 • Structural Deconstruction",
+            "desc": "Deconstruct complex systems, uncover bottlenecks, and compare hidden trade-offs.",
+            "sample": "Sample L4 Prompt: Analyze why QuickSort degrades to O(N²) under poor pivot selection."
+          },
+          "l5": {
+            "name": "Evaluate",
+            "badge": "Tier 5 • Critical Judgment",
+            "desc": "Benchmark competing architectures and justify the optimal engineering trade-off.",
+            "sample": "Sample L5 Prompt: Between Segment Tree and Fenwick Tree, which is more memory-optimal for dynamic prefix sums?"
+          },
+          "l6": {
+            "name": "Create",
+            "badge": "Tier 6 • Original Synthesis",
+            "desc": "Synthesize cross-disciplinary knowledge to design novel models, algorithms, or systems.",
+            "sample": "L6 Challenge: Architect a hybrid graph index supporting real-time queries for 1 million concurrent learners!"
+          }
+        }
+      },
+      "conversion": {
+        "stats": {
+          "s1": "Active Students & Faculty",
+          "s2": "Socratic AI Dialogue Sessions",
+          "s3": "Partner Universities & Institutes",
+          "s4": "Deep Comprehension Gain"
+        },
+        "faqBadge": "Frequently Asked Questions",
+        "faqTitle": "Everything You Need to Know Before Takeoff",
+        "ctaBadge": "Ready for AI Education 3.0",
+        "ctaTitle": "Launch Your Intelligent Learning Workspace Today",
+        "ctaSub": "Join over 120,000+ students and educators mastering complex subjects with 24/7 Socratic Owl mentorship.",
+        "ctaPrimaryBtn": "Create Free Account Now",
+        "ctaSecondaryBtn": "Explore Plans & Pricing",
+        "ctaGuarantee": "Free Forever Starter Plan • ISO 27001 Security • 24/7 Support",
+        "faqs": {
+          "q1": {
+            "tag": "AI Methodology",
+            "q": "How is the ILMS Socratic Owl different from ChatGPT or standard AI tools?",
+            "a": "Standard AI tools dump full answers that encourage passive copying. ILMS Socratic Owl is trained on dialectical pedagogy: it pinpoints the exact step where you are stuck and asks targeted guiding questions with visual formulas so you achieve true understanding."
+          },
+          "q2": {
+            "tag": "For Instructors",
+            "q": "What happens when an instructor uploads a PDF syllabus or slide deck?",
+            "a": "Within seconds, our background AI workers extract core knowledge entities, construct an interactive classroom Knowledge Graph, and generate Bloom-tiered quiz banks automatically."
+          },
+          "q3": {
+            "tag": "Cross-Device",
+            "q": "Does the platform run smoothly on smartphones and tablets?",
+            "a": "Yes! Every classroom view, LaTeX math formula, competency radar, and 3D tilt interaction is hardware-accelerated and touch-optimized for 60 FPS on mobile and desktop."
+          },
+          "q4": {
+            "tag": "Pricing",
+            "q": "How long can I use the free plan?",
+            "a": "You can sign up and use our Starter (Free) plan indefinitely with 1.0 GB of Cloud Lab storage and daily Socratic AI mentorship—no credit card required."
+          }
+        }
+      }
     }
   },
   "dashboard": {
@@ -511,10 +781,11 @@
     "home": "Home",
     "algorithms": "Algorithms",
     "learningSpace": "Learning Workspace",
-    "searchPlaceholder": "Search lessons, courses, knowledge nodes...",
+    "searchPlaceholder": "Search classes, lectures, materials...",
     "learningArea": "Learning Area",
     "navOverview": "Overview",
     "navCourses": "My Classes",
+    "navSessions": "Sessions & Attendance",
     "navGraph": "Knowledge Graph",
     "navRadar": "Competency Radar",
     "navQuizzes": "Exercises & Quizzes",
@@ -543,7 +814,9 @@
     "ploTitle": "5 KEY COMPETENCY PILLARS (PLO FRAMEWORK)",
     "ploIndex": "MASTERY INDEX",
     "viewMatrixDetails": "View Knowledge Matrix Details",
-    "aiInsightsTitle": "AI Insights",
+    "aiInsightsTitle": "Learning Recommendations",
+    "needReinforce": "Needs reinforcement",
+    "topicStruggleDesc": "You have struggled with this topic in your last 3 submissions.",
     "accuracy": "Accuracy {percent}%",
     "duration": "Duration: {minutes} mins",
     "questions": "{count} questions",
@@ -599,7 +872,6 @@
     "quickPrompts": "Quick Thinking Prompts",
     "quickPrompt1": "💡 Explain AVL left rotation",
     "quickPrompt2": "🎯 Review yesterday's Quiz questions",
-    "quickPrompt3": "📐 Tree balancing theorem summary",
     "inputPlaceholder": "Ask questions, paste C++ code or math formula... (Shift + Enter for new line)",
     "attachFileTooltip": "Attach file or document",
     "insertCodeTooltip": "Insert code block",
@@ -634,6 +906,112 @@
       "termsOfService": "Terms of Service",
       "switchedTo": "Switched to account",
       "accountRemoved": "Removed sub-account from list"
+    },
+    "teacher": {
+      "assignedClass": "Assigned Class",
+      "defaultClassName": "Information Technology K22 – Cohort 01",
+      "defaultClassCode": "CNTT-K22-01",
+      "defaultSemester": "Semester II • 2024 - 2025",
+      "defaultAdvisor": "Dr. Nguyen Van An",
+      "advisorLabel": "Advisor",
+      "studentsCount": "{count} students",
+      "copyCode": "Copy class code",
+      "codeCopied": "Class code copied!",
+      "inviteStudents": "+ Invite Students",
+      "openMeeting": "Open Meeting Room",
+      "settings": "Settings",
+      "kpiActiveCourses": "Active Courses",
+      "kpiOfficialStudents": "Official Learners",
+      "kpiTeachingStaff": "Faculty & TAs",
+      "kpiAttendanceRate": "Attendance Rate",
+      "tabOverview": "Overview",
+      "tabCourses": "Courses",
+      "tabAnnouncements": "Announcements",
+      "tabStudents": "Students",
+      "tabGradebook": "Gradebook & PLO",
+      "tabClassSettings": "Class Settings",
+      "cdioTag": "CDIO Framework • PLO Alignment",
+      "semesterTag": "Term 2024.1",
+      "courseMatrixTitle": "Course Learning Progress Matrix",
+      "viewCompetencyGraph": "View Competency Graph",
+      "submittedAssignments": "Submitted Assignments",
+      "courseCompletedTag": "100% Completed",
+      "progressRate": "In Progress",
+      "ploAchieved": "PLO Standard Achieved",
+      "competencyDistTag": "Bloom Standard Measurement • AI Analytics",
+      "competencyDistTitle": "Cohort Competency Distribution Map",
+      "updatedHoursAgo": "Updated {hours} hours ago",
+      "mastery": "Mastery",
+      "proficient": "Proficient",
+      "needsHelp": "Needs Reinforcement",
+      "masteryDesc": "Mastered advanced algorithms, complex data structures, and independent problem-solving.",
+      "proficientDesc": "Clear grasp of core concepts, needs further practice on space complexity analysis (O(N)).",
+      "needsHelpDesc": "Encountering friction with Recursion, Pointers, and Binary Search Trees. Requires prompt TA support.",
+      "atRiskTitle": "Students Requiring Attention",
+      "atRiskSubtitle": "AI detected {count} students showing signs of falling behind overall class pace",
+      "viewAllAtRisk": "View all {count} students",
+      "sendSocraticPrompt": "Send Socratic AI Prompt",
+      "inviteOfficeHour": "Schedule 1-on-1 Office Hour",
+      "sendEmailReminder": "Send Email Reminder",
+      "personalNote": "Personal Note",
+      "weeklyScheduleTitle": "This Week's Schedule & Deadlines",
+      "weekNumber": "Week {week}",
+      "addEvent": "+ Add Event or Tutoring Session",
+      "recentActivityTitle": "Recent Activity",
+      "refresh": "Refresh",
+      "resourcesTitle": "Resources & Reports",
+      "storageQuota": "1.4 GB / 10 GB",
+      "exportReportTitle": "Export Periodic Reports",
+      "pdfReport": "PDF Report",
+      "excelGradebook": "Excel Gradebook",
+      "teachingOverviewTitle": "Teaching Overview",
+      "instructorAndTerm": "{instructor} • Term 1 (2024-2025)",
+      "itFaculty": "Faculty of Information Technology",
+      "viewWeeklyTimetable": "View Weekly Schedule",
+      "createAnnouncement": "Create Announcement",
+      "kpiTeachingClasses": "Assigned Classes",
+      "kpiClassesUnit": "Classes",
+      "kpiTeachingClassesValue": "{count} Classes",
+      "kpiTeachingClassesSub": "2 Theory • 2 Lab Classes",
+      "kpiTotalLearners": "Total Students",
+      "kpiStudentsUnit": "Students",
+      "kpiTotalLearnersValue": "{count} Students",
+      "kpiTotalLearnersSub": "Fully synced with credit system",
+      "kpiPendingGrading": "Pending Grading",
+      "kpiSubmissionsUnit": "Submissions",
+      "kpiPendingGradingValue": "{count} Submissions",
+      "kpiPendingGradingSub": "Requires feedback within 48h",
+      "kpiAvgAttendance": "Average Attendance",
+      "kpiAvgAttendanceSub": "+1.8% from last week",
+      "todayScheduleTitle": "Today's Timetable",
+      "todayScheduleSub": "Wednesday, Oct 23, 2024 • 3 teaching shifts",
+      "todayTag": "Today",
+      "takeAttendanceNow": "Take Attendance",
+      "attendanceCompleted": "Attendance Taken",
+      "attendanceInProgress": "Taking Attendance",
+      "attendanceStudentsRatio": "{checked}/{total} students",
+      "wifiSyncNote": "Attendance system automatically synced with lecture Wi-Fi",
+      "exportAttendancePdf": "Export Attendance PDF",
+      "viewWeeklyScheduleLink": "View weekly timetable",
+      "aiInsightsTitle": "AI Insights & Alerts",
+      "aiInsightsSub": "Adaptive Learning Analytics",
+      "attendanceWarningTag": "Attendance Warning",
+      "attendanceWarningTitle": "3 Students at risk of failing due to >20% absence",
+      "attendanceWarningDesc": "Students: Hoang Tuan, Le Hai, Tran Thi Hoa missed 3/12 sessions. Automatic email reminder recommended.",
+      "sendEmailWarning": "Send Warning Email",
+      "viewDetail": "View Details",
+      "knowledgeGapTag": "Knowledge Gap",
+      "knowledgeGapTitle": "65% students in CS-202 struggle with Dijkstra's algorithm",
+      "knowledgeGapDesc": "Based on Quiz 03 and Lab submissions. Knowledge Graph recommends a review session or remedial exercises.",
+      "createAiRemedial": "Create AI Remedial Exercises",
+      "openKnowledgeGraph": "Open Knowledge Graph",
+      "geminiSyncNote": "Synced in real-time from Gemini 1.5 Pro model",
+      "assignedClassesSection": "Active Classes",
+      "assignedClassesSub": "Manage curriculum, progress, and student assessment",
+      "viewAllClasses": "View All Classes",
+      "avgGrade": "Average Grade",
+      "manageClass": "Manage Class",
+      "semesterProgress": "Semester Progress"
     }
   },
   "aiTutor": {
@@ -847,6 +1225,16 @@
     "billingHeaderTitle": "Plans & Pro Subscription",
     "billingHeaderSubtitle": "License details for AI Lab Sandbox, GPU Cloud, and 24/7 AI tutoring.",
     "btnCancelAutoRenew": "Cancel auto-renewal",
+    "scheduledPlanTitle": "Scheduled plan change",
+    "scheduledPlanDesc": "You are scheduled to switch to {nextPlanName} on {date} (when your current plan ends). You keep full access to {currentPlanName} until then.",
+    "scheduledPlanDescNoDate": "You are scheduled to switch to {nextPlanName} when your current plan ends. You keep full access to {currentPlanName} until then.",
+    "btnCancelScheduledPlan": "Cancel scheduled change",
+    "btnCancelingScheduledPlan": "Canceling...",
+    "downgradeNoticeWithDate": "Your current {currentPlanName} remains active through {endDate}. Your plan will switch only after that date.",
+    "downgradeNoticeFallback": "Your current {currentPlanName} remains active until the end of the current cycle. Your plan will switch only after that date.",
+    "btnScheduleDowngradeWithDate": "Schedule switch after {endDate}",
+    "btnScheduleDowngradeFallback": "Schedule switch at period end",
+    "btnProceedPayment": "Proceed to Payment",
     "btnUpgradeEnterprise": "Upgrade to Enterprise",
     "lblPlanCost": "Plan Cost",
     "paidStatus": "Paid",
@@ -895,15 +1283,15 @@
     "tabSupportTitle": "Support & About",
     "tabSupportSubtitle": "Documentation, CS help, version",
     "menuCategoriesTitle": "Settings Categories",
-    "quotaExpiresAt": "Expires Dec 15, 2025",
+    "quotaExpiresAt": "Lifetime Plan",
     "cloudQuotaTitle": "Cloud Sandbox Storage",
-    "usedPercentage": "78% used",
+    "usedPercentage": "{percent}% used",
     "btnExpandStorage": "Upgrade storage",
     "badgeHeaderTag": "System & Account",
     "mainPageTitle": "Settings & System Preferences",
     "mainPageSubtitle": "Manage your profile, identity security, EduTech Pro subscription, and customize your online learning space.",
     "searchPlaceholder": "Quick find: Password, 2FA, Dark mode...",
-    "searchHintCount": "Instant access to 18+ personalized settings"
+    "searchHintCount": "Quick search"
   },
   "competency": {
     "pageTitle": "Competency Map & Skill Tree",
@@ -993,6 +1381,34 @@
     "modalCreateDesc": "Initialize a new class workspace for the current academic semester",
     "fieldName": "Class Code",
     "fieldNamePlaceholder": "e.g., CS201.N12",
+    "createPage": {
+      "breadcrumbTitle": "Create New Class",
+      "backToClasses": "Back to Classes",
+      "heading": "Create New Class",
+      "subheading": "Configure class details, enrollment rules, and background cover for your workspace.",
+      "sectionBasic": "Basic Information",
+      "sectionBackground": "Class Background",
+      "backgroundHint": "PNG, JPG, WEBP • Max 10MB",
+      "uploadCta": "Click to upload background image",
+      "uploadSubtext": "Automatically uploaded to Cloud and rendered behind class cards & banner.",
+      "uploadingLabel": "Uploading image to Cloud...",
+      "uploadedLabel": "Background uploaded",
+      "uploadFailed": "Failed to upload background image. Please try again.",
+      "changeBgBtn": "Change",
+      "removeBgBtn": "Remove",
+      "sectionSettings": "Schedule & Enrollment",
+      "visibilityLabel": "Visibility",
+      "visibilityPublic": "Public",
+      "visibilityPrivate": "Private",
+      "startDateLabel": "Start Date",
+      "endDateLabel": "End Date",
+      "isCodeActiveLabel": "Allow join by code",
+      "isCodeActiveHint": "Students can enter the class code to join",
+      "requireApprovalLabel": "Require approval",
+      "requireApprovalHint": "Instructor approves join requests",
+      "previewTitle": "Live Class Card Preview",
+      "previewDefaultTitle": "Software Engineering 01"
+    },
     "fieldTitle": "Course / Subject Title",
     "fieldTitlePlaceholder": "e.g., Advanced Database Systems",
     "fieldDescription": "Class Description",
@@ -1014,11 +1430,973 @@
     "emptySearchTitle": "No matching classes found",
     "emptySearchDesc": "No classes match your search keyword or selected filters.",
     "clearFilters": "Clear Filters",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "showingItems": "Showing {from} - {to} of {total} classes",
     "validation": {
       "nameMin": "Class code must have at least 2 characters",
       "titleMin": "Course title must have at least 2 characters",
       "academicYearRequired": "Academic year is required",
       "majorRequired": "Department is required"
+    },
+    "detail": {
+      "backToClasses": "All Classes",
+      "viewAs": "View as:",
+      "roleOwner": "Class Owner",
+      "roleTeacher": "Instructor",
+      "statusActive": "Active",
+      "myRole": "My Role:",
+      "term": "Semester 1 • Academic Year 2024–2025",
+      "codeLabel": "Code:",
+      "copyCodeTooltip": "Copy class code",
+      "subjectsMetric": "subjects",
+      "studentsMetric": "students",
+      "instructorsMetric": "instructors",
+      "inviteMembers": "Invite Members",
+      "editClassInfo": "Edit Class Info",
+      "manageJoinCode": "Manage Join Code",
+      "archiveClass": "Archive Class",
+      "tabOverview": "Overview",
+      "tabSubjects": "Subjects",
+      "tabAnnouncements": "Announcements",
+      "tabMembers": "Members",
+      "tabGradebook": "Gradebook & PLO",
+      "tabMaterials": "Materials",
+      "tabSettings": "Class Settings",
+      "subjectsTitle": "Subjects in Class",
+      "subjectsDesc": "Select a subject to access syllabus content, knowledge graph, and teaching activities.",
+      "createSubjectBtn": "Create New Subject",
+      "createSubjectNewBtn": "Create New Subject for Class",
+      "addSubjectBtn": "Add Existing Subject",
+      "searchSubjectPlaceholder": "Search by subject code or name...",
+      "filterStatusAll": "All Statuses",
+      "filterStatusActive": "In Teaching",
+      "filterStatusPending": "Not Started",
+      "filterSemesterAll": "All Semesters",
+      "filterSemester2": "Semester II (2024-2025)",
+      "filterSemester1": "Semester I (2024-2025)",
+      "filterInstructorAll": "All Instructors",
+      "sortProgress": "Sort: Teaching Progress",
+      "sortCode": "Sort: Subject Code (A - Z)",
+      "sortName": "Sort: Subject Name",
+      "sortRecent": "Sort: Recently Updated",
+      "sortAZ": "Subject Name A–Z",
+      "visibleSubjects": "Showing {count} subjects",
+      "enterSubject": "Open Subject",
+      "viewArchive": "View Archive",
+      "archivedProfile": "Archived Record",
+      "teachingProgress": "Teaching Progress",
+      "completionProgress": "Completion Progress",
+      "lectures": "Lectures",
+      "knowledgeNodes": "Knowledge Nodes",
+      "quizzes": "Assignments & Quizzes",
+      "chapters": "Chapters",
+      "students": "Students",
+      "classAvgScore": "Class GPA",
+      "aiExtract": "AI Extraction",
+      "credits": "{count} Credits",
+      "templatesSectionTitle": "Course Template Repository & Standard Syllabi",
+      "templatesSectionDesc": "Quickly clone courses compliant with MOET or ABET standards, pre-integrated with Knowledge Graph nodes and Question Banks into CNTT-K22-01.",
+      "viewAllTemplates": "View all {count} templates",
+      "btnCloneSubject": "Clone Subject",
+      "timesUsed": "{count} uses",
+      "toastCloned": "Successfully cloned course \"{name}\" into the class!",
+      "toastAiExtracted": "Started AI entity extraction & knowledge graph update for course {code}!",
+      "emptySubjectsTitle": "No subjects in this class yet",
+      "emptySubjectsDescOwner": "Add subjects to this class space to organize curricula, learning materials, quizzes and activate knowledge graph.",
+      "emptySubjectsDescTeacher": "Class owner will add subjects to this space to assign teaching roles.",
+      "gradebookTitle": "Gradebook & PLO Matrix",
+      "gradebookDesc": "Manage score distributions, track grading milestones, and evaluate course learning outcomes.",
+      "exportGradebook": "Export Gradebook (Excel/CSV)",
+      "syncTraining": "Sync Academic System",
+      "aiGradeAnalysis": "AI Grade Analytics",
+      "kpiAvgScore": "Class Average Score",
+      "kpiPloRate": "PLO Attainment Rate",
+      "kpiGradingProgress": "Grading Progress",
+      "kpiEarlySupport": "Needs Early Support",
+      "aiAssistantTitle": "AI Learning Assistant & Automated Knowledge Extraction",
+      "aiSendSuggestion": "Send automated review recommendations via Socratic AI",
+      "announcementsTitle": "Class Announcements",
+      "announcementsDesc": "Updates, exam schedules, and important reminders for class members.",
+      "postAnnouncementBtn": "Post Announcement",
+      "pinnedBadge": "Pinned to top",
+      "settingsTitle": "Class Settings",
+      "settingsDesc": "Customize class identity, participation rules, and storage space.",
+      "materialsTitle": "Course Repository & Digital Learning Resources",
+      "materialsRepositoryBadge": "Course Repository",
+      "materialsDesc": "Textbooks, lecture slides, and source code automatically synced with Knowledge Graph & AI Tutor.",
+      "btnAiScan": "Auto AI Scan & Analysis",
+      "btnUploadMaterial": "Upload New Material",
+      "kpiStorage": "Storage Capacity",
+      "kpiStorageValue": "1.4 GB / 10 GB (14%)",
+      "kpiUploaded": "Uploaded Materials",
+      "kpiUploadedValue": "38 digital assets",
+      "kpiUploadedNote": "Distributed across all 4 subjects",
+      "kpiSubjects": "Subject Allocation",
+      "kpiSubjectsValue": "4 / 4 subjects",
+      "kpiSubjectsNote": "100% subjects have course syllabus • Sem 1",
+      "kpiAiExtract": "AI Entity Extraction",
+      "kpiAiExtractValue": "98% (37/38 documents)",
+      "kpiAiExtractNote": "AI Knowledge Extraction completed",
+      "filterSubject": "Subject:",
+      "filterCategory": "Format:",
+      "allSubjects": "All subjects (4 subjects)",
+      "allCategories": "All formats",
+      "categorySyllabus": "Syllabus & Course Outline (PDF)",
+      "categorySlide": "Lecture Slides (PPTX)",
+      "categoryQuiz": "Sample Exams & Quizzes",
+      "categoryCode": "Source Code & Lab starter (ZIP)",
+      "searchMaterialPlaceholder": "Search by filename, lecture, keyword...",
+      "viewList": "List view",
+      "viewGrid": "Grid view",
+      "showingMaterials": "Showing {from} - {to} of {total} materials",
+      "aiBadge": "ILMS Intelligence",
+      "aiAssistantDesc": "Automatically decomposes lessons into knowledge trees, supports quiz generation, and Socratic summaries.",
+      "btnAutoQuiz": "Generate Auto-Quiz from Slides",
+      "btnOpenGraph": "Open Class Knowledge Graph",
+      "featureSummarizeTitle": "Instant Lecture Summary",
+      "featureSummarizeDesc": "Students can request AI summaries of difficult slides and auto-generate Leitner flashcards.",
+      "featureGraphTitle": "Knowledge Graph Sync",
+      "featureGraphDesc": "38 materials automatically mapped to 142 concepts and prerequisite relationships.",
+      "featureRecommendTitle": "Personalized Review Suggestions",
+      "featureRecommendDesc": "When students fail test questions, system pinpoints the exact slide page and code snippet to review.",
+      "colStt": "No.",
+      "colName": "Material Name / Digital File",
+      "colSubject": "Subject & Code",
+      "colCategory": "Category",
+      "colSize": "Size",
+      "colUpdated": "Updated Date",
+      "colAiSync": "AI Knowledge Sync",
+      "colViews": "Views/Downloads",
+      "colActions": "Actions",
+      "actionGraph": "View knowledge graph",
+      "actionDownload": "Download",
+      "actionMore": "More options",
+      "badgePinned": "Pinned",
+      "toastDownloaded": "Downloading material: {name}",
+      "toastScanStarted": "Initiated automatic AI scanning for 38 digital materials!",
+      "toastQuizGenerated": "Successfully generated 5 Auto-Quiz questions from slides!",
+      "modalUploadTitle": "Upload New Learning Material",
+      "modalUploadDesc": "Supports PDF, PPTX, DOCX, ZIP, and MP4 (max 100 MB).",
+      "uploadDropzone": "Drag and drop file here or click to browse",
+      "uploadSubjectLabel": "Select Subject",
+      "uploadCategoryLabel": "Material Category",
+      "uploadAiExtract": "Automatically extract AI entities & map to Knowledge Graph",
+      "btnSubmitUpload": "Start Upload"
+    },
+    "modeBadge": "Faculty Workspace",
+    "kpiTeachingRate": "100% on schedule",
+    "kpiStudentsTrend": "+24 students this week",
+    "kpiAttentionAlert": "4 join requests • 3 overdue gradings",
+    "kpiClassesUnit": "classes",
+    "kpiMembersUnit": "students",
+    "kpiRequestsUnit": "requests",
+    "shortcutCtrlK": "Ctrl+K",
+    "filterRoleOwner": "Owner",
+    "filterRoleTeacher": "Teacher",
+    "roleOwnerBadge": "Owner",
+    "roleTeacherBadge": "Teacher",
+    "statusActiveBadge": "Active",
+    "statusArchivedBadge": "Archived",
+    "menuViewMembers": "View members",
+    "menuManageInstructors": "Manage instructors",
+    "pendingRequestsAlert": "{count} pending join requests",
+    "scheduleFlexible": "Flexible",
+    "enterClass": "Enter class",
+    "showingItemsCount": "Showing {current} of {total} classes",
+    "filterChipRole": "Role: {role}",
+    "filterChipMajor": "Major: {major}",
+    "filterChipSearch": "Search: \"{query}\"",
+    "filterChipPending": "Needs attention",
+    "clearAllFilters": "Clear filters",
+    "mobileFilterBtn": "Filters",
+    "mobileFilterTitle": "Filter Classes",
+    "mobileFilterReset": "Reset",
+    "mobileFilterApply": "Apply filters",
+    "statePreviewsTitle": "Interface State Previews",
+    "statePreviewsDesc": "Click to test real-world scenarios",
+    "stateNormal": "Current List",
+    "stateSkeleton": "Skeleton Loading",
+    "stateEmpty": "Empty (No classes)",
+    "stateNotFound": "Search Not Found",
+    "stateArchived": "Archived Tab",
+    "emptyArchivedTitle": "No archived classes",
+    "emptyArchivedDesc": "Completed or archived classes will appear here for future reference.",
+    "backToActiveBtn": "Back to active classes",
+    "errorLoadTitle": "Unable to load classes",
+    "errorLoadDesc": "An error occurred while connecting to the server. Please check your connection and try again.",
+    "workspaceModeFaculty": "Faculty Workspace",
+    "workspaceModeStudent": "Student Workspace",
+    "tabEnrolled": "Enrolled",
+    "tabCompleted": "Completed",
+    "studentPageSubtitle": "Track study progress, submit assignments, and collaborate in smart classrooms",
+    "joinClassBtn": "Join Class",
+    "kpiEnrolled": "Enrolled Classes",
+    "kpiEnrolledRate": "100% on schedule",
+    "kpiAssignmentsDue": "Assignments & Deadlines",
+    "kpiAssignmentsDueAlert": "3 assignments due this week",
+    "kpiAvgProgress": "Average Course Progress",
+    "kpiAvgProgressTrend": "24 of 32 lessons completed",
+    "learningProgress": "Learning Progress",
+    "continueLearning": "Continue Learning",
+    "upcomingDeadline": "Due",
+    "deadlineAlertSample": "Due: SQL Major Lab (In 2 days)",
+    "roleStudentBadge": "Student",
+    "statusOngoingBadge": "In Progress",
+    "modalJoinTitle": "Join New Class",
+    "modalJoinDesc": "Enter the class code provided by your instructor to join the learning workspace.",
+    "fieldJoinCode": "Class Code or Enrollment Key",
+    "fieldJoinCodePlaceholder": "e.g. CSDL-K22-01 or 8-character key...",
+    "btnJoinClass": "Join Class",
+    "btnJoining": "Joining...",
+    "joinSuccessNotice": "Successfully joined the class!",
+    "emptyStudentTitle": "You haven't enrolled in any classes yet",
+    "emptyStudentDesc": "Enter a class code from your instructor to begin learning with AI tutor.",
+    "sortProgress": "Highest Progress",
+    "filterRoleStudent": "Student"
+  },
+  "classHub": {
+    "instructor": "Instructor",
+    "students": "Students",
+    "assignments": "Assignments / Quizzes",
+    "avgCompletion": "Avg Completion",
+    "tabs": {
+      "overview": "Overview",
+      "modules": "Courses & Modules",
+      "curriculum": "Curriculum",
+      "assignments": "Assignments & Quizzes",
+      "materials": "Materials",
+      "students": "Students",
+      "grades": "Grades & PLO",
+      "announcements": "Announcements",
+      "settings": "Class Settings"
     }
+  },
+  "assignments": {
+    "actions": {
+      "createQuizAi": "Generate AI Quiz",
+      "createAssignment": "+ New Assignment / Quiz",
+      "classScoreboard": "Class Scoreboard",
+      "startQuizNow": "Start Quiz Now",
+      "submitLabReport": "Submit Lab Report",
+      "gradeSubmissions": "Grade ({count})",
+      "exportPersonalTranscript": "Export Personal Transcript",
+      "practiceMistakes": "Practice Mistakes",
+      "reviewAndExplain": "Review & Explanations",
+      "viewSubmissionFeedback": "Submission & Feedback",
+      "viewOutline": "View Outline",
+      "retry": "Retry"
+    },
+    "filters": {
+      "searchPlaceholder": "Search assignments, quizzes, PLO...",
+      "clearSearch": "Clear search",
+      "allChapters": "All Chapters",
+      "ch1": "Chapter 1 (Application Layer)",
+      "ch2": "Chapter 2 (Transport Layer)",
+      "ch3": "Chapter 3 (Network Layer)",
+      "ch4": "Chapter 4 (Data Link Layer)",
+      "allTopics": "All Topics",
+      "topicTransport": "Transport Layer & TCP/UDP",
+      "topicNetwork": "Network Layer & OSPF/BGP",
+      "topicApp": "Application Layer & DNS/HTTP",
+      "topicWireshark": "Wireshark Packet Trace",
+      "allDifficulties": "All Difficulties",
+      "bloom1": "Remember (Bloom 1)",
+      "bloom2": "Understand (Bloom 2)",
+      "bloom3": "Apply (Bloom 3)",
+      "bloom4": "Analyze (Bloom 4)"
+    },
+    "clusters": {
+      "activeTitle": "Active & Due Soon",
+      "priorityProcessing": "High Priority",
+      "assignmentsCountSuffix": "assignments",
+      "completedTitle": "Completed & Evaluated",
+      "upcomingTitle": "Upcoming in Next Sprint",
+      "sprintPlan": "Week 10-12 Plan"
+    },
+    "status": {
+      "opening": "Open",
+      "dueSoon": "Due Soon",
+      "twoDaysLeft": "2 days left",
+      "upcomingOpen": "Scheduled",
+      "unannouncedExam": "Not yet published"
+    },
+    "card": {
+      "environment": "Environment",
+      "sampleFile": "Sample file",
+      "classCompleted": "Class completed",
+      "submittedCount": "Submitted",
+      "classAverage": "Class Avg",
+      "pendingGrading": "pending grading",
+      "questionsSuffix": "questions",
+      "minutesSuffix": "minutes",
+      "classAvgShort": "Class Avg",
+      "rankShort": "Rank"
+    },
+    "panels": {
+      "weightsTitle": "Grade Weights & Progress",
+      "moduleScope": "Course Module",
+      "weightsDescription": "Distributed according to CS-202 syllabus approved by the Academic Board:",
+      "totalAccumulated": "Current Total Accumulated",
+      "socraticTitle": "Socratic AI Mentor",
+      "realtimeAi": "Real-time AI",
+      "weaknessTopicTitle": "Knowledge Gaps to Reinforce",
+      "performanceTitle": "Personal Performance",
+      "avgQuizScore": "Avg Quiz Score",
+      "onTimeRate": "On-time Rate",
+      "streakTitle": "Completion Streak",
+      "streakDescription": "{count} consecutive assignments submitted",
+      "ploBadgeTitle": "PLO Target Badge"
+    },
+    "errors": {
+      "loadFailed": "Failed to load assignments & quizzes"
+    }
+  },
+  "courses": {
+    "detail": {
+      "backToClasses": "Back to Subjects list",
+      "breadcrumbSubject": "Course Workspace",
+      "statusActive": "Active Teaching",
+      "statusCompleted": "Completed",
+      "statusDraft": "Draft",
+      "credits": "{count} Credits",
+      "instructor": "Instructor in charge",
+      "semester": "Semester",
+      "teachingProgress": "Teaching Progress",
+      "knowledgeNodes": "Knowledge Nodes",
+      "chaptersCount": "Chapters",
+      "lessonsCount": "Lessons & Content",
+      "btnAddChapter": "Add New Chapter",
+      "btnAddLesson": "Add Lesson",
+      "btnOpenAiTutor": "Socratic AI Tutor",
+      "tabSyllabus": "Syllabus & Lessons",
+      "tabMaterials": "Materials & Files",
+      "tabKnowledgeGraph": "Knowledge Graph",
+      "tabAiTutor": "Socratic AI Tutor",
+      "searchLessonPlaceholder": "Search lessons, topics...",
+      "filterTypeAll": "All Formats",
+      "filterTypeTheory": "Theory",
+      "filterTypeVideo": "Video Lecture",
+      "filterTypeQuiz": "Quiz / Assessment",
+      "filterTypeAssignment": "Assignment / Lab",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "chapter": "Chapter {index}: {title}",
+      "lessonsInChapter": "{count} lessons",
+      "lessonDuration": "{minutes} mins",
+      "lessonType": {
+        "MODULAR": "Modular Lesson",
+        "TEXT": "Theory",
+        "THEORY": "Theory",
+        "VIDEO": "Video Lecture",
+        "QUIZ": "Quiz",
+        "ASSIGNMENT": "Assignment / Lab",
+        "DOCUMENT": "Reading Document"
+      },
+      "lessonStatus": {
+        "COMPLETED": "Completed",
+        "IN_PROGRESS": "In Progress",
+        "NOT_STARTED": "Not Started"
+      },
+      "actionLearn": "Learn Now",
+      "actionPreview": "Preview Lesson",
+      "materialsTitle": "Course Materials Repository",
+      "materialsDesc": "Textbooks, slide decks, and AI-extracted learning materials",
+      "btnUploadMaterial": "Upload Material",
+      "btnAiExtract": "AI Extract",
+      "emptyLessons": "No lessons in this chapter yet",
+      "emptyChapters": "No chapters in this course syllabus yet",
+      "emptySearch": "No lessons matching search keywords",
+      "modalCreateChapterTitle": "Add New Chapter",
+      "modalCreateChapterDesc": "Create a new chapter to organize lessons and materials",
+      "chapterTitleLabel": "Chapter Title",
+      "chapterTitlePlaceholder": "e.g., Chapter 3: Tree Structures & AVL Trees",
+      "chapterDescLabel": "Chapter Description (Optional)",
+      "chapterDescPlaceholder": "Summarize key goals and core topics of this chapter...",
+      "modalCreateLessonTitle": "Add New Lesson",
+      "modalCreateLessonDesc": "Add a theory lesson, video or quiz to the chapter",
+      "lessonTitleLabel": "Lesson Title",
+      "lessonTitlePlaceholder": "e.g., AVL Tree Balancing Algorithm & Rotations",
+      "lessonTypeLabel": "Lesson Format",
+      "lessonDurationLabel": "Estimated Duration (minutes)",
+      "lessonContentLabel": "Lesson Content (Optional)",
+      "lessonContentPlaceholder": "Lesson outline or self-study instructions...",
+      "btnCancel": "Cancel",
+      "btnSave": "Save Changes",
+      "btnCreate": "Create",
+      "toastChapterCreated": "Chapter created successfully!",
+      "toastLessonCreated": "Lesson added successfully!",
+      "toastAiPrompt": "AI Assistant received your question!",
+      "kgSummary": "Course Knowledge Graph",
+      "kgDesc": "Network of core concepts and prerequisite dependencies in this course",
+      "btnExploreKg": "Explore Full Knowledge Graph",
+      "aiTutorTitle": "Socratic AI Tutor",
+      "aiTutorSubtitle": "24/7 Virtual tutor analyzing documents and fostering student inquiry",
+      "aiTutorPlaceholder": "Ask a question or request AI explanation of course concepts...",
+      "aiSend": "Send Question"
+    }
+  },
+  "timetable": {
+    "backToOverview": "Back to Teaching Overview",
+    "termPill": "Semester 1 • 2024-2025",
+    "instructorBadge": "Instructor: {name}",
+    "weeklyTitle": "Weekly Timetable",
+    "weekBadge": "Week {week}",
+    "weeklySubtitle": "Semester 1 (2024-2025) • {range} • {faculty}",
+    "todayBtn": "Today",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "weekRangeDisplay": "Week {week}: {range}",
+    "currentWeekStatusToast": "Viewing Week {week} (Current Week)",
+    "navigatedWeekToast": "Switched to Week {week}",
+    "exportScheduleBtn": "Export Schedule (.ics/PDF)",
+    "swapRoomBtn": "Request Make-up / Swap Room",
+    "filters": {
+      "all": "All Classes ({count})",
+      "theory": "Theory",
+      "lab": "Lab / Practical",
+      "exam": "Exams / Quizzes"
+    },
+    "kpis": {
+      "totalSessionsTitle": "Total Sessions This Week",
+      "totalSessionsValue": "{sessions} Sessions",
+      "totalSessionsSub": "({periods} Periods)",
+      "labRoomsTitle": "Practical Lab Sessions",
+      "labRoomsValue": "{count} Sessions",
+      "labRoomsSub": "• 100% Machines Ready",
+      "peakHourTitle": "Peak Teaching Day",
+      "peakHourValue": "Wednesday",
+      "peakHourSub": "• 3 consecutive sessions",
+      "syncStatusTitle": "Sync Status",
+      "syncStatusValue": "Google Calendar & Academic Portal",
+      "syncStatusSub": "Synced 5 minutes ago"
+    },
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "today": "Today",
+      "sessionCount": "{count} sessions",
+      "dayOff": "Off",
+      "noSessionsTitle": "No Teaching Sessions",
+      "noSessionsDesc": "Rest time, academic research & lesson prep for next week"
+    },
+    "session": {
+      "studentsCount": "{count} Students",
+      "completed": "Completed",
+      "viewDetail": "View details →",
+      "viewMeetingLink": "Join meeting link →",
+      "trackLeaderboard": "Track leaderboard →",
+      "takeAttendanceNow": "Take attendance now",
+      "takeAttendance": "Take attendance"
+    },
+    "legend": {
+      "title": "Legend:",
+      "theory": "Standard Theory Lecture",
+      "lab": "Practical Computer Lab",
+      "exam": "Quiz / Mock Contest",
+      "today": "Current Session / Today",
+      "downloadWeeklyMaterials": "Download Weekly Materials",
+      "scrollToTop": "Back to top",
+      "downloadingToast": "Preparing weekly curriculum & material bundle..."
+    },
+    "modal": {
+      "detailTitle": "Lesson Session Details",
+      "timeLabel": "Session Time",
+      "roomLabel": "Classroom / Lab",
+      "enrolledStudents": "Enrolled Students:",
+      "studentsUnit": "{count} students",
+      "notesTitle": "Lesson Notes & Lecture Agenda:",
+      "closeBtn": "Close",
+      "openQrAttendance": "Open Direct QR Attendance"
+    },
+    "swapModal": {
+      "title": "Request Make-up / Classroom Swap",
+      "sessionLabel": "Select session to adjust",
+      "requestType": "Request Type",
+      "makeup": "Make-up Class",
+      "swap": "Swap Classroom",
+      "proposedDate": "Proposed Date",
+      "proposedTime": "Proposed Time Slot",
+      "proposedRoom": "Preferred Room",
+      "reason": "Adjustment Reason",
+      "reasonPlaceholder": "Enter reason to submit to Academic Office (e.g. Schedule clash, room maintenance...)",
+      "cancel": "Cancel",
+      "submit": "Submit for Approval",
+      "successToast": "Successfully submitted request to Academic Office"
+    },
+    "exportModal": {
+      "title": "Export Teaching Timetable",
+      "description": "Choose a format to sync with personal calendars or print:",
+      "icsOption": "iCalendar Format (.ics)",
+      "icsDesc": "Auto-sync with Google Calendar, Apple Calendar, Outlook",
+      "pdfOption": "Printable PDF (.pdf)",
+      "pdfDesc": "Download high quality horizontal A4 print for current week",
+      "downloadBtn": "Download",
+      "cancel": "Close",
+      "exportingToast": "Downloading timetable file..."
+    },
+    "studentsModal": {
+      "title": "Class Student Roster",
+      "searchPlaceholder": "Search by name or student ID...",
+      "studentCount": "Total: {count} students",
+      "colIndex": "No.",
+      "colCode": "Student ID",
+      "colName": "Full Name",
+      "colEmail": "Student Email",
+      "colClass": "Course Section",
+      "emptySearch": "No students found matching your search",
+      "close": "Close"
+    }
+  },
+  "sidebar": {
+    "generalGroup": "GENERAL WORKSPACE",
+    "aiGroup": "INTERACTION & AI",
+    "navOverview": "Overview",
+    "navMyClasses": "My Classes",
+    "navMaterials": "Learning Hub",
+    "navSchedule": "Schedule",
+    "navAssignments": "Assignments & Quiz",
+    "navGraph": "Knowledge Graph",
+    "navAiTutor": "AI Assistant",
+    "navDiscussions": "Discussions",
+    "navHelp": "Help & Support",
+    "navSettings": "Account Settings",
+    "semesterBadge": "Semester II - 2024",
+    "systemVersion": "v2.5",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "navCompetency": "Competency",
+    "navPloMatrix": "PLO Matrix"
+  },
+  "pricing": {
+    "header": {
+      "courses": "Courses",
+      "knowledgeGraph": "Knowledge Graph",
+      "pricing": "Pricing",
+      "aiTutor": "AI Tutor",
+      "streakDays": "{days} Day streak",
+      "notifications": "Notifications",
+      "login": "Sign In",
+      "register": "Get Started Free",
+      "userAvatar": "Account",
+      "dashboard": "Dashboard"
+    },
+    "hero": {
+      "chip": "ILMS Platform • Membership & Upgrades",
+      "title": "Unleash the Power of Socratic AI & Knowledge Graphs",
+      "subtitle": "Expand cloud storage, unlock deep reasoning models, and explore multi-layered knowledge graphs for optimized teaching and learning.",
+      "currentPlan": "Current plan:",
+      "defaultPlan": "Basic (Free)",
+      "dailyResetHint": "Quotas reset daily at 00:00 (GMT+7)",
+      "storage": "Storage",
+      "aiSocratic": "Socratic AI"
+    },
+    "billingToggle": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "savePercent": "Save 20%"
+    },
+    "cards": {
+      "monthlyUnit": "/ month",
+      "yearlyUnit": "/ month",
+      "lifetimeUnit": "/ Lifetime",
+      "currentPlanBtn": "Current Plan",
+      "freePlanBtn": "Free Plan",
+      "upgradePlusBtn": "Upgrade to Plus",
+      "chooseProBtn": "Choose Pro",
+      "chooseEnterpriseBtn": "Get Enterprise",
+      "recommendedBadge": "Recommended",
+      "free": {
+        "badge": "Personal",
+        "name": "Basic Plan",
+        "description": "Get familiar with the ILMS smart learning ecosystem.",
+        "features": [
+          "1 GB cloud storage",
+          "Up to 3 concurrent courses",
+          "20 Socratic AI queries / day",
+          "Create 5 basic knowledge graphs",
+          "No automated quiz generation"
+        ]
+      },
+      "plus": {
+        "badge": "Students & Lecturers",
+        "name": "Plus Plan",
+        "description": "Full Socratic AI tutoring and interactive knowledge graphs.",
+        "features": [
+          "15 GB HD video & file storage",
+          "Manage up to 15 courses",
+          "300 Socratic AI queries / day",
+          "30 Interactive knowledge graphs",
+          "Automated Quiz generation from PDF & Slides"
+        ]
+      },
+      "pro": {
+        "badge": "Professional",
+        "name": "Pro Plan",
+        "description": "For principal lecturers, researchers, and project leads.",
+        "features": [
+          "50 GB high-speed SSD storage",
+          "Manage up to 50 courses & groups",
+          "1,000 AI Deep Reasoning queries / day",
+          "150 Knowledge Graphs & Vector Search",
+          "Automated Essay grading with AI"
+        ]
+      },
+      "enterprise": {
+        "badge": "Organization",
+        "name": "Enterprise Plan",
+        "description": "Comprehensive scalable solution for institutions and universities.",
+        "features": [
+          "200 GB+ dedicated storage",
+          "Unlimited courses & students",
+          "Unlimited Socratic & Deep AI",
+          "Custom domain & Organization branding",
+          "24/7 SLA 99.9% support"
+        ]
+      }
+    },
+    "table": {
+      "title": "Detailed Feature Comparison",
+      "subtitle": "Technical specifications and allocated quotas per membership tier.",
+      "columns": {
+        "feature": "Features",
+        "free": "Basic",
+        "plus": "Plus",
+        "pro": "Pro",
+        "enterprise": "Enterprise"
+      },
+      "rows": {
+        "storage": "Cloud Storage Capacity",
+        "aiInteractions": "Daily AI Assistant Queries",
+        "knowledgeGraphs": "Interactive Knowledge Graphs",
+        "quizGeneration": "Automated AI Quiz from Documents",
+        "courseLimit": "Managed Course Limit",
+        "essayGrading": "Automated Essay Grading with AI",
+        "customDomain": "Custom Domain & Branding",
+        "supportLevel": "Technical Support"
+      },
+      "unlimited": "Unlimited",
+      "standardSupport": "Standard (Email)",
+      "priorityTicket": "Priority (24h Ticket)",
+      "prioritySla": "1-on-1 Support (SLA 4h)",
+      "dedicatedSla": "Dedicated 24/7 (SLA 99.9%)"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Billing policies and subscriptions on ILMS.",
+      "items": [
+        {
+          "q": "Can I be both a Lecturer and a Student under the same plan?",
+          "a": "Yes. Your ILMS account seamlessly transitions between Teaching and Learning workspaces within a single subscription at no extra fee."
+        },
+        {
+          "q": "Will my data and Knowledge Graphs be deleted if my plan expires?",
+          "a": "No. Your data is preserved safely in Read-Only mode. You can still view and export your existing graphs and documents anytime."
+        },
+        {
+          "q": "Which payment methods are supported?",
+          "a": "We support instant bank transfers via VietQR (Napas 24/7 auto-activated within 5 seconds), MoMo / ZaloPay e-wallets, and Visa/Mastercard."
+        },
+        {
+          "q": "Will I receive an official VAT e-invoice?",
+          "a": "Yes. All subscription upgrades automatically issue compliant VAT e-invoices directly to your registered email address upon successful payment."
+        }
+      ]
+    },
+    "modal": {
+      "title": "Checkout {planName}",
+      "badgeMonthly": "{planName} • 30 days",
+      "badgeYearly": "{planName} • 365 days",
+      "step1": {
+        "badge": "Step 1 / 2",
+        "title": "Select Payment Method",
+        "vietqr": "VietQR Bank Transfer",
+        "vietqrDesc": "Scan with any banking app",
+        "auto247": "Auto 24/7",
+        "momo": "MoMo / ZaloPay Wallet",
+        "momoDesc": "Electronic wallet gateway",
+        "orderSummary": "Order Summary",
+        "listedPrice": "Original Price:",
+        "discount": "Yearly Discount (20%):",
+        "total": "Total Payment:",
+        "continueBtn": "Proceed to Payment"
+      },
+      "step2": {
+        "backToStep1": "Change payment method",
+        "waitingStatus": "Awaiting payment confirmation...",
+        "bank": "Beneficiary Bank:",
+        "bankName": "MB Bank (Military Bank)",
+        "accountHolder": "Account Holder:",
+        "accountHolderName": "HOANG QUANG THANG",
+        "accountNumber": "Account Number:",
+        "amount": "Amount:",
+        "transferNote": "Transfer Note:",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "autoNote": "Please keep the exact transfer note for automatic activation within 5 seconds after receiving funds.",
+        "completeBtn": "I Have Completed the Transfer",
+        "completingBtn": "Verifying payment...",
+        "successTitle": "Plan Upgraded Successfully!",
+        "successDesc": "Your account has been upgraded to {planName}."
+      }
+    },
+    "authPrompt": {
+      "title": "Sign in required",
+      "description": "Please sign in to your ILMS account to subscribe to {planName}. You will be redirected back to Pricing after signing in.",
+      "cancelBtn": "Cancel",
+      "confirmBtn": "Continue to Sign In"
+    },
+    "footer": {
+      "copyright": "© 2025 ILMS EduTech Platform. Designed with Material Design 3.",
+      "soc2": "SOC2 Type II",
+      "ssl": "256-Bit SSL/TLS"
+    }
+  },
+  "about": {
+    "hero": {
+      "chip": "About ILMS • EduTech Innovations",
+      "title": "Empowering independent thinking for the AI-era learner",
+      "subtitle": "ILMS is an intelligent learning management platform uniting Socratic AI tutoring, interactive Knowledge Graphs, and 6-tier Bloom mastery tracking — built for deep understanding over passive answers.",
+      "primaryCta": "Start learning free",
+      "secondaryCta": "View pricing"
+    },
+    "pillars": {
+      "title": "Three core pillars of ILMS",
+      "subtitle": "Every capability is crafted around active reasoning and measurable progress.",
+      "items": {
+        "socratic": {
+          "title": "Socratic AI Tutor",
+          "description": "Instead of handing out shortcuts, our AI guides you step by step with targeted questions so concepts stick."
+        },
+        "graph": {
+          "title": "Visual Knowledge Graph",
+          "description": "Connect course concepts into a clear map that highlights gaps and suggests the fastest path forward."
+        },
+        "bloom": {
+          "title": "6-Tier Bloom Mastery",
+          "description": "Measure competency from Remembering to Creating aligned with PLOs, helping instructors support every class."
+        }
+      }
+    },
+    "story": {
+      "badge": "Story & Philosophy",
+      "title": "Why we built ILMS",
+      "paragraph1": "In an era of instant AI answers, getting a solution takes seconds — yet knowing how to reason, question assumptions, and connect ideas across topics matters more than ever.",
+      "paragraph2": "The ILMS team (EduTech Innovations) designed a calm, focused workspace where instructors manage courses, sessions, and PLOs effortlessly, while learners work alongside an AI coach that sparks thinking."
+    },
+    "values": {
+      "title": "Core values",
+      "items": {
+        "active": {
+          "title": "Active learning",
+          "description": "Encourage independent deduction through Socratic dialogue."
+        },
+        "clarity": {
+          "title": "Knowledge clarity",
+          "description": "Visualize concepts, prerequisites, and progress on a graph."
+        },
+        "privacy": {
+          "title": "Data protection",
+          "description": "Respect learner privacy and safeguard academic records."
+        },
+        "simplicity": {
+          "title": "Minimalist focus",
+          "description": "A distraction-free interface built to keep attention on learning."
+        }
+      }
+    },
+    "contact": {
+      "badge": "ILMS Team • EduTech Innovations",
+      "title": "Partner with us for your classes & institution",
+      "description": "Looking to deploy ILMS for a university, training center, or share product feedback? Reach out directly to our engineering & education team."
+    },
+    "footer": {
+      "pricing": "Pricing",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    }
+  },
+  "legal": {
+    "common": {
+      "backHome": "Back to Home",
+      "termsTab": "Terms of Service",
+      "privacyTab": "Privacy Policy",
+      "organization": "ILMS • EduTech Innovations",
+      "tocLabel": "Quick navigation",
+      "contactTitle": "Questions about our terms or privacy?",
+      "contactDescription": "Reach out directly to the ILMS support team for clarification.",
+      "aboutLink": "About Us",
+      "pricingLink": "Pricing",
+      "loginLink": "Sign In"
+    },
+    "terms": {
+      "badge": "Legal Document • Terms",
+      "title": "ILMS Terms of Service",
+      "summary": "Guidelines governing rights, responsibilities, and acceptable use of the ILMS AI-powered learning platform for learners, instructors, and institutions.",
+      "updatedAt": "Last updated: Nov 17, 2026",
+      "sections": {
+        "s1": {
+          "title": "Scope & Acceptance of Terms",
+          "body": "By creating an account or accessing services on ilms.page (including Classes, Knowledge Graphs, Socratic AI Tutor, and Cloud Materials), you agree to abide by these Terms of Service."
+        },
+        "s2": {
+          "title": "Accounts & Security Responsibility",
+          "body": "Users are responsible for safeguarding their login credentials and linked OAuth2 sessions. Please notify the ILMS team immediately if you suspect unauthorized access to your account."
+        },
+        "s3": {
+          "title": "Acceptable Use of Socratic AI Tutor",
+          "body": "ILMS AI Tutor is built to foster critical reasoning and academic integrity. Misuse of the platform for automated abuse, vulnerability probing, or academic dishonesty is strictly prohibited."
+        },
+        "s4": {
+          "title": "Learning Materials & Intellectual Property",
+          "body": "Instructors and learners retain ownership of the slides, notes, and documents they upload. Platform UI, source code, ILMS branding, and core algorithms belong to EduTech Innovations."
+        },
+        "s5": {
+          "title": "Subscription Plans, Quotas & Billing",
+          "body": "Free, Plus, Pro, and Enterprise tiers carry specific cloud storage and daily AI quotas as listed on the Pricing page. Upgrades via VietQR are activated for the selected billing cycle."
+        },
+        "s6": {
+          "title": "Updates & Termination",
+          "body": "ILMS may update these terms to reflect legal requirements or new platform capabilities. Material updates will be posted clearly on this page before taking effect."
+        }
+      }
+    },
+    "privacy": {
+      "badge": "Data Protection • Privacy",
+      "title": "ILMS Privacy Policy",
+      "summary": "Our commitment to minimal data collection, encrypted transport, and strong privacy protection for your personal and academic records.",
+      "updatedAt": "Last updated: Nov 17, 2026",
+      "sections": {
+        "s1": {
+          "title": "Information We Collect",
+          "body": "We collect only the information needed to run classes and personalize learning: your name, email, learning role, appearance preferences, course progress, and materials you upload."
+        },
+        "s2": {
+          "title": "How We Use Your Data",
+          "body": "Data is used to authenticate sessions, track Bloom/PLO mastery progress, ground Socratic AI Tutor responses in your lesson context, and calculate your Cloud Storage quota."
+        },
+        "s3": {
+          "title": "Transport & Storage Security",
+          "body": "All traffic between your browser, ilms.page, and api.ilms.page is encrypted over HTTPS/TLS. Sessions rely on secure cookies and role-based access control (RBAC)."
+        },
+        "s4": {
+          "title": "AI Processing & Third-Party Sharing",
+          "body": "ILMS never sells or rents learner personal data to third parties. AI chat prompts are processed solely to deliver tutoring responses and maintain your private session history."
+        },
+        "s5": {
+          "title": "Your Data Rights",
+          "body": "You can view or update your profile, delete uploaded files in Cloud Storage, switch UI/language preferences, or permanently delete your account anytime in Settings."
+        },
+        "s6": {
+          "title": "Essential Cookies & Security Contact",
+          "body": "We use essential cookies for authentication and locale persistence (`NEXT_LOCALE`). For privacy inquiries or data requests, please contact support@ilms.page."
+        }
+      }
+    }
+  },
+  "materialsHub": {
+    "title": "AI Knowledge Ingestion & Review Hub",
+    "subtitle": "Monitor the Spring Boot → FastAPI 4-Agent pipeline, inspect BLOCKER issues, and publish knowledge graphs to Neo4j & ChromaDB.",
+    "livePolling": "Live Polling 4s",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search by material title, subject, or Job ID...",
+    "kpi": {
+      "active": "Queued / Processing",
+      "awaitingReview": "Awaiting Instructor Review",
+      "completed": "Published to Neo4j",
+      "failed": "Failed / Needs Retry"
+    },
+    "filters": {
+      "all": "All",
+      "awaitingReview": "Needs Review",
+      "active": "In Progress",
+      "completed": "Published",
+      "failed": "Failed",
+      "reset": "Reset filters"
+    },
+    "status": {
+      "NOT_EXTRACTED": "Not Extracted",
+      "QUEUED": "Queued",
+      "PROCESSING": "AI Analyzing (4 Agents)",
+      "AWAITING_REVIEW": "Awaiting Instructor Review",
+      "PUBLISHING": "Publishing to Neo4j & ChromaDB",
+      "SUCCESS": "Published to Neo4j",
+      "COMPLETED": "Published to Neo4j",
+      "FAILED": "Extraction Failed"
+    },
+    "steps": {
+      "header": "AI Ingestion Pipeline (5 Stages)",
+      "queued": "Queued",
+      "queuedSub": "QUEUED · Local Staging",
+      "aiDraft": "4-Agent AI",
+      "aiDraftSub": "Extractor → Reviewer",
+      "draftReady": "Draft Ready",
+      "draftReadySub": "MySQL & Neo4j Sync",
+      "review": "Review",
+      "reviewSub": "BLOCKER Checks",
+      "publish": "Published",
+      "publishSub": "Neo4j + ChromaDB"
+    },
+    "draftGraph": {
+      "heading": "Revision Draft Graph",
+      "syncing": "Syncing draft graph to Neo4j (auto-retrying every 2.5s)...",
+      "reload": "Reload graph",
+      "nodesUnit": "nodes",
+      "edgesUnit": "edges",
+      "selectHint": "Click any node on the graph to inspect or edit its fields.",
+      "moveExercise": "Move exercise to concept",
+      "addEntity": "Add Knowledge Entity",
+      "addRelation": "Add Relation",
+      "addTopic": "Add Topic",
+      "deleteNode": "Delete Node"
+    },
+    "actions": {
+      "uploadDirect": "Upload to Pipeline (Manual Review)",
+      "autoPublishOn": "Auto Publish",
+      "autoPublishOff": "Stop for Manual Review",
+      "approveAndPublish": "Approve & Publish to Neo4j",
+      "requestChanges": "Request Changes",
+      "reject": "Reject",
+      "retry": "Retry Job",
+      "rawJson": "Raw JSON",
+      "viewPublishedGraph": "View Published Graph",
+      "downloadSource": "Source File"
+    },
+    "empty": {
+      "noJobsTitle": "No AI extraction jobs yet",
+      "noJobsDesc": "Upload a document directly here or trigger AI Extraction from any course's Materials tab.",
+      "uploadFirst": "Upload first document",
+      "noMatch": "No jobs match your current filters."
+    }
+  },
+  "courseMaterials": {
+    "title": "Course Materials & Resources",
+    "filesUnit": "files",
+    "publishedUnit": "published to Neo4j",
+    "syncing": "Syncing...",
+    "uploadButton": "Upload material",
+    "uploadingButton": "Uploading...",
+    "extractAll": "Extract all",
+    "searchPlaceholder": "Search materials, chapters, or lessons...",
+    "openHub": "Open AI Processing Hub",
+    "emptyTitle": "No course materials yet",
+    "emptyFilterTitle": "No materials match your filters",
+    "resetFilters": "Reset filters"
+  },
+  "courseKg": {
+    "title": "Course Knowledge Graph",
+    "conceptsUnit": "concepts",
+    "edgesUnit": "links",
+    "viewGraph": "Network Graph",
+    "viewTopics": "By Topic",
+    "openStudio": "Open Full Studio",
+    "searchPlaceholder": "Search concepts, topics, or keywords...",
+    "emptyTitle": "No published knowledge graph for this course yet",
+    "askSocraticAi": "Ask Socratic AI about this concept"
   }
 }

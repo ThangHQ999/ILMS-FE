@@ -1,207 +1,210 @@
 'use client';
 
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import { AVAILABLE_MAJORS } from '../constants';
+import React, { useRef, useEffect } from 'react';
+import { CustomSelect } from '@/components/shared';
 import type { ClassFilters, ClassViewMode } from '../types';
 
+export type ClassRoleTab = 'TEACHING' | 'ENROLLED' | 'ARCHIVED';
+
 interface ClassFilterToolbarProps {
+  activeTab: ClassRoleTab;
+  onTabChange: (tab: ClassRoleTab) => void;
+  showTeachingTab: boolean;
+  teachingCount: number;
+  enrolledCount: number;
+  archivedCount: number;
   filters: ClassFilters;
   onFilterChange: (updates: Partial<ClassFilters>) => void;
   viewMode: ClassViewMode;
   onViewModeChange: (mode: ClassViewMode) => void;
-  activeCount?: number;
-  archivedCount?: number;
-  allCount?: number;
+  activeKpi?: string | null;
+  onClearKpi?: () => void;
 }
 
 export function ClassFilterToolbar({
+  activeTab,
+  onTabChange,
+  showTeachingTab,
+  teachingCount,
+  enrolledCount,
+  archivedCount,
   filters,
   onFilterChange,
   viewMode,
   onViewModeChange,
-  activeCount = 0,
-  archivedCount = 0,
-  allCount = 0,
+  activeKpi,
+  onClearKpi,
 }: ClassFilterToolbarProps) {
-  const t = useTranslations('classes');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleClearAll = () => {
+    onFilterChange({
+      search: '',
+      major: undefined,
+      role: 'ALL',
+      page: 0,
+    });
+    if (onClearKpi) onClearKpi();
+  };
+
+  const isFiltered = Boolean(
+    filters.search ||
+      (activeTab === 'TEACHING' && filters.role && filters.role !== 'ALL') ||
+      filters.major ||
+      activeKpi
+  );
+
+  const tabs: Array<{ id: ClassRoleTab; label: string; count: number; visible: boolean }> = [
+    { id: 'TEACHING', label: 'Đang giảng dạy', count: teachingCount, visible: showTeachingTab },
+    { id: 'ENROLLED', label: 'Đang theo học', count: enrolledCount, visible: true },
+    { id: 'ARCHIVED', label: 'Đã lưu trữ', count: archivedCount, visible: true },
+  ];
 
   return (
-    <div className="space-y-4 pt-2">
-      {/* Row 1: Status Tab Pills + View Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Status Tab Pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => onFilterChange({ status: 'ACTIVE', page: 0 })}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              filters.status === 'ACTIVE'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <span>{t('tabActive')}</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                filters.status === 'ACTIVE'
-                  ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {activeCount}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onFilterChange({ status: 'ARCHIVED', page: 0 })}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              filters.status === 'ARCHIVED'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <span>{t('tabArchived')}</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                filters.status === 'ARCHIVED'
-                  ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {archivedCount}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onFilterChange({ status: 'ALL', page: 0 })}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              filters.status === 'ALL'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <span>{t('tabAll')}</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                filters.status === 'ALL'
-                  ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {allCount}
-            </span>
-          </button>
+    <section className="bg-white dark:bg-[#1E1F20] rounded-3xl p-5 shadow-sm dark:shadow-none border-none space-y-4">
+      {/* 1. Top row: Role-based Tabs & View switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex flex-wrap p-1 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C]" role="tablist">
+          {tabs
+            .filter((tab) => tab.visible)
+            .map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => onTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border-none ${
+                    isSelected
+                      ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] font-bold shadow-xs'
+                      : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-white bg-transparent'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                      isSelected
+                        ? 'bg-blue-100 dark:bg-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
+                        : 'bg-gray-200 dark:bg-[#383A3C] text-gray-600 dark:text-[#C4C7C5]'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
         </div>
 
-        {/* View Mode Switcher */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 self-end sm:self-auto">
+        {/* View Mode Toggle (List / Grid) */}
+        <div className="flex items-center gap-1 p-1 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full">
           <button
             type="button"
-            onClick={() => onViewModeChange('grid')}
-            title={t('viewGrid')}
-            className={`p-1.5 rounded-lg text-xs font-semibold transition-all ${
-              viewMode === 'grid'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">grid_view</span>
-          </button>
-          <button
-            type="button"
+            aria-label="Xem dạng danh sách"
             onClick={() => onViewModeChange('list')}
-            title={t('viewList')}
-            className={`p-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`p-1.5 rounded-full transition-all cursor-pointer border-none ${
               viewMode === 'list'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-[#1E1F20] shadow-xs text-[#0B57D0] dark:text-[#A8C7FA]'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white bg-transparent'
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">view_list</span>
           </button>
+          <button
+            type="button"
+            aria-label="Xem dạng lưới"
+            onClick={() => onViewModeChange('grid')}
+            className={`p-1.5 rounded-full transition-all cursor-pointer border-none ${
+              viewMode === 'grid'
+                ? 'bg-white dark:bg-[#1E1F20] shadow-xs text-[#0B57D0] dark:text-[#A8C7FA]'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white bg-transparent'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">grid_view</span>
+          </button>
         </div>
       </div>
 
-      {/* Row 2: Search Input & Filter Dropdowns */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        {/* Search Input */}
-        <div className="sm:col-span-5 relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
+      {/* 2. Search & Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[240px]">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#8E918F] text-[18px] pointer-events-none">
             search
           </span>
           <input
+            ref={searchInputRef}
             type="text"
             value={filters.search || ''}
             onChange={(e) => onFilterChange({ search: e.target.value, page: 0 })}
-            placeholder={t('searchPlaceholder')}
-            className="w-full h-10 pl-9 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+            placeholder="Tìm kiếm theo tên hoặc mã lớp..."
+            className="w-full pl-10 pr-12 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] placeholder-gray-500 dark:placeholder-[#8E918F] text-xs sm:text-sm border-none outline-none transition-colors"
           />
           {filters.search && (
             <button
               type="button"
               onClick={() => onFilterChange({ search: '', page: 0 })}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-white border-none bg-transparent cursor-pointer p-0.5"
             >
               <span className="material-symbols-outlined text-[16px]">close</span>
             </button>
           )}
         </div>
 
-        {/* Major / Department Filter */}
-        <div className="sm:col-span-3">
-          <select
-            value={filters.major || ''}
-            onChange={(e) => onFilterChange({ major: e.target.value || undefined, page: 0 })}
-            className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-          >
-            <option value="">{t('filterMajorAll')}</option>
-            {AVAILABLE_MAJORS.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Teaching Role Filter */}
-        <div className="sm:col-span-2">
-          <select
+        {/* Role Filter Select: ONLY shown on Đang giảng dạy tab */}
+        {activeTab === 'TEACHING' && (
+          <CustomSelect<string>
+            variant="pill"
             value={filters.role || 'ALL'}
-            onChange={(e) =>
+            onChange={(val) =>
               onFilterChange({
-                role: e.target.value as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA',
+                role: val as 'ALL' | 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT',
                 page: 0,
               })
             }
-            className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
-          >
-            <option value="ALL">{t('filterRoleAll')}</option>
-            <option value="PRIMARY_INSTRUCTOR">{t('filterRoleInstructor')}</option>
-            <option value="TA">{t('filterRoleTA')}</option>
-          </select>
-        </div>
+            options={[
+              { value: 'ALL', label: 'Tất cả vai trò' },
+              { value: 'PRIMARY_INSTRUCTOR', label: 'Chủ lớp' },
+              { value: 'TA', label: 'Giảng viên' },
+            ]}
+            className="shrink-0 min-w-[150px]"
+          />
+        )}
 
-        {/* Sort Filter */}
-        <div className="sm:col-span-2">
-          <select
-            value={filters.sort || 'updated_desc'}
-            onChange={(e) =>
-              onFilterChange({
-                sort: e.target.value as 'updated_desc' | 'name_asc' | 'students_desc',
-              })
-            }
-            className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+        {/* Sort Filter Select */}
+        <CustomSelect<'updated_desc' | 'name_asc' | 'students_desc'>
+          variant="pill"
+          value={filters.sort || 'updated_desc'}
+          onChange={(val) => onFilterChange({ sort: val, page: 0 })}
+          options={[
+            { value: 'updated_desc', label: 'Mới cập nhật' },
+            { value: 'name_asc', label: 'Tên lớp A–Z' },
+            { value: 'students_desc', label: 'Sĩ số giảm dần' },
+          ]}
+          className="shrink-0 min-w-[155px]"
+        />
+
+        {isFiltered && (
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="text-xs text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium cursor-pointer border-none bg-transparent whitespace-nowrap"
           >
-            <option value="updated_desc">{t('sortUpdated')}</option>
-            <option value="name_asc">{t('sortName')}</option>
-            <option value="students_desc">{t('sortStudents')}</option>
-          </select>
-        </div>
+            Xóa bộ lọc
+          </button>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
-

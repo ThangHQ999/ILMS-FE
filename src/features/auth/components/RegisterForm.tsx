@@ -29,30 +29,30 @@ export function RegisterForm() {
 
   return (
     <div className="w-full lg:col-span-7 flex flex-col justify-center">
-      <div className="w-full bg-white dark:bg-[#161D2F]/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-[0_20px_40px_-15px_rgba(13,28,50,0.07)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_0_25px_rgba(56,189,248,0.08)] border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300">
+      <div className="w-full bg-white dark:bg-[#1E1F20] rounded-3xl p-6 sm:p-8 md:p-10 shadow-none border-none transition-all duration-300">
         {/* Top Badge & Header */}
         <div className="mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-[#38BDF8]/10 dark:border dark:border-[#38BDF8]/25 dark:text-[#38BDF8] text-xs font-semibold shadow-sm mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-xs font-medium mb-3 border-none shadow-none">
             <span className="material-symbols-outlined text-[16px] animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>
               auto_awesome
             </span>
             <span>{t('badge')}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#E3E3E3] tracking-tight mb-2">
             {t('title')}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-[#C4C7C5]">
             {t('subtitle')}
           </p>
         </div>
 
         {isSuccess && (
-          <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+          <div role="status" className="mb-4 rounded-2xl bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] p-3 text-xs border-none">
             {t('successMessage')}
           </div>
         )}
         {errors.general && (
-          <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/40 p-3 text-xs text-red-600 dark:text-red-400">
+          <div role="alert" className="mb-4 rounded-2xl bg-[#FAD2CF] text-[#B3261E] dark:bg-[#3C1919] dark:text-[#F28B82] p-3 text-xs border-none">
             {errors.general}
           </div>
         )}
@@ -60,7 +60,7 @@ export function RegisterForm() {
         <form className="space-y-4" onSubmit={handleRegister} noValidate>
           {/* 1. Name Cluster: 3 Columns */}
           <div>
-            <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-800 dark:text-[#E3E3E3] mb-1.5">
               {t('fullName')}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -70,10 +70,10 @@ export function RegisterForm() {
                   value={formData.lastName}
                   onChange={handleChange}
                   placeholder={t('lastNamePlaceholder')}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                  className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
                 />
                 {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
-                <span className="block mt-1 text-[11px] text-slate-400">{t('lastNameHint')}</span>
+                <span className="block mt-1 text-[11px] text-slate-400 px-2">{t('lastNameHint')}</span>
               </div>
               <div>
                 <input
@@ -81,9 +81,9 @@ export function RegisterForm() {
                   value={formData.middleName}
                   onChange={handleChange}
                   placeholder={t('middleNamePlaceholder')}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                  className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
                 />
-                <span className="block mt-1 text-[11px] text-slate-400">{t('middleNameHint')}</span>
+                <span className="block mt-1 text-[11px] text-slate-400 px-2">{t('middleNameHint')}</span>
               </div>
               <div>
                 <input
@@ -91,21 +91,21 @@ export function RegisterForm() {
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder={t('firstNamePlaceholder')}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                  className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
                 />
                 {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
-                <span className="block mt-1 text-[11px] text-slate-400">{t('firstNameHint')}</span>
+                <span className="block mt-1 text-[11px] text-slate-400 px-2">{t('firstNameHint')}</span>
               </div>
             </div>
           </div>
 
           {/* 2. Email */}
           <div>
-            <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5" htmlFor="reg-email">
+            <label className="block text-sm font-semibold text-slate-800 dark:text-[#E3E3E3] mb-1.5" htmlFor="reg-email">
               {t('email')} <span className="text-red-500">*</span>
             </label>
             <div className="relative flex items-center">
-              <span className="absolute left-3.5 material-symbols-outlined text-slate-400 text-[18px]">mail</span>
+              <span className="absolute left-4 material-symbols-outlined text-slate-400 text-[18px]">mail</span>
               <input
                 id="reg-email"
                 name="email"
@@ -113,7 +113,7 @@ export function RegisterForm() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder={t('emailPlaceholder')}
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                className="w-full h-11 pl-11 pr-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
               />
             </div>
             {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
@@ -122,11 +122,11 @@ export function RegisterForm() {
           {/* 3. Passwords & Strength */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5" htmlFor="reg-pwd">
+              <label className="block text-sm font-semibold text-slate-800 dark:text-[#E3E3E3] mb-1.5" htmlFor="reg-pwd">
                 {t('password')} <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="absolute left-3.5 material-symbols-outlined text-slate-400 text-[18px]">lock</span>
+                <span className="absolute left-4 material-symbols-outlined text-slate-400 text-[18px]">lock</span>
                 <input
                   id="reg-pwd"
                   name="password"
@@ -134,9 +134,9 @@ export function RegisterForm() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder={t('passwordPlaceholder')}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                  className="w-full h-11 pl-11 pr-11 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
                 />
-                <button type="button" onClick={togglePasswordVisibility} aria-label={t('togglePassword')} className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <button type="button" onClick={togglePasswordVisibility} aria-label={t('togglePassword')} className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
                   <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -144,11 +144,11 @@ export function RegisterForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5" htmlFor="reg-cpwd">
+              <label className="block text-sm font-semibold text-slate-800 dark:text-[#E3E3E3] mb-1.5" htmlFor="reg-cpwd">
                 {t('confirmPassword')} <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="absolute left-3.5 material-symbols-outlined text-slate-400 text-[18px]">lock_reset</span>
+                <span className="absolute left-4 material-symbols-outlined text-slate-400 text-[18px]">lock_reset</span>
                 <input
                   id="reg-cpwd"
                   name="confirmPassword"
@@ -156,9 +156,9 @@ export function RegisterForm() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder={t('confirmPasswordPlaceholder')}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 text-sm border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:border-[#38BDF8] transition-all"
+                  className="w-full h-11 pl-11 pr-11 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] text-slate-900 dark:text-[#E3E3E3] text-sm border-none focus:outline-none transition-all"
                 />
-                <button type="button" onClick={toggleConfirmPasswordVisibility} aria-label={t('toggleConfirmPassword')} className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <button type="button" onClick={toggleConfirmPasswordVisibility} aria-label={t('toggleConfirmPassword')} className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
                   <span className="material-symbols-outlined text-[18px]">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -176,15 +176,15 @@ export function RegisterForm() {
                 type="checkbox"
                 checked={formData.termsAccepted}
                 onChange={handleChange}
-                className="mt-1 w-4 h-4 rounded text-blue-600 accent-blue-600 dark:accent-[#38BDF8] cursor-pointer"
+                className="mt-1 w-4 h-4 rounded text-[#0B57D0] accent-[#0B57D0] dark:accent-[#A8C7FA] cursor-pointer"
               />
-              <span className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              <span className="text-xs text-slate-600 dark:text-[#C4C7C5] leading-relaxed">
                 {t('termsPrefix')}{' '}
-                <Link href="/terms" className="text-blue-600 dark:text-[#38BDF8] font-semibold hover:underline">
+                <Link href="/terms" className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline">
                   {tCommon('terms')}
                 </Link>{' '}
                 {t('termsAnd')}{' '}
-                <Link href="/privacy" className="text-blue-600 dark:text-[#38BDF8] font-semibold hover:underline">
+                <Link href="/privacy" className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline">
                   {tCommon('privacy')}
                 </Link>{' '}
                 {t('termsSuffix')}
@@ -197,7 +197,7 @@ export function RegisterForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:via-[#0284C7] dark:to-[#38BDF8] dark:hover:brightness-110 text-white font-semibold text-sm shadow-md dark:shadow-lg dark:shadow-[#38BDF8]/20 active:scale-[0.99] transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-sm border-none shadow-none transition-colors whitespace-nowrap disabled:opacity-50 cursor-pointer"
           >
             <span>{isLoading ? t('submitting') : t('submitButton')}</span>
             <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -207,8 +207,8 @@ export function RegisterForm() {
         {/* 6. Social Signup */}
         <div className="mt-6 pt-5 relative">
           <div className="relative flex items-center justify-center mb-4">
-            <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-700/60" />
-            <span className="absolute px-3 bg-white dark:bg-[#161D2F] text-[11px] text-slate-400 font-semibold tracking-wider uppercase">
+            <div className="w-full h-[1px] bg-[#E1E5EA] dark:bg-[#282A2C]" />
+            <span className="absolute px-3 bg-white dark:bg-[#1E1F20] text-[11px] text-slate-400 font-medium tracking-wider uppercase">
               {t('quickRegister')}
             </span>
           </div>
@@ -217,10 +217,10 @@ export function RegisterForm() {
               type="button"
               disabled={loadingProvider !== null || isLoading}
               onClick={() => loginWithOAuth('google')}
-              className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium transition-all disabled:opacity-60 cursor-pointer"
+              className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] border-none shadow-none text-sm font-medium transition-colors disabled:opacity-60 cursor-pointer"
             >
               {loadingProvider === 'google' ? (
-                <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                <span className="w-4 h-4 border-2 border-[#0B57D0] border-t-transparent rounded-full animate-spin shrink-0" />
               ) : (
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -235,7 +235,7 @@ export function RegisterForm() {
               type="button"
               disabled={loadingProvider !== null || isLoading}
               onClick={() => loginWithOAuth('github')}
-              className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium transition-all disabled:opacity-60 cursor-pointer"
+              className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] border-none shadow-none text-sm font-medium transition-colors disabled:opacity-60 cursor-pointer"
             >
               {loadingProvider === 'github' ? (
                 <span className="w-4 h-4 border-2 border-slate-700 dark:border-white border-t-transparent rounded-full animate-spin shrink-0" />
@@ -251,9 +251,9 @@ export function RegisterForm() {
 
         {/* 7. Footer Link */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-[#C4C7C5]">
             {t('hasAccountPrompt')}{' '}
-            <Link href="/login" className="text-blue-600 dark:text-[#38BDF8] font-bold hover:underline">
+            <Link href="/login" className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline">
               {t('loginNow')}
             </Link>
           </p>

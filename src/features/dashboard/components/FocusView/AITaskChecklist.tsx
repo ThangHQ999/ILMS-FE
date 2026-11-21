@@ -21,17 +21,17 @@ export function AITaskChecklist({ initialTasks }: AITaskChecklistProps) {
   const completedCount = tasks.filter((t) => t.isDone).length;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm flex flex-col gap-4 border border-slate-100 dark:border-slate-800">
+    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 flex flex-col gap-4 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-secondary text-[22px]">
+          <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[22px]">
             checklist
           </span>
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+          <h3 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
             {t('aiTasksTitle')}
           </h3>
         </div>
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+        <span className="text-xs font-medium text-[#444746] dark:text-[#C4C7C5] bg-[#F0F4F9] dark:bg-[#282A2C] px-3 py-1 rounded-full whitespace-nowrap border-none">
           {t('aiTasksCompletedCount', { completed: completedCount, total: tasks.length })}
         </span>
       </div>
@@ -40,7 +40,7 @@ export function AITaskChecklist({ initialTasks }: AITaskChecklistProps) {
         {tasks.map((task) => (
           <label
             key={task.id}
-            className="group flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
+            className="group flex items-start gap-3 p-3 rounded-2xl hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C]/60 cursor-pointer transition-colors"
           >
             <input
               type="checkbox"
@@ -53,8 +53,8 @@ export function AITaskChecklist({ initialTasks }: AITaskChecklistProps) {
                 <span
                   className={`text-sm select-none transition-all ${
                     task.isDone
-                      ? 'text-slate-400 dark:text-slate-500 line-through'
-                      : 'text-slate-800 dark:text-slate-200 group-hover:text-secondary font-medium'
+                      ? 'text-[#747775] dark:text-[#8E918F] line-through'
+                      : 'text-[#1F1F1F] dark:text-[#E3E3E3] group-hover:text-secondary font-medium'
                   }`}
                 >
                   {task.title}
@@ -63,14 +63,14 @@ export function AITaskChecklist({ initialTasks }: AITaskChecklistProps) {
                   <a
                     href={task.badgeUrl || '#'}
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary hover:underline px-2 py-0.5 rounded bg-secondary/10 border border-secondary/20"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#041E49] dark:text-[#A8C7FA] hover:underline px-2.5 py-0.5 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] whitespace-nowrap border-none"
                   >
                     <span>{task.badgeText}</span>
                     <span className="material-symbols-outlined text-[13px]">open_in_new</span>
                   </a>
                 )}
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <span className="text-xs text-[#747775] dark:text-[#C4C7C5] mt-0.5">
                 {task.subtext}
               </span>
             </div>
@@ -78,7 +78,7 @@ export function AITaskChecklist({ initialTasks }: AITaskChecklistProps) {
               className={`material-symbols-outlined text-[18px] transition-opacity ${
                 task.isDone
                   ? 'text-secondary opacity-80'
-                  : 'text-slate-400 opacity-0 group-hover:opacity-100'
+                  : 'text-[#8E918F] opacity-0 group-hover:opacity-100'
               }`}
             >
               {task.icon}

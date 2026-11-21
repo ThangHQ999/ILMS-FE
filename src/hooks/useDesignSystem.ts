@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export type FontFamilyName =
+  | 'Outfit'
   | 'Plus Jakarta Sans'
   | 'Inter'
   | 'Montserrat'
@@ -38,6 +39,7 @@ export const DEFAULT_COLOR_TOKENS_DARK: ColorTokens = {
 };
 
 export const FONT_VARIABLE_MAP: Record<FontFamilyName, string> = {
+  'Outfit': "var(--font-outfit), var(--font-plus-jakarta-sans), sans-serif",
   'Plus Jakarta Sans': "var(--font-plus-jakarta-sans, 'Plus Jakarta Sans'), sans-serif",
   'Inter': "var(--font-inter, 'Inter'), sans-serif",
   'Montserrat': "var(--font-montserrat, 'Montserrat'), sans-serif",
@@ -47,7 +49,7 @@ export const FONT_VARIABLE_MAP: Record<FontFamilyName, string> = {
 export function useDesignSystem() {
   const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
   const [colorTokens, setColorTokensState] = useState<ColorTokens>(DEFAULT_COLOR_TOKENS_LIGHT);
-  const [fontFamily, setFontFamilyState] = useState<FontFamilyName>('Plus Jakarta Sans');
+  const [fontFamily, setFontFamilyState] = useState<FontFamilyName>('Outfit');
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
   // Apply theme class to <html>

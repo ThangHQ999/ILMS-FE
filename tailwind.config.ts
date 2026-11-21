@@ -8,12 +8,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: 'rgb(var(--color-primary) / <alpha-value>)',
-        secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
-        tertiary: 'rgb(var(--color-tertiary) / <alpha-value>)',
-        neutral: 'rgb(var(--color-neutral) / <alpha-value>)',
         background: 'var(--background)',
         foreground: 'var(--foreground)',
+        surface: {
+          DEFAULT: 'var(--surface)',
+          hover: 'var(--surface-hover)',
+        },
         card: {
           DEFAULT: 'var(--card)',
           foreground: 'var(--card-foreground)',
@@ -21,6 +21,24 @@ const config: Config = {
         popover: {
           DEFAULT: 'var(--popover)',
           foreground: 'var(--popover-foreground)',
+        },
+        primary: {
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
+          container: 'var(--primary-container)',
+          'on-container': 'var(--on-primary-container)',
+        },
+        secondary: {
+          DEFAULT: 'var(--secondary)',
+          foreground: 'var(--secondary-foreground)',
+        },
+        tertiary: {
+          DEFAULT: 'var(--tertiary)',
+          foreground: 'var(--tertiary-foreground)',
+        },
+        neutral: {
+          DEFAULT: 'var(--neutral)',
+          foreground: 'var(--neutral-foreground)',
         },
         muted: {
           DEFAULT: 'var(--muted)',
@@ -37,23 +55,32 @@ const config: Config = {
         success: {
           DEFAULT: 'var(--success)',
           foreground: 'var(--success-foreground)',
+          container: 'var(--success-container)',
+          'on-container': 'var(--on-success-container)',
         },
         warning: {
           DEFAULT: 'var(--warning)',
           foreground: 'var(--warning-foreground)',
+          container: 'var(--warning-container)',
+          'on-container': 'var(--on-warning-container)',
         },
         info: {
           DEFAULT: 'var(--info)',
           foreground: 'var(--info-foreground)',
         },
+        'on-primary-container': 'var(--on-primary-container)',
+        'on-success-container': 'var(--on-success-container)',
+        'on-warning-container': 'var(--on-warning-container)',
         border: 'var(--border)',
         input: 'var(--input)',
-        ring: 'rgb(var(--color-primary) / <alpha-value>)',
+        ring: 'var(--ring)',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
       },
       borderRadius: {
+        '3xl': '1.5rem',
+        full: '9999px',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',

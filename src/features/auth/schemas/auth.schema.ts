@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 export const userProfileSchema = z.object({
   id: z.string(),
-  roleName: z.string(),
+  roleName: z.string().optional().default('ROLE_USER'),
   email: z.string().email(),
-  firstName: z.string(),
+  firstName: z.string().optional().default(''),
   middleName: z.string().nullable().optional(),
-  lastName: z.string(),
+  lastName: z.string().optional().default(''),
   avatarUrl: z.string().nullable().optional(),
 });
 
@@ -70,4 +70,17 @@ export const oauthExchangeInputSchema = z.object({
 });
 
 export type OAuthExchangeInput = z.infer<typeof oauthExchangeInputSchema>;
+
+export const resetPasswordInputSchema = z
+  .object({
+    token: z.string().min(1, { message: 'validation.required' }),
+    newPassword: z.string().min(8, { message: 'validation.passwordMin8' }),
+    confirmPassword: z.string().min(1, { message: 'validation.confirmPasswordRequired' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'validation.passwordMismatch',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
 

@@ -7,6 +7,7 @@ import {
   LoginInput,
   RegisterInput,
   oauthUrlResponseSchema,
+  ResetPasswordInput,
 } from '../schemas/auth.schema';
 import { OAuthProvider } from '../types';
 
@@ -35,7 +36,20 @@ export async function getMe(): Promise<UserProfile> {
 }
 
 export async function logout(): Promise<void> {
-  await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.LOGOUT);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('ilms_user');
+      localStorage.removeItem('ilms_active_role_override');
+      document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'refreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    } catch {}
+  }
+  try {
+    await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.LOGOUT);
+  } catch {
+    // Ignore backend error if token is already expired or invalidated
+  }
 }
 
 export async function forgotPassword(email: string): Promise<void> {
@@ -43,8 +57,9 @@ export async function forgotPassword(email: string): Promise<void> {
 }
 
 export async function getOAuthUrl(provider: OAuthProvider): Promise<string> {
+  const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
   const { data } = await api.get<ApiResponse<{ provider: string; url: string }>>(
-    AUTH_ENDPOINTS.OAUTH_URL(provider)
+    `${AUTH_ENDPOINTS.OAUTH_URL(provider)}${originQuery}`
   );
   const parsed = oauthUrlResponseSchema.parse(data.data);
   return parsed.url;
@@ -55,8 +70,9 @@ export async function getOAuthUrl(provider: OAuthProvider): Promise<string> {
  * This avoids Spring Security rejecting the request due to stale access-token cookies.
  */
 export async function getOAuthUrlPublic(provider: OAuthProvider): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-  const response = await fetch(`${baseUrl}${AUTH_ENDPOINTS.OAUTH_URL(provider)}`, {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.ilms.page/api/v1';
+  const originQuery = typeof window !== 'undefined' ? `?origin=${encodeURIComponent(window.location.origin)}` : '';
+  const response = await fetch(`${baseUrl}${AUTH_ENDPOINTS.OAUTH_URL(provider)}${originQuery}`, {
     method: 'GET',
     credentials: 'omit',
     headers: { 'Content-Type': 'application/json' },
@@ -81,5 +97,13 @@ export async function exchangeOAuthCode(
     { code }
   );
   return userProfileSchema.parse(data.data);
+}
+
+export async function resetPassword(input: ResetPasswordInput): Promise<void> {
+  await api.post<ApiResponse<unknown>>(AUTH_ENDPOINTS.RESET_PASSWORD, {
+    token: input.token,
+    newPassword: input.newPassword,
+    confirmPassword: input.confirmPassword,
+  });
 }
 

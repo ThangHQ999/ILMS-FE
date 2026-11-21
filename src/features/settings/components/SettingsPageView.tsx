@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCurrentUser } from '@/features/auth';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import {
   DashboardSidebar,
   DashboardHeader,
@@ -22,30 +23,11 @@ export function SettingsPageView() {
   const { data: user } = useCurrentUser();
   const { isFocus, toggleMode } = useDashboardMode();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('ilms_analytics_sidebar_collapsed');
-      if (stored === 'true') {
-        setIsSidebarCollapsed(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
   const handleToggleSidebarCollapse = useCallback(() => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('ilms_analytics_sidebar_collapsed', String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
+    setIsSidebarCollapsed((prev) => !prev);
+  }, [setIsSidebarCollapsed]);
 
   const {
     activeTab,
@@ -58,12 +40,12 @@ export function SettingsPageView() {
   } = useSettingsSearch('tab-profile');
 
   const userFullName =
-    user?.firstName || user?.lastName
-      ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'Trần Nhật Minh';
+    [user?.lastName, user?.middleName, user?.firstName].filter(Boolean).join(' ') ||
+    user?.email ||
+    'Người dùng ILMS';
 
   return (
-    <div className="min-h-screen bg-[#f6fafe] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-secondary/20 selection:text-secondary">
       {/* Dynamic Sidebar (80px in Focus Mode, 80px/260px in Analytics Mode) */}
       <DashboardSidebar
         isFocus={isFocus}
@@ -74,7 +56,7 @@ export function SettingsPageView() {
       {/* Main Container */}
       <div
         className={`transition-all duration-300 ${
-          isFocus || isSidebarCollapsed ? 'pl-20' : 'pl-[260px]'
+          isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
         }`}
       >
         {/* Dynamic Header */}
@@ -97,6 +79,7 @@ export function SettingsPageView() {
               userFullName={userFullName}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
+              onSelectTab={setActiveTab}
             />
 
             {/* 2-Column Layout Grid */}

@@ -1,0 +1,52 @@
+name: Deploy Next.js Frontend to VPS
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # 1. Dùng Node 22 và bỏ dòng cache: 'npm' để tránh lỗi thiếu package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      # 2. Kiểm tra code & build thử trên GitHub trước (nếu code lỗi sẽ chặn deploy ngay)
+      - name: Install dependencies and Build check
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      # 3. SSH vào VPS để pull code mới và restart PM2
+      - name: Deploy to VPS and Restart PM2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Nạp biến môi trường PATH để nhận diện được node, npm, pm2
+            export PATH=$PATH:/usr/local/bin:~/.nvm/versions/node/$(ls ~/.nvm/versions/node 2>/dev/null | tail -n 1)/bin
+
+            # Đi vào đúng thư mục chứa source code Frontend
+            cd /var/www/ilms-fe/ILMS-FE
+
+            # Cập nhật code mới nhất từ nhánh test
+            git fetch origin test
+            git reset --hard origin/test
+
+            # Cài đặt thư viện và build trên VPS
+            npm install --legacy-peer-deps
+            npm run build
+
+            # Khởi động lại ứng dụng Next.js bằng PM2
+            pm2 restart ilms-fe || pm2 start npm --name "ilms-fe" -- start
+            pm2 save

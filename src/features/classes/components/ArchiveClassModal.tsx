@@ -21,42 +21,43 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
     try {
       await archiveClass(item.id);
       onClose();
-    } catch (err) {
-      // Error handled
+    } catch {
+      // Error handled by mutation
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4"
+        className="w-full max-w-md rounded-2xl bg-surface border border-border/80 shadow-2xl p-6 space-y-4"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="archive-modal-title"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[22px]">archive</span>
+          <div className="w-12 h-12 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[24px]">archive</span>
           </div>
           <div>
-            <h3 className="text-base font-display font-bold text-slate-900 dark:text-slate-100">
+            <h3 id="archive-modal-title" className="text-base font-bold text-foreground">
               {t('modalArchiveTitle')}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-              {item.name} - {item.title}
+            <p className="text-xs text-muted-foreground font-mono truncate max-w-[260px]">
+              {item.name} — {item.title}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
           {t('modalArchiveDesc')}
         </p>
 
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+        <div className="pt-3 border-t border-border/50 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isArchiving}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
+            className="px-4 py-2 rounded-xl border border-border bg-surface text-foreground hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
           >
             {t('btnCancel')}
           </button>
@@ -64,11 +65,11 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
             type="button"
             onClick={handleConfirm}
             disabled={isArchiving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive hover:opacity-90 active:scale-95 disabled:opacity-50 text-destructive-foreground text-xs font-semibold shadow-xs transition-all cursor-pointer"
           >
             {isArchiving ? (
               <>
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-destructive-foreground border-t-transparent animate-spin" />
                 <span>{t('btnArchiving')}</span>
               </>
             ) : (
@@ -80,4 +81,3 @@ export function ArchiveClassModal({ item, isOpen, onClose }: ArchiveClassModalPr
     </div>
   );
 }
-

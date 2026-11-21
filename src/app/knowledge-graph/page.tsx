@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
@@ -12,10 +12,10 @@ const KnowledgeGraphPageView = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6fafe] dark:bg-[#070A10]">
+      <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
             Đang tải Đồ thị tri thức (Knowledge Graph Canvas)...
           </p>
         </div>
@@ -29,7 +29,6 @@ export default function KnowledgeGraphPage() {
   const { data: user, isLoading, isError } = useCurrentUser();
 
   useEffect(() => {
-    // Protected route check
     if (!isLoading && (isError || !user)) {
       router.replace('/login');
     }
@@ -37,10 +36,10 @@ export default function KnowledgeGraphPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6fafe] dark:bg-[#070A10]">
+      <div className="flex min-h-screen items-center justify-center bg-[#E1E5EA] dark:bg-[#131314]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
             Đang kiểm tra phiên đăng nhập...
           </p>
         </div>
@@ -52,5 +51,13 @@ export default function KnowledgeGraphPage() {
     return null;
   }
 
-  return <KnowledgeGraphPageView />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] animate-pulse" />
+      }
+    >
+      <KnowledgeGraphPageView />
+    </Suspense>
+  );
 }

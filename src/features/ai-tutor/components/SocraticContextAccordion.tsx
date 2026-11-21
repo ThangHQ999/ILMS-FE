@@ -21,18 +21,18 @@ export function SocraticContextAccordion({
   if (totalCount === 0) return null;
 
   return (
-    <div className="my-2 border border-slate-200/90 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50/60 dark:bg-slate-900/40 text-xs">
+    <div className="my-2 border border-slate-200/90 dark:border-transparent rounded-xl overflow-hidden bg-slate-50/60 dark:bg-[#1E1F20] text-xs">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 text-left text-slate-700 dark:text-[#C4C7C5] hover:bg-slate-100/70 dark:hover:bg-[#282A2C] transition-colors"
         type="button"
       >
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-cyan-400">
+          <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
             account_tree
           </span>
           <span className="font-medium">{t('referencedKnowledgeTitle')}</span>
-          <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-cyan-400 font-mono text-[11px]">
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] font-mono text-[11px]">
             {totalCount}
           </span>
         </div>
@@ -46,7 +46,7 @@ export function SocraticContextAccordion({
       </button>
 
       {isOpen && (
-        <div className="px-3.5 py-3 border-t border-slate-200/80 dark:border-slate-800 space-y-2.5 bg-white dark:bg-slate-900/80">
+        <div className="px-3.5 py-3 border-t border-slate-200/80 dark:border-transparent space-y-2.5 bg-white dark:bg-[#1E1F20]">
           {/* Matched Canonical Codes */}
           {canonicalCodes.length > 0 && (
             <div>
@@ -76,7 +76,7 @@ export function SocraticContextAccordion({
                 {nodeIds.map((node) => (
                   <span
                     key={node}
-                    className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-cyan-300 font-mono text-[11px]"
+                    className="px-2 py-0.5 rounded bg-blue-50 dark:bg-[#162B4D] border border-blue-200 dark:border-transparent text-blue-700 dark:text-[#A8C7FA] font-mono text-[11px]"
                   >
                     #{node}
                   </span>
@@ -95,7 +95,7 @@ export function SocraticContextAccordion({
                 {chunkIds.map((chunk) => (
                   <span
                     key={chunk}
-                    className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[11px]"
+                    className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#1E1F20] text-slate-600 dark:text-[#C4C7C5] font-mono text-[11px]"
                     title={chunk}
                   >
                     📄 chunk-{chunk.slice(0, 8)}...

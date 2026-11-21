@@ -5,8 +5,8 @@ import { GraphCanvas } from '../canvas/GraphCanvas';
 import { SketchCanvasOverlay } from '../canvas/SketchCanvasOverlay';
 import { FloatingNodeCard } from './FloatingNodeCard';
 import { FocusPillToolbar } from './FocusPillToolbar';
-import { DraggableMinimap } from './DraggableMinimap';
 import { KnowledgeNodeData } from '../../types';
+import type { ConceptDetail } from '../../knowledge-graph.schema';
 import type { Node, Edge } from '@xyflow/react';
 
 interface KnowledgeFocusViewProps {
@@ -16,9 +16,14 @@ interface KnowledgeFocusViewProps {
   rawEdges: Edge[];
   selectedNodeId: string | null;
   selectedNode: KnowledgeNodeData | null;
+  conceptDetail?: ConceptDetail | null;
+  isConceptDetailLoading?: boolean;
+  canOpenLesson?: boolean;
   onSelectNode: (id: string | null) => void;
   hoveredNodeId: string | null;
   onHoverNode: (id: string | null) => void;
+  onOpenLesson?: (node: KnowledgeNodeData) => void;
+  onAskAiTutor?: (node: KnowledgeNodeData) => void;
   onExitFocus: () => void;
 }
 
@@ -28,9 +33,14 @@ export function KnowledgeFocusView({
   rawEdges,
   selectedNodeId,
   selectedNode,
+  conceptDetail = null,
+  isConceptDetailLoading = false,
+  canOpenLesson = false,
   onSelectNode,
   hoveredNodeId,
   onHoverNode,
+  onOpenLesson,
+  onAskAiTutor,
   onExitFocus,
 }: KnowledgeFocusViewProps) {
   const [isSpotlightActive, setIsSpotlightActive] = useState(true);
@@ -53,11 +63,10 @@ export function KnowledgeFocusView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onExitFocus]);
 
-  const activeFocusNode =
-    selectedNode || nodesData.find((n) => n.id === 'seg-tree') || nodesData[0];
+  const activeFocusNode = selectedNode || nodesData[0] || null;
 
   return (
-    <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#f6fafe] dark:bg-[#070A10] font-sans text-slate-800 dark:text-slate-100 select-none">
+    <div className="relative w-screen h-screen m-0 p-0 overflow-hidden bg-[#F0F4F9] dark:bg-[#131314] font-sans text-slate-800 dark:text-[#E3E3E3] select-none">
       {/* 1. Freehand Sketch Drawing Layer */}
       <SketchCanvasOverlay
         isActive={isDrawingMode}
@@ -65,32 +74,32 @@ export function KnowledgeFocusView({
       />
 
       {/* 2. TOP-LEFT: Zen Mode Indicator & Spotlight Switch */}
-      <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl">
-        <div className="flex items-center gap-2.5 pr-3 border-r border-slate-200 dark:border-slate-800">
+      <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-white dark:bg-[#1E1F20] backdrop-blur-xl px-4 py-2 rounded-full border-none shadow-none">
+        <div className="flex items-center gap-2.5 pr-2 border-none">
           <div className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0B57D0] opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0B57D0] dark:bg-[#A8C7FA]" />
           </div>
-          <span className="text-[11px] font-bold tracking-widest text-slate-900 dark:text-slate-100 uppercase">
+          <span className="text-[11px] font-bold tracking-widest text-slate-900 dark:text-[#E3E3E3] uppercase">
             Chế độ Tập trung
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-[#C4C7C5]">
           <span className="text-slate-400 font-medium">Đang học:</span>
-          <span className="font-semibold text-blue-600 dark:text-blue-400 px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-900 flex items-center gap-1.5 shadow-sm">
+          <span className="font-medium text-[#041E49] dark:text-[#A8C7FA] px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center gap-1.5 shadow-none">
             <span className="material-symbols-outlined text-[15px]">schema</span>
-            {activeFocusNode?.label || 'Segment Tree'}
+            {activeFocusNode?.label || 'Chưa chọn khái niệm'}
           </span>
         </div>
 
         {/* Spotlight Switch */}
         <button
           onClick={() => setIsSpotlightActive((prev) => !prev)}
-          className={`ml-2 flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer ${
+          className={`ml-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shadow-none border-none cursor-pointer ${
             isSpotlightActive
-              ? 'bg-cyan-50 dark:bg-cyan-950/80 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+              ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
+              : 'bg-[#F0F4F9] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5]'
           }`}
           title="Bật/tắt chế độ tia rọi tập trung"
           type="button"
@@ -106,15 +115,15 @@ export function KnowledgeFocusView({
       <div className="fixed top-6 right-6 z-30 flex items-center gap-2.5">
         <button
           onClick={onExitFocus}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 hover:bg-rose-50 dark:hover:bg-rose-950/80 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 hover:border-rose-300 shadow-xl text-slate-700 dark:text-slate-300 hover:text-rose-600 font-medium text-xs transition-all cursor-pointer"
+          className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] border-none shadow-none font-medium text-xs transition-all cursor-pointer whitespace-nowrap"
           title="Thoát chế độ tập trung (ESC)"
           type="button"
         >
-          <span className="material-symbols-outlined text-[17px] text-slate-400 group-hover:text-rose-500 group-hover:rotate-90 transition-transform">
+          <span className="material-symbols-outlined text-[17px] text-slate-400 group-hover:rotate-90 transition-transform">
             close
           </span>
-          <span className="font-semibold">Thoát chế độ tập trung</span>
-          <kbd className="ml-1 px-2 py-0.5 text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md border border-slate-200 dark:border-slate-700 group-hover:border-rose-300 group-hover:text-rose-600">
+          <span>Thoát chế độ tập trung</span>
+          <kbd className="ml-1 px-2 py-0.5 text-[10px] font-mono font-medium bg-white dark:bg-[#1E1F20] text-slate-500 dark:text-[#C4C7C5] rounded-full border-none">
             ESC
           </kbd>
         </button>
@@ -137,6 +146,9 @@ export function KnowledgeFocusView({
           activeTool="select"
           layoutMode="force"
           isFocusMode={true}
+          isMinimapVisible={isMinimapVisible}
+          onToggleMinimap={() => setIsMinimapVisible((prev) => !prev)}
+          onCloseMinimap={() => setIsMinimapVisible(false)}
         />
       </div>
 
@@ -144,26 +156,26 @@ export function KnowledgeFocusView({
       {selectedNode && (
         <FloatingNodeCard
           node={selectedNode}
+          conceptDetail={conceptDetail}
+          isConceptLoading={isConceptDetailLoading}
+          canOpenLesson={canOpenLesson}
           onClose={() => onSelectNode(null)}
-          onOpenLesson={(n) => alert(`Chuyển hướng vào bài học: ${n.label}`)}
-          onAskAiTutor={(n) => alert(`Mở gia sư Socratic AI phân tích: ${n.label}`)}
+          onOpenLesson={onOpenLesson}
+          onAskAiTutor={onAskAiTutor}
         />
       )}
 
-      {/* 6. Draggable Minimap */}
-      <DraggableMinimap
-        isVisible={isMinimapVisible}
-        onClose={() => setIsMinimapVisible(false)}
-      />
-
-      {/* 7. Bottom Pill Toolbar */}
+      {/* 6. Bottom Pill Toolbar */}
       <FocusPillToolbar
         isMinimapVisible={isMinimapVisible}
         onToggleMinimap={() => setIsMinimapVisible((prev) => !prev)}
         isDrawingMode={isDrawingMode}
         onToggleDrawingMode={() => setIsDrawingMode((prev) => !prev)}
         onClearDrawing={() => setClearDrawingTrigger((prev) => prev + 1)}
-        onCenterSegmentTree={() => onSelectNode('seg-tree')}
+        onCenterSegmentTree={() => {
+          const center = nodesData.find((n) => n.isCenterpiece) ?? nodesData[0];
+          if (center) onSelectNode(center.id);
+        }}
       />
     </div>
   );

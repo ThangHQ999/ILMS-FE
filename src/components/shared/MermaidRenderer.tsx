@@ -236,17 +236,17 @@ export const MermaidRenderer = memo(function MermaidRenderer({
   // State: Streaming & Incomplete Syntax
   if (isStreaming && (isRendering || !svgHtml)) {
     return (
-      <div className={`rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 overflow-hidden my-3.5 ${className}`}>
-        <div className="flex items-center justify-between px-4 py-2.5 bg-blue-100/50 dark:bg-blue-900/30 border-b border-blue-200/60 dark:border-blue-900/40 text-blue-800 dark:text-cyan-300">
+      <div className={`rounded-xl border border-blue-200 dark:border-transparent bg-blue-50/40 dark:bg-[#162B4D] overflow-hidden my-3.5 ${className}`}>
+        <div className="flex items-center justify-between px-4 py-2.5 bg-blue-100/50 dark:bg-[#162B4D] border-b border-blue-200/60 dark:border-transparent text-blue-800 dark:text-[#A8C7FA]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
             <span className="text-xs font-semibold font-mono tracking-wide">
               {diagramType} • {t('mermaidStreaming')}
             </span>
           </div>
-          <span className="text-[11px] text-blue-600 dark:text-cyan-400 font-mono">SSE Stream</span>
+          <span className="text-[11px] text-blue-600 dark:text-[#A8C7FA] font-mono">SSE Stream</span>
         </div>
-        <pre className="p-4 text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto bg-slate-900 text-slate-200">
+        <pre className="p-4 text-xs font-mono text-slate-700 dark:text-[#C4C7C5] overflow-x-auto bg-[#1E1F20] text-[#E3E3E3]">
           <code>{cleanCode}</code>
         </pre>
       </div>
@@ -256,10 +256,10 @@ export const MermaidRenderer = memo(function MermaidRenderer({
   // State: Render Syntax Error (stream finished or invalid syntax)
   if (renderError && !isStreaming && !svgHtml) {
     return (
-      <div className={`rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20 overflow-hidden my-3.5 ${className}`}>
-        <div className="flex items-center justify-between px-4 py-2 bg-amber-100/60 dark:bg-amber-900/40 border-b border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300">
+      <div className={`rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-[#3C2A1E] overflow-hidden my-3.5 ${className}`}>
+        <div className="flex items-center justify-between px-4 py-2 bg-amber-100/60 dark:bg-[#3C2A1E] border-b border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-[#FFB784]">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400">
+            <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-[#FFB784]">
               warning
             </span>
             <span className="text-xs font-medium">{t('mermaidSyntaxError')}</span>
@@ -267,7 +267,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
           <button
             onClick={handleCopyCode}
             type="button"
-            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-amber-200/60 hover:bg-amber-200 dark:bg-amber-900/60 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-200 transition-colors"
+            className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-amber-200/60 hover:bg-amber-200 dark:bg-[#3C2A1E] dark:hover:bg-amber-800 text-amber-900 dark:text-amber-200 transition-colors"
           >
             <span className="material-symbols-outlined text-[13px]">
               {copied ? 'check' : 'content_copy'}
@@ -275,7 +275,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
             <span>{copied ? t('codeCopied') : t('copyCode')}</span>
           </button>
         </div>
-        <pre className="p-3.5 text-xs font-mono text-slate-200 bg-[#0f172a] overflow-x-auto">
+        <pre className="p-3.5 text-xs font-mono text-[#E3E3E3] bg-[#0f172a] overflow-x-auto">
           <code>{cleanCode}</code>
         </pre>
       </div>
@@ -285,17 +285,17 @@ export const MermaidRenderer = memo(function MermaidRenderer({
   // Normal State: Successfully Rendered SVG
   return (
     <>
-      <div className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F19] overflow-hidden shadow-xs my-4 transition-all duration-200 ${className}`}>
+      <div className={`rounded-xl border border-slate-200 dark:border-transparent bg-white dark:bg-[#131314] overflow-hidden shadow-xs my-4 transition-all duration-200 ${className}`}>
         {/* Toolbar Header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+        <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-[#1E1F20] border-b border-slate-200 dark:border-transparent text-slate-700 dark:text-[#C4C7C5]">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-cyan-400">
+            <span className="material-symbols-outlined text-[17px] text-blue-600 dark:text-[#A8C7FA]">
               account_tree
             </span>
-            <span className="text-xs font-semibold tracking-wide font-sans text-slate-800 dark:text-slate-200">
+            <span className="text-xs font-semibold tracking-wide font-sans text-slate-800 dark:text-[#E3E3E3]">
               {diagramType}
             </span>
-            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] rounded font-mono bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
+            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] rounded font-mono bg-blue-100 dark:bg-[#162B4D] text-blue-700 dark:text-[#A8C7FA] border border-blue-200 dark:border-transparent">
               Mermaid
             </span>
           </div>
@@ -306,10 +306,10 @@ export const MermaidRenderer = memo(function MermaidRenderer({
             <button
               onClick={() => setIsRawView((prev) => !prev)}
               type="button"
-              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded transition-colors ${
+              className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-colors ${
                 isRawView
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] whitespace-nowrap'
+                  : 'hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] text-slate-700 dark:text-[#C4C7C5]'
               }`}
               title={isRawView ? t('viewDiagram') : t('viewRawCode')}
             >
@@ -325,7 +325,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
             <button
               onClick={handleCopyCode}
               type="button"
-              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-[#282A2C] text-slate-600 dark:text-[#C4C7C5] transition-colors"
               title={t('copyCode')}
             >
               <span className="material-symbols-outlined text-[14px]">
@@ -338,7 +338,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
               <button
                 onClick={handleDownloadSvg}
                 type="button"
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+                className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-[#282A2C] text-slate-600 dark:text-[#C4C7C5] transition-colors"
                 title={t('downloadSvg')}
               >
                 <span className="material-symbols-outlined text-[14px]">download</span>
@@ -350,7 +350,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
               <button
                 onClick={() => setIsFullscreen(true)}
                 type="button"
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+                className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-slate-200/70 dark:hover:bg-[#282A2C] text-slate-600 dark:text-[#C4C7C5] transition-colors"
                 title={t('zoomFullscreen')}
               >
                 <span className="material-symbols-outlined text-[14px]">fullscreen</span>
@@ -361,18 +361,18 @@ export const MermaidRenderer = memo(function MermaidRenderer({
 
         {/* Content Body: SVG or Raw Code */}
         {isRawView ? (
-          <pre className="p-4 text-xs font-mono text-slate-200 bg-[#0f172a] overflow-x-auto leading-relaxed border-t border-slate-800">
+          <pre className="p-4 text-xs font-mono text-[#E3E3E3] bg-[#0f172a] overflow-x-auto leading-relaxed border-t border-[#282A2C]">
             <code>{cleanCode}</code>
           </pre>
         ) : (
-          <div className="p-4 sm:p-6 flex items-center justify-center overflow-x-auto bg-slate-50/50 dark:bg-[#0B0F19]/60 min-h-[140px]">
+          <div className="p-4 sm:p-6 flex items-center justify-center overflow-x-auto bg-slate-50/50 dark:bg-[#131314] min-h-[140px]">
             {svgHtml ? (
               <div
                 className="mermaid-svg-container w-full flex justify-center [&>svg]:max-w-full [&>svg]:h-auto [&>svg]:mx-auto"
                 dangerouslySetInnerHTML={{ __html: svgHtml }}
               />
             ) : (
-              <div className="py-8 flex items-center gap-2 text-xs text-slate-400 font-mono">
+              <div className="py-8 flex items-center gap-2 text-xs text-[#8E918F] font-mono">
                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 <span>{t('mermaidRendering')}</span>
               </div>
@@ -386,7 +386,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col p-4 md:p-8 animate-in fade-in">
           <div className="flex items-center justify-between pb-4 text-white">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px] text-cyan-400">
+              <span className="material-symbols-outlined text-[20px] text-[#A8C7FA]">
                 account_tree
               </span>
               <span className="font-semibold text-sm">{diagramType} • {t('zoomFullscreen')}</span>
@@ -395,7 +395,7 @@ export const MermaidRenderer = memo(function MermaidRenderer({
               <button
                 onClick={handleDownloadSvg}
                 type="button"
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center gap-1.5 text-white transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-xs flex items-center gap-1.5 text-white transition-colors"
               >
                 <span className="material-symbols-outlined text-[15px]">download</span>
                 <span>{t('downloadSvg')}</span>
@@ -403,14 +403,14 @@ export const MermaidRenderer = memo(function MermaidRenderer({
               <button
                 onClick={() => setIsFullscreen(false)}
                 type="button"
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors"
+                className="p-1.5 rounded-lg bg-[#1E1F20] hover:bg-[#282A2C] text-white transition-colors"
                 title="Đóng toàn màn hình"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-12 flex items-center justify-center border border-slate-700">
+          <div className="flex-1 overflow-auto bg-white dark:bg-[#1E1F20] rounded-2xl p-6 md:p-12 flex items-center justify-center border border-[#282A2C]">
             <div
               className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:h-auto"
               dangerouslySetInnerHTML={{ __html: svgHtml }}

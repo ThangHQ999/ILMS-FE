@@ -24,18 +24,15 @@ export function ForgotPasswordForm({
   return (
     <div className="w-full">
       {/* Security & Padlock Icon Badge */}
-      <div className="relative w-14 h-14 rounded-full bg-blue-50 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700 flex items-center justify-center mx-auto text-blue-600 dark:text-[#38BDF8] shadow-xs group">
-        <div className="absolute inset-0 rounded-full bg-blue-600/15 dark:bg-[#38BDF8]/20 animate-ping opacity-30" />
-        <div className="relative flex items-center justify-center w-full h-full rounded-full">
-          <Lock className="w-7 h-7" />
-        </div>
+      <div className="relative w-14 h-14 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] flex items-center justify-center mx-auto text-[#041E49] dark:text-[#A8C7FA] border-none shadow-none">
+        <Lock className="w-7 h-7" />
       </div>
 
       {/* Heading & Subtext */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white text-center mt-5 mb-2 tracking-tight">
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#E3E3E3] text-center mt-5 mb-2 tracking-tight">
         {t('formTitle')}
       </h1>
-      <p className="text-sm text-slate-600 dark:text-slate-400 text-center px-1 mb-8 leading-relaxed">
+      <p className="text-sm text-slate-600 dark:text-[#C4C7C5] text-center px-1 mb-8 leading-relaxed">
         {t('formDescription')}
       </p>
 
@@ -45,18 +42,18 @@ export function ForgotPasswordForm({
           <div className="flex items-center justify-between">
             <label
               htmlFor="recovery-email"
-              className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5"
+              className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-[#C4C7C5] flex items-center gap-1.5"
             >
               <span>{t('emailLabel')}</span>
             </label>
-            <span className="inline-flex items-center gap-1 font-mono text-xs text-blue-600 dark:text-[#38BDF8] bg-blue-50 dark:bg-slate-800 px-2 py-0.5 rounded border border-blue-200/60 dark:border-slate-700 font-medium">
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-[#041E49] dark:text-[#A8C7FA] bg-[#D3E3FD] dark:bg-[#162B4D] px-2.5 py-0.5 rounded-full border-none font-medium">
               <Shield className="w-3 h-3" />
               <span>{t('securityBadge')}</span>
             </span>
           </div>
 
           <div className="relative flex items-center">
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+            <div className="absolute left-4 flex items-center pointer-events-none text-slate-400 dark:text-[#8E918F]">
               <Mail className="w-5 h-5" />
             </div>
             <input
@@ -68,23 +65,21 @@ export function ForgotPasswordForm({
               onChange={onEmailChange}
               placeholder={t('emailPlaceholder')}
               disabled={isLoading}
-              className={`w-full bg-white dark:bg-[#0B0F19] text-sm text-slate-900 dark:text-slate-100 py-3.5 pl-11 pr-4 rounded-xl border ${
-                error
-                  ? 'border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-700/80 focus:border-blue-500 dark:focus:border-[#38BDF8]'
-              } outline-none shadow-xs focus:shadow-md focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-[#38BDF8]/20 transition-all`}
+              className={`w-full h-12 bg-[#F0F4F9] dark:bg-[#282A2C] text-sm text-slate-900 dark:text-[#E3E3E3] pl-11 pr-4 rounded-full border-none outline-none transition-all ${
+                error ? 'ring-2 ring-[#B3261E] dark:ring-[#F28B82]' : ''
+              }`}
             />
           </div>
 
           {error && (
-            <p className="text-xs text-rose-500 dark:text-rose-400 pt-0.5">
+            <p className="text-xs text-[#B3261E] dark:text-[#F28B82] pt-0.5">
               {error}
             </p>
           )}
 
           {/* Format Hint */}
-          <div className="flex items-start gap-1.5 pt-1 text-slate-500 dark:text-slate-400">
-            <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-[#38BDF8] shrink-0 mt-0.5" />
+          <div className="flex items-start gap-1.5 pt-1 text-slate-500 dark:text-[#C4C7C5]">
+            <CheckCircle2 className="w-4 h-4 text-[#0B57D0] dark:text-[#A8C7FA] shrink-0 mt-0.5" />
             <span className="text-xs leading-normal">
               {t('formatHint')}
             </span>
@@ -95,7 +90,7 @@ export function ForgotPasswordForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-[#38BDF8] dark:hover:bg-[#60A5FA] active:scale-[0.99] text-white dark:text-slate-950 font-semibold text-sm sm:text-base py-3.5 px-6 rounded-xl shadow-md shadow-blue-500/20 dark:shadow-cyan-500/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 group mt-6 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium text-sm sm:text-base py-3.5 px-6 rounded-full border-none shadow-none transition-colors flex items-center justify-center gap-2 group mt-6 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
         >
           {isLoading ? (
             <>
