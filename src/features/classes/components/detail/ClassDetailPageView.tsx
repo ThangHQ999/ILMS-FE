@@ -435,6 +435,9 @@ export function ClassDetailPageView({
 
               {(activeTab === 'assignments' || activeTab === 'gradebook') && (
                 <ClassAssignmentsTab
+                  classId={apiClassId}
+                  courses={courses}
+                  members={members}
                   currentRole={effectiveRole}
                   onToast={showToast}
                   gradebookStudents={gradebookStudents}

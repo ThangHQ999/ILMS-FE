@@ -226,6 +226,7 @@ function saveStoredAttendances(
 export async function getLessonSessions(classId: string): Promise<LessonSession[]> {
   const todayStr = new Date().toISOString().split('T')[0];
   let list: Array<Record<string, unknown>> = [];
+  let apiSucceeded = false;
 
   // Attempt 1: GET /classes/{classId}/lesson-sessions
   if (classId && classId !== 'all') {
@@ -233,6 +234,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
       const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
         `/classes/${classId}/lesson-sessions`
       );
+      apiSucceeded = true;
       const data = res.data;
       if (Array.isArray(data)) list = data;
       else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
@@ -242,6 +244,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
         const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
           `/classes/${classId}/lessonSessions`
         );
+        apiSucceeded = true;
         const data = res.data;
         if (Array.isArray(data)) list = data;
         else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
@@ -252,7 +255,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
   }
 
   // Attempt 3: If specific class endpoint is empty or classId is 'all', query personal timetable
-  if (list.length === 0) {
+  if (list.length === 0 && (!apiSucceeded || classId === 'all')) {
     try {
       const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
         '/users/me/timetable',
@@ -260,6 +263,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
           params: classId && classId !== 'all' ? { classId } : undefined,
         }
       );
+      apiSucceeded = true;
       const data = res.data;
       if (Array.isArray(data)) list = data;
       else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
@@ -316,6 +320,10 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
         totalStudents: total,
       };
     });
+  }
+
+  if (apiSucceeded) {
+    return [];
   }
 
   return getStoredSessions();

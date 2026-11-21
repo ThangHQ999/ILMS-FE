@@ -21,6 +21,7 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
   const { isTeacher } = useUserRole();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const filteredSessions = sessions.filter((session) => {
     const matchesSearch =
@@ -157,11 +158,11 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
                               <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.sessionDate}</span>
-                              {session.sessionDate === '2024-11-18' && (
+                              {session.sessionDate === todayStr && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] uppercase font-bold whitespace-nowrap border-none">Hôm nay</span>
                               )}
                             </div>
-                            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">{session.instructorName || 'ThS. Nguyễn Văn An'}</span>
+                            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">{session.instructorName || 'Giảng viên'}</span>
                           </div>
                         </div>
                       </td>
