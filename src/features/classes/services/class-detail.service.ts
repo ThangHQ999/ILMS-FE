@@ -809,7 +809,10 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
   let courses: ClassCourse[] = MOCK_COURSES;
   let announcements: ClassAnnouncement[] = MOCK_ANNOUNCEMENTS;
   let members: ClassMember[] = MOCK_MEMBERS;
-  let materials: ClassMaterial[] = MOCK_MATERIALS;
+  const materials: ClassMaterial[] = MOCK_MATERIALS;
+  let isClassInfoLive = false;
+  let isCoursesLive = false;
+  let isMembersLive = false;
 
   try {
     const fetched = await getClassById(cleanId);
@@ -819,6 +822,7 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
         title: fetched.title || fetched.name || cleanId,
         name: fetched.name || cleanId,
       };
+      isClassInfoLive = true;
     }
   } catch {
     classInfo = {
@@ -837,8 +841,11 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
       const { data: coursesRes } = await api.get<ApiResponse<ClassCourse[]>>(
         `/classes/${cleanId}/courses`
       );
-      if (coursesRes?.data && Array.isArray(coursesRes.data) && coursesRes.data.length > 0) {
-        courses = coursesRes.data;
+      if (coursesRes?.data && Array.isArray(coursesRes.data)) {
+        isCoursesLive = true;
+        if (coursesRes.data.length > 0 || isClassInfoLive) {
+          courses = coursesRes.data;
+        }
       }
     } catch {
       // Fallback to mock courses
@@ -888,8 +895,11 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
       const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
         `/classes/${cleanId}/members`
       );
-      if (memRes?.data && Array.isArray(memRes.data) && memRes.data.length > 0) {
-        members = memRes.data;
+      if (memRes?.data && Array.isArray(memRes.data)) {
+        isMembersLive = true;
+        if (memRes.data.length > 0 || isClassInfoLive) {
+          members = memRes.data;
+        }
       }
     } catch {
       // Fallback to mock members
@@ -905,6 +915,9 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     members,
     materials,
     courseTemplates: MOCK_TEMPLATES,
+    isClassInfoLive,
+    isMembersLive,
+    isCoursesLive,
   };
 }
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUserRole } from '@/hooks/useUserRole';
+import { isPreviewModeEnabled } from '@/lib/preview';
 
 interface RoleSwitcherProps {
   compact?: boolean;
@@ -9,6 +10,13 @@ interface RoleSwitcherProps {
 
 export function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
   const { activeRole, detectedRole, isTeacher, isOverridden, switchRole, resetRole } = useUserRole();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const isPreview = isMounted && isPreviewModeEnabled();
 
   if (compact) {
     return (
@@ -16,17 +24,22 @@ export function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
         type="button"
         onClick={() => switchRole(isTeacher ? 'STUDENT' : 'TEACHER')}
         title={
-          isOverridden
+          isPreview
+            ? `[Chế độ Preview] Đang xem góc nhìn ${isTeacher ? 'Giảng viên' : 'Học sinh'}. Bấm để đổi.`
+            : isOverridden
             ? `Đang giả lập ${isTeacher ? 'Giảng viên' : 'Học sinh'} (Gốc: ${detectedRole === 'TEACHER' ? 'Giảng viên' : 'Học sinh'}). Bấm để đổi.`
             : `Vai trò: ${isTeacher ? 'Giảng viên' : 'Học sinh'}. Bấm để chuyển góc nhìn.`
         }
         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] hover:opacity-90 transition-all border-none cursor-pointer"
+        suppressHydrationWarning
       >
-        <span className="material-symbols-outlined text-[15px]">
+        <span className="material-symbols-outlined text-[15px]" suppressHydrationWarning>
           {isTeacher ? 'school' : 'person'}
         </span>
-        <span>{isTeacher ? 'Giảng viên' : 'Học sinh'}</span>
-        {isOverridden && (
+        <span suppressHydrationWarning>
+          {isPreview ? 'Demo: ' : ''}{isTeacher ? 'Giảng viên' : 'Học sinh'}
+        </span>
+        {(isOverridden || isPreview) && (
           <span className="w-1.5 h-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse" />
         )}
       </button>
