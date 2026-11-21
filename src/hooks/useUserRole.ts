@@ -93,7 +93,7 @@ export function useUserRole(): UserRoleResult {
   const roleBadge = useMemo(() => {
     if (isAdmin) return 'Quản trị viên (Admin)';
     if (isTeacher) return 'Giảng viên (Faculty)';
-    return 'Học viên (Student)';
+    return '';
   }, [isAdmin, isTeacher]);
 
   const isAuthenticated = Boolean(!isUserLoading && !isUserError && user);

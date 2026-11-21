@@ -109,7 +109,7 @@ export function UserMenuDropdown({
       ? `${effectiveUser.lastName || ''} ${effectiveUser.firstName || ''}`.trim()
       : userFullName;
 
-  const email = effectiveUser?.email || 'nhatminh.edu@gmail.com';
+  const email = effectiveUser?.email || '';
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(/\s+/);
@@ -126,7 +126,7 @@ export function UserMenuDropdown({
     ? roleBadge
     : userFullName.includes('TS.') || userFullName.includes('ThS.') || userFullName.includes('Nam')
       ? 'Giảng viên'
-      : 'Học sinh';
+      : '';
 
   // Actions
   const handleLogout = () => {
@@ -221,12 +221,14 @@ export function UserMenuDropdown({
                 </span>
               )}
             </div>
-            <span
-              className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium"
-              suppressHydrationWarning
-            >
-              {displayRoleBadge}
-            </span>
+            {displayRoleBadge ? (
+              <span
+                className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium"
+                suppressHydrationWarning
+              >
+                {displayRoleBadge}
+              </span>
+            ) : null}
           </div>
           <span
             className={`material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#1F1F1F] dark:group-hover:text-[#E3E3E3] transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'
@@ -277,12 +279,14 @@ export function UserMenuDropdown({
                 >
                   {fullName}
                 </h3>
-                <span
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none"
-                  suppressHydrationWarning
-                >
-                  {displayRoleBadge}
-                </span>
+                {displayRoleBadge ? (
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none"
+                    suppressHydrationWarning
+                  >
+                    {displayRoleBadge}
+                  </span>
+                ) : null}
                 {isMounted && mySub && (
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${planBadgeClass}`}
@@ -293,23 +297,13 @@ export function UserMenuDropdown({
               </div>
               <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3" suppressHydrationWarning>{email}</p>
 
-              {/* Primary Navigation Actions: Dashboard & Settings */}
-              <div className="flex items-center gap-2 mb-2 flex-wrap justify-center">
-                <Link
-                  href="/dashboard"
-                  prefetch={true}
-                  onClick={() => setIsOpen(false)}
-                  className="inline-flex items-center justify-center gap-1.5 bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#162B4D] dark:hover:bg-[#1E3A66] dark:text-[#A8C7FA] font-semibold rounded-full px-4 py-2 text-xs whitespace-nowrap transition-colors cursor-pointer border-none"
-                >
-                  <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                  <span>{t('dashboard')}</span>
-                </Link>
-
+              {/* Primary Navigation Action: Settings */}
+              <div className="flex items-center justify-center mb-2">
                 <Link
                   href="/settings"
                   prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="inline-flex items-center justify-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-4 py-2 text-xs whitespace-nowrap transition-colors cursor-pointer border-none"
+                  className="inline-flex items-center justify-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-5 py-2 text-xs whitespace-nowrap transition-colors cursor-pointer border border-slate-200/80 dark:border-[#383A3D]"
                 >
                   <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">
                     manage_accounts
