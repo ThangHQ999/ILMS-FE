@@ -86,10 +86,13 @@ export function NodeInspectorPanel({
     if (candDetail && !isUuidOrCode(candDetail)) return candDetail;
 
     // 2. Injected definition from node
-    if (node.definitionText && node.definitionText.trim()) {
+    const isGenericFallback = (str?: string | null) =>
+      !str || str.startsWith('Khái niệm tri thức nền tảng trong chương trình đào tạo');
+
+    if (node.definitionText && node.definitionText.trim() && !isGenericFallback(node.definitionText)) {
       return node.definitionText.trim();
     }
-    if (node.description && node.description.trim() && !isUuidOrCode(node.description)) {
+    if (node.description && node.description.trim() && !isUuidOrCode(node.description) && !isGenericFallback(node.description)) {
       return node.description.trim();
     }
 
@@ -595,10 +598,10 @@ export function NodeInspectorPanel({
                   )}
                   {proc.steps.length > 0 && (
                     <ol className="space-y-1">
-                      {proc.steps.map((s) => (
-                        <li key={s.stepNumber} className="flex items-start gap-2">
+                      {proc.steps.map((s, stepIdx) => (
+                        <li key={s.stepNumber || stepIdx} className="flex items-start gap-2">
                           <span className="font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
-                            {s.stepNumber}.
+                            {stepIdx + 1}.
                           </span>
                           <span>{s.action}</span>
                         </li>

@@ -8,6 +8,7 @@ import { useCurrentUser, useLogout } from '@/features/auth';
 import { useMySubscription } from '@/features/settings';
 import { useUserRole } from '@/hooks/useUserRole';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
+import { isPreviewModeEnabled, setPreviewMode } from '@/lib/preview';
 import { SubAccountItem } from '../types';
 
 interface UserMenuDropdownProps {
@@ -102,12 +103,14 @@ export function UserMenuDropdown({
     };
   }, [isOpen]);
 
+  const effectiveUser = isMounted ? currentUser : null;
+
   const fullName =
-    currentUser?.firstName || currentUser?.lastName
-      ? `${currentUser.lastName || ''} ${currentUser.firstName || ''}`.trim()
+    effectiveUser?.firstName || effectiveUser?.lastName
+      ? `${effectiveUser.lastName || ''} ${effectiveUser.firstName || ''}`.trim()
       : userFullName;
 
-  const email = currentUser?.email || 'nhatminh.edu@gmail.com';
+  const email = effectiveUser?.email || 'nhatminh.edu@gmail.com';
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(/\s+/);
@@ -118,10 +121,22 @@ export function UserMenuDropdown({
   };
 
   const initials = getInitials(fullName);
+  const displayFullName = isMounted ? fullName : userFullName;
+  const displayInitials = isMounted ? initials : getInitials(userFullName);
+  const displayRoleBadge = isMounted
+    ? roleBadge
+    : userFullName.includes('TS.') || userFullName.includes('ThS.') || userFullName.includes('Nam')
+      ? 'Giảng viên'
+      : 'Học sinh';
 
   // Actions
   const handleLogout = () => {
     setIsOpen(false);
+    if (isPreviewModeEnabled()) {
+      setPreviewMode(false);
+      router.push('/login');
+      return;
+    }
     performLogout();
   };
 
@@ -163,266 +178,304 @@ export function UserMenuDropdown({
           aria-expanded={isOpen}
           aria-haspopup="true"
           className="relative flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white font-bold text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8C7FA]/40 transition-transform cursor-pointer hover:scale-105 border-none"
-          title={fullName}
+          title={displayFullName}
+          suppressHydrationWarning
         >
-          <span>{initials}</span>
+<span suppressHydrationWarning>{displayInitials}</span>
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#81C995]" />
           {isMounted && mySub && (
             <span
-              className={`absolute -bottom-1 -right-1.5 px-1.5 py-[1px] rounded-full text-[9px] font-bold tracking-tight leading-none shadow-sm ${planBadgeClass}`}
+              className={`absolute -top-1 -right-1.5 px-1.5 py-[1px] rounded-full text-[9px] font-bold tracking-tight leading-none shadow-sm ${planBadgeClass}`}
             >
               {planBadgeLabel}
             </span>
           )}
-        </button>
+        </button >
       ) : (
-        // Pill button in Analytics Mode
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-expanded={isOpen}
-          aria-haspopup="true"
-          className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors bg-[#F0F4F9] dark:bg-[#1E1F20] text-[#1F1F1F] dark:text-[#E3E3E3] group cursor-pointer border-none shadow-none"
-          title={fullName}
-        >
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-              {initials}
-            </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
-          </div>
-          <div className="hidden md:flex items-center gap-1.5 text-left mr-0.5">
-            <span className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[140px]">
-              {fullName}
-            </span>
-            {isMounted && mySub && (
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight leading-none ${planBadgeClass}`}
-              >
-                {planBadgeLabel}
-              </span>
-            )}
-          </div>
-          <span
-            className={`material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#1F1F1F] dark:group-hover:text-[#E3E3E3] transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'
-              }`}
-          >
-            expand_more
-          </span>
-        </button>
-      )}
-
-      {/* Floating Toast Notification */}
-      {toastMessage && (
-        <div className="absolute right-0 top-12 z-50 bg-[#1E1F20] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-1.5 whitespace-nowrap border-none">
-          <span className="material-symbols-outlined text-[16px] text-[#81C995]">
-            check_circle
-          </span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Dropdown Panel (380px Width) */}
-      {isOpen && (
+    // Pill button in Analytics Mode
+    <button
+      type="button"
+      onClick={() => setIsOpen((prev) => !prev)}
+      aria-expanded={isOpen}
+      aria-haspopup="true"
+      className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] transition-colors bg-[#F0F4F9] dark:bg-[#1E1F20] text-[#1F1F1F] dark:text-[#E3E3E3] group cursor-pointer border-none shadow-none"
+      title={displayFullName}
+      suppressHydrationWarning
+    >
+      <div className="relative">
         <div
-          className="absolute right-0 top-full mt-2.5 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right w-[calc(100vw-32px)] sm:w-[380px] border-none"
+          className="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 flex items-center justify-center text-white font-bold text-xs"
+          suppressHydrationWarning
         >
-          {/* 1. User Profile Header with Large Avatar & Pro Badge */}
-          <div className="p-6 flex flex-col items-center text-center bg-white dark:bg-[#1E1F20]">
-            <div className="relative mb-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-none">
-                {initials}
-              </div>
-              <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#0D652D] dark:bg-[#81C995] flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-[11px] font-bold">check</span>
+          {displayInitials}
+        </div>
+        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#0D652D] dark:bg-[#81C995]" />
+      </div>
+<div className="hidden md:flex flex-col text-left mr-0.5">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-[13px] text-[#1F1F1F] dark:text-[#E3E3E3] font-semibold leading-tight truncate max-w-[120px]"
+                suppressHydrationWarning
+              >
+                {displayFullName}
               </span>
+              {isMounted && mySub && (
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-tight leading-none ${planBadgeClass}`}
+                >
+                  {planBadgeLabel}
+                </span>
+              )}
             </div>
+            <span
+              className="text-[10px] text-[#747775] dark:text-[#8E918F] font-medium"
+              suppressHydrationWarning
+            >
+              {displayRoleBadge}
+            </span>
+          </div>
+    <span
+      className={`material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#1F1F1F] dark:group-hover:text-[#E3E3E3] transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'
+        }`}
+    >
+      expand_more
+    </span>
+  </button>
+      )
+}
 
-            <div className="flex items-center gap-2 justify-center mb-1 flex-wrap">
-              <h3 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight">
+{/* Floating Toast Notification */ }
+{
+  toastMessage && (
+    <div className="absolute right-0 top-12 z-50 bg-[#1E1F20] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-1.5 whitespace-nowrap border-none">
+      <span className="material-symbols-outlined text-[16px] text-[#81C995]">
+        check_circle
+      </span>
+      <span>{toastMessage}</span>
+    </div>
+  )
+}
+
+{/* Dropdown Panel (380px Width) */ }
+{
+  isOpen && (
+    <div
+      className="absolute right-0 top-full mt-2.5 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right w-[calc(100vw-32px)] sm:w-[380px] border-none"
+    >
+      {/* 1. User Profile Header with Large Avatar & Pro Badge */}
+      <div className="p-6 flex flex-col items-center text-center bg-white dark:bg-[#1E1F20]">
+        <div className="relative mb-3">
+          <div
+            className="w-16 h-16 rounded-full bg-gradient-to-tr from-secondary to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-none"
+            suppressHydrationWarning
+          >
+            {initials}
+          </div>
+          <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#0D652D] dark:bg-[#81C995] flex items-center justify-center text-white">
+            <span className="material-symbols-outlined text-[11px] font-bold">check</span>
+          </span>
+        </div>
+
+<div className="flex items-center gap-1.5 justify-center mb-1 flex-wrap">
+              <h3
+                className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3] leading-tight"
+                suppressHydrationWarning
+              >
                 {fullName}
               </h3>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${planBadgeClass}`}
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] whitespace-nowrap border-none"
+                suppressHydrationWarning
               >
-                {planBadgeLabel}
+                {displayRoleBadge}
               </span>
+              {isMounted && mySub && (
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${planBadgeClass}`}
+                >
+                  {planBadgeLabel}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3">{email}</p>
+      <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3" suppressHydrationWarning>{email}</p>
 
-            {/* Manage Account button */}
-            <Link
-              href="/settings"
-              prefetch={true}
-              onClick={() => setIsOpen(false)}
-              className="inline-flex items-center justify-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors mb-2 cursor-pointer border-none"
-            >
-              <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">
-                manage_accounts
-              </span>
-              <span>{t('manageAccount')}</span>
-            </Link>
+      {/* Manage Account button */}
+      <Link
+        href="/settings"
+        prefetch={true}
+        onClick={() => setIsOpen(false)}
+        className="inline-flex items-center justify-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors mb-2 cursor-pointer border-none"
+      >
+        <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">
+          manage_accounts
+        </span>
+        <span>{t('manageAccount')}</span>
+      </Link>
 
-            {/* Switch / Select account accordion button */}
-            <button
-              type="button"
-              onClick={() => setIsAccountsOpen((prev) => !prev)}
-              className="text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1 cursor-pointer mt-1 border-none"
-            >
-              <span>{t('switchAccount')}</span>
-              <span
-                className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${isAccountsOpen ? 'rotate-180' : 'rotate-0'
+      {/* Switch / Select account accordion button */}
+      <button
+        type="button"
+        onClick={() => setIsAccountsOpen((prev) => !prev)}
+        className="text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1 cursor-pointer mt-1 border-none"
+      >
+        <span>{t('switchAccount')}</span>
+        <span
+          className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${isAccountsOpen ? 'rotate-180' : 'rotate-0'
+            }`}
+        >
+          expand_more
+        </span>
+      </button>
+  </div>
+
+  {/* 2. Expandable Saved Accounts Section */ }
+  {
+    isAccountsOpen && (
+      <div className="px-4 py-3 bg-[#F0F4F9] dark:bg-[#282A2C]/40 transition-all border-none">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#747775] dark:text-[#8E918F]">
+            {t('switchAccountTitle')}
+          </span>
+          <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
+            {t('subAccountsCount', { count: subAccounts.length })}
+          </span>
+        </div>
+
+        <div className="space-y-1.5">
+          {subAccounts.map((account) => {
+            const isExpired = account.status === 'expired';
+            return (
+              <div
+                key={account.id}
+                onClick={() => !isExpired && handleSwitchAccount(account)}
+                className={`p-2.5 rounded-2xl transition-colors border-none ${isExpired
+                  ? 'bg-white/60 dark:bg-[#131314]/60'
+                  : 'hover:bg-white dark:hover:bg-[#1E1F20] cursor-pointer group'
                   }`}
               >
-                expand_more
-              </span>
-            </button>
-          </div>
-
-          {/* 2. Expandable Saved Accounts Section */}
-          {isAccountsOpen && (
-            <div className="px-4 py-3 bg-[#F0F4F9] dark:bg-[#282A2C]/40 transition-all border-none">
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#747775] dark:text-[#8E918F]">
-                  {t('switchAccountTitle')}
-                </span>
-                <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
-                  {t('subAccountsCount', { count: subAccounts.length })}
-                </span>
-              </div>
-
-              <div className="space-y-1.5">
-                {subAccounts.map((account) => {
-                  const isExpired = account.status === 'expired';
-                  return (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
-                      key={account.id}
-                      onClick={() => !isExpired && handleSwitchAccount(account)}
-                      className={`p-2.5 rounded-2xl transition-colors border-none ${isExpired
-                        ? 'bg-white/60 dark:bg-[#131314]/60'
-                        : 'hover:bg-white dark:hover:bg-[#1E1F20] cursor-pointer group'
-                        }`}
+                      className={`w-9 h-9 rounded-full bg-gradient-to-tr ${account.avatarGradient || 'from-slate-600 to-slate-800'
+                        } text-white flex items-center justify-center font-bold text-xs shrink-0`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div
-                            className={`w-9 h-9 rounded-full bg-gradient-to-tr ${account.avatarGradient || 'from-slate-600 to-slate-800'
-                              } text-white flex items-center justify-center font-bold text-xs shrink-0`}
-                          >
-                            {account.initials}
-                          </div>
-                          <div className="min-w-0 text-left">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
-                                {account.fullName}
-                              </span>
-                              {isExpired && (
-                                <span className="rounded-full px-3 py-1 text-[10px] font-medium bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784] whitespace-nowrap border-none">
-                                  {t('sessionExpired')}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-[#747775] dark:text-[#C4C7C5] truncate">
-                              {account.email}
-                            </div>
-                          </div>
-                        </div>
-
-                        {!isExpired ? (
-                          <span className="material-symbols-outlined text-[16px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors mr-1">
-                            arrow_forward
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {isExpired && (
-                        <div className="flex items-center justify-end gap-2 mt-2 pt-2">
-                          <button
-                            type="button"
-                            onClick={(e) => handleRelogin(e, account)}
-                            className="bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-4 py-1.5 text-xs whitespace-nowrap transition-colors cursor-pointer border-none shadow-none"
-                          >
-                            {t('loginBtn')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => handleRemoveAccount(e, account.id)}
-                            className="bg-transparent hover:bg-[#FAD2CF] text-[#B3261E] dark:hover:bg-[#3C1919] dark:text-[#F28B82] font-medium rounded-full px-3 py-1.5 text-xs whitespace-nowrap transition-colors cursor-pointer border-none"
-                          >
-                            {t('deleteBtn')}
-                          </button>
-                        </div>
-                      )}
+                      {account.initials}
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Add Account & Sign Out All Accounts */}
-              <div className="pt-1.5 mt-2 space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    router.push('/login?add_account=true');
-                  }}
-                  className="flex items-center gap-3 w-full px-3 py-2 rounded-2xl text-xs text-[#1F1F1F] dark:text-[#E3E3E3] hover:bg-[#F0F4F9] dark:hover:bg-[#1E1F20] transition-all group cursor-pointer border-none"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] flex items-center justify-center text-[#444746] dark:text-[#C4C7C5] group-hover:bg-[#D3E3FD] dark:group-hover:bg-[#162B4D] group-hover:text-[#041E49] dark:group-hover:text-[#A8C7FA] transition-colors shrink-0">
-                    <span className="material-symbols-outlined text-[18px]">person_add</span>
+                    <div className="min-w-0 text-left">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+                          {account.fullName}
+                        </span>
+                        {isExpired && (
+                          <span className="rounded-full px-3 py-1 text-[10px] font-medium bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784] whitespace-nowrap border-none">
+                            {t('sessionExpired')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-[#747775] dark:text-[#C4C7C5] truncate">
+                        {account.email}
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-semibold">{t('addAnotherAccount')}</span>
-                </button>
 
-                <button
-                  type="button"
-                  onClick={handleLogoutAll}
-                  className="flex items-center gap-3 w-full px-3 py-2 rounded-2xl text-xs text-[#444746] dark:text-[#C4C7C5] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF]/50 dark:hover:bg-[#3C1919] transition-colors group cursor-pointer border-none"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] group-hover:bg-[#FAD2CF] dark:group-hover:bg-[#3C1919] flex items-center justify-center text-[#444746] dark:text-[#C4C7C5] group-hover:text-[#B3261E] dark:group-hover:text-[#F28B82] transition-colors shrink-0">
-                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                  {!isExpired ? (
+                    <span className="material-symbols-outlined text-[16px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors mr-1">
+                      arrow_forward
+                    </span>
+                  ) : null}
+                </div>
+
+                {isExpired && (
+                  <div className="flex items-center justify-end gap-2 mt-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={(e) => handleRelogin(e, account)}
+                      className="bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-4 py-1.5 text-xs whitespace-nowrap transition-colors cursor-pointer border-none shadow-none"
+                    >
+                      {t('loginBtn')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemoveAccount(e, account.id)}
+                      className="bg-transparent hover:bg-[#FAD2CF] text-[#B3261E] dark:hover:bg-[#3C1919] dark:text-[#F28B82] font-medium rounded-full px-3 py-1.5 text-xs whitespace-nowrap transition-colors cursor-pointer border-none"
+                    >
+                      {t('deleteBtn')}
+                    </button>
                   </div>
-                  <span className="font-semibold">{t('logoutAll')}</span>
-                </button>
+                )}
               </div>
-            </div>
-          )}
-
-          {/* 3. Primary Logout Action */}
-          <div className="p-3 bg-white dark:bg-[#1E1F20] flex items-center justify-center">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full text-xs font-medium text-[#444746] dark:text-[#C4C7C5] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF]/50 dark:hover:bg-[#3C1919] transition-all cursor-pointer group border-none whitespace-nowrap"
-            >
-              <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#B3261E] dark:group-hover:text-[#F28B82] transition-colors">
-                logout
-              </span>
-              <span>{t('logout')}</span>
-            </button>
-          </div>
-
-          {/* 4. Privacy & Terms Footer */}
-          <div className="py-2.5 px-4 bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-center">
-            <div className="flex items-center justify-center gap-2 text-[11px] text-[#747775] dark:text-[#C4C7C5]">
-              <Link
-                href="/privacy"
-                onClick={() => setIsOpen(false)}
-                className="hover:underline hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]"
-              >
-                {t('privacyPolicy')}
-              </Link>
-              <span>•</span>
-              <Link
-                href="/terms"
-                onClick={() => setIsOpen(false)}
-                className="hover:underline hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]"
-              >
-                {t('termsOfService')}
-              </Link>
-            </div>
-          </div>
+            );
+          })}
         </div>
-      )}
+
+        {/* Add Account & Sign Out All Accounts */}
+        <div className="pt-1.5 mt-2 space-y-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              router.push('/login?add_account=true');
+            }}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-2xl text-xs text-[#1F1F1F] dark:text-[#E3E3E3] hover:bg-[#F0F4F9] dark:hover:bg-[#1E1F20] transition-all group cursor-pointer border-none"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] flex items-center justify-center text-[#444746] dark:text-[#C4C7C5] group-hover:bg-[#D3E3FD] dark:group-hover:bg-[#162B4D] group-hover:text-[#041E49] dark:group-hover:text-[#A8C7FA] transition-colors shrink-0">
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+            </div>
+            <span className="font-semibold">{t('addAnotherAccount')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogoutAll}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-2xl text-xs text-[#444746] dark:text-[#C4C7C5] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF]/50 dark:hover:bg-[#3C1919] transition-colors group cursor-pointer border-none"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] group-hover:bg-[#FAD2CF] dark:group-hover:bg-[#3C1919] flex items-center justify-center text-[#444746] dark:text-[#C4C7C5] group-hover:text-[#B3261E] dark:group-hover:text-[#F28B82] transition-colors shrink-0">
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+            </div>
+            <span className="font-semibold">{t('logoutAll')}</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  {/* 3. Primary Logout Action */ }
+  <div className="p-3 bg-white dark:bg-[#1E1F20] flex items-center justify-center">
+    <button
+      type="button"
+      onClick={handleLogout}
+      className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full text-xs font-medium text-[#444746] dark:text-[#C4C7C5] hover:text-[#B3261E] dark:hover:text-[#F28B82] hover:bg-[#FAD2CF]/50 dark:hover:bg-[#3C1919] transition-all cursor-pointer group border-none whitespace-nowrap"
+    >
+      <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] group-hover:text-[#B3261E] dark:group-hover:text-[#F28B82] transition-colors">
+        logout
+      </span>
+      <span>{isMounted && isPreviewModeEnabled() ? 'Thoát chế độ Xem trước' : t('logout')}</span>
+    </button>
+  </div>
+
+  {/* 4. Privacy & Terms Footer */ }
+  <div className="py-2.5 px-4 bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-center">
+    <div className="flex items-center justify-center gap-2 text-[11px] text-[#747775] dark:text-[#C4C7C5]">
+      <Link
+        href="/privacy"
+        onClick={() => setIsOpen(false)}
+        className="hover:underline hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]"
+      >
+        {t('privacyPolicy')}
+      </Link>
+      <span>•</span>
+      <Link
+        href="/terms"
+        onClick={() => setIsOpen(false)}
+        className="hover:underline hover:text-[#1F1F1F] dark:hover:text-[#E3E3E3]"
+      >
+        {t('termsOfService')}
+      </Link>
     </div>
+  </div>
+        </div >
+      )
+}
+    </div >
   );
 }

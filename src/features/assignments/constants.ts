@@ -1,14 +1,87 @@
 export const assignmentKeys = {
   all: ['assignments'] as const,
   lists: () => [...assignmentKeys.all, 'list'] as const,
-  list: (classId: string, filters: Record<string, unknown>) =>
+  list: (classId: string, filters: Record<string, unknown> = {}) =>
     [...assignmentKeys.lists(), classId, filters] as const,
   details: () => [...assignmentKeys.all, 'detail'] as const,
   detail: (id: string) => [...assignmentKeys.details(), id] as const,
+  mySubmission: (assignmentId: string, studentId?: string, classId?: string) =>
+    [...assignmentKeys.all, 'my-submission', assignmentId, studentId || '', classId || ''] as const,
+  teacherSubmissions: (
+    assignmentId: string,
+    filters: Record<string, unknown> = {},
+    userId?: string,
+    classId?: string
+  ) =>
+    [
+      ...assignmentKeys.all,
+      'teacher-submissions',
+      assignmentId,
+      userId || '',
+      classId || '',
+      filters,
+    ] as const,
+  submissionDetail: (
+    submissionId: string,
+    assignmentId?: string,
+    classId?: string,
+    userId?: string
+  ) =>
+    [
+      ...assignmentKeys.all,
+      'submission-detail',
+      userId || '',
+      classId || '',
+      assignmentId || '',
+      submissionId,
+    ] as const,
+  submissionGrading: (
+    submissionId: string,
+    assignmentId?: string,
+    classId?: string,
+    userId?: string
+  ) =>
+    [
+      ...assignmentKeys.all,
+      'submission-grading',
+      userId || '',
+      classId || '',
+      assignmentId || '',
+      submissionId,
+    ] as const,
   gradeProgress: (classId: string) => [...assignmentKeys.all, 'grade-progress', classId] as const,
   aiRecommendation: (classId: string) => [...assignmentKeys.all, 'ai-recommendation', classId] as const,
   studentPerformance: (classId: string) => [...assignmentKeys.all, 'student-performance', classId] as const,
   classHubInfo: (classId: string) => [...assignmentKeys.all, 'class-hub-info', classId] as const,
+};
+
+export const quizKeys = {
+  all: ['quizzes'] as const,
+  lists: () => [...quizKeys.all, 'list'] as const,
+  list: (classId?: string, params?: Record<string, unknown>) =>
+    [...quizKeys.lists(), classId, params] as const,
+  details: () => [...quizKeys.all, 'detail'] as const,
+  detail: (id: string) => [...quizKeys.details(), id] as const,
+  play: (id: string) => [...quizKeys.all, 'play', id] as const,
+  stats: (classId?: string) => [...quizKeys.all, 'stats', classId] as const,
+  questionBank: (params?: Record<string, unknown>) =>
+    [...quizKeys.all, 'question-bank', params] as const,
+  proctor: (quizId: string) => [...quizKeys.all, 'proctor', quizId] as const,
+  complaints: (quizId: string) => [...quizKeys.all, 'complaints', quizId] as const,
+  analytics: (quizId: string) => [...quizKeys.all, 'analytics', quizId] as const,
+};
+
+export const examKeys = {
+  all: ['exams'] as const,
+  lists: () => [...examKeys.all, 'list'] as const,
+  list: (classId: string, filters: Record<string, unknown> = {}, userId?: string) =>
+    [...examKeys.lists(), userId || '', classId, filters] as const,
+  details: () => [...examKeys.all, 'detail'] as const,
+  detail: (id: string, classId?: string, userId?: string) =>
+    [...examKeys.details(), userId || '', classId || '', id] as const,
+  questions: (examId: string) => [...examKeys.details(), examId, 'questions'] as const,
+  bankQuestions: (filters: Record<string, unknown> = {}) =>
+    ['bank-questions', filters] as const,
 };
 
 export const CHAPTER_OPTIONS = [

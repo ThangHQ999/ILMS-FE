@@ -139,7 +139,7 @@ export function LessonSyllabusSidebar({
 
   return (
     <aside
-      className="w-80 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-all duration-200 z-30 min-h-[calc(100vh-7.5rem)] self-stretch"
+className="w-80 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-all duration-200 z-30 min-h-[calc(100vh-7.5rem)] self-stretch"
       id="left-sidebar"
     >
       {/* Sidebar Header */}
@@ -200,12 +200,13 @@ export function LessonSyllabusSidebar({
       </div>
 
       {/* Syllabus Accordion */}
-      <div className="p-3 pb-8 flex-1 overflow-y-auto flex flex-col gap-2.5">
+<div className="p-3 pb-8 flex-1 overflow-y-auto flex flex-col gap-2.5">
         {filteredChapters.length === 0 ? (
           <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
             {chapters.length === 0
               ? 'Môn học chưa có chương học nào.'
               : 'Không tìm thấy bài học phù hợp.'}
+
           </div>
         ) : (
           filteredChapters.map((chap, idx) => {

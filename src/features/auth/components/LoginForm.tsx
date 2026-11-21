@@ -2,12 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { setPreviewMode } from '@/lib/preview';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useOAuthLogin } from '../hooks/useOAuthLogin';
 import { OAuthProvider } from '../types';
 
 export function LoginForm() {
+  const router = useRouter();
   const tAuth = useTranslations('auth');
   const tValidation = useTranslations('validation');
   const {
@@ -185,6 +188,26 @@ export function LoginForm() {
             </span>
           </button>
         </div>
+
+        {/* Development Preview Mode Quick Toggle */}
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="mt-5 pt-4 border-t border-dashed border-slate-200 dark:border-[#333537] text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setPreviewMode(true);
+                router.push('/classes/csdl-k22-01/assignments');
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/80 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">palette</span>
+              <span>Bật chế độ Xem trước UI (Preview Mode)</span>
+            </button>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Dành cho môi trường dev: mở giao diện demo lớp CSDL K22
+            </p>
+          </div>
+        )}
 
         {/* Card Footer Register Link */}
         <div className="mt-8 pt-5 text-center bg-[#F0F4F9] dark:bg-[#282A2C] border-none -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 md:-mx-10 md:-mb-10 rounded-b-3xl py-4">

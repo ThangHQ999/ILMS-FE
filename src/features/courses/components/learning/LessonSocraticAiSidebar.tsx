@@ -99,7 +99,7 @@ export function LessonSocraticAiSidebar({
 
   return (
     <aside
-      className="w-96 shrink-0 bg-white dark:bg-slate-900 border-l-[3px] border-slate-300 dark:border-slate-700 shadow-lg flex flex-col transition-all duration-300 z-30 h-[calc(100vh-8rem)] sticky top-32"
+      className="w-96 shrink-0 bg-white dark:bg-slate-900 border-[3px] border-slate-300 dark:border-slate-700 rounded-2xl shadow-lg flex flex-col transition-all duration-300 z-30 h-[calc(100vh-8.5rem)] my-6 mr-4 lg:mr-6 overflow-hidden"
       id="right-sidebar"
     >
       {/* Socratic AI Header */}

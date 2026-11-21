@@ -390,8 +390,9 @@ export function LessonLearningWorkspace({
           />
         )}
 
-        <div className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
+<div className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
           <LessonBlockCanvas
+            onToast={showToast}
             lessonTitle={resolvedLessonTitle}
             lessonDurationMinutes={activeLesson?.duration ?? 45}
             isPublished={activeLesson?.isPublished ?? true}
@@ -470,7 +471,6 @@ export function LessonLearningWorkspace({
                   durationSeconds > 0 && watchedSeconds / durationSeconds >= 0.85,
               })
             }
-            onToast={showToast}
           />
           <div className="h-10 w-full" />
         </div>

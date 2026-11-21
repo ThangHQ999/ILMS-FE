@@ -293,7 +293,7 @@ export function ClassSubjectsTab({
             return (
               <div
                 key={c.id}
-                className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none border-none flex flex-col md:flex-row md:items-center justify-between gap-5 transition-transform hover:-translate-y-0.5 duration-200"
+                className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none border-2 border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all hover:-translate-y-0.5 duration-200"
               >
                 <div className="flex items-center gap-4 min-w-0 flex-1">
                   <div className="w-12 h-12 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center font-bold shrink-0">

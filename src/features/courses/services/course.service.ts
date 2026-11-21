@@ -41,9 +41,17 @@ export function saveLocalChapters(courseId: string, chapters: Chapter[]): void {
 }
 
 export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
-  // 1. Check known mock courses
-  if (MOCK_COURSE_DETAILS[courseId]) {
-    return MOCK_COURSE_DETAILS[courseId];
+  const cleanId = decodeURIComponent(courseId || '').trim().toLowerCase();
+
+  // 1. Check known mock courses (flexible lookup by id or code)
+  const matchedKey = Object.keys(MOCK_COURSE_DETAILS).find(
+    (k) =>
+      k.toLowerCase() === cleanId ||
+      MOCK_COURSE_DETAILS[k]?.courseCode?.toLowerCase() === cleanId ||
+      k.toLowerCase().replace('course-', '') === cleanId.replace('course-', '')
+  );
+  if (matchedKey && MOCK_COURSE_DETAILS[matchedKey]) {
+    return MOCK_COURSE_DETAILS[matchedKey];
   }
 
   // 2. Check local class courses created by user
@@ -148,37 +156,63 @@ export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
 }
 
 export async function getCourseChapters(courseId: string): Promise<Chapter[]> {
-  // 2. Fetch directly from backend API GET /api/v1/courses/{courseId}/content
-  const { data: res } = await api.get<ApiResponse<any>>(`/courses/${courseId}/content`);
-  const rawChapters = Array.isArray(res?.data?.chapters)
-    ? res.data.chapters
-    : Array.isArray(res?.data)
-      ? res.data
-      : [];
+  const cleanId = decodeURIComponent(courseId || '').trim().toLowerCase();
 
-  return rawChapters.map((ch: any, idx: number) => ({
-    id: ch.id || `chap-${courseId}-${idx + 1}`,
-    title: ch.title || `Chương ${idx + 1}`,
-    description: ch.description || '',
-    orderIndex: ch.orderIndex ?? idx + 1,
-    lessons: (ch.lessons || []).map((les: any, lIdx: number) => ({
-      id: les.id || `les-${idx + 1}-${lIdx + 1}`,
-      title: les.title || `Bài học ${lIdx + 1}`,
-      orderIndex: les.orderIndex ?? lIdx + 1,
-      lessonType: (les.lessonType || 'THEORY') as any,
-      duration:
-        les.duration ??
-        (typeof les.durationSeconds === 'number'
-          ? Math.max(1, Math.round(les.durationSeconds / 60))
-          : 45),
-      status: (les.status === 'COMPLETED' || les.status === 'IN_PROGRESS'
-        ? les.status
-        : 'NOT_STARTED') as Lesson['status'],
-      description: les.description || '',
-      isPublished: typeof les.isPublished === 'boolean' ? les.isPublished : true,
-      materials: les.materials || [],
-    })),
-  }));
+  // 1. Check local storage changes
+  const local = getLocalChapters(courseId);
+  if (local && local.length > 0) {
+    return local;
+  }
+
+  // 2. Fetch directly from backend API GET /api/v1/courses/{courseId}/content
+  try {
+    const { data: res } = await api.get<ApiResponse<any>>(`/courses/${courseId}/content`);
+    const rawChapters = Array.isArray(res?.data?.chapters)
+      ? res.data.chapters
+      : Array.isArray(res?.data)
+        ? res.data
+        : [];
+
+    if (rawChapters.length > 0) {
+      const parsedChapters: Chapter[] = rawChapters.map((ch: any, idx: number) => ({
+        id: ch.id || `chap-${courseId}-${idx + 1}`,
+        title: ch.title || `Chương ${idx + 1}`,
+        description: ch.description || '',
+        orderIndex: ch.orderIndex ?? idx + 1,
+        lessons: (ch.lessons || []).map((les: any, lIdx: number) => ({
+          id: les.id || `les-${idx + 1}-${lIdx + 1}`,
+          title: les.title || `Bài học ${lIdx + 1}`,
+          orderIndex: les.orderIndex ?? lIdx + 1,
+          lessonType: (les.lessonType || 'THEORY') as any,
+          duration:
+            les.duration ??
+            (typeof les.durationSeconds === 'number'
+              ? Math.max(1, Math.round(les.durationSeconds / 60))
+              : 45),
+          status: (les.status === 'COMPLETED' || les.status === 'IN_PROGRESS'
+            ? les.status
+            : 'NOT_STARTED') as Lesson['status'],
+          description: les.description || '',
+          isPublished: typeof les.isPublished === 'boolean' ? les.isPublished : true,
+          materials: les.materials || [],
+        })),
+      }));
+      saveLocalChapters(courseId, parsedChapters);
+      return parsedChapters;
+    }
+  } catch {
+    // API not connected or returned error
+  }
+
+  // 3. Fallback to default mock chapters (flexible matching)
+  const matchedKey = Object.keys(DEFAULT_MOCK_CHAPTERS).find(
+    (k) =>
+      k.toLowerCase() === cleanId ||
+      k.toLowerCase().replace('course-', '') === cleanId.replace('course-', '')
+  );
+  const fallback = (matchedKey && DEFAULT_MOCK_CHAPTERS[matchedKey]) || DEFAULT_MOCK_CHAPTERS['course-cs-202'] || [];
+  return fallback;
+
 }
 
 export async function createChapter(

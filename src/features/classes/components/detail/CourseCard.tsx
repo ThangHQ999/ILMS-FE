@@ -58,7 +58,7 @@ export function CourseCard({
   const bgUrl = course?.backgroundUrl || course?.thumbnailUrl;
 
   return (
-    <div
+<div
       className={`bg-[#FFFFFF] dark:bg-[#1E1F20] rounded-3xl p-5 flex flex-col h-full min-h-[280px] border-none shadow-sm dark:shadow-none relative transition-transform hover:-translate-y-0.5 duration-200 ${
         isMenuOpen ? 'z-30' : ''
       }`}

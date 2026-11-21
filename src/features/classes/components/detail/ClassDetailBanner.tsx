@@ -13,6 +13,8 @@ interface ClassDetailBannerProps {
   studentsCount?: number;
   assignmentsCount?: number;
   instructorsCount: number;
+  canManageClass?: boolean;
+  isCompact?: boolean;
   onCopyCode: () => void;
   onInviteClick: () => void;
   onOpenSettings: () => void;

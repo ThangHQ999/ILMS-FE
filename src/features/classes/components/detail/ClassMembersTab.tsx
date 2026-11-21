@@ -201,8 +201,9 @@ export function ClassMembersTab({
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* 1. CLASS CAPACITY & ENROLLMENT HERO STATS */}
+    <>
+      <div className="space-y-6 animate-fadeIn">
+        {/* 1. CLASS CAPACITY & ENROLLMENT HERO STATS */}
       <div className="w-full rounded-3xl bg-white dark:bg-[#1E1F20] p-6 shadow-sm dark:shadow-none border-none flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div className="flex flex-col gap-2 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2.5">
@@ -485,13 +486,12 @@ export function ClassMembersTab({
                     {/* Attendance */}
                     <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
                       <span
-                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold font-mono border-none ${
-                          (student.attendanceRate ?? 90) >= 90
+                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold font-mono border-none ${(student.attendanceRate ?? 90) >= 90
                             ? 'bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]'
                             : (student.attendanceRate ?? 90) >= 75
-                            ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                            : 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
-                        }`}
+                              ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
+                              : 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
+                          }`}
                       >
                         {student.attendanceRate ?? 90}%
                       </span>
@@ -505,20 +505,18 @@ export function ClassMembersTab({
                             {student.knowledgeNodesUnlocked ?? 60}/{student.knowledgeNodesTotal ?? 82}
                           </span>
                           <span
-                            className={`font-semibold font-mono ${
-                              isRisk || isNeedHelp
+                            className={`font-semibold font-mono ${isRisk || isNeedHelp
                                 ? 'text-red-700 dark:text-[#F28B82]'
                                 : 'text-[#007BFF] dark:text-[#A8C7FA]'
-                            }`}
+                              }`}
                           >
                             {student.knowledgePercent ?? 75}%
                           </span>
                         </div>
                         <div className="w-full h-1.5 bg-gray-200 dark:bg-[#282A2C] rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              isRisk || isNeedHelp ? 'bg-red-500' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
-                            }`}
+                            className={`h-full rounded-full ${isRisk || isNeedHelp ? 'bg-red-500' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                              }`}
                             style={{ width: `${student.knowledgePercent ?? 75}%` }}
                           />
                         </div>
@@ -528,13 +526,12 @@ export function ClassMembersTab({
                     {/* GPA / PLO */}
                     <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
                       <span
-                        className={`text-base font-extrabold font-mono ${
-                          isRisk
+                        className={`text-base font-extrabold font-mono ${isRisk
                             ? 'text-red-700 dark:text-[#F28B82]'
                             : (student.gpa ?? 8.0) >= 9.0
-                            ? 'text-blue-600 dark:text-[#A8C7FA]'
-                            : 'text-gray-900 dark:text-[#E3E3E3]'
-                        }`}
+                              ? 'text-blue-600 dark:text-[#A8C7FA]'
+                              : 'text-gray-900 dark:text-[#E3E3E3]'
+                          }`}
                       >
                         {student.gpa?.toFixed(1) ?? '8.0'}
                       </span>
@@ -714,11 +711,10 @@ export function ClassMembersTab({
                 key={page}
                 type="button"
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all border-none cursor-pointer ${
-                  currentPage === page
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all border-none cursor-pointer ${currentPage === page
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-black/5 dark:hover:bg-white/5 bg-transparent'
-                }`}
+                  }`}
               >
                 {page}
               </button>
@@ -826,8 +822,9 @@ export function ClassMembersTab({
           </button>
         </div>
       </div>
+      </div>
 
-      {/* 5. DRAWER HỒ SƠ & TIẾN ĐỘ HỌC VIÊN CHI TIẾT */}
+      {/* 5. DRAWER HỒ SƠ & TIẾN ĐỘ HỌC VIÊN CHI TIẾT (Tách biệt hoàn toàn khỏi flow .space-y-6) */}
       <StudentDetailDrawer
         isOpen={!!selectedStudentForProfile}
         onClose={() => setSelectedStudentForProfile(null)}
@@ -845,6 +842,6 @@ export function ClassMembersTab({
         }
         onToast={notify}
       />
-    </div>
+    </>
   );
 }

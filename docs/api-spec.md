@@ -1440,7 +1440,13 @@ Base path: `/api/v1/classes/{classId}/announcements`
   "content": "Trong cơ sở dữ liệu quan hệ, dạng chuẩn BCNF khắc phục nhược điểm nào của chuẩn 3NF?",
   "questionType": "SINGLE_CHOICE",
   "difficultyLevel": "MEDIUM",
+  "bloomLevel": "ANALYZE",
   "explanation": "BCNF loại bỏ triệt để các phụ thuộc hàm mà vế trái không phải là siêu khóa.",
+  "codeSnippet": "SELECT * FROM users WHERE status = 'ACTIVE';",
+  "codeLanguage": "sql",
+  "diagramData": null,
+  "imageUrl": null,
+  "ploId": "9c9c9c9c-0000-0000-0000-000000000003",
   "answers": [
     { "content": "Phụ thuộc hàm vào một phần của khóa chính", "isCorrect": false },
     { "content": "Phụ thuộc hàm giữa các thuộc tính khóa", "isCorrect": true },
@@ -1449,7 +1455,9 @@ Base path: `/api/v1/classes/{classId}/announcements`
   "conceptIds": ["9c9c9c9c-0000-0000-0000-000000000010"]
 }
 ```
-*(Giá trị `questionType`: `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `TRUE_FALSE`, `ESSAY`. Giá trị `difficultyLevel`: `EASY`, `MEDIUM`, `HARD`).*
+*(Giá trị `questionType`: `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `TRUE_FALSE`, `ESSAY`.*
+*Giá trị `difficultyLevel`: `EASY`, `MEDIUM`, `HARD`.*
+*Giá trị `bloomLevel`: `REMEMBER`, `UNDERSTAND`, `APPLY`, `ANALYZE`, `EVALUATE`, `CREATE`).*
 
 ---
 
@@ -1461,13 +1469,19 @@ Base path: `/api/v1/quizzes`
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bài kiểm tra (`?classId=&page=0&size=10`) |
+| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bài kiểm tra (`?classId=&status=&page=0&size=10`) |
 | **GET** | `/api/v1/quizzes/{id}` | `hasAuthority('CLASS_VIEW')` | Chi tiết cấu hình bài quiz |
 | **POST** | `/api/v1/quizzes` | `hasAuthority('ASSESSMENT_MANAGE')` | Tạo bài kiểm tra mới (`QuizRequestDTO`) |
 | **PUT** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Cập nhật cấu hình bài kiểm tra |
 | **DELETE** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa bài kiểm tra |
-| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi vào đề: `{ "questionId": "uuid...", "point": 1.0, "orderIndex": 1 }` |
+| **PATCH** | `/api/v1/quizzes/{id}/publish` | `hasAuthority('ASSESSMENT_MANAGE')` | Công bố đề thi cho lớp học (Chuyển trạng thái `PUBLISHED`) |
+| **PATCH** | `/api/v1/quizzes/{id}/unpublish` | `hasAuthority('ASSESSMENT_MANAGE')` | Hủy công bố đề thi (Chuyển về `DRAFT`) |
+| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi đơn lẻ: `{ "questionId": "uuid...", "point": 1.0, "orderIndex": 1 }` |
+| **POST** | `/api/v1/quizzes/{id}/questions/batch` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi theo lô (`BatchQuizQuestionRequestDTO`) |
 | **DELETE** | `/api/v1/quizzes/{id}/questions/{questionId}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa câu hỏi khỏi đề kiểm tra |
+| **POST** | `/api/v1/quizzes/generate-ai` | `hasAuthority('ASSESSMENT_MANAGE')` | Khởi tạo đề thi / Exam Blueprint bằng AI từ Syllabus hoặc tài liệu |
+| **POST** | `/api/v1/quizzes/import` | `hasAuthority('ASSESSMENT_MANAGE')` | Nhập đề thi từ file Excel (.xlsx) hoặc Moodle XML |
+| **GET** | `/api/v1/quizzes/{id}/export` | `hasAuthority('CLASS_VIEW')` | Xuất đề thi hoặc bảng điểm (`?format=xlsx` hoặc `pdf`) |
 
 #### Payload `QuizRequestDTO`:
 ```json
@@ -1475,12 +1489,49 @@ Base path: `/api/v1/quizzes`
   "classId": "9c9c9c9c-0000-0000-0000-000000000001",
   "title": "Kiểm tra 15 phút: Chuẩn hóa CSDL",
   "description": "Làm bài trắc nghiệm 10 câu",
+  "status": "PUBLISHED",
+  "chapter": "Chương 4: Chuẩn hóa CSDL & Dạng chuẩn 3NF/BCNF",
   "durationMinutes": 15,
   "maxAttempts": 2,
+  "passingScore": 5.0,
+  "scoringStrategy": "HIGHEST_SCORE",
   "shuffleQuestions": true,
   "shuffleAnswers": true,
+  "fullscreenLock": true,
+  "tabSwitchLimit": 3,
+  "lockAnswersUntilDeadline": true,
+  "proctoringEnabled": true,
+  "ploIds": ["9c9c9c9c-0000-0000-0000-000000000003", "9c9c9c9c-0000-0000-0000-000000000005"],
   "startTime": "2026-11-20T08:00:00Z",
   "endTime": "2026-11-20T23:59:59Z"
+}
+```
+*(Trường `status`: `DRAFT`, `PUBLISHED`, `LIVE`, `COMPLETED`, `ARCHIVED`.*  
+*Trường `scoringStrategy`: `HIGHEST_SCORE`, `LATEST_ATTEMPT`, `AVERAGE_SCORE`).*
+
+#### Payload `BatchQuizQuestionRequestDTO`:
+```json
+{
+  "questions": [
+    { "questionId": "9c9c9c9c-0000-0000-0000-000000000011", "point": 1.0, "orderIndex": 1 },
+    { "questionId": "9c9c9c9c-0000-0000-0000-000000000012", "point": 1.0, "orderIndex": 2 }
+  ]
+}
+```
+
+#### Payload Sinh đề AI `QuizGenerateAiRequestDTO`:
+```json
+{
+  "classId": "9c9c9c9c-0000-0000-0000-000000000001",
+  "prompt": "Tạo 20 câu hỏi trắc nghiệm đánh giá kiến thức Tầng Giao vận TCP/UDP",
+  "documentSourceUrl": "https://storage.ilms.edu.vn/materials/Chapter4_Transport_Layer.pdf",
+  "questionCount": 20,
+  "difficultyDistribution": {
+    "remember": 30,
+    "understand": 40,
+    "apply": 20,
+    "analyze": 10
+  }
 }
 ```
 
@@ -1509,6 +1560,85 @@ Base path: `/api/v1/quizzes`
 
 ---
 
+### 10.3. Giám sát Phòng thi Trực tuyến & Chống gian lận (Quiz Proctoring & Live Monitoring)
+
+Base path: `/api/v1/quizzes/{id}/proctor`
+
+| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/quizzes/{id}/proctor/sessions` | `hasAuthority('ASSESSMENT_MANAGE')` | Lấy danh sách trạng thái trực tiếp của các thí sinh trong phòng thi |
+| **POST** | `/api/v1/quizzes/{id}/proctor/events` | `hasAuthority('SUBMISSION_CREATE')` | Ghi nhận sự kiện vi phạm (Chuyển tab, mất tiêu điểm, nghi vấn camera) |
+
+#### Payload `ProctorViolationEventDTO`:
+```json
+{
+  "attemptId": "uuid...",
+  "eventType": "TAB_SWITCH",
+  "detail": "Rời khỏi màn hình làm bài lần thứ 2",
+  "occurredAt": "2026-11-20T08:15:30Z"
+}
+```
+*(Trường `eventType`: `TAB_SWITCH`, `FULLSCREEN_EXIT`, `MULTIPLE_FACES`, `NO_FACE`, `COPY_PASTE`).*
+
+
+---
+
+
+### 10.4. Khiếu nại Điểm thi & Phúc khảo Quiz (Quiz Complaints & Regrading)
+
+| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/quizzes/{id}/complaints` | `hasAuthority('ASSESSMENT_MANAGE')` | Danh sách các khiếu nại chấm lại của bài Quiz |
+| **POST** | `/api/v1/quizzes/{id}/complaints` | `hasAuthority('SUBMISSION_CREATE')` | Sinh viên gửi đơn khiếu nại điểm câu hỏi |
+| **POST** | `/api/v1/complaints/{id}/resolve` | `hasAuthority('ASSESSMENT_MANAGE')` | Giảng viên xử lý khiếu nại (Đồng ý sửa điểm hoặc bác đơn) |
+
+#### Payload `ResolveComplaintRequestDTO`:
+```json
+{
+  "status": "APPROVED",
+  "adjustedScore": 8.5,
+  "instructorNote": "Đồng ý câu hỏi #14 có cách diễn đạt gây hiểu nhầm về Backoff time. Đã cộng 0.5 điểm."
+}
+```
+*(Trường `status`: `APPROVED`, `REJECTED`).*
+
+
+---
+
+
+### 10.5. Thống kê & Phổ điểm Quiz Toàn lớp (Quiz Analytics & Bloom Distribution)
+
+| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/quizzes/{id}/analytics` | `hasAuthority('CLASS_VIEW')` | Thống kê phổ điểm, độ phân cách, tỉ lệ đạt chuẩn PLO và phân bố Bloom |
+
+#### Response mẫu `QuizAnalyticsResponseDTO`:
+```json
+{
+  "quizId": "uuid...",
+  "totalParticipants": 58,
+  "averageScore": 8.2,
+  "highestScore": 10.0,
+  "lowestScore": 4.5,
+  "passRate": 88.0,
+  "scoreDistribution": {
+    "0-4": 2,
+    "5-6": 5,
+    "7-8": 25,
+    "9-10": 26
+  },
+  "bloomDistribution": {
+    "remember": 85.0,
+    "understand": 80.5,
+    "apply": 74.0,
+    "analyze": 68.5
+  },
+  "discriminationIndex": 0.74
+}
+```
+
+
+---
 ## 11. Bài tập, Nộp bài & Chấm điểm (Assignments, Submissions & Gradings)
 
 ### 11.1. Bài tập về nhà (Assignments)

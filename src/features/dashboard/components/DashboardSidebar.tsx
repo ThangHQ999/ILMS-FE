@@ -44,7 +44,7 @@ export function DashboardSidebar({
 
   // Active route matching (includes teammate routes: /courses, /competency, /timetable)
   const isOverviewActive = pathname === '/dashboard';
-  const isClassesActive =
+const isClassesActive =
     (pathname.startsWith('/classes') || pathname.startsWith('/courses')) &&
     !pathname.includes('discussions') &&
     !pathname.includes('assignments');
@@ -69,6 +69,34 @@ export function DashboardSidebar({
     'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 font-semibold shadow-xs';
   const inactiveClass =
     'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 transition-colors font-medium';
+
+  const examItems: NavItem[] = [
+    {
+      href: '/assignments/question-bank',
+      icon: 'help_center',
+      label: 'Ngân hàng câu hỏi',
+      active:
+        pathname.startsWith('/assignments/question-bank') ||
+        pathname.startsWith('/question-bank') ||
+        pathname.includes('tab=bank'),
+    },
+    {
+      href: '/assignments',
+      icon: 'fact_check',
+      label: 'Quản lý Đề thi & Quiz',
+      active:
+        isAssignmentsActive &&
+        !pathname.startsWith('/assignments/question-bank') &&
+        !pathname.startsWith('/question-bank') &&
+        !pathname.includes('tab=bank'),
+    },
+    {
+      href: '/assignments/proctoring',
+      icon: 'visibility',
+      label: 'Giám sát phòng thi',
+      active: pathname.startsWith('/assignments/proctoring') || pathname.includes('proctoring'),
+    },
+  ];
 
   const navGroups: NavGroup[] = [
     {
@@ -110,17 +138,21 @@ export function DashboardSidebar({
           label: isTeacher ? t('navPloMatrix') : t('navCompetency'),
           active: isRadarActive,
         },
-        {
-          href: '/assignments',
-          icon: 'quiz',
-          label: t('navAssignments'),
-          active: isAssignmentsActive,
-          badge: (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
-              3
-            </span>
-          ),
-        },
+        ...(isTeacher
+          ? []
+          : [
+              {
+                href: '/assignments',
+                icon: 'quiz',
+                label: t('navAssignments'),
+                active: isAssignmentsActive,
+                badge: (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
+                    3
+                  </span>
+                ),
+              },
+            ]),
         {
           href: '/knowledge-graph',
           icon: 'hub',
@@ -129,6 +161,15 @@ export function DashboardSidebar({
         },
       ],
     },
+    ...(isTeacher
+      ? [
+          {
+            key: 'examGroup',
+            title: 'KHẢO THÍ & BÀI THI',
+            items: examItems,
+          },
+        ]
+      : []),
     {
       key: 'aiGroup',
       title: t('aiGroup'),

@@ -1274,6 +1274,21 @@ export function mapRawGraphToCanvasData(
         if (raw.description && !isUuidOrCode(raw.description)) {
           selfBucket.definitions.push(raw.description.trim());
         }
+        const rawSourceRefs = Array.isArray(raw.sourceRefs)
+          ? (raw.sourceRefs as Array<Record<string, unknown>>)
+          : [];
+        rawSourceRefs.forEach((sr, srIdx) => {
+          if (typeof sr.excerpt === 'string' && sr.excerpt.trim()) {
+            const ex = sr.excerpt.trim();
+            if (!selfBucket.definitions.includes(ex)) {
+              selfBucket.definitions.push(ex);
+            }
+            selfBucket.chunks.push({
+              id: (sr.chunkId as string) || `sr-${id}-${srIdx}`,
+              text: ex,
+            });
+          }
+        });
         if (Array.isArray(raw.exceptions)) {
           selfBucket.exceptions.push(...raw.exceptions);
         }
@@ -1517,6 +1532,10 @@ export function mapRawGraphToCanvasData(
       }
       procList.forEach((p) => {
         p.steps.sort((a, b) => a.stepNumber - b.stepNumber);
+        p.steps = p.steps.map((s, stepIndex) => ({
+          stepNumber: stepIndex + 1,
+          action: s.action,
+        }));
       });
 
       // Final exercises array:
@@ -1533,7 +1552,13 @@ export function mapRawGraphToCanvasData(
         }
       }
       exList.forEach((e) => {
-        if (e.steps) e.steps.sort((a, b) => a.stepNumber - b.stepNumber);
+        if (e.steps) {
+          e.steps.sort((a, b) => a.stepNumber - b.stepNumber);
+          e.steps = e.steps.map((s, stepIndex) => ({
+            stepNumber: stepIndex + 1,
+            action: s.action,
+          }));
+        }
       });
 
       let effectiveDefText = '';
@@ -1549,7 +1574,13 @@ export function mapRawGraphToCanvasData(
           effectiveDefText = entityBucket.chunks[0].text;
         }
         if (!effectiveDefText) {
-          effectiveDefText = getPedagogicalDefinition(label, effectiveTitle);
+          const candidatePedagogical = getPedagogicalDefinition(label, effectiveTitle);
+          if (
+            candidatePedagogical &&
+            !candidatePedagogical.startsWith('Khái niệm tri thức nền tảng trong chương trình đào tạo')
+          ) {
+            effectiveDefText = candidatePedagogical;
+          }
         }
       }
 
