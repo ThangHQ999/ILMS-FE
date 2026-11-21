@@ -53,49 +53,28 @@ export function getDemoUser(role?: ActiveRole | null): DemoUserProfile {
 
 /**
  * Kiểm tra xem chế độ Preview có đang được chủ động kích hoạt hay không.
- * Điều kiện tiên quyết:
- * 1. Môi trường phát triển (NODE_ENV !== 'production'). Tuyệt đối không cho phép trên production.
- * 2. Dev chủ động bật qua URL parameter (?preview=true hoặc ?demo=true) hoặc cờ trong localStorage.
- * 3. Có thể tắt chủ động qua ?preview=false hoặc ?demo=false.
+ * Đã vô hiệu hóa hoàn toàn theo yêu cầu của hệ thống.
  */
 export function isPreviewModeEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (process.env.NODE_ENV === 'production') return false;
-
-  try {
-    const searchParams = new URLSearchParams(window.location.search);
-    const previewParam = searchParams.get('preview') || searchParams.get('demo');
-
-    if (previewParam === 'true') {
-      localStorage.setItem(PREVIEW_STORAGE_KEY, 'true');
-      return true;
-    }
-    if (previewParam === 'false') {
+  if (typeof window !== 'undefined') {
+    try {
       localStorage.removeItem(PREVIEW_STORAGE_KEY);
-      return false;
+    } catch {
+      // ignore
     }
-
-    return localStorage.getItem(PREVIEW_STORAGE_KEY) === 'true';
-  } catch {
-    return false;
   }
+  return false;
 }
 
 /**
  * Bật/tắt chế độ preview thủ công từ code hoặc UI
  */
-export function setPreviewMode(enabled: boolean): void {
-  if (typeof window === 'undefined') return;
-  if (process.env.NODE_ENV === 'production') return;
-
-  try {
-    if (enabled) {
-      localStorage.setItem(PREVIEW_STORAGE_KEY, 'true');
-    } else {
+export function setPreviewMode(_enabled: boolean): void {
+  if (typeof window !== 'undefined') {
+    try {
       localStorage.removeItem(PREVIEW_STORAGE_KEY);
+    } catch {
+      // ignore
     }
-    window.dispatchEvent(new CustomEvent(PREVIEW_CHANGE_EVENT, { detail: enabled }));
-  } catch {
-    // ignore
   }
 }
