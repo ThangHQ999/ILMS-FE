@@ -341,23 +341,13 @@ export function PublicHeader() {
 
           {/* Action Buttons: Avatar if logged in, else Login/Register */}
           {mounted && user ? (
-            <div className="flex items-center gap-2.5">
-              <Link
-                href="/dashboard"
-                prefetch={true}
-                className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-[#041E49] dark:text-[#A8C7FA] bg-[#D3E3FD]/70 hover:bg-[#D3E3FD] dark:bg-[#162B4D]/70 dark:hover:bg-[#162B4D] px-3.5 py-1.5 rounded-full transition-colors whitespace-nowrap"
-              >
-                <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                <span>Bảng điều khiển</span>
-              </Link>
-              <UserMenuDropdown
-                userFullName={
-                  [user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') ||
-                  user.email
-                }
-                isFocus={false}
-              />
-            </div>
+            <UserMenuDropdown
+              userFullName={
+                [user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') ||
+                user.email
+              }
+              isFocus={false}
+            />
           ) : (
             <>
               <Link
