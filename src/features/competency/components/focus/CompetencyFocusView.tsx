@@ -18,7 +18,7 @@ interface CompetencyFocusViewProps {
 }
 
 export function CompetencyFocusView({
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   goals,
   onExitFocus,
 }: CompetencyFocusViewProps) {
@@ -69,7 +69,7 @@ export function CompetencyFocusView({
   };
 
   return (
-    <div className="bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] min-h-screen flex flex-col justify-between selection:bg-[#D3E3FD] selection:text-[#041E49] relative overflow-x-hidden font-sans">
+    <div className="bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] min-h-screen flex flex-col justify-between selection:bg-[#D3E3FD] selection:text-[#041E49] dark:selection:bg-[#0842A0] dark:selection:text-white relative overflow-x-hidden font-sans">
       {/* Background Subtle Ambient Glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[720px] h-[400px] bg-blue-200/40 dark:bg-[#162B4D] rounded-full blur-[140px]" />

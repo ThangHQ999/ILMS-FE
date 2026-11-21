@@ -32,7 +32,7 @@ interface CompetencyAnalyticsViewProps {
 }
 
 export function CompetencyAnalyticsView({
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   radarData,
   masteryTopics,
   trendPoints,
@@ -63,7 +63,7 @@ export function CompetencyAnalyticsView({
   };
 
   return (
-    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-[#D3E3FD] selection:text-[#041E49]">
+    <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-[#D3E3FD] selection:text-[#041E49] dark:selection:bg-[#0842A0] dark:selection:text-white">
       {/* Existing Dashboard Sidebar in Analytics mode */}
       <DashboardSidebar
         isFocus={false}
@@ -73,9 +73,8 @@ export function CompetencyAnalyticsView({
 
       {/* Main Content Area */}
       <div
-        className={`transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
-        }`}
+        className={`transition-all duration-300 ${isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
+          }`}
       >
         {/* Existing Dashboard Header */}
         <DashboardHeader
@@ -121,7 +120,7 @@ export function CompetencyAnalyticsView({
             {activeTab === 'tree' && (
               <StudentCompetencyMapView
                 userFullName={userFullName}
-                onToast={() => {}}
+                onToast={() => { }}
                 onSwitchToFocus={onSwitchToFocus}
                 onOpenRadarView={() => setActiveTab('profile')}
                 onOpenHeatmap={() => setActiveTab('heatmap')}
