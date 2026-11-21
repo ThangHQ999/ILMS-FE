@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
+import { useNotificationStream } from '@/features/notifications';
 
 const routeMap: Record<string, string> = {
   '/dashboard': 'Tổng quan',
@@ -84,6 +85,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
+  const { latestNotification, clearLatestNotification } = useNotificationStream();
   const isCreateQuiz = pathname?.startsWith('/assignments/create') || pathname?.startsWith('/assignments/create-quiz');
   const currentPageName = title || getPageTitle(pathname || '');
 
@@ -229,6 +231,42 @@ className={`fixed top-0 ${
           <UserMenuDropdown userFullName={userFullName} isFocus={false} />
         </div>
       </div>
+
+      {/* Real-time Notification Banner / Toast */}
+      {latestNotification && (
+        <div className="fixed top-20 right-6 z-50 max-w-sm w-full bg-white dark:bg-[#1E1F20] rounded-3xl p-4 shadow-2xl border border-blue-200/80 dark:border-blue-900/60 animate-in slide-in-from-top-3 duration-200 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[20px]">{latestNotification.icon}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-1">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-[#E3E3E3] truncate">
+                {latestNotification.title}
+              </h4>
+              <button
+                type="button"
+                onClick={clearLatestNotification}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px]">close</span>
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-600 dark:text-[#C4C7C5] line-clamp-2 mt-1">
+              {latestNotification.description}
+            </p>
+            {latestNotification.actionUrl && (
+              <Link
+                href={latestNotification.actionUrl}
+                onClick={clearLatestNotification}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline mt-2"
+              >
+                <span>Xem ngay</span>
+                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -2,12 +2,17 @@
 
 import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useNotifications } from '../hooks/useNotifications';
-import { NotificationTab } from '../types';
+import {
+  useNotifications,
+  type NotificationTab,
+  type NotificationItem,
+} from '@/features/notifications';
 
 export function NotificationDropdown() {
   const t = useTranslations('dashboard');
+  const router = useRouter();
   const {
     isOpen,
     toggleOpen,
@@ -16,8 +21,10 @@ export function NotificationDropdown() {
     setActiveTab,
     notifications,
     unreadCount,
+    isLoading,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
   } = useNotifications();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,6 +43,16 @@ export function NotificationDropdown() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, setIsOpen]);
+
+  const handleItemClick = (item: NotificationItem) => {
+    if (!item.isRead) {
+      markAsRead(item.id);
+    }
+    if (item.actionUrl) {
+      setIsOpen(false);
+      router.push(item.actionUrl);
+    }
+  };
 
   const tabs: { key: NotificationTab; label: string }[] = [
     { key: 'all', label: t('tabAll') },
@@ -123,7 +140,19 @@ export function NotificationDropdown() {
 
           {/* Notification Items List */}
           <div className="max-h-[380px] overflow-y-auto overscroll-contain bg-white dark:bg-[#1E1F20]">
-            {notifications.length === 0 ? (
+            {isLoading && notifications.length === 0 ? (
+              <div className="p-4 space-y-3">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="flex items-start gap-3 p-2 animate-pulse">
+                    <div className="w-9 h-9 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-3 w-full rounded bg-slate-100 dark:bg-slate-800/60" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#747775] dark:text-[#8E918F]">
                 {t('noNotifications')}
               </div>
@@ -133,7 +162,7 @@ export function NotificationDropdown() {
                 return (
                   <div
                     key={item.id}
-                    onClick={() => markAsRead(item.id)}
+                    onClick={() => handleItemClick(item)}
                     className={`p-3.5 transition-colors flex items-start gap-3 relative group cursor-pointer ${
                       isUnread
                         ? 'bg-[#F0F4F9]/70 dark:bg-[#282A2C]/40 hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]/70'
@@ -157,17 +186,30 @@ export function NotificationDropdown() {
                         <p className="text-sm font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate">
                           {item.title}
                         </p>
-                        {isUnread && (
-                          <span
-                            className={`w-2 h-2 rounded-full shrink-0 ${
-                              item.colorType === 'secondary'
-                                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
-                                : item.colorType === 'amber'
-                                ? 'bg-[#725200] dark:bg-[#FFB784]'
-                                : 'bg-[#0D652D] dark:bg-[#81C995]'
-                            }`}
-                          />
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isUnread && (
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                item.colorType === 'secondary'
+                                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
+                                  : item.colorType === 'amber'
+                                  ? 'bg-[#725200] dark:bg-[#FFB784]'
+                                  : 'bg-[#0D652D] dark:bg-[#81C995]'
+                              }`}
+                            />
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification(item.id);
+                            }}
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 opacity-0 group-hover:opacity-100 transition-all cursor-pointer border-none"
+                            title="Xóa thông báo này"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                          </button>
+                        </div>
                       </div>
                       <p className="text-xs text-[#444746] dark:text-[#C4C7C5] line-clamp-2 leading-relaxed mb-2">
                         {item.description}
@@ -178,13 +220,10 @@ export function NotificationDropdown() {
                           {item.timeAgo}
                         </span>
                         {item.actionText && (
-                          <button
-                            className="bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-3.5 py-1 text-xs whitespace-nowrap transition-colors inline-flex items-center gap-1 cursor-pointer border-none shadow-none"
-                            type="button"
-                          >
+                          <span className="bg-[#D3E3FD] group-hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:group-hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-3.5 py-1 text-xs whitespace-nowrap transition-colors inline-flex items-center gap-1 border-none shadow-none">
                             <span>{item.actionText}</span>
                             <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                          </button>
+                          </span>
                         )}
                       </div>
                     </div>

@@ -474,31 +474,41 @@ export async function getEnrolledCourses(): Promise<CourseProgress[]> {
   return MOCK_COURSES;
 }
 
+import {
+  getNotifications as getRealNotifications,
+  markNotificationAsRead as markRealNotificationAsRead,
+  markAllNotificationsAsRead as markRealAllNotificationsAsRead,
+} from '@/features/notifications';
+
 export async function getNotifications(): Promise<NotificationItem[]> {
   try {
-    const { data } = await api.get<ApiResponse<unknown[]>>(
-      DASHBOARD_ENDPOINTS.NOTIFICATIONS
-    );
-    return (data.data || []).map((n) => notificationItemSchema.parse(n));
+    const res = await getRealNotifications({ page: 0, size: 20 });
+    if (res.items.length > 0) {
+      return res.items.map((n) => ({
+        id: n.id,
+        title: n.title,
+        description: n.description,
+        timeAgo: n.timeAgo,
+        isRead: n.isRead,
+        category: n.category,
+        icon: n.icon,
+        colorType: n.colorType,
+        actionText: n.actionText,
+        actionUrl: n.actionUrl ?? undefined,
+      }));
+    }
+    return MOCK_NOTIFICATIONS;
   } catch {
     return MOCK_NOTIFICATIONS;
   }
 }
 
 export async function markNotificationAsRead(id: string): Promise<void> {
-  try {
-    await api.patch(DASHBOARD_ENDPOINTS.NOTIFICATION_READ(id));
-  } catch {
-    // Optimistic fallback
-  }
+  await markRealNotificationAsRead(id);
 }
 
 export async function markAllNotificationsAsRead(): Promise<void> {
-  try {
-    await api.post(DASHBOARD_ENDPOINTS.NOTIFICATIONS_READ_ALL);
-  } catch {
-    // Optimistic fallback
-  }
+  await markRealAllNotificationsAsRead();
 }
 
 export async function getAITasks(): Promise<AITaskItem[]> {
