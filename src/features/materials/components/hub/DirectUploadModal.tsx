@@ -22,6 +22,7 @@ export function DirectUploadModal({
   onClose,
   onSubmit,
 }: DirectUploadModalProps) {
+  const [uploadMode, setUploadMode] = useState<'AI_EXTRACTION' | 'STORAGE_ONLY'>('AI_EXTRACTION');
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
@@ -85,20 +86,34 @@ export function DirectUploadModal({
     if (courseId) {
       form.append('courseId', courseId);
     }
+    if (uploadMode === 'STORAGE_ONLY') {
+      form.append('skipAiExtraction', 'true');
+      form.append('isStorageOnly', 'true');
+    }
     onSubmit(form);
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Tải tài liệu vào Pipeline AI (Luồng duyệt tay)
+              {uploadMode === 'STORAGE_ONLY'
+                ? 'Tải tài liệu lưu trữ (Thuần file Cloud)'
+                : 'Tải tài liệu vào Pipeline AI (Luồng duyệt tay)'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Hệ thống sẽ chạy 4 Agent AI trích xuất thực thể, tạo bản nháp và dừng ở trạng thái{' '}
-              <strong className="text-amber-600 dark:text-amber-400">Chờ duyệt</strong> để bạn kiểm tra trước khi xuất bản Neo4j.
+              {uploadMode === 'STORAGE_ONLY' ? (
+                <span>
+                  Tệp sẽ được lưu trữ an toàn trên Cloud Storage mà không kích hoạt pipeline 4 Agent AI và không bóc tách thực thể Neo4j.
+                </span>
+              ) : (
+                <span>
+                  Hệ thống sẽ chạy 4 Agent AI trích xuất thực thể, tạo bản nháp và dừng ở trạng thái{' '}
+                  <strong className="text-amber-600 dark:text-amber-400">Chờ duyệt</strong> để bạn kiểm tra trước khi xuất bản Neo4j.
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -108,6 +123,34 @@ export function DirectUploadModal({
             className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        {/* Segmented Mode Control */}
+        <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl gap-1">
+          <button
+            type="button"
+            onClick={() => setUploadMode('AI_EXTRACTION')}
+            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              uploadMode === 'AI_EXTRACTION'
+                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">psychology</span>
+            <span>Bóc tách AI (Tạo đồ thị)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadMode('STORAGE_ONLY')}
+            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              uploadMode === 'STORAGE_ONLY'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">folder</span>
+            <span>Chỉ lưu trữ file (Thuần tệp)</span>
           </button>
         </div>
 
@@ -196,16 +239,30 @@ export function DirectUploadModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50 ${
+                uploadMode === 'STORAGE_ONLY'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-[#0059bb] hover:bg-blue-700'
+              }`}
             >
               <span
                 className={`material-symbols-outlined text-[16px] ${
                   isSubmitting ? 'animate-spin' : ''
                 }`}
               >
-                {isSubmitting ? 'progress_activity' : 'cloud_upload'}
+                {isSubmitting
+                  ? 'progress_activity'
+                  : uploadMode === 'STORAGE_ONLY'
+                  ? 'cloud_upload'
+                  : 'psychology'}
               </span>
-              <span>{isSubmitting ? 'Đang đẩy vào hàng đợi...' : 'Bắt đầu bóc tách AI'}</span>
+              <span>
+                {isSubmitting
+                  ? 'Đang xử lý...'
+                  : uploadMode === 'STORAGE_ONLY'
+                  ? 'Lưu trữ tệp Cloud'
+                  : 'Bắt đầu bóc tách AI'}
+              </span>
             </button>
           </div>
         </form>

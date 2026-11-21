@@ -163,15 +163,20 @@ export function MaterialsHubPageView() {
   }, [jobs, selectedJobId]);
 
   const handleDirectUpload = (formData: FormData) => {
+    const isStorageOnly = formData.get('isStorageOnly') === 'true';
     uploadMutation.mutate(formData, {
       onSuccess: (created) => {
         setIsUploadOpen(false);
-        showToast('Đã đưa tài liệu vào hàng đợi bóc tách AI (chế độ chờ duyệt).');
+        showToast(
+          isStorageOnly
+            ? 'Đã tải và lưu trữ tệp an toàn lên Cloud Storage (không bóc tách AI).'
+            : 'Đã đưa tài liệu vào hàng đợi bóc tách AI (chế độ chờ duyệt).'
+        );
         handleSelectJob(created.jobId);
       },
       onError: (err) => {
         showToast(
-          err instanceof Error ? err.message : 'Không thể tải tài liệu lên pipeline AI.'
+          err instanceof Error ? err.message : 'Không thể tải tài liệu lên.'
         );
       },
     });
