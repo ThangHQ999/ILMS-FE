@@ -968,7 +968,8 @@ export async function getClassAnnouncements(classId: string): Promise<ClassAnnou
   const apiId = normalizeClassApiId(classId);
   try {
     const { data: annRes } = await api.get<ApiResponse<unknown>>(
-      `/classes/${apiId}/announcements`
+      `/classes/${apiId}/announcements`,
+      { timeout: 3500 }
     );
     const list = extractArrayPayload(annRes?.data ?? annRes);
     return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
@@ -978,7 +979,8 @@ export async function getClassAnnouncements(classId: string): Promise<ClassAnnou
     if (status === 404) {
       try {
         const { data: legacyRes } = await api.get<ApiResponse<unknown>>(
-          `/classes/class/${apiId}/Announcements`
+          `/classes/class/${apiId}/Announcements`,
+          { timeout: 2500 }
         );
         const list = extractArrayPayload(legacyRes?.data ?? legacyRes);
         return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
@@ -1188,7 +1190,8 @@ export async function getClassStats(classId: string): Promise<ClassBannerStats> 
   const apiId = normalizeClassApiId(classId);
   try {
     const { data } = await api.get<ApiResponse<Record<string, unknown>>>(
-      `/classes/${apiId}/stats`
+      `/classes/${apiId}/stats`,
+      { timeout: 3500 }
     );
     const resData = (data?.data ?? data) as Record<string, unknown> | undefined;
     if (resData && typeof resData === 'object') {

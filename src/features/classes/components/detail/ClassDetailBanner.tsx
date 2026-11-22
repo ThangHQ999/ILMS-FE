@@ -193,7 +193,7 @@ export function ClassDetailBanner({
                   <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
                     calendar_add_on
                   </span>
-                  <span>+ Lên lịch học</span>
+                  <span>Lên lịch học</span>
                 </button>
               )}
 
@@ -205,7 +205,7 @@ export function ClassDetailBanner({
                 <span className="material-symbols-outlined text-[18px]">
                   {currentRole === 'student' ? 'qr_code_2' : 'person_add'}
                 </span>
-                <span>{currentRole === 'student' ? 'Mã mời & QR' : '+ Mời thành viên'}</span>
+                <span>{currentRole === 'student' ? 'Mã mời & QR' : 'Mời thành viên'}</span>
               </button>
 
               {/* Three Dots Menu */}
@@ -321,8 +321,8 @@ export function ClassDetailBanner({
                 type="button"
                 onClick={() => onTabChange(tab.id)}
                 className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer border-none ${isActive
-                    ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3]'
-                    : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] bg-transparent'
+                  ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3]'
+                  : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] bg-transparent'
                   }`}
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -332,8 +332,8 @@ export function ClassDetailBanner({
                 {tab.badge !== undefined && (
                   <span
                     className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${isActive
-                        ? 'bg-black/10 dark:bg-white/10 text-gray-900 dark:text-[#E3E3E3]'
-                        : 'bg-gray-200 dark:bg-[#333537] text-gray-700 dark:text-[#C4C7C5]'
+                      ? 'bg-black/10 dark:bg-white/10 text-gray-900 dark:text-[#E3E3E3]'
+                      : 'bg-gray-200 dark:bg-[#333537] text-gray-700 dark:text-[#C4C7C5]'
                       }`}
                   >
                     {tab.badge}

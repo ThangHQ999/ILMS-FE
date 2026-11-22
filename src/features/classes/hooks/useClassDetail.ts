@@ -92,6 +92,31 @@ export function useClassDetail(
     queryFn: () => getClassStats(classId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    placeholderData: () => {
+      // Seed instant stats from cached class item
+      const cached = queryClient.getQueriesData<{ items?: ClassItem[] }>({
+        queryKey: ['classes'],
+      });
+      const cleanTargetId = classId.toLowerCase().trim();
+      for (const [, cacheData] of cached) {
+        if (cacheData?.items && Array.isArray(cacheData.items)) {
+          const match = cacheData.items.find(
+            (c) =>
+              String(c.id).toLowerCase().trim() === cleanTargetId ||
+              c.name?.toLowerCase().trim() === cleanTargetId ||
+              c.enrollmentKey?.toLowerCase().trim() === cleanTargetId
+          );
+          if (match) {
+            return {
+              coursesCount: 0,
+              studentsCount: match.enrolledCount || 0,
+              teachersCount: 1,
+            };
+          }
+        }
+      }
+      return undefined;
+    },
   });
 
   // Tab-scoped queries: only fetched when the user enters the corresponding tab

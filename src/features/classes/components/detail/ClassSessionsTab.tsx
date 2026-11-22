@@ -414,11 +414,10 @@ export function ClassSessionsTab({
             <button
               type="button"
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
-                viewMode === 'calendar'
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${viewMode === 'calendar'
                   ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
                   : 'text-slate-600 dark:text-[#C4C7C5] hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[17px]">calendar_month</span>
               <span>Dạng lịch</span>
@@ -426,11 +425,10 @@ export function ClassSessionsTab({
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
-                viewMode === 'table'
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${viewMode === 'table'
                   ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
                   : 'text-slate-600 dark:text-[#C4C7C5] hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-[17px]">view_list</span>
               <span>Dạng danh sách</span>
@@ -466,7 +464,7 @@ export function ClassSessionsTab({
               className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
-              <span>+ Thêm ca học</span>
+              <span>Thêm ca học</span>
             </button>
           )}
         </div>
@@ -563,11 +561,10 @@ export function ClassSessionsTab({
                   {detailSession.sessionCode || `#${detailSession.lessonSessionId}`}
                 </span>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                    detailSession.status === 'COMPLETED'
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${detailSession.status === 'COMPLETED'
                       ? 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                       : 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
-                  }`}
+                    }`}
                 >
                   {detailSession.status === 'COMPLETED' ? 'Đã điểm danh' : 'Đang học / Lên lịch'}
                 </span>

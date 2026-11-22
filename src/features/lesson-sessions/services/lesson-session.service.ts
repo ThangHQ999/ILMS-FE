@@ -233,7 +233,8 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
   if (classId && classId !== 'all') {
     try {
       const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
-        `/classes/${classId}/lesson-sessions`
+        `/classes/${classId}/lesson-sessions`,
+        { timeout: 3500 }
       );
       apiSucceeded = true;
       const data = res.data;
@@ -243,7 +244,8 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
       // Attempt 2: Alias /classes/{classId}/lessonSessions
       try {
         const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
-          `/classes/${classId}/lessonSessions`
+          `/classes/${classId}/lessonSessions`,
+          { timeout: 2500 }
         );
         apiSucceeded = true;
         const data = res.data;
@@ -262,6 +264,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
         '/users/me/timetable',
         {
           params: classId && classId !== 'all' ? { classId } : undefined,
+          timeout: 3000,
         }
       );
       apiSucceeded = true;
@@ -904,7 +907,9 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
 
 export async function getRooms(): Promise<Room[]> {
   try {
-    const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>('/rooms');
+    const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>('/rooms', {
+      timeout: 3000,
+    });
     const raw = Array.isArray(res.data)
       ? res.data
       : res.data && typeof res.data === 'object' && 'data' in res.data && Array.isArray(res.data.data)
