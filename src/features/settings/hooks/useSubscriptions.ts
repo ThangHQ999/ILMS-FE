@@ -15,7 +15,8 @@ export const subscriptionKeys = {
   all: ['subscriptions'] as const,
   mySubscription: () => [...subscriptionKeys.all, 'my-subscription'] as const,
   plans: () => [...subscriptionKeys.all, 'plans'] as const,
-  history: () => [...subscriptionKeys.all, 'history'] as const,
+  history: (params?: { page?: number; size?: number }) =>
+    [...subscriptionKeys.all, 'history', params?.page ?? 0, params?.size ?? 10] as const,
 };
 
 export function useMySubscription(options?: { enabled?: boolean }) {
@@ -89,13 +90,13 @@ export function useCancelScheduledSubscription(onSuccessCallback?: () => void) {
   });
 }
 
-export function useSubscriptionHistory() {
+export function useSubscriptionHistory(params?: { page?: number; size?: number }) {
   return useQuery({
-    queryKey: subscriptionKeys.history(),
-    queryFn: getSubscriptionHistory,
+    queryKey: subscriptionKeys.history(params),
+    queryFn: () => getSubscriptionHistory(params),
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 }

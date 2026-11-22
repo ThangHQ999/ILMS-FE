@@ -4,10 +4,12 @@ import {
   mySubscriptionSchema,
   subscriptionPlanSchema,
   subscriptionHistoryItemSchema,
+  subscriptionHistoryResponseSchema,
   type MySubscription,
   type SubscriptionPlan,
   type SubscribeRequest,
   type SubscriptionHistoryItem,
+  type SubscriptionHistoryResponse,
 } from '../schemas/subscription.schema';
 
 /**
@@ -92,16 +94,119 @@ export async function cancelScheduledSubscription(): Promise<{ success: boolean;
 }
 
 /**
- * GET /api/v1/subscriptions/history
- * Lịch sử giao dịch và thanh toán gói dịch vụ của tài khoản
+ * Helper to parse various response shapes into a unified SubscriptionHistoryResponse
  */
-export async function getSubscriptionHistory(): Promise<SubscriptionHistoryItem[]> {
-  const { data } = await api.get<ApiResponse<unknown>>('/subscriptions/history');
-  const rawList = Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data)
-      ? data
+function parseSubscriptionHistoryResponse(rawData: unknown): SubscriptionHistoryResponse {
+  const container =
+    rawData && typeof rawData === 'object' && 'data' in rawData
+      ? (rawData as { data: unknown }).data
+      : rawData;
+
+  // Case 1: Direct array of items
+  if (Array.isArray(container)) {
+    const items = container.map((inv) => subscriptionHistoryItemSchema.parse(inv));
+    return {
+      items,
+      pageNumber: 0,
+      pageSize: items.length || 10,
+      totalElements: items.length,
+      totalPages: 1,
+      isLast: true,
+    };
+  }
+
+  // Case 2: Object with items or content
+  if (container && typeof container === 'object') {
+    const rawObj = container as Record<string, unknown>;
+    const rawList = Array.isArray(rawObj.items)
+      ? rawObj.items
+      : Array.isArray(rawObj.content)
+      ? rawObj.content
       : [];
 
-  return rawList.map((inv) => subscriptionHistoryItemSchema.parse(inv));
+    const items = rawList.map((inv) => subscriptionHistoryItemSchema.parse(inv));
+    const totalElements =
+      typeof rawObj.totalElements === 'number'
+        ? rawObj.totalElements
+        : typeof rawObj.total === 'number'
+        ? rawObj.total
+        : items.length;
+
+    const pageNumber =
+      typeof rawObj.pageNumber === 'number'
+        ? rawObj.pageNumber
+        : typeof rawObj.number === 'number'
+        ? rawObj.number
+        : 0;
+
+    const pageSize =
+      typeof rawObj.pageSize === 'number'
+        ? rawObj.pageSize
+        : typeof rawObj.size === 'number'
+        ? rawObj.size
+        : 10;
+
+    const totalPages =
+      typeof rawObj.totalPages === 'number'
+        ? rawObj.totalPages
+        : Math.ceil(totalElements / (pageSize || 10)) || 1;
+
+    const isLast =
+      typeof rawObj.isLast === 'boolean'
+        ? rawObj.isLast
+        : typeof rawObj.last === 'boolean'
+        ? rawObj.last
+        : pageNumber >= totalPages - 1;
+
+    return {
+      items,
+      pageNumber,
+      pageSize,
+      totalElements,
+      totalPages,
+      isLast,
+    };
+  }
+
+  return {
+    items: [],
+    pageNumber: 0,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 1,
+    isLast: true,
+  };
+}
+
+/**
+ * GET /api/v1/subscriptions/history (hoặc /api/v1/subscription/history)
+ * Lịch sử giao dịch và thanh toán gói dịch vụ của tài khoản (sắp xếp mới nhất lên đầu)
+ */
+export async function getSubscriptionHistory(params?: {
+  page?: number;
+  size?: number;
+}): Promise<SubscriptionHistoryResponse> {
+  const queryParams = {
+    page: params?.page ?? 0,
+    size: params?.size ?? 10,
+  };
+
+  try {
+    const { data } = await api.get<ApiResponse<unknown> | unknown>(
+      '/subscriptions/history',
+      { params: queryParams }
+    );
+    return parseSubscriptionHistoryResponse(data);
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status?: number } };
+    // Fallback to /subscription/history if /subscriptions/history returns 404
+    if (axiosError?.response?.status === 404) {
+      const { data } = await api.get<ApiResponse<unknown> | unknown>(
+        '/subscription/history',
+        { params: queryParams }
+      );
+      return parseSubscriptionHistoryResponse(data);
+    }
+    throw err;
+  }
 }

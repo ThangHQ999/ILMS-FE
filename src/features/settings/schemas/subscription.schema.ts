@@ -184,30 +184,74 @@ export type SubscribeRequest = z.infer<typeof subscribeRequestSchema>;
 export const subscriptionHistoryItemSchema = z
   .object({
     id: z.string().optional(),
-    invoiceCode: z.string().optional(),
-    orderCode: z.string().optional(),
-    code: z.string().optional(),
+    userId: z.string().optional(),
+    userEmail: z.string().optional(),
+    planId: z.string().optional(),
     planName: z.string().optional(),
-    amount: z.number().default(0),
+    planCode: z.string().optional(),
+    amount: z.union([z.number(), z.string()]).default(0),
     currency: z.string().default('VND'),
-    paymentMethod: z.string().default('BANK_TRANSFER'),
-    status: z.string().default('SUCCESS'),
-    paymentDate: z.string().optional(),
-    createdAt: z.string().optional(),
-    paidAt: z.string().optional(),
-    invoicePdfUrl: z.string().optional(),
+    paymentMethod: z.string().default('VIETQR_SEPAY'),
+    paymentStatus: z.string().optional(),
+    status: z.string().optional(),
+    transactionCode: z.string().optional(),
+    orderCode: z.string().optional(),
+    invoiceCode: z.string().optional(),
+    code: z.string().optional(),
+    notes: z.string().nullable().optional(),
+    paymentDate: z.string().nullable().optional(),
+    paidAt: z.string().nullable().optional(),
+    createdAt: z.string().nullable().optional(),
+    invoicePdfUrl: z.string().nullable().optional(),
   })
   .passthrough()
-  .transform((raw) => ({
-    id: raw.id ?? raw.orderCode ?? raw.invoiceCode ?? `inv-${Date.now()}`,
-    invoiceCode: raw.invoiceCode ?? raw.orderCode ?? raw.code ?? 'INV-PAYMENT',
-    planName: raw.planName ?? 'Gói cước ILMS',
-    amount: raw.amount ?? 0,
-    currency: raw.currency ?? 'VND',
-    paymentMethod: raw.paymentMethod ?? 'BANK_TRANSFER',
-    status: raw.status ?? 'SUCCESS',
-    paymentDate: raw.paymentDate ?? raw.paidAt ?? raw.createdAt ?? new Date().toISOString(),
-    invoicePdfUrl: raw.invoicePdfUrl,
-  }));
+  .transform((raw) => {
+    const rawAmount =
+      typeof raw.amount === 'string' ? parseFloat(raw.amount) || 0 : raw.amount ?? 0;
+    const resolvedCode =
+      raw.transactionCode ??
+      raw.invoiceCode ??
+      raw.orderCode ??
+      raw.code ??
+      (raw.id ? `TX-${raw.id.slice(0, 8).toUpperCase()}` : 'TX-PAYMENT');
+    const resolvedStatus = (raw.paymentStatus ?? raw.status ?? 'PAID').toUpperCase();
+    const resolvedDate =
+      raw.paidAt ?? raw.paymentDate ?? raw.createdAt ?? new Date().toISOString();
+
+    return {
+      id: raw.id ?? resolvedCode,
+      userId: raw.userId,
+      userEmail: raw.userEmail,
+      planId: raw.planId,
+      invoiceCode: resolvedCode,
+      transactionCode: raw.transactionCode ?? resolvedCode,
+      planName: raw.planName ?? (raw.planCode ? `Gói ${raw.planCode}` : 'Gói dịch vụ ILMS'),
+      planCode: (raw.planCode ?? '').toUpperCase(),
+      amount: rawAmount,
+      currency: raw.currency ?? 'VND',
+      paymentMethod: raw.paymentMethod ?? 'VIETQR_SEPAY',
+      status: resolvedStatus,
+      paymentDate: resolvedDate,
+      paidAt: raw.paidAt ?? undefined,
+      createdAt: raw.createdAt ?? undefined,
+      notes: raw.notes ?? undefined,
+      invoicePdfUrl: raw.invoicePdfUrl ?? undefined,
+    };
+  });
 
 export type SubscriptionHistoryItem = z.infer<typeof subscriptionHistoryItemSchema>;
+
+export const subscriptionHistoryResponseSchema = z
+  .object({
+    items: z.array(subscriptionHistoryItemSchema).default([]),
+    pageNumber: z.number().default(0),
+    pageSize: z.number().default(10),
+    totalElements: z.number().default(0),
+    totalPages: z.number().default(1),
+    isLast: z.boolean().default(true),
+  })
+  .passthrough();
+
+export type SubscriptionHistoryResponse = z.infer<
+  typeof subscriptionHistoryResponseSchema
+>;

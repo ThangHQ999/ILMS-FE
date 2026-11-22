@@ -12,7 +12,12 @@ import {
   useCancelScheduledSubscription,
   useSubscriptionHistory,
 } from '../../hooks/useSubscriptions';
-import { formatSubscriptionDate } from '../../utils/subscription.utils';
+import {
+  formatSubscriptionDate,
+  formatPaymentDateTime,
+  getPaymentMethodDisplay,
+} from '../../utils/subscription.utils';
+import type { SubscriptionHistoryItem } from '../../schemas/subscription.schema';
 import { CloudStorageCard } from '../storage/CloudStorageCard';
 import { SubscriptionPlansModal } from '../modals/SubscriptionPlansModal';
 
@@ -24,12 +29,21 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
   const t = useTranslations('settings');
   const locale = useLocale();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [historyPage, setHistoryPage] = useState(0);
+  const [selectedInvoice, setSelectedInvoice] = useState<SubscriptionHistoryItem | null>(null);
 
   const { data: currentUser } = useCurrentUser();
   const { data: mySub } = useMySubscription();
   const { data: plans = [] } = useSubscriptionPlans();
   const { data: storageSummary } = useStorageSummary();
-  const { data: history = [] } = useSubscriptionHistory();
+  const { data: historyResponse, isLoading: isLoadingHistory } = useSubscriptionHistory({
+    page: historyPage,
+    size: 10,
+  });
+
+  const history = historyResponse?.items ?? [];
+  const totalElements = historyResponse?.totalElements ?? history.length;
+  const totalPages = historyResponse?.totalPages ?? 1;
 
   const cancelAutoRenewMutation = useCancelAutoRenew(() => {
     onSuccessToast();
@@ -339,15 +353,29 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
         {/* Invoices Table */}
         <div className="pt-4 border-t border-[#F0F4F9] dark:border-[#282A2C] flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-              Lịch sử Giao dịch & Hóa đơn ({history.length})
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                Lịch sử Giao dịch & Hóa đơn ({totalElements})
+              </h3>
+              {historyResponse && (
+                <span className="px-2 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5] text-[10px] font-bold">
+                  API Đã đồng bộ
+                </span>
+              )}
+            </div>
             <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
               {t('invoicesSubtitle')}
             </span>
           </div>
 
-          {history.length === 0 ? (
+          {isLoadingHistory ? (
+            <div className="p-8 rounded-2xl bg-[#F0F4F9]/60 dark:bg-[#282A2C]/40 flex flex-col items-center justify-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent" />
+              <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
+                Đang tải dữ liệu lịch sử thanh toán...
+              </span>
+            </div>
+          ) : history.length === 0 ? (
             <div className="p-8 rounded-2xl bg-[#F0F4F9]/60 dark:bg-[#282A2C]/40 flex flex-col items-center justify-center text-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-[#D3E3FD]/50 text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
                 <span className="material-symbols-outlined text-[24px]">receipt_long</span>
@@ -362,57 +390,122 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border-none">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] font-semibold uppercase text-[11px]">
-                  <tr>
-                    <th className="py-3 px-4 rounded-l-2xl">{t('thInvoiceId')}</th>
-                    <th className="py-3 px-4">{t('thDate')}</th>
-                    <th className="py-3 px-4">{t('thService')}</th>
-                    <th className="py-3 px-4">{t('thAmount')}</th>
-                    <th className="py-3 px-4">{t('thStatus')}</th>
-                    <th className="py-3 px-4 text-right rounded-r-2xl">{t('thAction')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 bg-white dark:bg-[#1E1F20]">
-                  {history.map((inv) => (
-                    <tr
-                      key={inv.id}
-                      className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                        {inv.invoiceCode || inv.id}
-                      </td>
-                      <td className="py-3 px-4 text-[#444746] dark:text-[#C4C7C5]">
-                        {inv.paymentDate}
-                      </td>
-                      <td className="py-3 px-4 text-[#1F1F1F] dark:text-[#E3E3E3] font-medium">
-                        {inv.planName}
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                        {inv.amount.toLocaleString('vi-VN')} đ
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="px-3 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold border-none">
-                          {inv.status === 'SUCCESS' ? t('badgeSuccess') : inv.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={onSuccessToast}
-                          className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium flex items-center gap-1 justify-end ml-auto border-none cursor-pointer bg-transparent"
-                          type="button"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            receipt_long
-                          </span>
-                          {t('btnDownloadVat')}
-                        </button>
-                      </td>
+            <div className="flex flex-col gap-3">
+              <div className="overflow-x-auto rounded-2xl border-none">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] font-semibold uppercase text-[11px]">
+                    <tr>
+                      <th className="py-3 px-4 rounded-l-2xl">Mã giao dịch / Hóa đơn</th>
+                      <th className="py-3 px-4">Thời gian</th>
+                      <th className="py-3 px-4">Gói dịch vụ</th>
+                      <th className="py-3 px-4">Phương thức</th>
+                      <th className="py-3 px-4">Số tiền</th>
+                      <th className="py-3 px-4">Trạng thái</th>
+                      <th className="py-3 px-4 text-right rounded-r-2xl">Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 bg-white dark:bg-[#1E1F20]">
+                    {history.map((inv) => (
+                      <tr
+                        key={inv.id}
+                        className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                          {inv.transactionCode || inv.invoiceCode || inv.id}
+                        </td>
+                        <td className="py-3 px-4 text-[#444746] dark:text-[#C4C7C5] whitespace-nowrap">
+                          {formatPaymentDateTime(inv.paymentDate || inv.paidAt || inv.createdAt, locale)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[#1F1F1F] dark:text-[#E3E3E3] font-medium">
+                              {inv.planName}
+                            </span>
+                            {inv.planCode && (
+                              <span className="px-2 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5] text-[10px] font-bold">
+                                {inv.planCode}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-[#444746] dark:text-[#C4C7C5]">
+                          <span className="px-2 py-1 rounded-lg bg-[#F0F4F9] dark:bg-[#282A2C] text-[11px] font-medium">
+                            {getPaymentMethodDisplay(inv.paymentMethod)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] whitespace-nowrap">
+                          {inv.amount.toLocaleString('vi-VN')} {inv.currency || 'đ'}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {inv.status === 'PAID' || inv.status === 'SUCCESS' ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold border-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+                              Đã thanh toán
+                            </span>
+                          ) : inv.status === 'PENDING' ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-[10px] font-bold border-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-amber-400 animate-pulse" />
+                              Chờ thanh toán
+                            </span>
+                          ) : inv.status === 'EXPIRED' ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[10px] font-bold border-none">
+                              Hết hạn
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 text-[10px] font-bold border-none">
+                              {inv.status}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => setSelectedInvoice(inv)}
+                            className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium inline-flex items-center gap-1 justify-end ml-auto border-none cursor-pointer bg-transparent"
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              receipt_long
+                            </span>
+                            <span>Hóa đơn VAT</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-3 border-t border-[#F0F4F9] dark:border-[#282A2C] text-xs">
+                  <span className="text-[#747775] dark:text-[#C4C7C5]">
+                    Hiển thị {history.length} / {totalElements} giao dịch
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={historyPage === 0}
+                      onClick={() => setHistoryPage((p) => Math.max(0, p - 1))}
+                      className="px-3.5 py-1.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-1 cursor-pointer border-none shadow-none"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                      <span>Trước</span>
+                    </button>
+                    <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] px-2">
+                      Trang {historyPage + 1} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={historyPage >= totalPages - 1}
+                      onClick={() => setHistoryPage((p) => Math.min(totalPages - 1, p + 1))}
+                      className="px-3.5 py-1.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-1 cursor-pointer border-none shadow-none"
+                    >
+                      <span>Sau</span>
+                      <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -424,6 +517,115 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
         onClose={() => setIsUpgradeModalOpen(false)}
         onSuccessToast={onSuccessToast}
       />
+
+      {/* 5. Detailed VAT Invoice Dialog */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-[#1E1F20] border-none max-w-lg w-full p-6 sm:p-7 rounded-3xl shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F0F4F9] dark:border-[#282A2C]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">receipt_long</span>
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="text-base font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                    Hóa đơn Điện tử VAT
+                  </h3>
+                  <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
+                    Hệ thống Quản lý Học tập Thông minh ILMS
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedInvoice(null)}
+                className="w-8 h-8 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#C4C7C5] flex items-center justify-center cursor-pointer border-none"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C]/60 flex flex-col gap-3 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-[#747775] dark:text-[#8E918F]">Mã đơn / Giao dịch</span>
+                <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                  {selectedInvoice.transactionCode || selectedInvoice.invoiceCode}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#747775] dark:text-[#8E918F]">Thời gian thanh toán</span>
+                <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
+                  {formatPaymentDateTime(
+                    selectedInvoice.paymentDate || selectedInvoice.paidAt,
+                    locale
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#747775] dark:text-[#8E918F]">Gói dịch vụ</span>
+                <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                  {selectedInvoice.planName}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#747775] dark:text-[#8E918F]">Phương thức</span>
+                <span className="font-medium text-[#1F1F1F] dark:text-[#E3E3E3]">
+                  {getPaymentMethodDisplay(selectedInvoice.paymentMethod)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#747775] dark:text-[#8E918F]">Trạng thái</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold">
+                  {selectedInvoice.status === 'PAID' || selectedInvoice.status === 'SUCCESS'
+                    ? 'Thành công (Đã đối soát)'
+                    : selectedInvoice.status}
+                </span>
+              </div>
+              {selectedInvoice.notes && (
+                <div className="flex flex-col gap-1 pt-2 border-t border-black/5 dark:border-white/5">
+                  <span className="text-[#747775] dark:text-[#8E918F]">Ghi chú chuyển khoản</span>
+                  <span className="font-mono text-[11px] text-[#444746] dark:text-[#C4C7C5] bg-white dark:bg-[#1E1F20] p-2 rounded-xl">
+                    {selectedInvoice.notes}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#D3E3FD]/40 to-transparent dark:from-[#162B4D]/40 flex justify-between items-center">
+              <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                Tổng tiền đã thanh toán
+              </span>
+              <span className="text-lg font-black text-[#0B57D0] dark:text-[#A8C7FA]">
+                {selectedInvoice.amount.toLocaleString('vi-VN')} {selectedInvoice.currency || 'đ'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedInvoice.invoicePdfUrl) {
+                    window.open(selectedInvoice.invoicePdfUrl, '_blank');
+                  } else {
+                    window.print();
+                  }
+                }}
+                className="px-5 py-2.5 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-none shadow-none transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
+                <span>Tải / In hóa đơn PDF</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedInvoice(null)}
+                className="px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#C4C7C5] text-xs font-medium cursor-pointer border-none shadow-none transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

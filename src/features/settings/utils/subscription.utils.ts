@@ -24,6 +24,41 @@ export function formatSubscriptionDate(
 }
 
 /**
+ * Formats an ISO date string into a localized HH:mm, DD/MM/YYYY string.
+ */
+export function formatPaymentDateTime(
+  rawDate: string | null | undefined,
+  locale = 'vi'
+): string {
+  if (!rawDate) return '--';
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) return rawDate;
+
+  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
+}
+
+/**
+ * Returns user-friendly label for payment method codes.
+ */
+export function getPaymentMethodDisplay(method: string | null | undefined): string {
+  if (!method) return 'Chuyển khoản';
+  const upper = method.toUpperCase();
+  if (upper.includes('VIETQR') || upper.includes('SEPAY')) return 'VietQR (SePay)';
+  if (upper.includes('VNPAY')) return 'VNPay';
+  if (upper.includes('MOMO')) return 'Ví MoMo';
+  if (upper.includes('CREDIT') || upper.includes('CARD') || upper.includes('STRIPE'))
+    return 'Thẻ Visa/Master';
+  if (upper.includes('BANK')) return 'Chuyển khoản';
+  return method;
+}
+
+/**
  * Returns true when switching from the current plan to a lower-tier plan.
  */
 export function isSubscriptionDowngrade(
