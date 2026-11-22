@@ -143,6 +143,13 @@ Dữ liệu nguồn lấy từ `user.roleName` sau khi Frontend gọi API `GET /
 | `KNOWLEDGE_GRAPH_READ` | GRAPH | ✘ | ✔ | ✔ | Màn hình xem Đồ thị tri thức trực quan 2D/3D (Mermaid / Neo4j) |
 | `KNOWLEDGE_GRAPH_EDIT` | GRAPH | ✘ | ✔ (Owner) | ✔ | Chỉnh sửa bản nháp Đồ thị tri thức bóc tách từ tài liệu |
 | `KNOWLEDGE_GRAPH_REVIEW`| GRAPH | ✘ | ✔ (Owner) | ✔ | Duyệt và Xuất bản (Publish) Đồ thị tri thức |
+| `KNOWLEDGE_HEATMAP_VIEW`| HEATMAP | ✘ | ✔ | ✔ | Xem Bản đồ nhiệt tri thức môn học & Ma trận nhiệt lớp học |
+| `PLO_VIEW` | PLO | ✘ | ✔ | ✔ | Xem danh sách Chuẩn đầu ra chương trình đào tạo (PLO) |
+| `PLO_MANAGE` | PLO | ✘ | ✘ | ✔ | Thêm, sửa, xóa Chuẩn đầu ra PLO cấp chương trình |
+| `CLO_VIEW` | CLO | ✘ | ✔ | ✔ | Xem danh sách Chuẩn đầu ra học phần (CLO) của môn học |
+| `CLO_MANAGE` | CLO | ✘ | ✔ (Owner) | ✔ | Thêm, sửa, xóa CLO, gắn Bloom level, target score |
+| `CLO_PLO_MAPPING_MANAGE`| CLO_PLO | ✘ | ✔ (Owner) | ✔ | Chỉnh sửa Ma trận ánh xạ CLO - PLO và Concept - CLO |
+| `OUTCOME_ATTAINMENT_VIEW`| ATTAINMENT | ✘ | ✔ | ✔ | Báo cáo mức độ đạt chuẩn CLO/PLO của học sinh & lớp học |
 
 ---
 
@@ -1440,13 +1447,7 @@ Base path: `/api/v1/classes/{classId}/announcements`
   "content": "Trong cơ sở dữ liệu quan hệ, dạng chuẩn BCNF khắc phục nhược điểm nào của chuẩn 3NF?",
   "questionType": "SINGLE_CHOICE",
   "difficultyLevel": "MEDIUM",
-  "bloomLevel": "ANALYZE",
   "explanation": "BCNF loại bỏ triệt để các phụ thuộc hàm mà vế trái không phải là siêu khóa.",
-  "codeSnippet": "SELECT * FROM users WHERE status = 'ACTIVE';",
-  "codeLanguage": "sql",
-  "diagramData": null,
-  "imageUrl": null,
-  "ploId": "9c9c9c9c-0000-0000-0000-000000000003",
   "answers": [
     { "content": "Phụ thuộc hàm vào một phần của khóa chính", "isCorrect": false },
     { "content": "Phụ thuộc hàm giữa các thuộc tính khóa", "isCorrect": true },
@@ -1455,9 +1456,7 @@ Base path: `/api/v1/classes/{classId}/announcements`
   "conceptIds": ["9c9c9c9c-0000-0000-0000-000000000010"]
 }
 ```
-*(Giá trị `questionType`: `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `TRUE_FALSE`, `ESSAY`.*
-*Giá trị `difficultyLevel`: `EASY`, `MEDIUM`, `HARD`.*
-*Giá trị `bloomLevel`: `REMEMBER`, `UNDERSTAND`, `APPLY`, `ANALYZE`, `EVALUATE`, `CREATE`).*
+*(Giá trị `questionType`: `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `TRUE_FALSE`, `ESSAY`. Giá trị `difficultyLevel`: `EASY`, `MEDIUM`, `HARD`).*
 
 ---
 
@@ -1469,19 +1468,13 @@ Base path: `/api/v1/quizzes`
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bài kiểm tra (`?classId=&status=&page=0&size=10`) |
+| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bài kiểm tra (`?classId=&page=0&size=10`) |
 | **GET** | `/api/v1/quizzes/{id}` | `hasAuthority('CLASS_VIEW')` | Chi tiết cấu hình bài quiz |
 | **POST** | `/api/v1/quizzes` | `hasAuthority('ASSESSMENT_MANAGE')` | Tạo bài kiểm tra mới (`QuizRequestDTO`) |
 | **PUT** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Cập nhật cấu hình bài kiểm tra |
 | **DELETE** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa bài kiểm tra |
-| **PATCH** | `/api/v1/quizzes/{id}/publish` | `hasAuthority('ASSESSMENT_MANAGE')` | Công bố đề thi cho lớp học (Chuyển trạng thái `PUBLISHED`) |
-| **PATCH** | `/api/v1/quizzes/{id}/unpublish` | `hasAuthority('ASSESSMENT_MANAGE')` | Hủy công bố đề thi (Chuyển về `DRAFT`) |
-| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi đơn lẻ: `{ "questionId": "uuid...", "point": 1.0, "orderIndex": 1 }` |
-| **POST** | `/api/v1/quizzes/{id}/questions/batch` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi theo lô (`BatchQuizQuestionRequestDTO`) |
+| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi vào đề: `{ "questionId": "uuid...", "point": 1.0, "orderIndex": 1 }` |
 | **DELETE** | `/api/v1/quizzes/{id}/questions/{questionId}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa câu hỏi khỏi đề kiểm tra |
-| **POST** | `/api/v1/quizzes/generate-ai` | `hasAuthority('ASSESSMENT_MANAGE')` | Khởi tạo đề thi / Exam Blueprint bằng AI từ Syllabus hoặc tài liệu |
-| **POST** | `/api/v1/quizzes/import` | `hasAuthority('ASSESSMENT_MANAGE')` | Nhập đề thi từ file Excel (.xlsx) hoặc Moodle XML |
-| **GET** | `/api/v1/quizzes/{id}/export` | `hasAuthority('CLASS_VIEW')` | Xuất đề thi hoặc bảng điểm (`?format=xlsx` hoặc `pdf`) |
 
 #### Payload `QuizRequestDTO`:
 ```json
@@ -1489,49 +1482,12 @@ Base path: `/api/v1/quizzes`
   "classId": "9c9c9c9c-0000-0000-0000-000000000001",
   "title": "Kiểm tra 15 phút: Chuẩn hóa CSDL",
   "description": "Làm bài trắc nghiệm 10 câu",
-  "status": "PUBLISHED",
-  "chapter": "Chương 4: Chuẩn hóa CSDL & Dạng chuẩn 3NF/BCNF",
   "durationMinutes": 15,
   "maxAttempts": 2,
-  "passingScore": 5.0,
-  "scoringStrategy": "HIGHEST_SCORE",
   "shuffleQuestions": true,
   "shuffleAnswers": true,
-  "fullscreenLock": true,
-  "tabSwitchLimit": 3,
-  "lockAnswersUntilDeadline": true,
-  "proctoringEnabled": true,
-  "ploIds": ["9c9c9c9c-0000-0000-0000-000000000003", "9c9c9c9c-0000-0000-0000-000000000005"],
   "startTime": "2026-11-20T08:00:00Z",
   "endTime": "2026-11-20T23:59:59Z"
-}
-```
-*(Trường `status`: `DRAFT`, `PUBLISHED`, `LIVE`, `COMPLETED`, `ARCHIVED`.*  
-*Trường `scoringStrategy`: `HIGHEST_SCORE`, `LATEST_ATTEMPT`, `AVERAGE_SCORE`).*
-
-#### Payload `BatchQuizQuestionRequestDTO`:
-```json
-{
-  "questions": [
-    { "questionId": "9c9c9c9c-0000-0000-0000-000000000011", "point": 1.0, "orderIndex": 1 },
-    { "questionId": "9c9c9c9c-0000-0000-0000-000000000012", "point": 1.0, "orderIndex": 2 }
-  ]
-}
-```
-
-#### Payload Sinh đề AI `QuizGenerateAiRequestDTO`:
-```json
-{
-  "classId": "9c9c9c9c-0000-0000-0000-000000000001",
-  "prompt": "Tạo 20 câu hỏi trắc nghiệm đánh giá kiến thức Tầng Giao vận TCP/UDP",
-  "documentSourceUrl": "https://storage.ilms.edu.vn/materials/Chapter4_Transport_Layer.pdf",
-  "questionCount": 20,
-  "difficultyDistribution": {
-    "remember": 30,
-    "understand": 40,
-    "apply": 20,
-    "analyze": 10
-  }
 }
 ```
 
@@ -1560,85 +1516,6 @@ Base path: `/api/v1/quizzes`
 
 ---
 
-### 10.3. Giám sát Phòng thi Trực tuyến & Chống gian lận (Quiz Proctoring & Live Monitoring)
-
-Base path: `/api/v1/quizzes/{id}/proctor`
-
-| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes/{id}/proctor/sessions` | `hasAuthority('ASSESSMENT_MANAGE')` | Lấy danh sách trạng thái trực tiếp của các thí sinh trong phòng thi |
-| **POST** | `/api/v1/quizzes/{id}/proctor/events` | `hasAuthority('SUBMISSION_CREATE')` | Ghi nhận sự kiện vi phạm (Chuyển tab, mất tiêu điểm, nghi vấn camera) |
-
-#### Payload `ProctorViolationEventDTO`:
-```json
-{
-  "attemptId": "uuid...",
-  "eventType": "TAB_SWITCH",
-  "detail": "Rời khỏi màn hình làm bài lần thứ 2",
-  "occurredAt": "2026-11-20T08:15:30Z"
-}
-```
-*(Trường `eventType`: `TAB_SWITCH`, `FULLSCREEN_EXIT`, `MULTIPLE_FACES`, `NO_FACE`, `COPY_PASTE`).*
-
-
----
-
-
-### 10.4. Khiếu nại Điểm thi & Phúc khảo Quiz (Quiz Complaints & Regrading)
-
-| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes/{id}/complaints` | `hasAuthority('ASSESSMENT_MANAGE')` | Danh sách các khiếu nại chấm lại của bài Quiz |
-| **POST** | `/api/v1/quizzes/{id}/complaints` | `hasAuthority('SUBMISSION_CREATE')` | Sinh viên gửi đơn khiếu nại điểm câu hỏi |
-| **POST** | `/api/v1/complaints/{id}/resolve` | `hasAuthority('ASSESSMENT_MANAGE')` | Giảng viên xử lý khiếu nại (Đồng ý sửa điểm hoặc bác đơn) |
-
-#### Payload `ResolveComplaintRequestDTO`:
-```json
-{
-  "status": "APPROVED",
-  "adjustedScore": 8.5,
-  "instructorNote": "Đồng ý câu hỏi #14 có cách diễn đạt gây hiểu nhầm về Backoff time. Đã cộng 0.5 điểm."
-}
-```
-*(Trường `status`: `APPROVED`, `REJECTED`).*
-
-
----
-
-
-### 10.5. Thống kê & Phổ điểm Quiz Toàn lớp (Quiz Analytics & Bloom Distribution)
-
-| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes/{id}/analytics` | `hasAuthority('CLASS_VIEW')` | Thống kê phổ điểm, độ phân cách, tỉ lệ đạt chuẩn PLO và phân bố Bloom |
-
-#### Response mẫu `QuizAnalyticsResponseDTO`:
-```json
-{
-  "quizId": "uuid...",
-  "totalParticipants": 58,
-  "averageScore": 8.2,
-  "highestScore": 10.0,
-  "lowestScore": 4.5,
-  "passRate": 88.0,
-  "scoreDistribution": {
-    "0-4": 2,
-    "5-6": 5,
-    "7-8": 25,
-    "9-10": 26
-  },
-  "bloomDistribution": {
-    "remember": 85.0,
-    "understand": 80.5,
-    "apply": 74.0,
-    "analyze": 68.5
-  },
-  "discriminationIndex": 0.74
-}
-```
-
-
----
 ## 11. Bài tập, Nộp bài & Chấm điểm (Assignments, Submissions & Gradings)
 
 ### 11.1. Bài tập về nhà (Assignments)
@@ -2067,17 +1944,30 @@ Response:
 
 ##### 4. `POST /api/v1/subscriptions/subscribe`
 
+> [!WARNING]
+> **Quy định Quan trọng về Thanh toán Gói cước (Payment Guard):**
+> - API `POST /api/v1/subscriptions/subscribe` **CHỈ DÙNG để đăng ký gói Miễn phí (`FREE`, price = 0)** hoặc người dùng tự chuyển về gói miễn phí.
+> - Nếu người dùng truyền `planId` của các gói trả phí (`PLUS`, `PRO`, `ENTERPRISE` có `price > 0`), hệ thống sẽ **TỪ CHỐI** và trả về lỗi **`400 Bad Request`** (Mã lỗi: **`PAYMENT_REQUIRED`**):
+>   ```json
+>   {
+>     "status": 400,
+>     "message": "Gói dịch vụ này yêu cầu thanh toán. Vui lòng tạo đơn hàng thanh toán qua VietQR tại /api/v1/payments/orders",
+>     "timestamp": "2026-11-21T00:00:00.000Z"
+>   }
+>   ```
+> - **Luồng đăng ký gói trả phí bắt buộc:** Người dùng/Frontend phải gọi `POST /api/v1/payments/orders` (xem Mục 18) để tạo đơn hàng thanh toán VietQR SePay. Gói trả phí CHỈ ĐƯỢC KÍCH HOẠT khi Webhook SePay ghi nhận giao dịch chuyển khoản thành công!
+
 > [!IMPORTANT]
 > **Quy tắc cốt lõi về ID (UUID v4):** Tất cả ID thực thể trong hệ thống (`planId`, `userId`, `courseId`, `classId`...) đều là **chuỗi UUID 36 ký tự** chuẩn lấy từ API (ví dụ: `1fa85f64-5717-4562-b3fc-2c963f66afa6`).
 > Tuyệt đối không gửi các mock slug tự đặt (như `"plan-pro"`, `"plan-plus"`). Backend hỗ trợ cơ chế linh hoạt nhận diện cả UUID lẫn Plan Code (`"PRO"`, `"PLUS"`, `"ENTERPRISE"`).
 
-Request:
+Request (Chỉ hợp lệ cho gói `FREE`):
 ```json
 {
-  "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "paymentMethod": "VNPAY",
-  "autoRenew": true,
-  "notes": "Nâng cấp gói Pro học kỳ 1"
+  "planId": "11111111-1111-1111-1111-111111111111",
+  "paymentMethod": "FREE",
+  "autoRenew": false,
+  "notes": "Đăng ký gói miễn phí"
 }
 ```
 
@@ -2147,8 +2037,9 @@ Hệ thống tích hợp cổng thanh toán chuyển khoản ngân hàng tự đ
 
 | Method | Endpoint | Quyền hạn (Authority) | Mô tả chức năng |
 | :---: | :--- | :---: | :--- |
-| **POST** | `/api/v1/payments/orders` | `ROLE_USER` / Đã đăng nhập | Tạo đơn thanh toán gói dịch vụ & sinh link VietQR động SePay |
+| **POST** | `/api/v1/payments/orders` | `ROLE_USER` / Đã đăng nhập | Tạo đơn thanh toán gói dịch vụ & sinh link VietQR động SePay (Mã đơn: `ILMS TENGOI 6SO`) |
 | **GET** | `/api/v1/payments/orders/{orderCode}` | `Public` | Tra cứu trạng thái đơn hàng (Tự động cập nhật `EXPIRED` nếu quá hạn) |
+| **POST** | `/api/v1/payments/orders/{orderCode}/confirm` | `SUBSCRIPTION_MANAGE` | Xác nhận thanh toán thủ công (Kích hoạt ngay gói cước & bắn SSE/Notification) |
 | **GET** | `/api/v1/payments/stream/{orderCode}` | `Public` | Stream Server-Sent Events (SSE) cập nhật trạng thái thanh toán real-time |
 | **POST** | `/api/v1/payments/webhook` | `Public` (Kiểm tra Apikey) | Webhook nhận thông báo biến động số dư từ SePay IPN |
 
@@ -2177,21 +2068,27 @@ Tạo đơn thanh toán mới cho gói dịch vụ học tập / lưu trữ Clou
   "status": 201,
   "message": "Tạo đơn hàng thanh toán thành công",
   "data": {
-    "orderCode": "ILMS682941",
+    "orderCode": "ILMS PLUS 362936",
     "amount": 199000,
-    "qrUrl": "https://qr.sepay.vn/img?acc=0123456789&bank=MB&amount=199000&des=ILMS682941&template=compact",
+    "qrUrl": "https://qr.sepay.vn/img?acc=0865609122&bank=MB&amount=199000&des=ILMS+PLUS+362936&template=compact",
     "bankCode": "MB",
-    "accountNumber": "0123456789",
-    "accountName": "NGUYEN VAN A",
-    "expiredAt": "2026-11-17T18:45:00.000Z",
+    "accountNumber": "0865609122",
+    "accountName": "HOANG QUANG THANG",
+    "expiredAt": "2026-11-21T00:30:00.000Z",
     "status": "PENDING",
-    "description": "Nang cap goi Pro 1 thang",
+    "description": "Thanh toan don ILMS PLUS 362936 goi Gói Nâng cao (Plus)",
     "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
     "paidAt": null
   },
-  "timestamp": "2026-11-17T18:30:00.000Z"
+  "timestamp": "2026-11-21T00:15:00.000Z"
 }
 ```
+
+> [!NOTE]
+> **Định dạng Mã Thanh Toán Chuẩn (`orderCode`):**
+> Mã đơn hàng và nội dung quét QR VietQR có định dạng chuẩn: **`ILMS <TEN_GOI> <MA_6_SO>`** (Ví dụ: `ILMS PLUS 362936`, `ILMS PRO 582194`, `ILMS ENTERPRISE 192847`).
+> Khi quét mã VietQR, app ngân hàng sẽ tự động điền đúng định dạng này, giúp người dùng dễ dàng nhận biết gói cước đang thanh toán.
+> Backend hỗ trợ cơ chế bóc tách thông minh: Dù ngân hàng có tự động lược bỏ khoảng trắng thành `ILMSPLUS362936` hay giữ nguyên `ILMS PLUS 362936`, hệ thống đều tự động khớp và xử lý thành công!
 
 ##### 2. `GET /api/v1/payments/orders/{orderCode}`
 Kiểm tra trạng thái đơn hàng. Nếu đơn đang `PENDING` nhưng thời gian hiện tại đã vượt quá `expiredAt`, backend sẽ tự động cập nhật sang `EXPIRED`.
@@ -2202,23 +2099,30 @@ Kiểm tra trạng thái đơn hàng. Nếu đơn đang `PENDING` nhưng thời 
   "status": 200,
   "message": "Lấy thông tin đơn hàng thanh toán thành công",
   "data": {
-    "orderCode": "ILMS682941",
+    "orderCode": "ILMS PLUS 362936",
     "amount": 199000,
-    "qrUrl": "https://qr.sepay.vn/img?acc=0123456789&bank=MB&amount=199000&des=ILMS682941&template=compact",
+    "qrUrl": "https://qr.sepay.vn/img?acc=0865609122&bank=MB&amount=199000&des=ILMS+PLUS+362936&template=compact",
     "bankCode": "MB",
-    "accountNumber": "0123456789",
-    "accountName": "NGUYEN VAN A",
-    "expiredAt": "2026-11-17T18:45:00.000Z",
+    "accountNumber": "0865609122",
+    "accountName": "HOANG QUANG THANG",
+    "expiredAt": "2026-11-21T00:30:00.000Z",
     "status": "PAID",
-    "description": "Nang cap goi Pro 1 thang",
+    "description": "Thanh toan don ILMS PLUS 362936 goi Gói Nâng cao (Plus)",
     "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "paidAt": "2026-11-17T18:32:15.000Z"
+    "paidAt": "2026-11-21T00:20:15.000Z"
   },
-  "timestamp": "2026-11-17T18:32:16.000Z"
+  "timestamp": "2026-11-21T00:20:16.000Z"
 }
 ```
 
-##### 3. `GET /api/v1/payments/stream/{orderCode}`
+##### 3. `POST /api/v1/payments/orders/{orderCode}/confirm` (Xác nhận thủ công)
+API cho phép Quản trị viên (hoặc môi trường kiểm thử dev) xác nhận thủ công đơn hàng đã được chuyển khoản.
+- Chuyển `status: "PAID"`.
+- Kích hoạt ngay gói thuê bao cho người dùng.
+- Bắn sự kiện SSE `PAYMENT_SUCCESS` để giao diện frontend tự động cập nhật.
+- Gửi thông báo Notification đến chuông thông báo.
+
+##### 4. `GET /api/v1/payments/stream/{orderCode}`
 Mở kết nối Server-Sent Events (SSE) để Frontend nhận thông báo thanh toán thành công tức thì mà không cần polling liên tục.
 
 - **Content-Type:** `text/event-stream`
@@ -2485,3 +2389,417 @@ Request:
 }
 ```
 *(Nếu `targetUserIds` để mảng rỗng `[]` hoặc `null`, hệ thống tự động phát sóng đến toàn bộ người dùng).*
+
+---
+
+## 21. Bản Đồ Nhiệt Tri Thức (Knowledge Mastery Heatmap)
+
+Module **Bản Đồ Nhiệt Tri Thức (Knowledge Mastery Heatmap)** cho phép trực quan hóa mức độ nắm vững từng khái niệm (Concept Mastery) của sinh viên và lớp học dựa trên:
+1. **Điểm trắc nghiệm (Quiz Question Accuracy - trọng số 70%):** Tỷ lệ trả lời chính xác các câu hỏi gắn với khái niệm trong các bài Quiz.
+2. **Tiến độ học tập Socratic AI (Socratic Concept Progress - trọng số 30%):** Mức độ hoàn thành các cuộc hội thoại đào sâu và gợi ý từ Trợ lý Socratic.
+
+### 21.1. Thang Đo Độ Thành Thục (Mastery Levels)
+| Trạng thái | Khoảng điểm | Ý nghĩa trên Giao diện | Màu sắc gợi nghị |
+| :--- | :---: | :--- | :---: |
+| `NOT_STARTED` | < 1.0% | Chưa học / Chưa có dữ liệu đánh giá | Xám (`#9ca3af`) |
+| `WEAK` | 1.0% - 39.9% | Kiến thức yếu, tồn tại lỗ hổng (Gap) | Đỏ (`#ef4444`) |
+| `DEVELOPING` | 40.0% - 69.9% | Đang phát triển / Nắm cơ bản | Vàng cam (`#f59e0b`) |
+| `PROFICIENT` | 70.0% - 84.9% | Thành thạo / Đạt yêu cầu | Xanh lá nhạt (`#10b981`) |
+| `MASTERED` | 85.0% - 100% | Xuất sắc / Làm chủ hoàn toàn | Xanh ngọc đậm (`#059669`) |
+
+---
+
+### 21.2. Danh sách Endpoints
+
+| Method | Endpoint | Quyền hạn | Mô tả | Query Parameters |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/courses/{courseId}/knowledge-heatmap` | `KNOWLEDGE_HEATMAP_VIEW` | Lấy bản đồ nhiệt tri thức cá nhân của người dùng trên toàn bộ cây khái niệm môn học | `scope` (optional: `PERSONAL` mặc định, hoặc `AGGREGATE`) |
+| **GET** | `/api/v1/classes/{classId}/knowledge-heatmap` | `KNOWLEDGE_HEATMAP_VIEW` (Teacher / Owner / Admin) | Ma trận nhiệt 2 chiều (Sinh viên x Khái niệm) của toàn bộ lớp học | `courseId` *(bắt buộc)*, `page` *(default 0)*, `size` *(default 50)* |
+| **GET** | `/api/v1/classes/{classId}/students/{studentId}/knowledge-mastery` | `KNOWLEDGE_HEATMAP_VIEW` (Teacher / Admin hoặc chính sinh viên) | Báo cáo chi tiết độ thành thục từng khái niệm của 1 sinh viên trong lớp | `courseId` *(bắt buộc)* |
+| **GET** | `/api/v1/classes/{classId}/knowledge-gaps` | `KNOWLEDGE_HEATMAP_VIEW` (Teacher / Owner / Admin) | Báo cáo các "điểm nghẽn tri thức" và danh sách sinh viên có nguy cơ rớt môn | `courseId` *(bắt buộc)*, `threshold` *(optional, default 50.0)* |
+
+---
+
+### 21.3. Chi tiết API & Ví dụ Phản hồi
+
+#### 1. `GET /api/v1/courses/{courseId}/knowledge-heatmap?scope=PERSONAL`
+Phản hồi (`ApiResponse<CourseKnowledgeHeatmapResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy bản đồ nhiệt tri thức môn học thành công",
+  "data": {
+    "courseId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "courseName": "Cấu trúc dữ liệu và Giải thuật",
+    "totalConcepts": 12,
+    "averageMasteryScore": 76.5,
+    "concepts": [
+      {
+        "conceptId": "concept_binary_search_tree",
+        "conceptName": "Cây nhị phân tìm kiếm (BST)",
+        "chapterTitle": "Chương 4: Cây và Đồ thị",
+        "masteryScore": 88.0,
+        "status": "MASTERED",
+        "quizAccuracy": 90.0,
+        "socraticProgress": 85.0,
+        "totalQuestionsAttempted": 10
+      },
+      {
+        "conceptId": "concept_avl_tree",
+        "conceptName": "Cây cân bằng AVL",
+        "chapterTitle": "Chương 4: Cây và Đồ thị",
+        "masteryScore": 45.0,
+        "status": "DEVELOPING",
+        "quizAccuracy": 50.0,
+        "socraticProgress": 35.0,
+        "totalQuestionsAttempted": 6
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+
+#### 2. `GET /api/v1/classes/{classId}/knowledge-heatmap?courseId={courseId}&page=0&size=50`
+Phản hồi (`ApiResponse<ClassKnowledgeHeatmapResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy ma trận nhiệt tri thức lớp học thành công",
+  "data": {
+    "classId": "9c9c9c9c-0000-0000-0000-000000000002",
+    "className": "Lớp KTPM01 - Cấu trúc dữ liệu",
+    "courseId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "courseName": "Cấu trúc dữ liệu và Giải thuật",
+    "conceptHeaders": [
+      {
+        "conceptId": "concept_binary_search_tree",
+        "conceptName": "Cây nhị phân tìm kiếm (BST)",
+        "chapterTitle": "Chương 4: Cây và Đồ thị"
+      },
+      {
+        "conceptId": "concept_avl_tree",
+        "conceptName": "Cây cân bằng AVL",
+        "chapterTitle": "Chương 4: Cây và Đồ thị"
+      }
+    ],
+    "rows": [
+      {
+        "studentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "studentName": "Nguyễn Văn A",
+        "studentEmail": "vana@example.com",
+        "avatarUrl": "https://lh3.googleusercontent.com/d/avatar1",
+        "averageScore": 66.5,
+        "conceptScores": {
+          "concept_binary_search_tree": 88.0,
+          "concept_avl_tree": 45.0
+        }
+      }
+    ],
+    "classAverages": [
+      {
+        "conceptId": "concept_binary_search_tree",
+        "conceptName": "Cây nhị phân tìm kiếm (BST)",
+        "averageScore": 78.5,
+        "status": "PROFICIENT"
+      },
+      {
+        "conceptId": "concept_avl_tree",
+        "conceptName": "Cây cân bằng AVL",
+        "averageScore": 42.0,
+        "status": "DEVELOPING"
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+
+#### 3. `GET /api/v1/classes/{classId}/knowledge-gaps?courseId={courseId}&threshold=50.0`
+Query params: `courseId` *(bắt buộc UUID)*, `threshold` *(optional Double, mặc định 50.0)*.
+Phản hồi (`ApiResponse<ClassKnowledgeGapsResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy báo cáo điểm nghẽn tri thức thành công",
+  "data": {
+    "classId": "9c9c9c9c-0000-0000-0000-000000000002",
+    "className": "Lớp KTPM01 - Cấu trúc dữ liệu",
+    "threshold": 50.0,
+    "weakConcepts": [
+      {
+        "conceptId": "concept_avl_tree",
+        "conceptName": "Cây cân bằng AVL",
+        "chapterTitle": "Chương 4: Cây và Đồ thị",
+        "averageScore": 42.0,
+        "weakStudentCount": 18,
+        "totalStudents": 35
+      }
+    ],
+    "atRiskStudents": [
+      {
+        "studentId": "3fa85f64-5717-4562-b3fc-2c963f66afa9",
+        "studentName": "Trần Văn B",
+        "studentEmail": "vanb@example.com",
+        "avatarUrl": null,
+        "averageScore": 38.5,
+        "weakConceptCount": 5
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+
+---
+
+## 22. Phân Hệ Chuẩn Đầu Ra PLO & CLO (Program & Course Learning Outcomes)
+
+Phân hệ quản trị chất lượng giáo dục và kiểm chuẩn đầu ra theo chuẩn quốc tế (ABET / AUN-QA):
+- **PLO (Program Learning Outcomes):** Chuẩn đầu ra cấp Chương trình đào tạo.
+- **CLO (Course Learning Outcomes):** Chuẩn đầu ra cấp Môn học / Học phần.
+- **CLO - PLO Matrix:** Ma trận ánh xạ mức độ đóng góp của từng CLO vào PLO.
+- **Concept - CLO Mapping:** Ánh xạ các khái niệm trong Đồ thị tri thức (Knowledge Graph) vào CLO với trọng số (Weight từ `0.00` đến `1.00`).
+- **Outcome Attainment:** Đánh giá định lượng mức độ đạt chuẩn của sinh viên và lớp học dựa trên kết quả kiểm tra thực tế.
+
+### 22.1. Định Nghĩa Mức Đóng Góp & Thang Đo Bloom
+- **Bloom Taxonomy (`bloomLevel`):**
+  - `REMEMBER` (Nhớ)
+  - `UNDERSTAND` (Hiểu)
+  - `APPLY` (Vận dụng)
+  - `ANALYZE` (Phân tích)
+  - `EVALUATE` (Đánh giá)
+  - `CREATE` (Sáng tạo)
+- **Mức độ đóng góp CLO $\rightarrow$ PLO (`contributionLevel`):**
+  - `HIGH` (Đóng góp cao - Trọng số 3)
+  - `MEDIUM` (Đóng góp trung bình - Trọng số 2)
+  - `LOW` (Đóng góp thấp - Trọng số 1)
+- **Trạng thái Đạt chuẩn (`attainmentStatus`):**
+  - `NOT_ASSESSED`: Chưa có dữ liệu đánh giá
+  - `BELOW`: Chưa đạt (< 50.0%)
+  - `APPROACHING`: Tiệm cận đạt (50.0% - 69.9%)
+  - `MET`: Đạt chuẩn (70.0% - 84.9%)
+  - `EXCEEDED`: Vượt chuẩn ($\ge$ 85.0%)
+
+---
+
+### 22.2. Danh sách Endpoints Chuẩn Đầu Ra Chương Trình (PLO)
+
+Base path: `/api/v1/plos`
+
+| Method | Endpoint | Quyền hạn | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/plos` | `PLO_VIEW` | Lấy danh sách PLO phân trang (`search`, `page`, `size`) |
+| **GET** | `/api/v1/plos/{ploId}` | `PLO_VIEW` | Chi tiết 1 PLO kèm danh sách các CLO đang ánh xạ tới nó |
+| **POST** | `/api/v1/plos` | `PLO_MANAGE` (Admin) | Tạo mới Chuẩn đầu ra PLO |
+| **PUT** | `/api/v1/plos/{ploId}` | `PLO_MANAGE` (Admin) | Chỉnh sửa thông tin PLO |
+| **DELETE** | `/api/v1/plos/{ploId}` | `PLO_MANAGE` (Admin) | Xóa mềm PLO (`deleted_at`) |
+| **GET** | `/api/v1/plos/{ploId}/attainment-report` | `OUTCOME_ATTAINMENT_VIEW` | Báo cáo tỷ lệ đạt PLO qua các môn học trong toàn chương trình |
+
+#### Request tạo mới PLO (`POST /api/v1/plos`):
+```json
+{
+  "code": "PLO-01",
+  "description": "Khả năng áp dụng kiến thức toán học, khoa học tự nhiên và nền tảng máy tính vào giải quyết các bài toán kỹ thuật phần mềm phức tạp.",
+  "bloomLevel": "APPLY",
+  "orderIndex": 1
+}
+```
+
+#### Phản hồi Chi tiết PLO (`ApiResponse<PloDetailResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy thông tin chuẩn đầu ra PLO thành công",
+  "data": {
+    "id": "7fa85f64-5717-4562-b3fc-2c963f66afa2",
+    "code": "PLO-01",
+    "description": "Khả năng áp dụng kiến thức toán học, khoa học tự nhiên và nền tảng máy tính...",
+    "bloomLevel": "APPLY",
+    "orderIndex": 1,
+    "createdById": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "createdByName": "Quản trị viên",
+    "createdAt": "2026-11-21T10:00:00.000Z",
+    "updatedAt": "2026-11-21T10:00:00.000Z",
+    "linkedClos": [
+      {
+        "id": "5fa85f64-5717-4562-b3fc-2c963f66afa1",
+        "courseId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+        "code": "CLO-01",
+        "description": "Cài đặt và thao tác trên cấu trúc Cây nhị phân",
+        "bloomLevel": "APPLY"
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+
+---
+
+### 22.3. Danh sách Endpoints Chuẩn Đầu Ra Môn Học (CLO & Ma Trận Ánh Xạ)
+
+Base path: `/api/v1/courses/{courseId}`
+
+| Method | Endpoint | Quyền hạn | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/courses/{courseId}/clos` | `CLO_VIEW` | Danh sách CLO của môn học |
+| **GET** | `/api/v1/courses/{courseId}/clos/{cloId}` | `CLO_VIEW` | Chi tiết 1 CLO kèm danh sách PLO và Concepts liên kết |
+| **POST** | `/api/v1/courses/{courseId}/clos` | `CLO_MANAGE` (Owner/Admin) | Thêm mới CLO cho môn học |
+| **PUT** | `/api/v1/courses/{courseId}/clos/{cloId}` | `CLO_MANAGE` (Owner/Admin) | Chỉnh sửa CLO |
+| **DELETE** | `/api/v1/courses/{courseId}/clos/{cloId}` | `CLO_MANAGE` (Owner/Admin) | Xóa mềm CLO |
+| **GET** | `/api/v1/courses/{courseId}/clo-plo-matrix` | `CLO_VIEW` | Lấy Ma trận ánh xạ 2 chiều CLO - PLO của môn học |
+| **PUT** | `/api/v1/courses/{courseId}/clo-plo-matrix` | `CLO_PLO_MAPPING_MANAGE` | Cập nhật ma trận CLO - PLO theo lô (Batch update) |
+| **GET** | `/api/v1/courses/{courseId}/clos/{cloId}/concepts` | `CLO_VIEW` | Lấy danh sách Concepts đã được gán vào CLO cụ thể |
+| **PUT** | `/api/v1/courses/{courseId}/clos/{cloId}/concepts` | `CLO_PLO_MAPPING_MANAGE` | Gán danh sách Khái niệm (Concepts) vào CLO kèm trọng số |
+
+#### Request tạo mới CLO (`POST /api/v1/courses/{courseId}/clos`):
+```json
+{
+  "code": "CLO-01",
+  "description": "Cài đặt và thao tác trên cấu trúc Cây nhị phân và Cây cân bằng AVL",
+  "bloomLevel": "APPLY",
+  "orderIndex": 1
+}
+```
+
+#### Request cập nhật Ma trận CLO - PLO (`PUT /api/v1/courses/{courseId}/clo-plo-matrix`):
+```json
+{
+  "mappings": [
+    {
+      "cloId": "5fa85f64-5717-4562-b3fc-2c963f66afa1",
+      "ploId": "7fa85f64-5717-4562-b3fc-2c963f66afa2",
+      "contributionLevel": "HIGH"
+    },
+    {
+      "cloId": "5fa85f64-5717-4562-b3fc-2c963f66afa1",
+      "ploId": "7fa85f64-5717-4562-b3fc-2c963f66afa3",
+      "contributionLevel": "MEDIUM"
+    }
+  ]
+}
+```
+
+#### Request gán Concept vào CLO (`PUT /api/v1/courses/{courseId}/clos/{cloId}/concepts`):
+*(Lưu ý: `weight` nhận giá trị thập phân từ `0.00` đến `1.00`).*
+```json
+{
+  "concepts": [
+    {
+      "conceptId": "concept_binary_search_tree",
+      "conceptName": "Cây nhị phân tìm kiếm (BST)",
+      "weight": 1.00
+    },
+    {
+      "conceptId": "concept_avl_tree",
+      "conceptName": "Cây cân bằng AVL",
+      "weight": 0.80
+    }
+  ]
+}
+```
+
+---
+
+### 22.4. Danh sách Endpoints Đánh Giá Mức Độ Đạt Chuẩn (Outcome Attainment)
+
+| Method | Endpoint | Quyền hạn | Mô tả & Tham số bắt buộc |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/classes/{classId}/outcome-attainment` | `OUTCOME_ATTAINMENT_VIEW` (Teacher / Admin) | Báo cáo tổng thể CLO & PLO của toàn bộ lớp học.<br>Query params: `courseId` *(bắt buộc UUID)* |
+| **GET** | `/api/v1/classes/{classId}/students/{studentId}/outcome-attainment` | `OUTCOME_ATTAINMENT_VIEW` (Teacher / Admin hoặc chính sinh viên) | Báo cáo chi tiết mức độ đạt CLO & PLO của một sinh viên trong lớp.<br>Query params: `courseId` *(bắt buộc UUID)* |
+| **GET** | `/api/v1/me/outcome-attainment` | `OUTCOME_ATTAINMENT_VIEW` (Sinh viên) | Sinh viên tự xem báo cáo mức độ đạt chuẩn đầu ra của chính mình.<br>Query params: `classId` *(bắt buộc UUID)*, `courseId` *(bắt buộc UUID)* |
+| **POST** | `/api/v1/classes/{classId}/outcome-attainment/recalculate` | `CLO_MANAGE` (Teacher / Admin) | Kích hoạt tính toán lại chuẩn đầu ra cho cả lớp từ kết quả kiểm tra thực tế.<br>Query params: `courseId` *(bắt buộc UUID)* |
+
+#### Phản hồi Báo cáo Lớp học (`ApiResponse<ClassOutcomeAttainmentResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy báo cáo đạt chuẩn đầu ra lớp học thành công",
+  "data": {
+    "classId": "9c9c9c9c-0000-0000-0000-000000000002",
+    "className": "Lớp KTPM01 - Cấu trúc dữ liệu",
+    "courseId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "courseName": "Cấu trúc dữ liệu và Giải thuật",
+    "totalStudents": 35,
+    "cloAttainments": [
+      {
+        "cloId": "5fa85f64-5717-4562-b3fc-2c963f66afa1",
+        "cloCode": "CLO-01",
+        "cloName": "Cài đặt và thao tác trên cấu trúc Cây nhị phân",
+        "bloomLevel": "APPLY",
+        "targetScore": 70.0,
+        "averageAttainmentScore": 78.4,
+        "attainmentRate": 85.7,
+        "studentsMetCount": 30,
+        "status": "MET"
+      }
+    ],
+    "ploSummaries": [
+      {
+        "ploId": "7fa85f64-5717-4562-b3fc-2c963f66afa2",
+        "ploCode": "PLO-01",
+        "ploName": "Nền tảng Toán học và Khoa học máy tính",
+        "targetScore": 70.0,
+        "averageAttainmentScore": 76.2,
+        "status": "MET"
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+
+#### Phản hồi Báo cáo Cá nhân Sinh viên (`ApiResponse<StudentOutcomeAttainmentResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Lấy báo cáo đạt chuẩn đầu ra thành công",
+  "data": {
+    "studentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "studentName": "Nguyễn Văn A",
+    "avatarUrl": "https://lh3.googleusercontent.com/d/avatar1",
+    "classId": "9c9c9c9c-0000-0000-0000-000000000002",
+    "className": "Lớp KTPM01 - Cấu trúc dữ liệu",
+    "courseId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+    "overallAttainmentRate": 80.0,
+    "metCloCount": 4,
+    "totalCloCount": 5,
+    "cloAttainments": [
+      {
+        "cloId": "5fa85f64-5717-4562-b3fc-2c963f66afa1",
+        "cloCode": "CLO-01",
+        "cloDescription": "Cài đặt và thao tác trên cấu trúc Cây nhị phân",
+        "bloomLevel": "APPLY",
+        "targetScore": 70.0,
+        "attainmentScore": 82.5,
+        "status": "MET",
+        "conceptBreakdowns": [
+          {
+            "conceptId": "concept_binary_search_tree",
+            "conceptName": "Cây nhị phân tìm kiếm (BST)",
+            "weight": 1.0,
+            "accuracy": 88.0,
+            "totalQuestions": 10
+          }
+        ]
+      }
+    ],
+    "ploAttainments": [
+      {
+        "ploId": "7fa85f64-5717-4562-b3fc-2c963f66afa2",
+        "ploCode": "PLO-01",
+        "ploDescription": "Khả năng áp dụng kiến thức toán học, khoa học tự nhiên...",
+        "bloomLevel": "APPLY",
+        "targetScore": 70.0,
+        "calculatedScore": 80.5,
+        "status": "MET"
+      }
+    ]
+  },
+  "timestamp": "2026-11-21T20:00:00.000Z"
+}
+```
+

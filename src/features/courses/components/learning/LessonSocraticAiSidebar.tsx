@@ -26,7 +26,7 @@ export function LessonSocraticAiSidebar({
     {
       id: 'm-1',
       sender: 'ai',
-      text: 'Chào Nhật Minh! Thầy AI nhận thấy em đang theo dõi sơ đồ trao đổi Sequence Number giữa Client và Server tại mốc 14:20.\n\nEm có muốn thử giải thích tại sao ở bước thứ 3, gói tin ACK của Client lại được phép bắt đầu mang kèm dữ liệu thực (Piggybacking) mà không cần đợi một thông điệp riêng khác?',
+      text: 'Chào ! Thầy AI nhận thấy em đang theo dõi sơ đồ trao đổi Sequence Number giữa Client và Server tại mốc 14:20.\n\nEm có muốn thử giải thích tại sao ở bước thứ 3, gói tin ACK của Client lại được phép bắt đầu mang kèm dữ liệu thực (Piggybacking) mà không cần đợi một thông điệp riêng khác?',
       reference: 'Được xác thực bởi Giáo trình Kurose & Ross (Computer Networking: A Top-Down Approach)',
     },
     {

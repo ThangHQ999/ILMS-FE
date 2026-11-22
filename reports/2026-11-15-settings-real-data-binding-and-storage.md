@@ -5,7 +5,7 @@ Plan summary: Loại bỏ toàn bộ mock tĩnh, đổ dữ liệu tài khoản 
 
 ```text
 STATUS: COMPLETE
-SUMMARY: Đã thay thế toàn bộ dữ liệu mock cứng ("Trần Nhật Minh", giá cước "149.000 đ", "15.6 / 20 GB", avatar) bằng dữ liệu động kết nối trực tiếp với useCurrentUser, useMySubscription, useSubscriptionPlans và useStorageSummary; đưa thẻ CloudStorageCard lên vị trí trung tâm trực quan trong tab Billing.
+SUMMARY: Đã thay thế toàn bộ dữ liệu mock cứng ("", giá cước "149.000 đ", "15.6 / 20 GB", avatar) bằng dữ liệu động kết nối trực tiếp với useCurrentUser, useMySubscription, useSubscriptionPlans và useStorageSummary; đưa thẻ CloudStorageCard lên vị trí trung tâm trực quan trong tab Billing.
 FILES: 
   - modified: src/features/settings/components/tabs/BillingTab.tsx
   - modified: src/features/settings/components/tabs/ProfileTab.tsx

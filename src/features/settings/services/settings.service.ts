@@ -15,9 +15,9 @@ import {
 
 const mockProfile: UserProfileDto = {
   id: 'usr-10293847',
-  displayName: 'Trần Nhật Minh',
+  displayName: '',
   username: 'nhatminh_icpc',
-  email: 'nhatminh.edu@gmail.com',
+  email: '',
   isEmailVerified: true,
   phone: '+84 987 654 321',
   isPhoneVerified: true,
@@ -26,7 +26,7 @@ const mockProfile: UserProfileDto = {
   bio: 'Học viên Chuyên ngành Khoa học Máy tính & ICPC Track. Đam mê thiết kế kiến trúc phân tán, thuật toán đồ thị và Machine Learning Ops.',
   avatarUrl: undefined,
   socialAccounts: {
-    google: { email: 'nhatminh.edu@gmail.com', isLinked: true },
+    google: { email: '', isLinked: true },
     github: { username: 'minh-dev-icpc', isLinked: true },
     apple: { isLinked: false },
   },
@@ -183,8 +183,8 @@ export async function getUserProfile(): Promise<UserProfileDto> {
               u.roleName === 'TEACHER' || u.roleName?.includes('TEACHER')
                 ? 'Giảng viên'
                 : u.roleName === 'ADMIN' || u.roleName?.includes('ADMIN')
-                ? 'Quản trị viên (Admin)'
-                : 'Học viên Chuyên sâu',
+                  ? 'Quản trị viên (Admin)'
+                  : 'Học viên Chuyên sâu',
           };
         }
       } catch {
@@ -214,8 +214,8 @@ export async function getUserProfile(): Promise<UserProfileDto> {
             u.roleName === 'TEACHER' || u.roleName?.includes('TEACHER')
               ? 'Giảng viên'
               : u.roleName === 'ADMIN' || u.roleName?.includes('ADMIN')
-              ? 'Quản trị viên (Admin)'
-              : 'Học viên Chuyên sâu',
+                ? 'Quản trị viên (Admin)'
+                : 'Học viên Chuyên sâu',
         };
       }
     } catch {
@@ -241,7 +241,7 @@ export async function updateUserProfile(
             const u = JSON.parse(stored);
             localStorage.setItem('ilms_user', JSON.stringify({ ...u, ...data.data }));
           }
-        } catch {}
+        } catch { }
       }
       return data.data;
     }
@@ -273,7 +273,7 @@ export async function updateUserProfile(
           })
         );
       }
-    } catch {}
+    } catch { }
   }
   return { ...mockProfile };
 }
@@ -396,7 +396,7 @@ export async function updateUserPreferences(
   if (input.language && typeof window !== 'undefined') {
     try {
       localStorage.setItem('ilms_language', input.language);
-    } catch {}
+    } catch { }
   }
 
   try {
@@ -424,7 +424,7 @@ export async function patchUserPreferences(
   if (input.language && typeof window !== 'undefined') {
     try {
       localStorage.setItem('ilms_language', input.language);
-    } catch {}
+    } catch { }
   }
 
   try {
@@ -580,7 +580,7 @@ export async function getBillingInfo(): Promise<BillingInfoDto> {
           .toUpperCase();
         if (name) holderName = name;
       }
-    } catch {}
+    } catch { }
   }
   return {
     ...mockBilling,

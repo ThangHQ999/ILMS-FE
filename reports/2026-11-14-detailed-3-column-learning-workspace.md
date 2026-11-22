@@ -10,7 +10,7 @@
 1. **`LessonWorkspaceHeader.tsx`:**
    - Hệ thống 2 tầng header:
      - Header tầng 1 (Top Navigation): Breadcrumb "Chương 03 • Bài 02: Xây dựng Cấu trúc Layout 3 Cột Hiện đại", 4 tab phụ ("Không gian học", "Đề cương", "Tài nguyên", "Hỏi đáp"), nút Trợ giúp, Profile avatar, thanh tiến độ tổng thể 64%.
-     - Header tầng 2 (Workstation Controls): Nút back CS-202, badge `CS-202 • Nhóm 01`, tiêu đề bài "Bài 3.2: Cơ chế truyền tin cậy (RDT) & Bắt tay 3 bước TCP", nút bật/tắt Cây giáo trình, Focus Mode (ẩn cả hai thanh bên), Sổ tay ghi chú nháp có thông báo, bật/tắt Socratic AI, Profile pill `NM` Trần Nhật Minh 21120485 kèm đèn online, thanh tiến độ bài học 68%.
+     - Header tầng 2 (Workstation Controls): Nút back CS-202, badge `CS-202 • Nhóm 01`, tiêu đề bài "Bài 3.2: Cơ chế truyền tin cậy (RDT) & Bắt tay 3 bước TCP", nút bật/tắt Cây giáo trình, Focus Mode (ẩn cả hai thanh bên), Sổ tay ghi chú nháp có thông báo, bật/tắt Socratic AI, Profile pill `NM`  21120485 kèm đèn online, thanh tiến độ bài học 68%.
 
 2. **`LessonSyllabusSidebar.tsx` (Cột 1 - Left Sidebar w-80):**
    - Header hiển thị tiến độ 68% (15/22), mã học phần `CS-202 • HK2 2024-2025`.

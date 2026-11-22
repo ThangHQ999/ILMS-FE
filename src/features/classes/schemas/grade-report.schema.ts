@@ -8,7 +8,7 @@ export const studentGradeReportSchema = z.object({
   id: z.string().optional(),
   classId: z.string().optional(),
   studentId: z.string().optional(),
-  studentName: z.string().optional().default('Trần Nhật Minh'),
+  studentName: z.string().optional().default(''),
   studentUUID: z.string().optional(),
   attendanceScore: z.number().nullable().optional(),
   midtermScore: z.number().nullable().optional(),

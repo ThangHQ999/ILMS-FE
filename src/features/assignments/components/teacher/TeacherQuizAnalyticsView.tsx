@@ -43,7 +43,7 @@ const INITIAL_SUBMISSIONS: StudentSubmission[] = [
   },
   {
     id: 'sub-2',
-    name: 'Trần Nhật Minh',
+    name: '',
     mssv: '21120456',
     classGroup: 'Lớp CLC-01',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
@@ -318,9 +318,8 @@ export function TeacherQuizAnalyticsView({
 
       {/* 3. Main Workspace Area */}
       <div
-        className={`flex-1 transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-20' : 'pl-0 lg:pl-72'
-        }`}
+        className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'pl-20' : 'pl-0 lg:pl-72'
+          }`}
       >
         <main className="w-full pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1680px] mx-auto">
           <div className="relative w-full flex flex-col gap-6">
@@ -807,44 +806,40 @@ export function TeacherQuizAnalyticsView({
                     <button
                       type="button"
                       onClick={() => setRosterFilter('all')}
-                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                        rosterFilter === 'all'
+                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${rosterFilter === 'all'
                           ? 'bg-white dark:bg-[#1E1F20] text-blue-600 dark:text-blue-400 shadow-xs'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       Tất cả (58)
                     </button>
                     <button
                       type="button"
                       onClick={() => setRosterFilter('needs_help')}
-                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                        rosterFilter === 'needs_help'
+                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${rosterFilter === 'needs_help'
                           ? 'bg-white dark:bg-[#1E1F20] text-rose-600 dark:text-rose-400 shadow-xs'
                           : 'text-rose-600/80 hover:text-rose-600'
-                      }`}
+                        }`}
                     >
                       Cần chú ý (&lt; 6.5) (9)
                     </button>
                     <button
                       type="button"
                       onClick={() => setRosterFilter('mastery')}
-                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                        rosterFilter === 'mastery'
+                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${rosterFilter === 'mastery'
                           ? 'bg-white dark:bg-[#1E1F20] text-blue-600 dark:text-blue-400 shadow-xs'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       Xuất sắc (10)
                     </button>
                     <button
                       type="button"
                       onClick={() => setRosterFilter('late')}
-                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                        rosterFilter === 'late'
+                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${rosterFilter === 'late'
                           ? 'bg-white dark:bg-[#1E1F20] text-amber-600 shadow-xs'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       Nộp muộn (2)
                     </button>
@@ -891,11 +886,10 @@ export function TeacherQuizAnalyticsView({
                         return (
                           <tr
                             key={sub.id}
-                            className={`transition-colors ${
-                              isUnderThreshold
+                            className={`transition-colors ${isUnderThreshold
                                 ? 'bg-rose-50/40 dark:bg-rose-950/20 hover:bg-rose-50/70 dark:hover:bg-rose-950/30'
                                 : 'hover:bg-slate-50/70 dark:hover:bg-[#131314]/50'
-                            }`}
+                              }`}
                           >
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
@@ -918,13 +912,12 @@ export function TeacherQuizAnalyticsView({
                             <td className="py-3.5 px-4">
                               <div className="flex items-baseline gap-1">
                                 <span
-                                  className={`text-base font-bold ${
-                                    sub.score >= 9.0
+                                  className={`text-base font-bold ${sub.score >= 9.0
                                       ? 'text-blue-600 dark:text-blue-400'
                                       : sub.score >= 6.5
-                                      ? 'text-slate-900 dark:text-white'
-                                      : 'text-rose-600 dark:text-rose-400'
-                                  }`}
+                                        ? 'text-slate-900 dark:text-white'
+                                        : 'text-rose-600 dark:text-rose-400'
+                                    }`}
                                 >
                                   {sub.score.toFixed(1)}
                                 </span>
@@ -932,9 +925,8 @@ export function TeacherQuizAnalyticsView({
                               </div>
                               {sub.attemptsDetail && (
                                 <span
-                                  className={`text-[10px] block mt-0.5 ${
-                                    isUnderThreshold ? 'text-rose-600 font-semibold' : 'text-slate-400'
-                                  }`}
+                                  className={`text-[10px] block mt-0.5 ${isUnderThreshold ? 'text-rose-600 font-semibold' : 'text-slate-400'
+                                    }`}
                                 >
                                   {sub.attemptsDetail}
                                 </span>
@@ -943,11 +935,10 @@ export function TeacherQuizAnalyticsView({
 
                             <td className="py-3.5 px-4">
                               <span
-                                className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-                                  sub.attemptsCount > 1
+                                className={`px-2.5 py-1 rounded-md text-xs font-medium ${sub.attemptsCount > 1
                                     ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                }`}
+                                  }`}
                               >
                                 {sub.attemptsCount} lần
                               </span>
@@ -959,24 +950,22 @@ export function TeacherQuizAnalyticsView({
 
                             <td className="py-3.5 px-4">
                               <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                                  sub.ploStatus === 'mastery'
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${sub.ploStatus === 'mastery'
                                     ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
                                     : sub.ploStatus === 'proficient'
-                                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900'
-                                    : sub.ploStatus === 'basic'
-                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                    : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
-                                }`}
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900'
+                                      : sub.ploStatus === 'basic'
+                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                        : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
+                                  }`}
                               >
                                 <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    sub.ploStatus === 'mastery' || sub.ploStatus === 'proficient'
+                                  className={`w-1.5 h-1.5 rounded-full ${sub.ploStatus === 'mastery' || sub.ploStatus === 'proficient'
                                       ? 'bg-blue-600'
                                       : sub.ploStatus === 'basic'
-                                      ? 'bg-slate-400'
-                                      : 'bg-rose-500'
-                                  }`}
+                                        ? 'bg-slate-400'
+                                        : 'bg-rose-500'
+                                    }`}
                                 />
                                 {sub.ploLabel}
                               </span>
@@ -1042,11 +1031,10 @@ export function TeacherQuizAnalyticsView({
                   <button
                     type="button"
                     onClick={() => setCurrentPage(1)}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                      currentPage === 1
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${currentPage === 1
                         ? 'bg-blue-600 text-white'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
+                      }`}
                   >
                     1
                   </button>

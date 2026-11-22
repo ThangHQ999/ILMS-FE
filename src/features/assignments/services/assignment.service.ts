@@ -2436,7 +2436,7 @@ export const MOCK_TEACHER_SUBMISSIONS: Record<string, TeacherSubmissionItem[]> =
       id: '00000000-0000-4000-8000-000000000001',
       assignmentId: 'assign-db-01',
       studentId: 'student-tran-nhat-minh',
-      studentName: 'Trần Nhật Minh',
+      studentName: '',
       studentCode: '22028192',
       submittedAt: '2024-10-28T21:15:00',
       status: 'GRADED',
@@ -2462,10 +2462,10 @@ export const DEMO_STUDENT_PROFILES: Record<string, { name: string; studentCode?:
   '00000000-0000-4000-8000-000000000004': { name: 'Nguyễn Minh Anh', studentCode: undefined },
   'student-vu-duc-long': { name: 'Vũ Đức Long', studentCode: '22028215' },
   '00000000-0000-4000-8000-000000000005': { name: 'Vũ Đức Long', studentCode: '22028215' },
-  'student-tran-nhat-minh': { name: 'Trần Nhật Minh', studentCode: '22028192' },
-  '00000000-0000-4000-8000-000000000001': { name: 'Trần Nhật Minh', studentCode: '22028192' },
+  'student-tran-nhat-minh': { name: '', studentCode: '22028192' },
+  '00000000-0000-4000-8000-000000000001': { name: '', studentCode: '22028192' },
   'student-k22-vu-minh': { name: 'Vũ Minh', studentCode: '22028190' },
-  'mem-03': { name: 'Trần Nhật Minh', studentCode: '22028192' },
+  'mem-03': { name: '', studentCode: '22028192' },
   'mem-04': { name: 'Nguyễn Tuấn Anh', studentCode: '22028195' },
   'mem-05': { name: 'Lê Hoàng Yến', studentCode: '22028198' },
   'mem-06': { name: 'Phạm Văn Hùng', studentCode: '22028204' },
@@ -2614,7 +2614,7 @@ export function getActiveDemoSubmissions(assignmentId: string): TeacherSubmissio
                 const matchIndex = items.findIndex((it) => {
                   if (it.studentId && it.studentId === resolvedStudentId) return true;
                   if (parsed.id && it.id === parsed.id) return true;
-                  // Bí danh học viên demo: Trần Nhật Minh
+                  // Bí danh học viên demo: 
                   const isMinhA =
                     it.studentId === 'student-tran-nhat-minh' ||
                     it.studentId === '00000000-0000-4000-8000-000000000001';
@@ -2679,7 +2679,7 @@ export function getActiveDemoSubmissions(assignmentId: string): TeacherSubmissio
                           ? 'Vũ Minh'
                           : resolvedStudentId ===
                             '00000000-0000-4000-8000-000000000001'
-                            ? 'Trần Nhật Minh'
+                            ? ''
                             : 'Học viên ILMS'),
                       studentCode:
                         sanitizeStudentCode(parsed.studentCode) ||
@@ -3394,7 +3394,7 @@ export async function getClassHubInfo(classId: string): Promise<ClassHubInfo> {
         : 'Phòng: A2-301';
 
       return classHubInfoSchema.parse({
-courseCode: classItem.name || classItem.enrollmentKey || (classId === 'csdl-k22-01' ? 'CSDL-K22-01' : 'CS-202'),
+        courseCode: classItem.name || classItem.enrollmentKey || (classId === 'csdl-k22-01' ? 'CSDL-K22-01' : 'CS-202'),
         semester: classItem.semester || classItem.academicYear || 'Học kỳ 1 • 2024-2025',
         room: roomStr,
         title: classItem.title || classItem.name || (classId === 'csdl-k22-01' ? 'Cơ sở dữ liệu — Nhóm 01' : 'Công nghệ thông tin K22 — Nhóm 01'),
@@ -3449,9 +3449,9 @@ export function isSubmissionGraded(
 export type GradeScoreValidationResult =
   | { valid: true; numericValue: number }
   | {
-      valid: false;
-      errorCode: 'required' | 'invalid' | 'negative' | 'range' | 'decimals';
-    };
+    valid: false;
+    errorCode: 'required' | 'invalid' | 'negative' | 'range' | 'decimals';
+  };
 
 /**
  * Validate a teacher score input strictly without rounding:

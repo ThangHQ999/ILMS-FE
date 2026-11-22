@@ -19,7 +19,7 @@ interface AiTutorMessageItemProps {
 
 export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
   message,
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   onCopyCode,
   copiedCodeId,
   onRegenerate,
@@ -141,29 +141,26 @@ export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
                     className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C] transition-colors"
                   >
                     <td
-                      className={`py-3 px-4 font-semibold ${
-                        row.isWorst
+                      className={`py-3 px-4 font-semibold ${row.isWorst
                           ? 'text-[#725200] dark:text-[#FFB784]'
                           : 'text-slate-900 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {row.caseName}
                     </td>
                     <td
-                      className={`py-3 px-4 font-mono font-medium ${
-                        row.isWorst
+                      className={`py-3 px-4 font-mono font-medium ${row.isWorst
                           ? 'text-[#725200] dark:text-[#FFB784] font-semibold'
                           : 'text-slate-900 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {row.time}
                     </td>
                     <td
-                      className={`py-3 px-4 font-mono ${
-                        row.isWorst
+                      className={`py-3 px-4 font-mono ${row.isWorst
                           ? 'text-[#725200] dark:text-[#FFB784]'
                           : 'text-slate-600 dark:text-[#C4C7C5]'
-                      }`}
+                        }`}
                     >
                       {row.space}
                     </td>
@@ -226,11 +223,11 @@ export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
         {/* Accordion nguồn tài liệu tham chiếu */}
         {((message.referenced_chunk_ids && message.referenced_chunk_ids.length > 0) ||
           (message.referenced_node_ids && message.referenced_node_ids.length > 0)) && (
-          <SocraticContextAccordion
-            chunkIds={message.referenced_chunk_ids}
-            nodeIds={message.referenced_node_ids}
-          />
-        )}
+            <SocraticContextAccordion
+              chunkIds={message.referenced_chunk_ids}
+              nodeIds={message.referenced_node_ids}
+            />
+          )}
 
         {/* Action Toolbar */}
         {!message.isStreaming && !message.isIncomplete && (
@@ -248,11 +245,10 @@ export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
             <button
               onClick={() => handleRate('LIKE')}
               disabled={isSubmittingFeedback}
-              className={`p-1.5 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none ${
-                localFeedback === 'LIKE'
+              className={`p-1.5 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none ${localFeedback === 'LIKE'
                   ? 'text-[#0B57D0] dark:text-[#A8C7FA]'
                   : 'hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
+                }`}
               title={t('helpful')}
               type="button"
             >
@@ -266,11 +262,10 @@ export const AiTutorMessageItem = React.memo(function AiTutorMessageItem({
             <button
               onClick={() => handleRate('DISLIKE')}
               disabled={isSubmittingFeedback}
-              className={`p-1.5 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none ${
-                localFeedback === 'DISLIKE'
+              className={`p-1.5 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none ${localFeedback === 'DISLIKE'
                   ? 'text-red-500'
                   : 'hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
+                }`}
               title={t('notHelpful')}
               type="button"
             >

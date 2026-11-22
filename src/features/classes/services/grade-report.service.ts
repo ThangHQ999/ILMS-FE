@@ -16,7 +16,7 @@ export const MOCK_STUDENT_GRADE_REPORT: StudentGradeReport = {
   id: 'gr-01',
   classId: 'csdl-k22-01',
   studentId: 'student-tran-nhat-minh',
-  studentName: 'Trần Nhật Minh',
+  studentName: '',
   studentUUID: '00000000-0000-4000-8000-000000000001',
   attendanceScore: 8.5,
   midtermScore: 0,
@@ -29,7 +29,7 @@ export const INITIAL_CLASS_GRADE_REPORTS: GradeReportItem[] = [
     id: '1',
     classId: 'csdl-k22-01',
     studentId: '00000000-0000-4000-8000-000000000001',
-    studentName: 'Trần Nhật Minh',
+    studentName: '',
     studentUUID: '00000000-0000-4000-8000-000000000001',
     attendanceScore: 8.5,
     midtermScore: 0,
@@ -76,14 +76,14 @@ export const MASTER_STUDENTS_LIST: ClassMemberStudentItem[] = [
     id: '1',
     userId: '00000000-0000-4000-8000-000000000001',
     studentId: '00000000-0000-4000-8000-000000000001',
-    name: 'Trần Nhật Minh',
-    fullName: 'Trần Nhật Minh',
+    name: '',
+    fullName: '',
     studentCode: '22028192',
     role: 'STUDENT',
     user: {
       id: '00000000-0000-4000-8000-000000000001',
-      name: 'Trần Nhật Minh',
-      fullName: 'Trần Nhật Minh',
+      name: '',
+      fullName: '',
       studentCode: '22028192',
     },
   },
@@ -401,7 +401,7 @@ export async function createGradeReport(
       (r) =>
         r.studentId === input.studentId ||
         r.studentUUID === input.studentId ||
-        (input.studentId === '00000000-0000-4000-8000-000000000001' && r.studentName === 'Trần Nhật Minh')
+        (input.studentId === '00000000-0000-4000-8000-000000000001' && r.studentName === '')
     )
   ) {
     const error = new Error('Học viên này đã có bảng điểm trong lớp.') as GradeReportError;

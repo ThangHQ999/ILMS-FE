@@ -23,7 +23,7 @@ interface AiTutorChatCanvasProps {
 
 export const AiTutorChatCanvas = React.memo(function AiTutorChatCanvas({
   messages,
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   isTyping,
   onCopyCode,
   copiedCodeId,

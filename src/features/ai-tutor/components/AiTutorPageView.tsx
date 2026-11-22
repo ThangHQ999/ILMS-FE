@@ -32,7 +32,7 @@ export function AiTutorPageView({ sessionId: propSessionId }: AiTutorPageViewPro
   const { data: user } = useCurrentUser();
   const userFullName = user
     ? `${user.lastName || ''} ${user.middleName || ''} ${user.firstName || ''}`.trim()
-    : 'Trần Nhật Minh';
+    : '';
 
   const [currentSubject, setCurrentSubject] = useState<CourseSubject>(DEFAULT_SUBJECTS[0]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(routeSessionId);
@@ -238,10 +238,10 @@ export function AiTutorPageView({ sessionId: propSessionId }: AiTutorPageViewPro
   // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.().catch(() => {});
+      document.documentElement.requestFullscreen?.().catch(() => { });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen?.().catch(() => {});
+      document.exitFullscreen?.().catch(() => { });
       setIsFullscreen(false);
     }
   }, []);

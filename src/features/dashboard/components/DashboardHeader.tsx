@@ -76,7 +76,7 @@ export function DashboardHeader({
   isFocus,
   isSidebarCollapsed = false,
   onToggleMode,
-  userFullName = 'Nhật Minh',
+  userFullName = '',
   workspaceMode = 'faculty',
   onToggleWorkspaceMode,
   title,
@@ -132,9 +132,8 @@ export function DashboardHeader({
   // Header matching unified layout
   return (
     <header
-className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-[72px]' : 'left-64'
-      } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
+      className={`fixed top-0 ${isSidebarCollapsed ? 'left-[72px]' : 'left-64'
+        } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
 
     >
       {/* 1. Left: Breadcrumb */}

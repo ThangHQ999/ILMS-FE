@@ -78,7 +78,7 @@ finally:
     setCommentsList((prev) => [
       {
         id: `c-${Date.now()}`,
-        author: 'Trần Nhật Minh',
+        author: '',
         role: 'Học viên',
         time: 'Vừa xong',
         content: newComment.trim(),
@@ -307,8 +307,8 @@ finally:
             type="button"
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeTab === 'overview'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
           >
             <span className="material-symbols-outlined text-[18px]">menu_book</span>
@@ -319,8 +319,8 @@ finally:
             type="button"
             onClick={() => setActiveTab('files')}
             className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeTab === 'files'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
           >
             <span className="material-symbols-outlined text-[18px]">attach_file</span>
@@ -331,8 +331,8 @@ finally:
             type="button"
             onClick={() => setActiveTab('comments')}
             className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeTab === 'comments'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
           >
             <span className="material-symbols-outlined text-[18px]">forum</span>

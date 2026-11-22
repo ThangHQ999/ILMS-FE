@@ -94,7 +94,7 @@ export const INITIAL_MOCK_SESSIONS: ChatSession[] = [
       {
         id: 'msg-2',
         sender: 'ai',
-        content: `Chào **Nhật Minh**! Thầy rất mừng vì em đang đào sâu vào \`Quick Sort\`. Đây là thuật toán phân chia để trị (Divide and Conquer) nền tảng trong khoa học máy tính.\n\nTrước khi đi vào bảng chi tiết, em hãy nhớ nguyên lý cốt lõi: *tốc độ phân hoạch phụ thuộc hoàn toàn vào cách chúng ta lựa chọn* **Pivot (Phần tử chốt)**.`,
+        content: `Chào ****! Thầy rất mừng vì em đang đào sâu vào \`Quick Sort\`. Đây là thuật toán phân chia để trị (Divide and Conquer) nền tảng trong khoa học máy tính.\n\nTrước khi đi vào bảng chi tiết, em hãy nhớ nguyên lý cốt lõi: *tốc độ phân hoạch phụ thuộc hoàn toàn vào cách chúng ta lựa chọn* **Pivot (Phần tử chốt)**.`,
         timestamp: '10:43 AM',
         complexityTable: {
           headers: ['Trường hợp', 'Thời gian', 'Bộ nhớ Call Stack', 'Điều kiện xảy ra'],

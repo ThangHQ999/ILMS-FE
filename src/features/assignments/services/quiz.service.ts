@@ -422,7 +422,7 @@ export const MOCK_PROCTOR_SESSIONS: ProctorSessionDTO[] = [
   {
     attemptId: 'att-01',
     studentId: 'st-01',
-    studentName: 'Trần Nhật Minh',
+    studentName: '',
     studentCode: 'B21DCCN001',
     ipAddress: '192.168.1.45',
     status: 'ONLINE',
@@ -600,10 +600,10 @@ export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem
 
   const filteredLocal = targetClassId
     ? localList.filter((item) => {
-        if (!item.classId) return false;
-        const iId = String(item.classId).toLowerCase().trim();
-        return iId === targetClassId || targetClassId.includes(iId) || iId.includes(targetClassId);
-      })
+      if (!item.classId) return false;
+      const iId = String(item.classId).toLowerCase().trim();
+      return iId === targetClassId || targetClassId.includes(iId) || iId.includes(targetClassId);
+    })
     : localList;
 
   const mappedLocal = filteredLocal.map((item) => {
@@ -1387,11 +1387,11 @@ export async function searchQuestionBank(
           Array.isArray(q.answers) && q.answers.length > 0
             ? q.answers
             : [
-                q.optionA && { id: `${q.id}-a`, content: q.optionA, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'A' },
-                q.optionB && { id: `${q.id}-b`, content: q.optionB, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'B' },
-                q.optionC && { id: `${q.id}-c`, content: q.optionC, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'C' },
-                q.optionD && { id: `${q.id}-d`, content: q.optionD, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'D' },
-              ].filter(Boolean);
+              q.optionA && { id: `${q.id}-a`, content: q.optionA, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'A' },
+              q.optionB && { id: `${q.id}-b`, content: q.optionB, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'B' },
+              q.optionC && { id: `${q.id}-c`, content: q.optionC, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'C' },
+              q.optionD && { id: `${q.id}-d`, content: q.optionD, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'D' },
+            ].filter(Boolean);
 
         return {
           ...q,
@@ -1399,11 +1399,11 @@ export async function searchQuestionBank(
             answers.length > 0
               ? answers
               : [
-                  { id: `${q.id}-a`, content: 'Phương án A', isCorrect: true },
-                  { id: `${q.id}-b`, content: 'Phương án B', isCorrect: false },
-                  { id: `${q.id}-c`, content: 'Phương án C', isCorrect: false },
-                  { id: `${q.id}-d`, content: 'Phương án D', isCorrect: false },
-                ],
+                { id: `${q.id}-a`, content: 'Phương án A', isCorrect: true },
+                { id: `${q.id}-b`, content: 'Phương án B', isCorrect: false },
+                { id: `${q.id}-c`, content: 'Phương án C', isCorrect: false },
+                { id: `${q.id}-d`, content: 'Phương án D', isCorrect: false },
+              ],
         };
       });
     }
@@ -1420,11 +1420,11 @@ export async function getQuestionById(id: string): Promise<QuestionResponseDTO> 
     Array.isArray(q.answers) && q.answers.length > 0
       ? q.answers
       : [
-          q.optionA && { id: `${q.id}-a`, content: q.optionA, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'A' },
-          q.optionB && { id: `${q.id}-b`, content: q.optionB, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'B' },
-          q.optionC && { id: `${q.id}-c`, content: q.optionC, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'C' },
-          q.optionD && { id: `${q.id}-d`, content: q.optionD, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'D' },
-        ].filter(Boolean);
+        q.optionA && { id: `${q.id}-a`, content: q.optionA, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'A' },
+        q.optionB && { id: `${q.id}-b`, content: q.optionB, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'B' },
+        q.optionC && { id: `${q.id}-c`, content: q.optionC, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'C' },
+        q.optionD && { id: `${q.id}-d`, content: q.optionD, isCorrect: String(q.correctAnswer || '').toUpperCase() === 'D' },
+      ].filter(Boolean);
 
   return {
     ...q,
@@ -1432,11 +1432,11 @@ export async function getQuestionById(id: string): Promise<QuestionResponseDTO> 
       answers.length > 0
         ? answers
         : [
-            { id: `${q.id}-a`, content: 'Phương án A', isCorrect: true },
-            { id: `${q.id}-b`, content: 'Phương án B', isCorrect: false },
-            { id: `${q.id}-c`, content: 'Phương án C', isCorrect: false },
-            { id: `${q.id}-d`, content: 'Phương án D', isCorrect: false },
-          ],
+          { id: `${q.id}-a`, content: 'Phương án A', isCorrect: true },
+          { id: `${q.id}-b`, content: 'Phương án B', isCorrect: false },
+          { id: `${q.id}-c`, content: 'Phương án C', isCorrect: false },
+          { id: `${q.id}-d`, content: 'Phương án D', isCorrect: false },
+        ],
   };
 }
 
@@ -1535,10 +1535,10 @@ export async function getQuizStatsSummary(classId: string = 'cs-202'): Promise<Q
         liveTotalStudents: live.reduce((acc, q) => acc + (q.totalStudents || 0), 0) || 60,
         avgScore: completed.length
           ? Number(
-              (
-                completed.reduce((acc, q) => acc + (q.avgScore || 0), 0) / completed.length
-              ).toFixed(2)
-            )
+            (
+              completed.reduce((acc, q) => acc + (q.avgScore || 0), 0) / completed.length
+            ).toFixed(2)
+          )
           : 7.82,
         avgScoreDiff: 0.4,
         ploPassRate: 84.5,

@@ -24,7 +24,7 @@
      - Hệ thống Directed Acyclic Graph (DAG) 4 Stage (Nền tảng, Trung cấp, Nâng cao, Chuyên gia/Locked) với các đường kết nối SVG connector mượt mà.
      - Drill-Down Detail Inspector Panel bên phải hiển thị chi tiết node được chọn, điều kiện tiên quyết (Prerequisites), mở khóa kỹ năng tiếp theo, nút luyện quiz và nút hỏi AI.
   3. **Bản đồ nhiệt Toàn lớp (Class Heatmap Tab):**
-     - Bảng ma trận 42 sinh viên x 6 kỹ năng cột, highlight tài khoản hiện tại (Trần Nhật Minh • You), thang màu trực quan (<60%, 75%, 90%), hàng tổng kết Trung bình cả lớp.
+     - Bảng ma trận 42 sinh viên x 6 kỹ năng cột, highlight tài khoản hiện tại ( • You), thang màu trực quan (<60%, 75%, 90%), hàng tổng kết Trung bình cả lớp.
 
 ### B. Chế độ Tập trung (Zen Focus Mode)
 - Giao diện Zen tối giản toàn màn hình với nền ambient glow và grid lines.

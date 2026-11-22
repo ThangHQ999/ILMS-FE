@@ -131,7 +131,7 @@ export function CompetencyRadarCard({
             />
           )}
 
-          {/* Student Polygon (Trần Nhật Minh): */}
+          {/* Student Polygon (): */}
           {/* Algo: 88%, DataStruct: 85%, Complexity: 92%, C++: 78%, DP: 58%, Graph: 74% */}
           <polygon
             points="220,77 323,140 331,264 220,309 150,241 130,148"

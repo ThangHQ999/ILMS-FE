@@ -32,8 +32,8 @@ export interface MapSkillNode {
 }
 
 export function StudentCompetencyMapView({
-  userFullName = 'Trần Nhật Minh',
-  onToast = () => {},
+  userFullName = '',
+  onToast = () => { },
   onSwitchToFocus,
   onOpenRadarView,
   onOpenHeatmap,
@@ -586,11 +586,10 @@ export function StudentCompetencyMapView({
               <button
                 type="button"
                 onClick={() => setFilterType('all')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  filterType === 'all'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${filterType === 'all'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px]">all_inclusive</span>
                 <span>Tất cả (79)</span>
@@ -598,11 +597,10 @@ export function StudentCompetencyMapView({
               <button
                 type="button"
                 onClick={() => setFilterType('new_v25')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  filterType === 'new_v25'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${filterType === 'new_v25'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 <span>Mới mở khóa v2.5 (+34)</span>
@@ -610,11 +608,10 @@ export function StudentCompetencyMapView({
               <button
                 type="button"
                 onClick={() => setFilterType('mastered')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  filterType === 'mastered'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${filterType === 'mastered'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
                 <span>Đã thành thạo (38)</span>
@@ -622,11 +619,10 @@ export function StudentCompetencyMapView({
               <button
                 type="button"
                 onClick={() => setFilterType('reinforcing')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  filterType === 'reinforcing'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${filterType === 'reinforcing'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px] text-amber-500">timelapse</span>
                 <span>Đang củng cố (7)</span>
@@ -634,11 +630,10 @@ export function StudentCompetencyMapView({
               <button
                 type="button"
                 onClick={() => setFilterType('prereq')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  filterType === 'prereq'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${filterType === 'prereq'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px]">lock</span>
                 <span>Tiên quyết (Prerequisites)</span>
@@ -652,33 +647,30 @@ export function StudentCompetencyMapView({
                   <button
                     type="button"
                     onClick={() => onTabChange('tree')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeTab === 'tree'
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'tree'
                         ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     Bản đồ v2.5
                   </button>
                   <button
                     type="button"
                     onClick={() => onTabChange('profile')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeTab === 'profile'
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'profile'
                         ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     Radar PLO
                   </button>
                   <button
                     type="button"
                     onClick={() => onTabChange('heatmap')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeTab === 'heatmap'
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'heatmap'
                         ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     Nhiệt toàn lớp
                   </button>
@@ -738,11 +730,10 @@ export function StudentCompetencyMapView({
                       <div
                         key={node.id}
                         onClick={() => setSelectedNodeId(node.id)}
-                        className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                          isSelected
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${isSelected
                             ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/30 shadow-xs'
                             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span className="material-symbols-outlined text-[20px] text-emerald-500 shrink-0">
@@ -803,11 +794,10 @@ export function StudentCompetencyMapView({
                       <div
                         key={node.id}
                         onClick={() => setSelectedNodeId(node.id)}
-                        className={`p-3.5 rounded-2xl flex flex-col justify-between transition-all cursor-pointer relative ${
-                          isSelected
+                        className={`p-3.5 rounded-2xl flex flex-col justify-between transition-all cursor-pointer relative ${isSelected
                             ? 'bg-blue-50/90 dark:bg-blue-950/70 border-2 border-blue-600 ring-2 ring-blue-500/30 shadow-md transform -translate-y-0.5'
                             : 'bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
+                          }`}
                       >
                         {isSelected && (
                           <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold shadow-xs flex items-center gap-0.5">
@@ -896,27 +886,25 @@ export function StudentCompetencyMapView({
                       <div
                         key={node.id}
                         onClick={() => setSelectedNodeId(node.id)}
-                        className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                          isSelected
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${isSelected
                             ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/30 shadow-xs'
                             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span
-                            className={`material-symbols-outlined text-[20px] shrink-0 ${
-                              node.status === 'mastered'
+                            className={`material-symbols-outlined text-[20px] shrink-0 ${node.status === 'mastered'
                                 ? 'text-emerald-500'
                                 : node.status === 'learning'
-                                ? 'text-amber-500'
-                                : 'text-blue-500'
-                            }`}
+                                  ? 'text-amber-500'
+                                  : 'text-blue-500'
+                              }`}
                           >
                             {node.status === 'mastered'
                               ? 'check_circle'
                               : node.status === 'learning'
-                              ? 'hourglass_top'
-                              : 'auto_awesome'}
+                                ? 'hourglass_top'
+                                : 'auto_awesome'}
                           </span>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
@@ -926,8 +914,8 @@ export function StudentCompetencyMapView({
                               {node.scoreDisplay
                                 ? `${node.scoreDisplay} Mastery`
                                 : node.isV25New
-                                ? 'MỚI v2.5 ✨'
-                                : 'Đang học'}
+                                  ? 'MỚI v2.5 ✨'
+                                  : 'Đang học'}
                             </span>
                           </div>
                         </div>
@@ -1038,13 +1026,12 @@ export function StudentCompetencyMapView({
                   Mức độ thành thạo
                 </span>
                 <span
-                  className={`text-xl font-extrabold ${
-                    selectedNode.masteryPercent > 80
+                  className={`text-xl font-extrabold ${selectedNode.masteryPercent > 80
                       ? 'text-emerald-600'
                       : selectedNode.masteryPercent > 0
-                      ? 'text-amber-600'
-                      : 'text-rose-600'
-                  }`}
+                        ? 'text-amber-600'
+                        : 'text-rose-600'
+                    }`}
                 >
                   {selectedNode.masteryPercent}%
                 </span>
@@ -1078,9 +1065,8 @@ export function StudentCompetencyMapView({
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={`material-symbols-outlined text-[17px] ${
-                          prereq.isMet ? 'text-emerald-500' : 'text-slate-400'
-                        }`}
+                        className={`material-symbols-outlined text-[17px] ${prereq.isMet ? 'text-emerald-500' : 'text-slate-400'
+                          }`}
                       >
                         {prereq.isMet ? 'check_circle' : 'radio_button_unchecked'}
                       </span>
@@ -1089,9 +1075,8 @@ export function StudentCompetencyMapView({
                       </span>
                     </div>
                     <span
-                      className={`font-mono font-bold ${
-                        prereq.isMet ? 'text-emerald-600' : 'text-slate-400'
-                      }`}
+                      className={`font-mono font-bold ${prereq.isMet ? 'text-emerald-600' : 'text-slate-400'
+                        }`}
                     >
                       {prereq.percent}% {prereq.isMet ? '✓' : ''}
                     </span>
@@ -1231,11 +1216,10 @@ export function StudentCompetencyMapView({
                   <label
                     key={opt.id}
                     onClick={() => setDiagnosticAnswer(opt.id)}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
-                      diagnosticAnswer === opt.id
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${diagnosticAnswer === opt.id
                         ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-600 text-blue-700 dark:text-blue-300 font-bold'
                         : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"

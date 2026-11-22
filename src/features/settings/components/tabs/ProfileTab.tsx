@@ -46,15 +46,15 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
 
   const initials = displayName
     ? displayName
-        .split(' ')
-        .map((w) => w[0])
-        .filter(Boolean)
-        .slice(-2)
-        .join('')
-        .toUpperCase()
+      .split(' ')
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(-2)
+      .join('')
+      .toUpperCase()
     : currentUser?.firstName
-    ? currentUser.firstName.slice(0, 2).toUpperCase()
-    : 'US';
+      ? currentUser.firstName.slice(0, 2).toUpperCase()
+      : 'US';
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
@@ -398,7 +398,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
                 Google Account
               </span>
               <span className="text-[11px] text-[#747775] dark:text-[#8E918F] truncate">
-                {profile?.socialAccounts.google?.email || 'nhatminh.edu@gmail.com'}
+                {profile?.socialAccounts.google?.email || ''}
               </span>
             </div>
             <button

@@ -27,7 +27,7 @@ export function AiTutorSidebar({
   onRenameSession,
   isCollapsed,
   onToggleCollapse,
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   isLoading = false,
 }: AiTutorSidebarProps) {
   const t = useTranslations('aiTutor');

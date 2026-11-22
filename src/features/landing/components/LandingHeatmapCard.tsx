@@ -20,7 +20,7 @@ export function LandingHeatmapCard() {
                 {t('cardTitle')}
               </h4>
               <p className="text-xs text-[#444746] dark:text-[#C4C7C5]">
-                {t('studentName', { name: 'Trần Nhật Minh' })}
+                {t('studentName', { name: '' })}
               </p>
             </div>
           </div>

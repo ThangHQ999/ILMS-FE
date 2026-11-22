@@ -292,6 +292,8 @@ export function ClassAssignmentsTab({
           onSendAiSuggestion={onSendAiSuggestion}
           onInterveneClick={onInterveneClick}
           onToast={onToast}
+          classId={classId}
+          courses={courses}
         />
       ) : (
         /* 3. SUB-VIEW: ASSIGNMENTS & LAB WORKSPACE */

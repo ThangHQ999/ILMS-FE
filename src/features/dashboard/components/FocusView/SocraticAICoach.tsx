@@ -26,7 +26,7 @@ interface SocraticAICoachProps {
 }
 
 export function SocraticAICoach({
-  userFullName = 'Nhật Minh',
+  userFullName = '',
   width,
   onWidthChange,
   isMinimized,
@@ -354,13 +354,12 @@ export function SocraticAICoach({
           ? undefined
           : ({ '--coach-desktop-width': `${clampedDesktopWidth}px` } as React.CSSProperties)
       }
-      className={`${isDragging ? 'transition-none' : 'transition-[width,height] duration-200 ease-out'} shrink-0 ${
-        isFullscreen
+      className={`${isDragging ? 'transition-none' : 'transition-[width,height] duration-200 ease-out'} shrink-0 ${isFullscreen
           ? 'fixed left-3 right-3 bottom-3 sm:left-auto sm:right-5 sm:bottom-5 z-50 w-auto sm:w-[800px] sm:max-w-[calc(100vw-2.5rem)] h-[calc(100dvh-1.5rem)] sm:h-[calc(100dvh-2.5rem)]'
           : floatingDock
             ? 'fixed left-3 right-3 bottom-3 sm:left-auto sm:right-5 sm:bottom-5 z-50 w-auto sm:w-[var(--coach-desktop-width)] sm:min-w-[450px] sm:max-w-[min(800px,calc(100vw-2.5rem))] h-[calc(100dvh-5.5rem)] max-h-[580px] sm:h-[620px] sm:max-h-[calc(100dvh-3rem)]'
             : 'relative lg:sticky lg:top-20 w-full sm:w-[var(--coach-desktop-width)] sm:min-w-[450px] sm:max-w-[800px] h-[640px] sm:h-[700px]'
-      }`}
+        }`}
     >
       {/* Resizer Handle (Left edge on Desktop) */}
       {!isFullscreen && (

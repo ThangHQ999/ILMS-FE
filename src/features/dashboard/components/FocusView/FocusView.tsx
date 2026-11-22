@@ -12,7 +12,7 @@ interface FocusViewProps {
   aiTasks: AITaskItem[];
 }
 
-export function FocusView({ userFullName = 'Nhật Minh', aiTasks }: FocusViewProps) {
+export function FocusView({ userFullName = '', aiTasks }: FocusViewProps) {
   const t = useTranslations('dashboard');
 
   return (

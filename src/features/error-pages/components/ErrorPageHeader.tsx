@@ -19,7 +19,7 @@ export function ErrorPageHeader({ currentPage = '404' }: ErrorPageHeaderProps) {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'Trần Nhật Minh';
+      : '';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#1E1F20] backdrop-blur-xl border-none shadow-none">

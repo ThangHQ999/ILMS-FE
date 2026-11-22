@@ -3,9 +3,11 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { CustomSelect } from '@/components/shared';
+import { OutcomeAttainmentDashboard } from '@/features/outcomes';
 import type {
   GradebookStudent,
   GradebookAiAnalysis,
+  ClassCourse,
 } from '../../schemas/class-detail.schema';
 
 interface ClassGradebookTabProps {
@@ -14,6 +16,8 @@ interface ClassGradebookTabProps {
   onSendAiSuggestion: () => void;
   onInterveneClick: (student: GradebookStudent) => void;
   onToast?: (msg: string) => void;
+  classId?: string;
+  courses?: ClassCourse[];
 }
 
 export function ClassGradebookTab({
@@ -22,10 +26,19 @@ export function ClassGradebookTab({
   onSendAiSuggestion,
   onInterveneClick,
   onToast,
+  classId,
+  courses = [],
 }: ClassGradebookTabProps) {
   const t = useTranslations('classes.detail');
 
   // Filters & State
+  const activeCourseId = useMemo(() => {
+    if (courses && courses.length > 0) {
+      return courses[0].id;
+    }
+    return 'cs202';
+  }, [courses]);
+
   const [selectedCourse, setSelectedCourse] = useState(
     'CS-202: Cấu trúc dữ liệu & Giải thuật nâng cao (Trọng tâm)'
   );
@@ -340,11 +353,10 @@ export function ClassGradebookTab({
               <button
                 type="button"
                 onClick={() => setViewMode('scores')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${
-                  viewMode === 'scores'
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${viewMode === 'scores'
                     ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[17px]">table_chart</span>
                 Điểm số &amp; Thành phần
@@ -352,11 +364,10 @@ export function ClassGradebookTab({
               <button
                 type="button"
                 onClick={() => setViewMode('plo')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${
-                  viewMode === 'plo'
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border-none ${viewMode === 'plo'
                     ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900 dark:hover:text-[#E3E3E3]'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-[17px]">hub</span>
                 Ma trận PLO (Bloom)
@@ -445,11 +456,19 @@ export function ClassGradebookTab({
         </div>
       </div>
 
-      {/* =========================================================================
-          3. COMPREHENSIVE GRADEBOOK TABLE & PLO COMPETENCY MATRIX
-          Zero borders, flat MD3 layout
-          ========================================================================= */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none overflow-hidden flex flex-col">
+      {viewMode === 'plo' ? (
+        <OutcomeAttainmentDashboard
+          classId={classId || 'cls-cs202'}
+          courseId={activeCourseId}
+          isTeacher={true}
+        />
+      ) : (
+        <>
+          {/* =========================================================================
+              3. COMPREHENSIVE GRADEBOOK TABLE & PLO COMPETENCY MATRIX
+              Zero borders, flat MD3 layout
+              ========================================================================= */}
+          <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none overflow-hidden flex flex-col">
         {/* Table Header Toolbar */}
         <div className="px-6 py-4 bg-[#F0F4F8] dark:bg-[#131314] flex items-center justify-between gap-4 flex-wrap border-none">
           <div className="flex items-center gap-3">
@@ -587,51 +606,46 @@ export function ClassGradebookTab({
                 return (
                   <tr
                     key={s.id}
-                    className={`transition-colors group border-none ${
-                      isWarning
+                    className={`transition-colors group border-none ${isWarning
                         ? 'hover:bg-red-50/50 dark:hover:bg-[#3C1919]/30'
                         : isSelected
-                        ? 'bg-blue-50/40 dark:bg-[#1A2E4D]/30 hover:bg-blue-50/60 dark:hover:bg-[#1A2E4D]/50'
-                        : 'hover:bg-black/[0.03] dark:hover:bg-[#282A2C]'
-                    }`}
+                          ? 'bg-blue-50/40 dark:bg-[#1A2E4D]/30 hover:bg-blue-50/60 dark:hover:bg-[#1A2E4D]/50'
+                          : 'hover:bg-black/[0.03] dark:hover:bg-[#282A2C]'
+                      }`}
                   >
                     {/* Checkbox sticky */}
                     <td
-                      className={`py-5 px-4 text-center align-middle sticky left-0 z-10 transition-colors ${
-                        isWarning
+                      className={`py-5 px-4 text-center align-middle sticky left-0 z-10 transition-colors ${isWarning
                           ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
                           : isSelected
-                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
-                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
-                      }`}
+                            ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                            : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                        }`}
                     >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleStudent(s.id)}
-                        className={`w-4 h-4 rounded cursor-pointer ${
-                          isWarning ? 'accent-red-600' : 'accent-blue-600'
-                        }`}
+                        className={`w-4 h-4 rounded cursor-pointer ${isWarning ? 'accent-red-600' : 'accent-blue-600'
+                          }`}
                       />
                     </td>
 
                     {/* Student Info sticky */}
                     <td
-                      className={`py-5 px-4 align-middle sticky left-12 z-10 transition-colors ${
-                        isWarning
+                      className={`py-5 px-4 align-middle sticky left-12 z-10 transition-colors ${isWarning
                           ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
                           : isSelected
-                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
-                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
-                      }`}
+                            ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                            : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ${
-                            isWarning
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ${isWarning
                               ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-800 dark:text-[#F28B82]'
                               : s.avatarColor || 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                          }`}
+                            }`}
                         >
                           {s.avatar || 'SV'}
                         </div>
@@ -665,49 +679,44 @@ export function ClassGradebookTab({
                       {s.attendanceScore.toFixed(1)}
                     </td>
                     <td
-                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
-                        s.quizScore < 5.0
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${s.quizScore < 5.0
                           ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
                           : 'text-gray-800 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {s.quizScore.toFixed(1)}
                     </td>
                     <td
-                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
-                        s.labScore < 5.0
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${s.labScore < 5.0
                           ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
                           : 'text-gray-800 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {s.labScore.toFixed(1)}
                     </td>
                     <td
-                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
-                        s.midtermScore < 5.0
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${s.midtermScore < 5.0
                           ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
                           : 'text-gray-800 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {s.midtermScore.toFixed(1)}
                     </td>
                     <td
-                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${
-                        s.finalScore < 5.0
+                      className={`py-5 px-3 text-center align-middle font-mono font-bold ${s.finalScore < 5.0
                           ? 'text-red-700 dark:text-[#F28B82] font-extrabold'
                           : 'text-gray-800 dark:text-[#E3E3E3]'
-                      }`}
+                        }`}
                     >
                       {s.finalScore.toFixed(1)}
                     </td>
 
                     {/* Total 10 Highlight Cell */}
                     <td
-                      className={`py-5 px-4 text-center align-middle font-mono font-bold text-sm ${
-                        isWarning
+                      className={`py-5 px-4 text-center align-middle font-mono font-bold text-sm ${isWarning
                           ? 'text-red-700 dark:text-[#F28B82]'
                           : 'text-blue-600 dark:text-[#A8C7FA]'
-                      }`}
+                        }`}
                     >
                       {(s.totalGpa ?? s.finalScore).toFixed(2)}
                     </td>
@@ -715,13 +724,12 @@ export function ClassGradebookTab({
                     {/* Letter Grade */}
                     <td className="py-5 px-3 text-center align-middle">
                       <span
-                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full font-semibold text-xs ${
-                          isWarning
+                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full font-semibold text-xs ${isWarning
                             ? 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
                             : (s.totalGpa ?? s.finalScore) >= 8.5
-                            ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                            : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]'
-                        }`}
+                              ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                              : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]'
+                          }`}
                       >
                         {s.letterGrade}
                       </span>
@@ -735,13 +743,12 @@ export function ClassGradebookTab({
                         </span>
                         <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              (s.plo1?.percent ?? s.ploPercent) >= 80
+                            className={`h-full rounded-full ${(s.plo1?.percent ?? s.ploPercent) >= 80
                                 ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
                                 : (s.plo1?.percent ?? s.ploPercent) >= 50
-                                ? 'bg-gray-400 dark:bg-gray-500'
-                                : 'bg-red-500 dark:bg-[#F28B82]'
-                            }`}
+                                  ? 'bg-gray-400 dark:bg-gray-500'
+                                  : 'bg-red-500 dark:bg-[#F28B82]'
+                              }`}
                             style={{
                               width: `${s.plo1?.percent ?? s.ploPercent}%`,
                             }}
@@ -758,13 +765,12 @@ export function ClassGradebookTab({
                         </span>
                         <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              (s.plo2?.percent ?? s.ploPercent) >= 80
+                            className={`h-full rounded-full ${(s.plo2?.percent ?? s.ploPercent) >= 80
                                 ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
                                 : (s.plo2?.percent ?? s.ploPercent) >= 50
-                                ? 'bg-gray-400 dark:bg-gray-500'
-                                : 'bg-red-500 dark:bg-[#F28B82]'
-                            }`}
+                                  ? 'bg-gray-400 dark:bg-gray-500'
+                                  : 'bg-red-500 dark:bg-[#F28B82]'
+                              }`}
                             style={{
                               width: `${s.plo2?.percent ?? Math.max(s.ploPercent - 3, 45)}%`,
                             }}
@@ -787,20 +793,18 @@ export function ClassGradebookTab({
                           </span>
                         )}
                         <div
-                          className={`w-16 h-1.5 rounded-full overflow-hidden ${
-                            isRowFailingPlo3
+                          className={`w-16 h-1.5 rounded-full overflow-hidden ${isRowFailingPlo3
                               ? 'bg-red-200 dark:bg-red-950'
                               : 'bg-[#E1E5EA] dark:bg-[#282A2C]'
-                          }`}
+                            }`}
                         >
                           <div
-                            className={`h-full rounded-full ${
-                              isRowFailingPlo3
+                            className={`h-full rounded-full ${isRowFailingPlo3
                                 ? 'bg-red-500 dark:bg-[#F28B82]'
                                 : (s.plo3?.percent ?? s.ploPercent) >= 80
-                                ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
-                                : 'bg-gray-400 dark:bg-gray-500'
-                            }`}
+                                  ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                                  : 'bg-gray-400 dark:bg-gray-500'
+                              }`}
                             style={{
                               width: `${s.plo3?.percent ?? (isRowFailingPlo3 ? 32 : 88)}%`,
                             }}
@@ -817,13 +821,12 @@ export function ClassGradebookTab({
                         </span>
                         <div className="w-16 h-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              (s.plo4?.percent ?? s.ploPercent) >= 80
+                            className={`h-full rounded-full ${(s.plo4?.percent ?? s.ploPercent) >= 80
                                 ? 'bg-[#007BFF] dark:bg-[#A8C7FA]'
                                 : (s.plo4?.percent ?? s.ploPercent) >= 50
-                                ? 'bg-gray-400 dark:bg-gray-500'
-                                : 'bg-red-500 dark:bg-[#F28B82]'
-                            }`}
+                                  ? 'bg-gray-400 dark:bg-gray-500'
+                                  : 'bg-red-500 dark:bg-[#F28B82]'
+                              }`}
                             style={{
                               width: `${s.plo4?.percent ?? Math.max(s.ploPercent - 2, 45)}%`,
                             }}
@@ -834,13 +837,12 @@ export function ClassGradebookTab({
 
                     {/* Action sticky right */}
                     <td
-                      className={`py-5 px-4 text-right align-middle sticky right-0 z-10 transition-colors ${
-                        isWarning
+                      className={`py-5 px-4 text-right align-middle sticky right-0 z-10 transition-colors ${isWarning
                           ? 'bg-red-50/80 dark:bg-[#3C1919]/50 group-hover:bg-red-100/80 dark:group-hover:bg-[#3C1919]/70'
                           : isSelected
-                          ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
-                          : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
-                      }`}
+                            ? 'bg-blue-50/80 dark:bg-[#1A2E4D] group-hover:bg-blue-100/80 dark:group-hover:bg-[#1A2E4D]/80'
+                            : 'bg-white dark:bg-[#1E1F20] group-hover:bg-[#F0F4F8] dark:group-hover:bg-[#282A2C]'
+                        }`}
                     >
                       <div className="flex items-center justify-end gap-1 text-gray-500 dark:text-[#8E918F]">
                         {isWarning ? (
@@ -949,33 +951,30 @@ export function ClassGradebookTab({
             <button
               type="button"
               onClick={() => setCurrentPage(1)}
-              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
-                currentPage === 1
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${currentPage === 1
                   ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                   : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
-              }`}
+                }`}
             >
               1
             </button>
             <button
               type="button"
               onClick={() => setCurrentPage(2)}
-              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
-                currentPage === 2
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${currentPage === 2
                   ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                   : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
-              }`}
+                }`}
             >
               2
             </button>
             <button
               type="button"
               onClick={() => setCurrentPage(3)}
-              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${
-                currentPage === 3
+              className={`w-8 h-8 rounded-full font-semibold text-xs cursor-pointer border-none transition-all ${currentPage === 3
                   ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
                   : 'hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] bg-transparent'
-              }`}
+                }`}
             >
               3
             </button>
@@ -1158,7 +1157,7 @@ export function ClassGradebookTab({
                     Mô hình Học nhóm Đôi bạn cùng tiến:
                   </strong>{' '}
                   Đề xuất ghép cặp <strong>Phạm Văn Hùng</strong> với{' '}
-                  <strong>Trần Nhật Minh</strong> (A+) trong 2 buổi phụ đạo Lab thuật toán cuối tuần.
+                  <strong></strong> (A+) trong 2 buổi phụ đạo Lab thuật toán cuối tuần.
                 </div>
               </div>
 
@@ -1196,6 +1195,8 @@ export function ClassGradebookTab({
           </div>
         </div>
       </div>
+        </>
+      )}
 
       {/* =========================================================================
           5. MODALS & POPUPS
@@ -1307,7 +1308,7 @@ export function ClassGradebookTab({
                       weights.lab +
                       weights.midterm +
                       weights.final ===
-                    100
+                      100
                       ? 'text-emerald-600'
                       : 'text-rose-600'
                   }
@@ -1452,9 +1453,8 @@ export function ClassGradebookTab({
             <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                    selectedStudentForProfile.avatarColor || 'bg-blue-100 text-blue-700'
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${selectedStudentForProfile.avatarColor || 'bg-blue-100 text-blue-700'
+                    }`}
                 >
                   {selectedStudentForProfile.avatar}
                 </div>
@@ -1518,9 +1518,8 @@ export function ClassGradebookTab({
                   <div className="flex justify-between">
                     <span>PLO-03 (Cây AVL / Đỏ-Đen):</span>
                     <span
-                      className={`font-bold font-mono ${
-                        selectedStudentForProfile.plo3?.isHole ? 'text-rose-600' : ''
-                      }`}
+                      className={`font-bold font-mono ${selectedStudentForProfile.plo3?.isHole ? 'text-rose-600' : ''
+                        }`}
                     >
                       {selectedStudentForProfile.plo3?.status || `${selectedStudentForProfile.ploPercent}%`}
                     </span>

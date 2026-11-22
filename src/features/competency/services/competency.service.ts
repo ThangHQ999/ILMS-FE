@@ -405,7 +405,7 @@ export const mockClassHeatmap: ClassHeatmapData = {
     {
       id: 'sv-1',
       studentCode: '21020491',
-      name: 'Trần Nhật Minh',
+      name: '',
       avatarText: 'NM',
       isCurrentUser: true,
       scores: {

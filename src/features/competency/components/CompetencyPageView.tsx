@@ -21,7 +21,7 @@ export function CompetencyPageView() {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'Trần Nhật Minh';
+      : '';
 
   if (isLoading || !radarData || !skillTreeStages || !heatmapData || !focusGoals) {
     return (

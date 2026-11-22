@@ -12,7 +12,7 @@ interface AiTutorWelcomeCanvasProps {
 }
 
 export function AiTutorWelcomeCanvas({
-  userFullName = 'Trần Nhật Minh',
+  userFullName = '',
   onSelectPrompt,
   onSendMessage,
 }: AiTutorWelcomeCanvasProps) {
@@ -20,7 +20,7 @@ export function AiTutorWelcomeCanvas({
   const [welcomeInput, setWelcomeInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
 
-  const firstName = userFullName.split(' ').slice(-1)[0] || 'Nhật Minh';
+  const firstName = userFullName.split(' ').slice(-1)[0] || '';
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && welcomeInput.trim()) {
@@ -124,9 +124,8 @@ export function AiTutorWelcomeCanvas({
 
               <button
                 onClick={() => setIsRecording((prev) => !prev)}
-                className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors shrink-0 cursor-pointer ${
-                  isRecording ? 'text-red-500 animate-pulse bg-[#FAD2CF] dark:bg-[#3C1919]' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
+                className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors shrink-0 cursor-pointer ${isRecording ? 'text-red-500 animate-pulse bg-[#FAD2CF] dark:bg-[#3C1919]' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
                 title={t('voiceTooltip')}
                 type="button"
               >

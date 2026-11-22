@@ -297,8 +297,8 @@ export function ClassAnnouncementsTab({
                         );
                       }}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border-none ${hasAttachment
-                          ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                          : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C]'
+                        ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                        : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C]'
                         }`}
                       title="Đính kèm tài liệu PDF / Slide"
                     >
@@ -419,8 +419,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setFeedFilter('all')}
                 className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'all'
-                    ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
-                    : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
+                  ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                  : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
                   }`}
               >
                 Tất cả
@@ -429,8 +429,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setFeedFilter('pinned')}
                 className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'pinned'
-                    ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
-                    : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
+                  ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                  : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
                   }`}
               >
                 Đã ghim
@@ -439,8 +439,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setFeedFilter('attachment')}
                 className={`px-3 py-1 rounded-full font-semibold transition-all cursor-pointer border-none ${feedFilter === 'attachment'
-                    ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
-                    : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
+                  ? 'bg-white dark:bg-[#1E1F20] text-gray-900 dark:text-[#E3E3E3] shadow-xs'
+                  : 'text-gray-600 dark:text-[#C4C7C5] hover:text-gray-900'
                   }`}
               >
                 Có file đính kèm
@@ -494,8 +494,8 @@ export function ClassAnnouncementsTab({
                       {item.isPinned && (
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border-none ${isErrorTheme
-                              ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-800 dark:text-[#F28B82]'
-                              : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+                            ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-800 dark:text-[#F28B82]'
+                            : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
                             }`}
                         >
                           <span className="material-symbols-outlined text-[13px]">push_pin</span>
@@ -569,10 +569,10 @@ export function ClassAnnouncementsTab({
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div
                                 className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${att.type === 'pdf'
-                                    ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-600 dark:text-[#F28B82]'
-                                    : att.type === 'pptx'
-                                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-[#FFB784]'
-                                      : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
+                                  ? 'bg-rose-100 dark:bg-[#3C1919] text-rose-600 dark:text-[#F28B82]'
+                                  : att.type === 'pptx'
+                                    ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-[#FFB784]'
+                                    : 'bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA]'
                                   }`}
                               >
                                 <span className="material-symbols-outlined text-[20px]">
@@ -622,8 +622,8 @@ export function ClassAnnouncementsTab({
                               type="button"
                               onClick={() => handleVotePoll(opt.id)}
                               className={`p-3 rounded-2xl border-none flex flex-col gap-1 relative overflow-hidden text-left transition-all cursor-pointer ${isVoted
-                                  ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40'
-                                  : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
+                                ? 'bg-[#D3E3FD]/40 dark:bg-[#162B4D]/40'
+                                : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-90'
                                 }`}
                             >
                               <div
@@ -633,8 +633,8 @@ export function ClassAnnouncementsTab({
                               <div className="relative z-10 flex items-center justify-between text-xs">
                                 <span
                                   className={`font-semibold ${isVoted
-                                      ? 'text-blue-800 dark:text-[#A8C7FA]'
-                                      : 'text-gray-800 dark:text-[#E3E3E3]'
+                                    ? 'text-blue-800 dark:text-[#A8C7FA]'
+                                    : 'text-gray-800 dark:text-[#E3E3E3]'
                                     }`}
                                 >
                                   {opt.label}
@@ -741,7 +741,7 @@ export function ClassAnnouncementsTab({
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold text-gray-900 dark:text-[#E3E3E3]">
-                                  Trần Nhật Minh (Lớp trưởng)
+                                  (Lớp trưởng)
                                 </span>
                                 <span className="text-[10px] text-gray-400 dark:text-[#8E918F]">1 giờ trước</span>
                               </div>
@@ -989,7 +989,7 @@ export function ClassAnnouncementsTab({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
-                      Trần Nhật Minh
+
                     </span>
                     <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">Lớp trưởng • 0982.112.xxx</span>
                   </div>
@@ -998,7 +998,7 @@ export function ClassAnnouncementsTab({
                   href="tel:0982112888"
                   onClick={(e) => {
                     e.preventDefault();
-                    notify('Đang gọi điện cho Lớp trưởng Trần Nhật Minh: 0982.112.888');
+                    notify('Đang gọi điện cho Lớp trưởng : 0982.112.888');
                   }}
                   className="p-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] hover:opacity-85 transition-colors border-none"
                   title="Gọi điện"
@@ -1045,8 +1045,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setSelectedSubjectFilter('ALL')}
                 className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'ALL'
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
                   }`}
               >
                 Tất cả học phần
@@ -1055,8 +1055,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setSelectedSubjectFilter('ctdl')}
                 className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'ctdl'
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
                   }`}
               >
                 Cấu trúc Dữ liệu &amp; Giải thuật (K22)
@@ -1065,8 +1065,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setSelectedSubjectFilter('csdl')}
                 className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'csdl'
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
                   }`}
               >
                 Cơ sở dữ liệu nâng cao
@@ -1075,8 +1075,8 @@ export function ClassAnnouncementsTab({
                 type="button"
                 onClick={() => setSelectedSubjectFilter('web')}
                 className={`px-3 py-1.5 rounded-full transition-all cursor-pointer border-none ${selectedSubjectFilter === 'web'
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
+                  ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                  : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-600 dark:text-[#C4C7C5] hover:opacity-85'
                   }`}
               >
                 Lập trình Web chuyên sâu
@@ -1113,7 +1113,7 @@ export function ClassAnnouncementsTab({
 
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs">
               {[
-                { name: 'Trần Nhật Minh', code: '22028192', read: true, time: '2 phút sau khi đăng' },
+                { name: '', code: '22028192', read: true, time: '2 phút sau khi đăng' },
                 { name: 'Nguyễn Tuấn Anh', code: '22028195', read: true, time: '14 phút sau khi đăng' },
                 { name: 'Lê Hoàng Yến', code: '22028198', read: true, time: '28 phút sau khi đăng' },
                 { name: 'Đỗ Minh Châu', code: '22028210', read: true, time: '45 phút sau khi đăng' },
@@ -1124,8 +1124,8 @@ export function ClassAnnouncementsTab({
                 <div
                   key={idx}
                   className={`p-3 rounded-2xl border-none flex items-center justify-between ${s.read
-                      ? 'bg-[#F0F4F8] dark:bg-[#131314]'
-                      : 'bg-rose-50 dark:bg-[#3C1919]'
+                    ? 'bg-[#F0F4F8] dark:bg-[#131314]'
+                    : 'bg-rose-50 dark:bg-[#3C1919]'
                     }`}
                 >
                   <div className="flex items-center gap-2">

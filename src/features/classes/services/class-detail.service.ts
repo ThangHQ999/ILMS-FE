@@ -290,7 +290,7 @@ export const MOCK_GRADEBOOK_STUDENTS: GradebookStudent[] = [
   {
     id: 'stu-01',
     stt: '01',
-    name: 'Trần Nhật Minh',
+    name: '',
     studentCode: '22028192',
     email: 'minh.tn22@vnu.edu.vn',
     avatar: 'TM',
@@ -507,7 +507,7 @@ export const MOCK_MEMBERS: ClassMember[] = [
   },
   {
     id: 'mem-03',
-    name: 'Trần Nhật Minh',
+    name: '',
     studentCode: '22028192',
     email: 'minh.tn22@sis.edu.vn',
     role: 'STUDENT',

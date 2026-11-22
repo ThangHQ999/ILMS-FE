@@ -122,10 +122,10 @@ export async function runPreviewTests() {
 
     const studentUser = getDemoUser('STUDENT');
     assert(studentUser.roleName === 'STUDENT', 'Student roleName is STUDENT');
-    assert(studentUser.firstName === 'Minh' && studentUser.lastName === 'Trần Nhật', 'Student is Trần Nhật Minh');
+    assert(studentUser.firstName === 'Minh' && studentUser.lastName === 'Trần Nhật', 'Student is ');
     assert(studentUser.email === 'minhtn@stu.ptit.edu.vn', 'Student email is minhtn@stu.ptit.edu.vn');
     assert(studentUser.username === '22028192', 'Student studentCode is 22028192');
-    assert(`${studentUser.lastName} ${studentUser.firstName}` === 'Trần Nhật Minh', 'Full name is Trần Nhật Minh');
+    assert(`${studentUser.lastName} ${studentUser.firstName}` === '', 'Full name is ');
 
     // Role switcher synchronous toggle
     globalRoleStore.set('TEACHER');
@@ -151,10 +151,10 @@ export async function runPreviewTests() {
 
     const db01Subs = MOCK_TEACHER_SUBMISSIONS['assign-db-01'];
     assert(Array.isArray(db01Subs) && db01Subs.length >= 5, 'assign-db-01 has at least 5 benchmark submissions');
-    assert(db01Subs.some((s) => s.studentName === 'Trần Nhật Minh'), 'Trần Nhật Minh exists in submissions');
+    assert(db01Subs.some((s) => s.studentName === ''), ' exists in submissions');
     assert(db01Subs.some((s) => s.studentName === 'Vũ Đức Long'), 'Vũ Đức Long exists in submissions');
 
-    assert(DEMO_STUDENT_PROFILES['student-tran-nhat-minh']?.name === 'Trần Nhật Minh', 'Student profile mapped correctly');
+    assert(DEMO_STUDENT_PROFILES['student-tran-nhat-minh']?.name === '', 'Student profile mapped correctly');
     console.log('  -> PASS: Demo data, benchmark submissions, and mock class integrity preserved\n');
 
     console.log('ALL 4 PREVIEW & ROLE SWITCHER TEST SUITES PASSED! (100% OK)');
