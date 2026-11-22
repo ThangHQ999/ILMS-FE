@@ -37,6 +37,7 @@ export interface Student {
   studentCode: string;
   studentName: string;
   avatarColor?: string;
+  avatarUrl?: string;
   email?: string;
 }
 

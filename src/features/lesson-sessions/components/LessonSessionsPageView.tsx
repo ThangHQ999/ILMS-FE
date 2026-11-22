@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/features/auth';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { useClasses } from '@/features/classes/hooks/useClasses';
@@ -24,6 +26,7 @@ import {
   CreateLessonSessionRequest,
   LessonSession,
 } from '../types';
+import { lessonSessionKeys } from '../constants';
 import { LessonSessionHeader } from './LessonSessionHeader';
 import { LessonSessionTable } from './LessonSessionTable';
 import { CreateSessionModal } from './CreateSessionModal';
@@ -39,6 +42,9 @@ interface LessonSessionsPageViewProps {
 export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   classId = 'CNTT-K21A',
 }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
   const { isFocus, toggleMode } = useDashboardMode();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
@@ -51,6 +57,10 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   });
 
   useEffect(() => {
+    if (classId && classId !== 'CNTT-K21A') {
+      setSelectedClassId(classId);
+      return;
+    }
     if (!selectedClassId && classesList.length > 0) {
       // Find matching class or default to first
       const matched = classesList.find((c) => c.id === classId || c.code === classId);
@@ -89,6 +99,36 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
     effectiveClassId,
     selectedSession?.lessonSessionId
   );
+
+  const paramSessionId = searchParams?.get('sessionId') || null;
+  const isAttendanceAction = searchParams?.get('action') === 'attendance';
+  const hasAutoSelectedRef = useRef(false);
+
+  useEffect(() => {
+    if (sessions.length === 0) return;
+
+    if (paramSessionId) {
+      const matched = sessions.find(
+        (s) => s.lessonSessionId === paramSessionId
+      );
+      if (matched) {
+        setSelectedSession(matched);
+        return;
+      }
+    }
+
+    if (isAttendanceAction && !hasAutoSelectedRef.current) {
+      hasAutoSelectedRef.current = true;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todaySession =
+        sessions.find((s) => s.sessionDate === todayStr) ||
+        sessions.find((s) => s.status === 'IN_PROGRESS') ||
+        sessions[0];
+      if (todaySession) {
+        setSelectedSession(todaySession);
+      }
+    }
+  }, [sessions, paramSessionId, isAttendanceAction]);
 
   const createSessionMutation = useCreateLessonSession(effectiveClassId);
   const saveAttendancesMutation = useSaveAttendances(
@@ -301,7 +341,13 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                         100
                       : 95.0
                   }
-                  onBackToClasses={() => setSelectedSession(null)}
+                  onBackToClasses={() => {
+                    if (effectiveClassId) {
+                      router.push(`/classes/${effectiveClassId}?tab=members`);
+                    } else {
+                      router.push('/classes');
+                    }
+                  }}
                 />
                 <LessonSessionTable
                   sessions={sessions}
@@ -314,9 +360,24 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
               <>
                 <AttendanceHeroBanner
                   session={selectedSession}
+                  sessions={sessions}
+                  onSelectSession={(sessionId) => {
+                    const found = sessions.find((s) => s.lessonSessionId === sessionId);
+                    if (found) setSelectedSession(found);
+                  }}
                   onBack={handleBackToList}
                   onMarkAllPresent={handleMarkAllPresent}
-                  onRefresh={() => showToast('Đã làm mới dữ liệu ca học!')}
+                  onRefresh={() => {
+                    if (selectedSession) {
+                      queryClient.invalidateQueries({
+                        queryKey: lessonSessionKeys.attendances(
+                          effectiveClassId,
+                          selectedSession.lessonSessionId
+                        ),
+                      });
+                    }
+                    showToast('Đã làm mới dữ liệu ca học!');
+                  }}
                   totalStudents={totalCount}
                   checkedCount={checkedCount}
                   presentCount={presentCount}

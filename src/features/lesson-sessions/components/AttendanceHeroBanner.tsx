@@ -5,6 +5,8 @@ import { LessonSession } from '../types';
 
 interface AttendanceHeroBannerProps {
   session: LessonSession;
+  sessions?: LessonSession[];
+  onSelectSession?: (sessionId: string) => void;
   onBack: () => void;
   onMarkAllPresent: () => void;
   onRefresh: () => void;
@@ -19,6 +21,8 @@ interface AttendanceHeroBannerProps {
 
 export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
   session,
+  sessions = [],
+  onSelectSession,
   onBack,
   onMarkAllPresent,
   onRefresh,
@@ -36,22 +40,55 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Back Link & Fast Actions */}
-      <div className="flex items-center justify-between">
+      {/* Back Link & Session Quick Selector & Fast Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-[#0B57D0] hover:bg-[#F0F4F9] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors group border-none cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-[#0B57D0] hover:bg-[#F0F4F9] dark:text-[#A8C7FA] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors group border-none cursor-pointer self-start"
         >
           <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">
             arrow_back
           </span>
           <span>Quay lại Danh sách ca học</span>
         </button>
-        <div className="flex items-center gap-2">
+
+        {/* Dropdown selector to choose attendance day / session */}
+        {sessions && sessions.length > 0 && onSelectSession && (
+          <div className="flex items-center gap-2 bg-white dark:bg-[#1E1F20] px-3.5 py-1.5 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 self-start md:self-auto">
+            <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">
+              event_repeat
+            </span>
+            <label
+              htmlFor="attendance-session-select"
+              className="text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] whitespace-nowrap"
+            >
+              Chọn hôm điểm danh:
+            </label>
+            <select
+              id="attendance-session-select"
+              value={session.lessonSessionId}
+              onChange={(e) => onSelectSession(e.target.value)}
+              className="h-8 px-2.5 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] text-xs font-semibold text-gray-900 dark:text-[#E3E3E3] border border-slate-200/70 dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#0B57D0] cursor-pointer max-w-[240px] sm:max-w-[340px] md:max-w-[420px] truncate"
+            >
+              {sessions.map((s) => (
+                <option key={s.lessonSessionId} value={s.lessonSessionId}>
+                  {s.sessionDate} • {s.startTime}-{s.endTime} | {s.roomName} (
+                  {s.note || s.sessionCode || 'Ca học'}){' '}
+                  {s.status === 'COMPLETED' ? '✓ Đã chốt' : s.status === 'IN_PROGRESS' ? '• Đang học' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 self-end md:self-auto">
           <span className="font-mono text-xs text-[#747775] dark:text-[#8E918F]">
             Mã ca: #{session.lessonSessionId || 'SES-2024-B1-09'}
           </span>
-          <button className="flex items-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors border-none shadow-none cursor-pointer">
+          <button
+            type="button"
+            className="flex items-center gap-1.5 bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#E3E3E3] font-medium rounded-full px-4 py-2 text-xs whitespace-nowrap transition-colors border-none shadow-none cursor-pointer"
+          >
             <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">download</span>
             <span>Xuất DS Excel</span>
           </button>

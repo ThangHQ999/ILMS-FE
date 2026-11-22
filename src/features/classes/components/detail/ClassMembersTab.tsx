@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { CustomSelect } from '@/components/shared';
 import type { ClassItem } from '../../schemas/class.schema';
 import type { ClassCourse, ClassMember } from '../../schemas/class-detail.schema';
@@ -29,6 +30,8 @@ export function ClassMembersTab({
   onInviteClick,
   onToast,
 }: ClassMembersTabProps) {
+  const router = useRouter();
+
   // Filters & Search
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'good' | 'attention' | 'risk'>('all');
@@ -197,7 +200,12 @@ export function ClassMembersTab({
   };
 
   const handleTakeAttendance = () => {
-    notify('Đã lưu kết quả điểm danh buổi học hôm nay thành công (40/42 có mặt, 95.2%)!');
+    const targetClassId = classInfo?.id || classCode;
+    if (targetClassId) {
+      router.push(`/classes/${targetClassId}/sessions?action=attendance`);
+    } else {
+      router.push('/lesson-sessions?action=attendance');
+    }
   };
 
   return (
