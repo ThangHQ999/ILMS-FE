@@ -14,7 +14,7 @@ interface ClassCardGridProps {
   onCopyCode: (code: string) => void;
 }
 
-export function ClassCardGrid({
+export const ClassCardGrid = React.memo(function ClassCardGrid({
   items,
   workspaceMode = 'faculty',
   viewMode = 'grid',
@@ -50,4 +50,4 @@ export function ClassCardGrid({
       ))}
     </div>
   );
-}
+});

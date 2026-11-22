@@ -12,7 +12,7 @@ interface ClassKpiStatsBarProps {
   activeKpi?: string | null;
 }
 
-export function ClassKpiStatsBar({
+export const ClassKpiStatsBar = React.memo(function ClassKpiStatsBar({
   workspaceMode = 'faculty',
   stats,
   studentStats = {
@@ -293,4 +293,4 @@ export function ClassKpiStatsBar({
       </div>
     </section>
   );
-}
+});

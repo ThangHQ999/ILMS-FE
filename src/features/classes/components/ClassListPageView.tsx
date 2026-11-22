@@ -45,7 +45,19 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
   // Role-based 3-tab state: TEACHING | ENROLLED | ARCHIVED
-  const [activeTab, setActiveTab] = useState<ClassRoleTab>('ENROLLED');
+  const [activeTab, setActiveTab] = useState<ClassRoleTab>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
+        if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
+          return saved;
+        }
+      } catch {
+        // Ignore storage read error
+      }
+    }
+    return 'ENROLLED';
+  });
   const hasInitializedTabRef = useRef(false);
 
   const [filters, setFilters] = useState<ClassFilters>({
@@ -81,37 +93,59 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   }, []);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  // Fetch 3 tab datasets so counts & Smart Default stay accurate
-  const teachingQuery = useClasses({
-    status: 'ACTIVE',
-    role: 'TEACHER',
-    sort: filters.sort,
-    page: 0,
-    size: 50,
-  });
-  const enrolledQuery = useClasses({
-    status: 'ACTIVE',
-    role: 'STUDENT',
-    sort: filters.sort,
-    page: 0,
-    size: 50,
-  });
-  const archivedQuery = useClasses({
-    status: 'ARCHIVED',
-    role: 'ALL',
-    sort: filters.sort,
-    page: 0,
-    size: 50,
-  });
+  // Lazy loading per tab: Only query active tab; fallback check teaching if enrolled is empty
+  const isTeachingActive = activeTab === 'TEACHING';
+  const isEnrolledActive = activeTab === 'ENROLLED';
+  const isArchivedActive = activeTab === 'ARCHIVED';
+
+  const enrolledQuery = useClasses(
+    {
+      status: 'ACTIVE',
+      role: 'STUDENT',
+      sort: filters.sort,
+      page: 0,
+      size: 12,
+    },
+    { enabled: isEnrolledActive }
+  );
+
+  // If a first-time user lands on ENROLLED but has 0 enrolled classes, check if they have TEACHING classes
+  const shouldCheckTeachingFallback =
+    isEnrolledActive &&
+    enrolledQuery.isSuccess &&
+    (enrolledQuery.data?.items ?? []).length === 0 &&
+    !hasInitializedTabRef.current;
+
+  const teachingQuery = useClasses(
+    {
+      status: 'ACTIVE',
+      role: 'TEACHER',
+      sort: filters.sort,
+      page: 0,
+      size: 12,
+    },
+    { enabled: isTeachingActive || shouldCheckTeachingFallback }
+  );
+
+  const archivedQuery = useClasses(
+    {
+      status: 'ARCHIVED',
+      role: 'ALL',
+      sort: filters.sort,
+      page: 0,
+      size: 12,
+    },
+    { enabled: isArchivedActive }
+  );
 
   const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
 
   const refetchAll = useCallback(() => {
-    teachingQuery.refetch();
-    enrolledQuery.refetch();
-    archivedQuery.refetch();
-  }, [teachingQuery, enrolledQuery, archivedQuery]);
+    if (activeTab === 'TEACHING' || teachingQuery.isSuccess) teachingQuery.refetch();
+    if (activeTab === 'ENROLLED' || enrolledQuery.isSuccess) enrolledQuery.refetch();
+    if (activeTab === 'ARCHIVED' || archivedQuery.isSuccess) archivedQuery.refetch();
+  }, [activeTab, teachingQuery, enrolledQuery, archivedQuery]);
 
   const showToast = useCallback((msg: string) => {
     const isError =
@@ -167,48 +201,33 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
     return apiItems.filter((i) => i.status === 'ARCHIVED' || Boolean(i.deletedAt));
   }, [archivedQuery.data]);
 
-  const teachingCount = teachingBaseItems.length;
-  const enrolledCount = enrolledBaseItems.length;
-  const archivedCount = archivedBaseItems.length;
-  const showTeachingTab = teachingCount > 0 || enrolledCount === 0;
+  const teachingCount = teachingQuery.data?.totalElements ?? teachingBaseItems.length;
+  const enrolledCount = enrolledQuery.data?.totalElements ?? enrolledBaseItems.length;
+  const archivedCount = archivedQuery.data?.totalElements ?? archivedBaseItems.length;
+  const showTeachingTab = true;
 
-  // Smart Default tab selection
+  // Smart Default auto-switch when user has 0 enrolled classes but has teaching classes
   useEffect(() => {
     if (hasInitializedTabRef.current) return;
-    if (teachingQuery.isLoading || enrolledQuery.isLoading) return;
 
-    hasInitializedTabRef.current = true;
-
-    if (teachingCount === 0 && enrolledCount > 0) {
-      setActiveTab('ENROLLED');
-      return;
-    }
-
-    if (teachingCount > 0 && enrolledCount === 0) {
+    if (
+      activeTab === 'ENROLLED' &&
+      enrolledQuery.isSuccess &&
+      enrolledBaseItems.length === 0 &&
+      teachingQuery.isSuccess &&
+      teachingBaseItems.length > 0
+    ) {
+      hasInitializedTabRef.current = true;
       setActiveTab('TEACHING');
-      return;
-    }
-
-    try {
-      const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
-      if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
-        setActiveTab(saved);
-        return;
+      try {
+        localStorage.setItem(LAST_CLASS_TAB_KEY, 'TEACHING');
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore storage read error
+    } else if (enrolledQuery.isSuccess && enrolledBaseItems.length > 0) {
+      hasInitializedTabRef.current = true;
     }
-
-    const fallbackTab: ClassRoleTab = teachingCount > 0 ? 'TEACHING' : 'ENROLLED';
-    setActiveTab(fallbackTab);
-  }, [teachingQuery.isLoading, enrolledQuery.isLoading, teachingCount, enrolledCount]);
-
-  // If user is on TEACHING tab and teaching tab becomes hidden, fall back to ENROLLED
-  useEffect(() => {
-    if (activeTab === 'TEACHING' && !showTeachingTab) {
-      setActiveTab('ENROLLED');
-    }
-  }, [activeTab, showTeachingTab]);
+  }, [activeTab, enrolledQuery.isSuccess, enrolledBaseItems.length, teachingQuery.isSuccess, teachingBaseItems.length]);
 
   const handleTabChange = useCallback((tab: ClassRoleTab) => {
     setActiveTab(tab);

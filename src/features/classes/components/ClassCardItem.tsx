@@ -14,7 +14,7 @@ export interface ClassCardItemProps {
   onCopyCode: (code: string) => void;
 }
 
-export function ClassCardItem({
+export const ClassCardItem = React.memo(function ClassCardItem({
   item,
   workspaceMode = 'faculty',
   viewMode = 'grid',
@@ -870,4 +870,4 @@ export function ClassCardItem({
       </div>
     </article>
   );
-}
+});

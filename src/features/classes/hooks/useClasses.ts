@@ -13,23 +13,29 @@ import type {
   ClassKpiSummary,
 } from '../types';
 
-export function useClasses(filters: Partial<ClassFilters> = {}) {
+export function useClasses(
+  filters: Partial<ClassFilters> = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery<ClassListResponse>({
     queryKey: classKeys.list(filters),
     queryFn: () => getClasses(filters),
     staleTime: 60_000,
+    gcTime: 300_000,
     refetchOnWindowFocus: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useClassKpiSummary() {
+export function useClassKpiSummary(options?: { enabled?: boolean }) {
   return useQuery<ClassKpiSummary>({
     queryKey: classKeys.kpiSummary(),
     queryFn: () => getClassKpiSummary(),
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 60_000,
+    gcTime: 300_000,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
