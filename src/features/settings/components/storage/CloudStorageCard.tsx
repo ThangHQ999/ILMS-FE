@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useStorageSummary, useStorageBreakdown } from '../../hooks/useStorage';
+import { useStorageSummary, useStorageBreakdown, useStorageFiles } from '../../hooks/useStorage';
 import { useMySubscription } from '../../hooks/useSubscriptions';
 import { ManageStorageFilesModal } from '../modals/ManageStorageFilesModal';
 
@@ -17,6 +17,7 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
   const { data: summary, isLoading: isLoadingSummary } = useStorageSummary();
   const { data: breakdown, isLoading: isLoadingBreakdown } = useStorageBreakdown();
   const { data: mySub } = useMySubscription();
+  const { data: filesData = [] } = useStorageFiles();
 
   if (isLoadingSummary || !summary) {
     return (
@@ -36,10 +37,35 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
     '0 B';
   const displayMaxStorage =
     summary.maxStorageFormatted || mySub?.limits?.maxStorageFormatted || '1.0 GB';
-  const displayUsagePercentage =
+
+  const usedBytes =
     summary.usedStorageBytes > 0
-      ? summary.usagePercentage
-      : mySub?.limits?.storageUsagePercentage || summary.usagePercentage || 0;
+      ? summary.usedStorageBytes
+      : mySub?.limits?.usedStorageBytes || 0;
+
+  const maxBytes =
+    summary.maxStorageBytes > 0
+      ? summary.maxStorageBytes
+      : mySub?.limits?.maxStorageBytes || 1073741824;
+
+  const computedPercentage =
+    maxBytes > 0 ? (usedBytes / maxBytes) * 100 : 0;
+
+  const displayUsagePercentage =
+    computedPercentage > 0
+      ? computedPercentage
+      : summary.usagePercentage || mySub?.limits?.storageUsagePercentage || 0;
+
+  const formatPercentageText = (pct: number, bytes: number): string => {
+    if (bytes <= 0 || pct <= 0) return '0%';
+    if (pct < 0.01) return '< 0.01%';
+    if (pct < 1) return `${pct.toFixed(2)}%`;
+    return `${pct.toFixed(1)}%`;
+  };
+
+  const displayFilesCount =
+    summary.totalFilesCount > 0 ? summary.totalFilesCount : filesData.length;
+
   const isNearLimit = summary.isStorageNearLimit || displayUsagePercentage >= 85;
   const progressColor = isNearLimit
     ? 'bg-rose-500'
@@ -89,7 +115,7 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
                 {displayUsedStorage}
               </span>
               <span className="text-[#747775] dark:text-[#C4C7C5]">
-                / {displayMaxStorage} ({displayUsagePercentage.toFixed(1)}%)
+                / {displayMaxStorage} ({formatPercentageText(displayUsagePercentage, usedBytes)})
               </span>
             </div>
             {isNearLimit ? (
@@ -110,8 +136,8 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
               className={`h-full transition-all duration-500 rounded-full ${progressColor}`}
               style={{
                 width: `${
-                  displayUsagePercentage > 0
-                    ? Math.min(100, Math.max(2, displayUsagePercentage))
+                  usedBytes > 0
+                    ? Math.min(100, Math.max(1.5, displayUsagePercentage))
                     : 0
                 }%`,
               }}
@@ -146,7 +172,7 @@ export function CloudStorageCard({ onSuccessToast }: CloudStorageCardProps) {
             <div className="flex flex-col">
               <span className="text-[#747775] dark:text-[#8E918F] text-[11px]">Tổng số tệp</span>
               <span className="font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                {summary.totalFilesCount} tệp tin
+                {displayFilesCount} tệp tin
               </span>
             </div>
           </div>
