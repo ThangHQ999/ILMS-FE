@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -36,8 +36,15 @@ export function DashboardSidebar({
 }: DashboardSidebarProps) {
   const t = useTranslations('sidebar');
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { isTeacher: roleIsTeacher } = useUserRole();
-  const isTeacher = workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher;
+  const isTeacher = mounted
+    ? (workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher)
+    : (workspaceMode === 'faculty');
 
   // In Focus mode, collapse automatically to 72px without triggering any API mutation
   const collapsed = isFocus || isCollapsed;
@@ -301,6 +308,7 @@ const isClassesActive =
                       href={item.href}
                       prefetch={item.href.startsWith('/')}
                       title={item.label}
+                      suppressHydrationWarning
                       className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
                         item.active ? activeClass : inactiveClass
                       }`}
@@ -333,11 +341,12 @@ const isClassesActive =
                     href={item.href}
                     prefetch={item.href.startsWith('/')}
                     title={item.label}
+                    suppressHydrationWarning
                     className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
                       item.active ? activeClass : inactiveClass
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0" suppressHydrationWarning>
                       {item.href === '/ai-tutor' ? (
                         <img
                           src="/socratic_mascot.png"
@@ -353,7 +362,9 @@ const isClassesActive =
                           {item.icon}
                         </span>
                       )}
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate" suppressHydrationWarning>
+                        {item.label}
+                      </span>
                     </div>
                     {item.badge}
                   </Link>
