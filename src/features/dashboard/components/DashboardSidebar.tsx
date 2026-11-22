@@ -281,12 +281,13 @@ const isClassesActive =
 
       {/* 2. Scrollable Navigation Area */}
       <nav
+        suppressHydrationWarning
         className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none ${
           collapsed ? 'px-2' : 'px-3'
         }`}
       >
         {navGroups.map((group) => (
-          <div key={group.key} className="space-y-1">
+          <div key={group.key} className="space-y-1" suppressHydrationWarning>
             {!collapsed ? (
               <div className="px-3 pt-1 pb-1.5">
                 <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">

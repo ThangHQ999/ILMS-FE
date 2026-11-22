@@ -50,10 +50,12 @@ export function useTeacherTodaySessions() {
   });
 }
 
-export function useRooms() {
+export function useRooms(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['rooms-list'],
     queryFn: () => getRooms(),
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60 * 10,
   });
 }
 

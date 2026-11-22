@@ -45,20 +45,20 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
   // Role-based 3-tab state: TEACHING | ENROLLED | ARCHIVED
-  const [activeTab, setActiveTab] = useState<ClassRoleTab>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
-        if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
-          return saved;
-        }
-      } catch {
-        // Ignore storage read error
-      }
-    }
-    return 'ENROLLED';
-  });
+  const [activeTab, setActiveTab] = useState<ClassRoleTab>('ENROLLED');
   const hasInitializedTabRef = useRef(false);
+
+  // Synchronize saved tab from localStorage after initial client hydration to prevent SSR mismatch
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
+      if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
+        setActiveTab(saved);
+      }
+    } catch {
+      // Ignore storage read error
+    }
+  }, []);
 
   const [filters, setFilters] = useState<ClassFilters>({
     search: '',

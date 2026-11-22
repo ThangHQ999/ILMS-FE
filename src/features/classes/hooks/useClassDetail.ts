@@ -26,7 +26,7 @@ import {
   MOCK_TEMPLATES,
 } from '../services/class-detail.service';
 import { updateClass, inviteMemberByEmail } from '../services/class.service';
-import type { UpdateClassRequest } from '../schemas/class.schema';
+import type { UpdateClassRequest, ClassItem } from '../schemas/class.schema';
 import type { ClassAnnouncement, ClassDetailData } from '../schemas/class-detail.schema';
 
 export const classDetailKeys = {
@@ -66,6 +66,25 @@ export function useClassDetail(
     queryFn: () => getClassInfoDetail(classId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    placeholderData: () => {
+      // Seed instantly from existing cached class lists (e.g. from /classes)
+      const cached = queryClient.getQueriesData<{ items?: ClassItem[] }>({
+        queryKey: ['classes'],
+      });
+      const cleanTargetId = classId.toLowerCase().trim();
+      for (const [, cacheData] of cached) {
+        if (cacheData?.items && Array.isArray(cacheData.items)) {
+          const match = cacheData.items.find(
+            (c) =>
+              String(c.id).toLowerCase().trim() === cleanTargetId ||
+              c.name?.toLowerCase().trim() === cleanTargetId ||
+              c.enrollmentKey?.toLowerCase().trim() === cleanTargetId
+          );
+          if (match) return match;
+        }
+      }
+      return undefined;
+    },
   });
 
   const statsQuery = useQuery({

@@ -131,7 +131,7 @@ export function ClassDetailPageView({
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
   const [isCreateSessionOpen, setIsCreateSessionOpen] = useState(false);
 
-  const { data: rooms = [] } = useRooms();
+  const { data: rooms = [] } = useRooms({ enabled: isCreateSessionOpen });
   const { data: classSessions = [] } = useLessonSessions(apiClassId);
   const createSessionMutation = useCreateLessonSession(apiClassId);
 
