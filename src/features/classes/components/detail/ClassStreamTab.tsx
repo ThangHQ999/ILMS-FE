@@ -21,6 +21,7 @@ interface ClassStreamTabProps {
   onDeleteAnnouncement?: (announcementId: string) => void;
   isPostingAnnouncement?: boolean;
   materials?: ClassMaterial[];
+  onOpenCreateSession?: () => void;
   onToast: (msg: string) => void;
 }
 
@@ -37,6 +38,7 @@ export function ClassStreamTab({
   onDeleteAnnouncement,
   isPostingAnnouncement = false,
   materials = [],
+  onOpenCreateSession,
   onToast,
 }: ClassStreamTabProps) {
   interface QuickAttachmentItem {
@@ -688,9 +690,22 @@ export function ClassStreamTab({
               <h3 className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3]">
                 Lịch học tuần này
               </h3>
-              <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1 rounded-full">
-                {upcomingSessions.length > 0 ? `${upcomingSessions.length} ca học` : 'Lịch tuần'}
-              </span>
+              <div className="flex items-center gap-2">
+                {currentRole !== 'student' && onOpenCreateSession && (
+                  <button
+                    type="button"
+                    onClick={onOpenCreateSession}
+                    className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-0.5"
+                    title="Lên lịch ca học mới"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">add</span>
+                    <span>Thêm ca</span>
+                  </button>
+                )}
+                <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1 rounded-full">
+                  {upcomingSessions.length > 0 ? `${upcomingSessions.length} ca học` : 'Lịch tuần'}
+                </span>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -732,6 +747,16 @@ export function ClassStreamTab({
                   <p className="text-xs text-gray-500 dark:text-[#8E918F]">
                     Chưa có lịch ca học nào được xếp
                   </p>
+                  {currentRole !== 'student' && onOpenCreateSession && (
+                    <button
+                      type="button"
+                      onClick={onOpenCreateSession}
+                      className="mt-2 text-xs text-blue-600 dark:text-[#A8C7FA] hover:underline cursor-pointer border-none bg-transparent font-semibold inline-flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">calendar_add_on</span>
+                      <span>+ Xếp lịch ca học ngay</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>

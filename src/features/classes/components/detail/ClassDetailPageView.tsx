@@ -29,6 +29,13 @@ import {
   CreateAnnouncementModal,
 } from './ClassDetailModals';
 import { CreateSubjectModal } from './CreateSubjectModal';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  CreateSessionModal,
+  useRooms,
+  useCreateLessonSession,
+  lessonSessionKeys,
+} from '@/features/lesson-sessions';
 import { toast } from '@/components/ui/sonner';
 
 const VALID_CLASS_TABS = new Set([
@@ -112,12 +119,17 @@ export function ClassDetailPageView({
   };
 
   // Modals state
+  const queryClient = useQueryClient();
   const [removeTarget, setRemoveTarget] = useState<ClassCourse | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
   const [isCreateSubjectOpen, setIsCreateSubjectOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
+  const [isCreateSessionOpen, setIsCreateSessionOpen] = useState(false);
+
+  const { data: rooms = [] } = useRooms();
+  const createSessionMutation = useCreateLessonSession(apiClassId);
 
   const showToast = useCallback((msg: string) => {
     const isError =
@@ -377,6 +389,7 @@ export function ClassDetailPageView({
                 onOpenSettings={() => handleTabChange('settings')}
                 onOpenArchive={() => setIsArchiveOpen(true)}
                 onOpenManageCode={() => setIsInviteOpen(true)}
+                onOpenCreateSession={() => setIsCreateSessionOpen(true)}
               />
 
               {/* Content Tab Panes */}
@@ -389,6 +402,7 @@ export function ClassDetailPageView({
                   currentRole={effectiveRole}
                   onNavigateTab={handleTabChange}
                   onOpenCreateAnnouncement={() => setIsCreateAnnouncementOpen(true)}
+                  onOpenCreateSession={() => setIsCreateSessionOpen(true)}
                   isPostingAnnouncement={postAnnouncementMutation.isPending}
                   onPostAnnouncement={(payload) => {
                     postAnnouncementMutation.mutate(payload, {
@@ -764,6 +778,28 @@ export function ClassDetailPageView({
           );
         }}
         onToast={showToast}
+      />
+
+      <CreateSessionModal
+        isOpen={isCreateSessionOpen}
+        onClose={() => setIsCreateSessionOpen(false)}
+        onSubmit={async (payload) => {
+          await createSessionMutation.mutateAsync(payload);
+          queryClient.invalidateQueries({
+            queryKey: lessonSessionKeys.lists(apiClassId),
+          });
+          queryClient.invalidateQueries({
+            queryKey: lessonSessionKeys.lists(classId),
+          });
+          showToast('Đã lên lịch ca học mới cho lớp thành công!');
+        }}
+        rooms={rooms}
+        isSubmitting={createSessionMutation.isPending}
+        onTriggerConflict={(conflict) => {
+          showToast(
+            `Cảnh báo: Phòng ${conflict.roomName} đang bị trùng lịch với ${conflict.conflictingCourse}`
+          );
+        }}
       />
     </div>
   );

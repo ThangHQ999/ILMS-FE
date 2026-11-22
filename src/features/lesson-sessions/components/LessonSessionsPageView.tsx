@@ -103,21 +103,24 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const paramSessionId = searchParams?.get('sessionId') || null;
   const isAttendanceAction = searchParams?.get('action') === 'attendance';
   const hasAutoSelectedRef = useRef(false);
+  const lastInitializedKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (sessions.length === 0) return;
 
     if (paramSessionId) {
-      const matched = sessions.find(
-        (s) => s.lessonSessionId === paramSessionId
-      );
-      if (matched) {
-        setSelectedSession(matched);
-        return;
+      if (selectedSession?.lessonSessionId !== paramSessionId) {
+        const matched = sessions.find(
+          (s) => s.lessonSessionId === paramSessionId
+        );
+        if (matched) {
+          setSelectedSession(matched);
+        }
       }
+      return;
     }
 
-    if (isAttendanceAction && !hasAutoSelectedRef.current) {
+    if (isAttendanceAction && !hasAutoSelectedRef.current && !selectedSession) {
       hasAutoSelectedRef.current = true;
       const todayStr = new Date().toISOString().split('T')[0];
       const todaySession =
@@ -128,7 +131,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
         setSelectedSession(todaySession);
       }
     }
-  }, [sessions, paramSessionId, isAttendanceAction]);
+  }, [sessions, paramSessionId, isAttendanceAction, selectedSession]);
 
   const createSessionMutation = useCreateLessonSession(effectiveClassId);
   const saveAttendancesMutation = useSaveAttendances(
@@ -142,6 +145,18 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
 
   useEffect(() => {
     if (!selectedSession || students.length === 0) return;
+
+    const currentSessionId = selectedSession.lessonSessionId;
+    const attSignature = existingAttendances
+      .map((a) => `${a.studentId}:${a.status}:${a.note || ''}`)
+      .join('|');
+    const initKey = `${currentSessionId}_${students.length}_${attSignature}`;
+
+    if (lastInitializedKeyRef.current === initKey) {
+      return;
+    }
+    lastInitializedKeyRef.current = initKey;
+
     const initialMap: Record<string, { status: AttendanceStatus | null; note: string }> = {};
 
     students.forEach((stu) => {
@@ -153,7 +168,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
     });
     setAttendanceMap(initialMap);
     setIsLocked(false);
-  }, [selectedSession?.lessonSessionId, students, existingAttendances]);
+  }, [selectedSession, students, existingAttendances]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);

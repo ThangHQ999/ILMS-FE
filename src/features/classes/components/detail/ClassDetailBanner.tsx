@@ -20,6 +20,7 @@ interface ClassDetailBannerProps {
   onOpenSettings: () => void;
   onOpenArchive: () => void;
   onOpenManageCode: () => void;
+  onOpenCreateSession?: () => void;
 }
 
 export function ClassDetailBanner({
@@ -36,6 +37,7 @@ export function ClassDetailBanner({
   onOpenSettings,
   onOpenArchive,
   onOpenManageCode,
+  onOpenCreateSession,
 }: ClassDetailBannerProps) {
   const t = useTranslations('classes.detail');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -171,9 +173,22 @@ export function ClassDetailBanner({
             </p>
           </div>
 
-          {/* Right: + Mời thành viên / Mã mời & QR + Options */}
+          {/* Right: + Lên lịch học / + Mời thành viên / Mã mời & QR + Options */}
           {(currentRole !== 'student' || classInfo.isCodeActive !== false) && (
-            <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+            <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
+              {currentRole !== 'student' && onOpenCreateSession && (
+                <button
+                  type="button"
+                  onClick={onOpenCreateSession}
+                  className="px-4 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border-none"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                    calendar_add_on
+                  </span>
+                  <span>+ Lên lịch học</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={onInviteClick}
@@ -199,7 +214,20 @@ export function ClassDetailBanner({
                 {isMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-20" onClick={() => setIsMenuOpen(false)} />
-                    <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#1E1F20] rounded-2xl shadow-xl py-1.5 z-30 text-xs font-medium text-gray-800 dark:text-[#C4C7C5] border-none animate-in fade-in zoom-in-95 duration-150">
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1E1F20] rounded-2xl shadow-xl py-1.5 z-30 text-xs font-medium text-gray-800 dark:text-[#C4C7C5] border-none animate-in fade-in zoom-in-95 duration-150">
+                      {currentRole !== 'student' && onOpenCreateSession && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            onOpenCreateSession();
+                          }}
+                          className="w-full px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-[#282A2C] flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-[#A8C7FA]">calendar_add_on</span>
+                          <span>Tạo ca học mới</span>
+                        </button>
+                      )}
                       {currentRole !== 'student' && (
                         <button
                           type="button"

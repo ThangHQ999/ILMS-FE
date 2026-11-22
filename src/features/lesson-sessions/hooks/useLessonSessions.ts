@@ -17,6 +17,7 @@ export function useLessonSessions(classId: string) {
   return useQuery({
     queryKey: lessonSessionKeys.lists(classId),
     queryFn: () => getLessonSessions(classId),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -24,6 +25,7 @@ export function useClassStudents(classId: string) {
   return useQuery({
     queryKey: lessonSessionKeys.students(classId),
     queryFn: () => getClassStudents(classId),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -34,6 +36,7 @@ export function useAttendances(classId: string, sessionId?: string) {
       : ['noop-attendance'],
     queryFn: () => (sessionId ? getAttendances(classId, sessionId) : Promise.resolve([])),
     enabled: Boolean(sessionId),
+    staleTime: 30 * 1000,
   });
 }
 
