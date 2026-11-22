@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { CustomSelect } from '@/components/shared';
 import { uploadImage } from '@/lib/upload';
+import { toast } from '@/components/ui/sonner';
 import type { ClassItem } from '../../schemas/class.schema';
 import type { ClassMember } from '../../schemas/class-detail.schema';
 import { PermanentDeleteClassModal } from './PermanentDeleteClassModal';
@@ -123,11 +124,17 @@ export function ClassSettingsTab({
   );
 
   // Interactive Toast
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3200);
+    const isError =
+      msg.toLowerCase().includes('lỗi') ||
+      msg.toLowerCase().includes('không thể') ||
+      msg.toLowerCase().includes('vui lòng') ||
+      msg.toLowerCase().includes('thất bại');
+    if (isError) {
+      toast.error(msg);
+    } else {
+      toast.success(msg);
+    }
   }, []);
 
   // 1. AUTO-SCROLL INTERSECTION OBSERVER (Scroll-spy)
@@ -278,16 +285,6 @@ export function ClassSettingsTab({
 
   return (
     <div className="flex flex-col w-full relative">
-      {/* Toast Feedback */}
-      {toastMessage && (
-        <div className="fixed bottom-24 right-8 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gray-900/95 dark:bg-white/95 text-white dark:text-gray-900 text-xs font-semibold shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200 border-none">
-          <span className="material-symbols-outlined text-[18px] text-emerald-400 dark:text-emerald-600">
-            check_circle
-          </span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* 2-COLUMN LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ======================================================== */}

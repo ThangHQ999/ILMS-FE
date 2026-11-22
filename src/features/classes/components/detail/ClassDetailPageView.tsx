@@ -27,9 +27,9 @@ import {
   AddSubjectModal,
   InviteMemberModal,
   CreateAnnouncementModal,
-  ToastNotification,
 } from './ClassDetailModals';
 import { CreateSubjectModal } from './CreateSubjectModal';
+import { toast } from '@/components/ui/sonner';
 
 const VALID_CLASS_TABS = new Set([
   'stream',
@@ -118,13 +118,17 @@ export function ClassDetailPageView({
   const [isCreateSubjectOpen, setIsCreateSubjectOpen] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2800);
+    const isError =
+      msg.toLowerCase().includes('lỗi') ||
+      msg.toLowerCase().includes('không thể') ||
+      msg.toLowerCase().includes('thất bại');
+    if (isError) {
+      toast.error(msg);
+    } else {
+      toast.success(msg);
+    }
   }, []);
 
   const userRoleUpperPre = String(currentUser?.roleName || '').toUpperCase();
@@ -760,8 +764,6 @@ export function ClassDetailPageView({
         }}
         onToast={showToast}
       />
-
-      <ToastNotification message={toastMessage} />
     </div>
   );
 }

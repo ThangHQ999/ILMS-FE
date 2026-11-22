@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/sonner';
 import type { ClassCourse } from '../../schemas/class-detail.schema';
 
 interface RemoveSubjectModalProps {
@@ -241,18 +242,21 @@ interface ToastNotificationProps {
 }
 
 export function ToastNotification({ message }: ToastNotificationProps) {
-  if (!message) return null;
+  useEffect(() => {
+    if (message) {
+      const isError =
+        message.toLowerCase().includes('lỗi') ||
+        message.toLowerCase().includes('không thể') ||
+        message.toLowerCase().includes('thất bại');
+      if (isError) {
+        toast.error(message);
+      } else {
+        toast.success(message);
+      }
+    }
+  }, [message]);
 
-  return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
-      <div className="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-medium border border-slate-700">
-        <span className="material-symbols-outlined text-emerald-400 text-[18px]">
-          check_circle
-        </span>
-        <span>{message}</span>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 export { UploadMaterialModal } from './UploadMaterialModal';

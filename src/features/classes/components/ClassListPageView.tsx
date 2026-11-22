@@ -21,6 +21,7 @@ import { JoinClassModal } from './JoinClassModal';
 import { useClasses, useClassKpiSummary } from '../hooks/useClasses';
 import { useArchiveClass } from '../hooks/useArchiveClass';
 import { EmptyState, ErrorState, Button } from '@/components/shared';
+import { toast } from '@/components/ui/sonner';
 import type {
   ClassFilters,
   ClassViewMode,
@@ -69,7 +70,6 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [initialJoinCode, setInitialJoinCode] = useState('');
   const [archiveTarget, setArchiveTarget] = useState<ClassItem | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -114,10 +114,15 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   }, [teachingQuery, enrolledQuery, archivedQuery]);
 
   const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2800);
+    const isError =
+      msg.toLowerCase().includes('lỗi') ||
+      msg.toLowerCase().includes('không thể') ||
+      msg.toLowerCase().includes('thất bại');
+    if (isError) {
+      toast.error(msg);
+    } else {
+      toast.success(msg);
+    }
   }, []);
 
   const handleCopyCode = useCallback(
@@ -569,16 +574,6 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
         onReset={() => handleFilterUpdate({ search: '', major: undefined, role: 'ALL' })}
         workspaceMode={workspaceMode}
       />
-
-      {/* Toast Feedback */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#1E1F20] text-[#E3E3E3] shadow-2xl border-none text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <span className="material-symbols-outlined text-[18px] text-emerald-400">
-            check_circle
-          </span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
     </div>
   );
 }
