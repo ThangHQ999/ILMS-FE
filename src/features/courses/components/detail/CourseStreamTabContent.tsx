@@ -1,6 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useLessonSessions } from '@/features/lesson-sessions';
+
+interface CourseMaterialItem {
+  id: string;
+  title: string;
+  format?: string;
+  categoryType?: string;
+  url?: string;
+}
 
 interface CourseStreamTabContentProps {
   role: 'student' | 'teacher';
@@ -8,6 +17,8 @@ interface CourseStreamTabContentProps {
   onGoToAssignments: () => void;
   onGoToPeople: () => void;
   showToast: (msg: string) => void;
+  classId?: string;
+  materials?: CourseMaterialItem[];
 }
 
 export function CourseStreamTabContent({
@@ -16,6 +27,8 @@ export function CourseStreamTabContent({
   onGoToAssignments,
   onGoToPeople,
   showToast,
+  classId,
+  materials = [],
 }: CourseStreamTabContentProps) {
   const [quickPostTitle, setQuickPostTitle] = useState('');
   const [quickPostContent, setQuickPostContent] = useState('');
@@ -24,6 +37,46 @@ export function CourseStreamTabContent({
     'Em đã cài xong Packet Tracer 8.2 ạ, cảm ơn Thầy!',
     'Phòng B1-204 có cổng mạng LAN riêng cho từng bàn không Thầy ơi?',
   ]);
+
+  const { data: lessonSessions = [], isLoading: isLoadingSessions } = useLessonSessions(classId || '');
+
+  const upcomingSessions = useMemo(() => {
+    if (!lessonSessions || lessonSessions.length === 0) return [];
+    return [...lessonSessions]
+      .sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
+      .slice(0, 4);
+  }, [lessonSessions]);
+
+  const getDayOfWeek = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'T2';
+      const day = d.getDay();
+      if (day === 0) return 'CN';
+      return `T${day + 1}`;
+    } catch {
+      return 'T2';
+    }
+  };
+
+  const formatDayMonth = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      return `${day}/${month}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getMaterialIcon = (format?: string, categoryType?: string) => {
+    if (format === 'PDF' || categoryType === 'syllabus') return 'menu_book';
+    if (categoryType === 'code') return 'code';
+    if (categoryType === 'slide') return 'terminal';
+    return 'description';
+  };
 
   const handlePostAnnouncement = () => {
     if (!quickPostTitle.trim()) {
@@ -399,92 +452,98 @@ export function CourseStreamTabContent({
               <h4 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider">
                 Lịch học tuần này
               </h4>
-              <span className="text-xs font-bold text-[#0059bb] dark:text-blue-400">Tuần 09</span>
+              <span className="text-xs font-bold text-[#0059bb] dark:text-blue-400">
+                {upcomingSessions.length > 0 ? `${upcomingSessions.length} ca học` : 'Tuần học'}
+              </span>
             </div>
 
             <div className="space-y-2.5">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-3">
-                <div className="px-2.5 py-1 rounded-lg bg-[#0059bb] text-white font-bold text-center text-xs shrink-0 shadow-2xs">
-                  <div>T5</div>
-                  <div className="text-[10px] font-normal opacity-80">24/10</div>
+              {isLoadingSessions ? (
+                <div className="space-y-2 animate-pulse">
+                  <div className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800" />
+                  <div className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-xs text-slate-900 dark:text-white truncate">
-                    Thực hành Lab Định tuyến OSPF
+              ) : upcomingSessions.length > 0 ? (
+                upcomingSessions.map((session, idx) => (
+                  <div
+                    key={session.lessonSessionId || idx}
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-3"
+                  >
+                    <div
+                      className={`px-2.5 py-1 rounded-lg font-bold text-center text-xs shrink-0 ${
+                        idx === 0
+                          ? 'bg-[#0059bb] text-white shadow-2xs'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                      }`}
+                    >
+                      <div>{getDayOfWeek(session.sessionDate)}</div>
+                      <div className="text-[10px] font-normal opacity-80">
+                        {formatDayMonth(session.sessionDate)}
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-xs text-slate-900 dark:text-white truncate">
+                        {session.note || session.sessionCode || session.className || 'Ca học thực hành'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {session.startTime || '07:30'} - {session.endTime || '09:50'}
+                        {session.roomName ? ` • ${session.roomName}` : ''}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    07:30 - 11:30 • Lab B1-204
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-1">
+                  <span className="material-symbols-outlined text-slate-400 text-xl">event_busy</span>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Chưa có lịch ca học nào được xếp
+                  </p>
                 </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-3">
-                <div className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-center text-xs shrink-0">
-                  <div>T7</div>
-                  <div className="text-[10px] font-normal opacity-70">26/10</div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-xs text-slate-900 dark:text-white truncate">
-                    Q&amp;A Trực tuyến với Trợ giảng AI
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    19:30 - 21:00 • Virtual Room 02
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
           {/* Fast Links & Reference Materials */}
           <div className="p-5 rounded-2xl bg-white dark:bg-[#111726] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
-            <h4 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-              Kho tài liệu chuẩn
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider">
+                Kho tài liệu chuẩn
+              </h4>
+              {materials.length > 0 && (
+                <span className="text-[11px] font-medium text-slate-400">
+                  {materials.length} tài liệu
+                </span>
+              )}
+            </div>
+
             <div className="flex flex-col gap-1 text-xs">
-              <a
-                href="#kurose"
-                onClick={(e) => {
-                  e.preventDefault();
-                  showToast('Đang mở Giáo trình Kurose & Ross 8th Edition');
-                }}
-                className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-slate-800 dark:text-slate-200 transition-colors"
-              >
-                <span className="flex items-center gap-2.5 truncate">
-                  <span className="material-symbols-outlined text-[#0059bb] dark:text-blue-400 text-[19px]">menu_book</span>
-                  <span className="truncate font-medium">Giáo trình Kurose &amp; Ross 8th</span>
-                </span>
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">open_in_new</span>
-              </a>
-
-              <a
-                href="#cisco"
-                onClick={(e) => {
-                  e.preventDefault();
-                  showToast('Đang tải Cisco IOS Command Cheatsheet (PDF)');
-                }}
-                className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-slate-800 dark:text-slate-200 transition-colors"
-              >
-                <span className="flex items-center gap-2.5 truncate">
-                  <span className="material-symbols-outlined text-[#0059bb] dark:text-blue-400 text-[19px]">terminal</span>
-                  <span className="truncate font-medium">Cisco IOS Command Cheatsheet</span>
-                </span>
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">download</span>
-              </a>
-
-              <a
-                href="#sockets"
-                onClick={(e) => {
-                  e.preventDefault();
-                  showToast('Mở kho GitHub mẫu C/C++ Sockets');
-                }}
-                className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-slate-800 dark:text-slate-200 transition-colors"
-              >
-                <span className="flex items-center gap-2.5 truncate">
-                  <span className="material-symbols-outlined text-[#0059bb] dark:text-blue-400 text-[19px]">code</span>
-                  <span className="truncate font-medium">Kho Github mẫu C/C++ Sockets</span>
-                </span>
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">code</span>
-              </a>
+              {materials.length > 0 ? (
+                materials.slice(0, 4).map((mat) => (
+                  <button
+                    key={mat.id}
+                    type="button"
+                    onClick={() => showToast(`Đang mở tài liệu: ${mat.title}`)}
+                    className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-slate-800 dark:text-slate-200 transition-colors border-none bg-transparent text-left cursor-pointer w-full"
+                  >
+                    <span className="flex items-center gap-2.5 truncate pr-2">
+                      <span className="material-symbols-outlined text-[#0059bb] dark:text-blue-400 text-[19px] shrink-0">
+                        {getMaterialIcon(mat.format, mat.categoryType)}
+                      </span>
+                      <span className="truncate font-medium">{mat.title}</span>
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400 text-[16px] shrink-0">
+                      {mat.categoryType === 'code' ? 'code' : 'open_in_new'}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="p-4 text-center rounded-xl bg-slate-50 dark:bg-slate-800/50 space-y-1">
+                  <span className="material-symbols-outlined text-slate-400 text-xl">folder_off</span>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Chưa có tài liệu tải lên cho môn học
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

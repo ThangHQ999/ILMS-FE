@@ -4,8 +4,9 @@ import React, { useState, useMemo, useRef } from 'react';
 import { MarkdownContent } from '@/components/shared';
 import { uploadFile, type UploadedFileResult } from '@/lib/upload';
 import type { ClassItem } from '../../schemas/class.schema';
-import type { ClassAnnouncement } from '../../schemas/class-detail.schema';
+import type { ClassAnnouncement, ClassMaterial } from '../../schemas/class-detail.schema';
 import type { ClassBannerStats } from '../../services/class-detail.service';
+import { useLessonSessions } from '@/features/lesson-sessions';
 
 interface ClassStreamTabProps {
   classInfo: ClassItem;
@@ -19,6 +20,7 @@ interface ClassStreamTabProps {
   onPinAnnouncement?: (announcementId: string, pin: boolean) => void;
   onDeleteAnnouncement?: (announcementId: string) => void;
   isPostingAnnouncement?: boolean;
+  materials?: ClassMaterial[];
   onToast: (msg: string) => void;
 }
 
@@ -34,6 +36,7 @@ export function ClassStreamTab({
   onPinAnnouncement,
   onDeleteAnnouncement,
   isPostingAnnouncement = false,
+  materials = [],
   onToast,
 }: ClassStreamTabProps) {
   interface QuickAttachmentItem {
@@ -60,6 +63,47 @@ export function ClassStreamTab({
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [announcements]);
+
+  // Real sessions from API
+  const { data: lessonSessions = [], isLoading: isLoadingSessions } = useLessonSessions(classInfo.id);
+
+  const upcomingSessions = useMemo(() => {
+    if (!lessonSessions || lessonSessions.length === 0) return [];
+    return [...lessonSessions]
+      .sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
+      .slice(0, 4);
+  }, [lessonSessions]);
+
+  const getDayOfWeek = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'T2';
+      const day = d.getDay();
+      if (day === 0) return 'CN';
+      return `T${day + 1}`;
+    } catch {
+      return 'T2';
+    }
+  };
+
+  const formatDayMonth = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      return `${day}/${month}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getMaterialIcon = (format?: string, categoryType?: string) => {
+    if (format === 'PDF' || categoryType === 'syllabus') return 'menu_book';
+    if (categoryType === 'code') return 'code';
+    if (categoryType === 'slide') return 'terminal';
+    return 'description';
+  };
 
   const handleFileAttachChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -645,93 +689,106 @@ export function ClassStreamTab({
                 Lịch học tuần này
               </h3>
               <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1 rounded-full">
-                Tuần 09
+                {upcomingSessions.length > 0 ? `${upcomingSessions.length} ca học` : 'Lịch tuần'}
               </span>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-start gap-3.5">
-                <div className="px-3 py-2 rounded-2xl bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] font-bold text-center text-xs shrink-0 whitespace-nowrap">
-                  <div>T5</div>
-                  <div className="text-[10px] font-normal">24/10</div>
+            <div className="flex flex-col gap-3">
+              {isLoadingSessions ? (
+                <div className="space-y-3 animate-pulse">
+                  <div className="h-16 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314]" />
+                  <div className="h-16 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314]" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate">
-                    Thực hành Lab Định tuyến OSPF
+              ) : upcomingSessions.length > 0 ? (
+                upcomingSessions.map((session, idx) => (
+                  <div
+                    key={session.lessonSessionId || idx}
+                    className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-start gap-3.5"
+                  >
+                    <div
+                      className={`px-3 py-2 rounded-2xl font-bold text-center text-xs shrink-0 whitespace-nowrap ${
+                        idx === 0
+                          ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
+                          : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5]'
+                      }`}
+                    >
+                      <div>{getDayOfWeek(session.sessionDate)}</div>
+                      <div className="text-[10px] font-normal">{formatDayMonth(session.sessionDate)}</div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate">
+                        {session.note || session.sessionCode || session.className || 'Ca học thực hành'}
+                      </div>
+                      <div className="text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 whitespace-nowrap">
+                        {session.startTime || '07:30'} - {session.endTime || '09:50'}
+                        {session.roomName ? ` • ${session.roomName}` : ''}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 whitespace-nowrap">
-                    07:30 - 11:30 • Lab B1-204
-                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] space-y-1">
+                  <span className="material-symbols-outlined text-gray-400 text-2xl">event_busy</span>
+                  <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+                    Chưa có lịch ca học nào được xếp
+                  </p>
                 </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-start gap-3.5">
-                <div className="px-3 py-2 rounded-2xl bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] font-bold text-center text-xs shrink-0 whitespace-nowrap">
-                  <div>T7</div>
-                  <div className="text-[10px] font-normal">26/10</div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate">
-                    Q&amp;A Trực tuyến với Trợ giảng AI
-                  </div>
-                  <div className="text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 whitespace-nowrap">
-                    19:30 - 21:00 • Virtual Room 02
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
           {/* Fast Links & Reference Materials */}
           <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col gap-3">
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3]">
-              Kho tài liệu chuẩn
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3]">
+                Kho tài liệu chuẩn
+              </h3>
+              {materials.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('materials')}
+                  className="text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline bg-transparent border-none cursor-pointer"
+                >
+                  Xem tất cả ({materials.length})
+                </button>
+              )}
+            </div>
 
             <div className="flex flex-col gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => onToast('Đang mở giáo trình Kurose & Ross 8th Edition...')}
-                className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-80 border-none flex items-center justify-between text-gray-800 dark:text-[#C4C7C5] transition-opacity text-left cursor-pointer"
-              >
-                <span className="flex items-center gap-2 font-medium">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[18px]">
-                    menu_book
-                  </span>
-                  Giáo trình Kurose &amp; Ross 8th
-                </span>
-                <span className="material-symbols-outlined text-gray-400 dark:text-[#8E918F] text-[16px]">
-                  open_in_new
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onToast('Đang tải Cisco IOS Command Cheatsheet (.pdf)...')}
-                className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-80 border-none flex items-center justify-between text-gray-800 dark:text-[#C4C7C5] transition-opacity text-left cursor-pointer"
-              >
-                <span className="flex items-center gap-2 font-medium">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[18px]">
-                    terminal
-                  </span>
-                  Cisco IOS Command Cheatsheet
-                </span>
-                <span className="material-symbols-outlined text-gray-400 dark:text-[#8E918F] text-[16px]">
-                  download
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onToast('Mở kho Github mẫu C/C++ Sockets Programming')}
-                className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-80 border-none flex items-center justify-between text-gray-800 dark:text-[#C4C7C5] transition-opacity text-left cursor-pointer"
-              >
-                <span className="flex items-center gap-2 font-medium">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[18px]">code</span>
-                  Kho Github mẫu C/C++ Sockets
-                </span>
-                <span className="material-symbols-outlined text-gray-400 dark:text-[#8E918F] text-[16px]">code</span>
-              </button>
+              {materials.length > 0 ? (
+                materials.slice(0, 4).map((mat) => (
+                  <button
+                    key={mat.id}
+                    type="button"
+                    onClick={() => onToast(`Đang mở tài liệu: ${mat.title}`)}
+                    className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-80 border-none flex items-center justify-between text-gray-800 dark:text-[#C4C7C5] transition-opacity text-left cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2 font-medium truncate pr-2">
+                      <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[18px] shrink-0">
+                        {getMaterialIcon(mat.format, mat.categoryType)}
+                      </span>
+                      <span className="truncate">{mat.title}</span>
+                    </span>
+                    <span className="material-symbols-outlined text-gray-400 dark:text-[#8E918F] text-[16px] shrink-0">
+                      {mat.categoryType === 'code' ? 'code' : 'open_in_new'}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="p-6 text-center rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] space-y-1">
+                  <span className="material-symbols-outlined text-gray-400 text-2xl">folder_off</span>
+                  <p className="text-xs text-gray-500 dark:text-[#8E918F]">
+                    Chưa có tài liệu tải lên cho lớp
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('materials')}
+                    className="mt-2 text-xs text-blue-600 dark:text-[#A8C7FA] hover:underline cursor-pointer border-none bg-transparent font-semibold"
+                  >
+                    Đến tab Học liệu →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

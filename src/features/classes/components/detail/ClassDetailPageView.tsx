@@ -412,6 +412,7 @@ export function ClassDetailPageView({
                       onError: () => showToast('Không thể xóa thông báo lúc này.'),
                     });
                   }}
+                  materials={materials}
                   onToast={showToast}
                 />
               )}
