@@ -43,6 +43,7 @@ import {
   getCurrentWeekNumber,
   getWeekStartDate,
   formatDateShort,
+  formatDateIso,
 } from '@/features/timetable/services/timetable.service';
 import type { DaySchedule, TimetableSession } from '@/features/timetable/types';
 
@@ -170,7 +171,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
 
     if (isAttendanceAction && !hasAutoSelectedRef.current && !selectedSession) {
       hasAutoSelectedRef.current = true;
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = formatDateIso();
       const todaySession =
         sessions.find((s) => s.sessionDate === todayStr) ||
         sessions.find((s) => s.status === 'IN_PROGRESS') ||
@@ -262,7 +263,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   };
 
   const handleOpenCreateModal = (date?: string, shift?: number) => {
-    setSelectedCellDate(date || new Date().toISOString().split('T')[0]);
+    setSelectedCellDate(date || formatDateIso());
     setSelectedCellShift(shift || 1);
     setFormMode('create');
     setActiveEditingSession(null);
@@ -346,13 +347,13 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
 
   const daysSchedule = useMemo<DaySchedule[]>(() => {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const todayIso = new Date().toISOString().split('T')[0];
+    const todayIso = formatDateIso();
     const days: DaySchedule[] = [];
 
     for (let offset = 0; offset < 7; offset++) {
       const d = new Date(weekStartDate);
       d.setDate(d.getDate() + offset);
-      const fullDate = d.toISOString().split('T')[0];
+      const fullDate = formatDateIso(d);
       const dateString = formatDateShort(d);
       const dayOfWeek = d.getDay();
 
@@ -504,7 +505,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const todayIso = new Date().toISOString().split('T')[0];
+                        const todayIso = formatDateIso();
                         const todaySess =
                           sessions.find((s) => s.sessionDate === todayIso) ||
                           sessions.find((s) => s.status === 'IN_PROGRESS') ||

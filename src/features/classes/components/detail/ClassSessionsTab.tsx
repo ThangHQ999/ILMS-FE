@@ -29,6 +29,7 @@ import {
   getWeekStartDate,
   getMondayOfWeek,
   formatDateShort,
+  formatDateIso,
 } from '@/features/timetable/services/timetable.service';
 import type { DaySchedule, TimetableSession } from '@/features/timetable/types';
 
@@ -106,7 +107,7 @@ export function ClassSessionsTab({
 
     if (isAttendanceAction && !hasAutoSelectedRef.current && !selectedAttendanceSession) {
       hasAutoSelectedRef.current = true;
-      const todayIso = new Date().toISOString().split('T')[0];
+      const todayIso = formatDateIso();
       const todaySession =
         sessions.find((s) => s.sessionDate === todayIso) ||
         sessions.find((s) => s.status === 'IN_PROGRESS') ||
@@ -227,14 +228,14 @@ export function ClassSessionsTab({
 
   const daysSchedule = useMemo<DaySchedule[]>(() => {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const todayIso = new Date().toISOString().split('T')[0];
+    const todayIso = formatDateIso();
     const days: DaySchedule[] = [];
 
     // Monday (0) to Sunday (6)
     for (let offset = 0; offset < 7; offset++) {
       const d = new Date(weekStartDate);
       d.setDate(d.getDate() + offset);
-      const fullDate = d.toISOString().split('T')[0];
+      const fullDate = formatDateIso(d);
       const dateString = formatDateShort(d);
       const dayOfWeek = d.getDay();
 
@@ -274,7 +275,7 @@ export function ClassSessionsTab({
 
   // Open create modal
   const handleOpenCreate = (date?: string, shift?: number) => {
-    setSelectedCellDate(date || new Date().toISOString().split('T')[0]);
+    setSelectedCellDate(date || formatDateIso());
     setSelectedCellShift(shift || 1);
     setFormMode('create');
     setActiveEditingSession(null);
@@ -440,7 +441,7 @@ export function ClassSessionsTab({
           <button
             type="button"
             onClick={() => {
-              const todayIso = new Date().toISOString().split('T')[0];
+              const todayIso = formatDateIso();
               const todaySess =
                 sessions.find((s) => s.sessionDate === todayIso) ||
                 sessions.find((s) => s.status === 'IN_PROGRESS') ||

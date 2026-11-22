@@ -441,7 +441,7 @@ Hệ thống ILMS áp dụng cơ chế chốt chặn quota (Quota Barrier) theo 
 | **GET** | `/api/v1/users/{id}` | `hasAuthority('USER_VIEW')` or `hasAuthority('USER_MANAGE')` | Xem thông tin chi tiết người dùng theo ID | Path: `id` (UUID) |
 | **PUT** | `/api/v1/users/{id}` | `hasAuthority('USER_VIEW')` or `hasAuthority('USER_MANAGE')` | Cập nhật hồ sơ người dùng theo ID | `UserUpdateRequestDTO` |
 | **PATCH** | `/api/v1/users/{id}/role` | `hasAuthority('USER_MANAGE')` | Gán vai trò hệ thống mới cho User | `UserUpdateRoleRequest`: `{ "role": "ROLE_ADMIN" }` |
-| **GET** | `/api/v1/users/me/timetable` | `isAuthenticated()` | Xem thời khóa biểu cá nhân của học sinh / giảng viên (lọc theo ngày, lớp, môn học) | `?startDate=2026-11-01&endDate=2026-11-30&classId=&courseId=` |
+| **GET** | `/api/v1/users/me/timetable` | `isAuthenticated()` | Xem thời khóa biểu cá nhân của học sinh / giảng viên (hỗ trợ lọc tùy chọn theo ngày, lớp, môn học) | `?startDate=&endDate=&classId=&courseId=` (tùy chọn) |
 
 #### Payload `UserProfileResponseDTO`:
 ```json
@@ -1968,6 +1968,48 @@ Request (Chỉ hợp lệ cho gói `FREE`):
   "paymentMethod": "FREE",
   "autoRenew": false,
   "notes": "Đăng ký gói miễn phí"
+}
+```
+
+##### 5. `GET /api/v1/subscriptions/history`
+Lấy danh sách lịch sử tất cả các lần thanh toán, gia hạn, nâng cấp gói dịch vụ của người dùng hiện tại (sắp xếp mới nhất lên đầu).
+
+**Request Headers:** HttpOnly Cookie `access-token`.
+
+**Query Parameters:**
+- `page` (integer, optional, default: `0`): Số thứ tự trang (0-indexed).
+- `size` (integer, optional, default: `10`): Số lượng giao dịch mỗi trang (tối đa 100).
+
+**Response (200 OK):**
+```json
+{
+  "status": 200,
+  "message": "Lấy lịch sử giao dịch thuê bao thành công",
+  "data": {
+    "items": [
+      {
+        "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+        "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "userEmail": "student@example.com",
+        "planId": "1fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "planName": "Gói Pro Chuyên nghiệp",
+        "planCode": "PRO",
+        "amount": 99000.00,
+        "currency": "VND",
+        "paymentMethod": "VIETQR_SEPAY",
+        "paymentStatus": "PAID",
+        "transactionCode": "ILMSPRO678901",
+        "notes": "Thanh toán VietQR SePay qua mã đơn ILMSPRO678901",
+        "paidAt": "2026-11-22T21:30:00",
+        "createdAt": "2026-11-22T21:28:15"
+      }
+    ],
+    "pageNumber": 0,
+    "pageSize": 10,
+    "totalElements": 1,
+    "totalPages": 1,
+    "isLast": true
+  }
 }
 ```
 

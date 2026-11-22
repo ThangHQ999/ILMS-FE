@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CustomSelect } from '@/components/shared';
 import { useUserRole } from '@/hooks/useUserRole';
+import { formatDateIso } from '@/features/timetable/services/timetable.service';
 import { LessonSession } from '../types';
 
 interface LessonSessionTableProps {
@@ -25,7 +26,7 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
   const { isTeacher } = useUserRole();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatDateIso();
 
   const filteredSessions = sessions.filter((session) => {
     const matchesSearch =

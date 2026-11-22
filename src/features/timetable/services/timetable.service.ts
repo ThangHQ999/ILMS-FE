@@ -19,7 +19,7 @@ function padZero(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
 }
 
-export function formatDateIso(d: Date): string {
+export function formatDateIso(d: Date = new Date()): string {
   return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
 }
 

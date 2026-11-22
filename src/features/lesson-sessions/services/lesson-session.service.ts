@@ -21,6 +21,7 @@ import {
   fromBackendAttendanceStatus,
   toBackendAttendanceStatus,
 } from '../schemas/lesson-session.schema';
+import { formatDateIso } from '@/features/timetable/services/timetable.service';
 
 const SESSIONS_KEY = 'ilms_edupulse_sessions_v6';
 const ATTENDANCE_KEY_PREFIX = 'ilms_edupulse_attendance_v6_';
@@ -224,7 +225,7 @@ function saveStoredAttendances(
  * - GET /api/v1/users/me/timetable (user timetable fallback)
  */
 export async function getLessonSessions(classId: string): Promise<LessonSession[]> {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatDateIso();
   let list: Array<Record<string, unknown>> = [];
   let apiSucceeded = false;
 
@@ -699,7 +700,7 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
  * falling back gracefully to DEFAULT_TEACHER_SESSIONS synced with localStorage.
  */
 export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatDateIso();
 
   // Attempt 1: GET /api/v1/users/me/timetable for today
   try {

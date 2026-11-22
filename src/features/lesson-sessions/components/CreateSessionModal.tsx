@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CustomSelect } from '@/components/shared';
+import { formatDateIso } from '@/features/timetable/services/timetable.service';
 import { CreateLessonSessionRequest, Room, ConflictDetails, LessonSession } from '../types';
 
 interface CreateSessionModalProps {
@@ -31,7 +32,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   defaultDate,
 }) => {
   const [roomId, setRoomId] = useState(defaultRoomId || (rooms[0]?.roomId ?? 'Lab 402'));
-  const [sessionDate, setSessionDate] = useState(defaultDate || new Date().toISOString().split('T')[0]);
+  const [sessionDate, setSessionDate] = useState(defaultDate || formatDateIso());
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('10:30');
   const [startShift, setStartShift] = useState<number>(2);

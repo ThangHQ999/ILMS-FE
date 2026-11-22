@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { CustomSelect } from '@/components/shared';
 import { ACADEMIC_SHIFTS } from '@/features/timetable/constants';
+import { formatDateIso } from '@/features/timetable/services/timetable.service';
 import { CreateLessonSessionRequest, Room, ConflictDetails, LessonSession } from '../types';
 
 interface SessionFormModalProps {
@@ -39,7 +40,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     return session?.roomId || rooms[0]?.roomId || 'Lab 402';
   });
   const [sessionDate, setSessionDate] = useState<string>(() => {
-    return session?.sessionDate || defaultDate || new Date().toISOString().split('T')[0];
+    return session?.sessionDate || defaultDate || formatDateIso();
   });
   const [startShift, setStartShift] = useState<number>(() => {
     return session?.startShift || defaultShift;
