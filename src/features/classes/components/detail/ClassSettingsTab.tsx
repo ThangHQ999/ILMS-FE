@@ -447,33 +447,6 @@ export function ClassSettingsTab({
               </button>
             </div>
           </div>
-
-          {/* WIDGET TRẠNG THÁI HỆ THỐNG VÀ ĐỒNG BỘ */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
-                Đồng bộ Cloud ILMS
-              </span>
-              <span className="flex items-center gap-1.5 font-mono text-[11px] text-blue-600 dark:text-[#A8C7FA] font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Real-time
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between text-xs text-gray-700 dark:text-[#C4C7C5]">
-                <span>Bộ nhớ lớp học:</span>
-                <span className="font-semibold text-gray-900 dark:text-[#E3E3E3]">3.8 GB / 10 GB</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-[#282A2C] rounded-full h-1.5 overflow-hidden">
-                <div className="bg-[#007BFF] dark:bg-[#A8C7FA] h-1.5 rounded-full" style={{ width: '38%' }} />
-              </div>
-            </div>
-
-            <p className="text-[11px] text-gray-500 dark:text-[#8E918F] leading-relaxed">
-              Tất cả tài liệu giảng dạy, bài nộp, mô hình đồ thị tri thức và logs AI được sao lưu tự động mỗi ngày.
-            </p>
-          </div>
         </div>
 
         {/* ======================================================== */}
