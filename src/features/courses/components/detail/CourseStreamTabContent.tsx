@@ -9,6 +9,8 @@ interface CourseMaterialItem {
   format?: string;
   categoryType?: string;
   url?: string;
+  fileUrl?: string;
+  downloadUrl?: string;
 }
 
 interface CourseStreamTabContentProps {
@@ -522,7 +524,14 @@ export function CourseStreamTabContent({
                   <button
                     key={mat.id}
                     type="button"
-                    onClick={() => showToast(`Đang mở tài liệu: ${mat.title}`)}
+                    onClick={() => {
+                      const link = mat.fileUrl || mat.url || mat.downloadUrl;
+                      if (typeof link === 'string' && link.startsWith('http')) {
+                        window.open(link, '_blank', 'noopener,noreferrer');
+                      } else {
+                        showToast(`Đang mở tài liệu: ${mat.title}`);
+                      }
+                    }}
                     className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-slate-800 dark:text-slate-200 transition-colors border-none bg-transparent text-left cursor-pointer w-full"
                   >
                     <span className="flex items-center gap-2.5 truncate pr-2">

@@ -189,6 +189,9 @@ export const classMaterialSchema = z.object({
   isPinned: z.boolean().default(false),
   badge: z.string().optional(),
   subDetail: z.string().optional(),
+  url: z.string().optional(),
+  fileUrl: z.string().optional(),
+  downloadUrl: z.string().optional(),
 });
 export type ClassMaterial = z.infer<typeof classMaterialSchema>;
 

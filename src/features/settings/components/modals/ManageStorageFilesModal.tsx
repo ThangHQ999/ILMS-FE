@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useStorageFiles, useDeleteStorageFile } from '../../hooks/useStorage';
+import type { StorageFileItem } from '../../schemas/storage.schema';
 
 interface ManageStorageFilesModalProps {
   isOpen: boolean;
@@ -55,6 +56,38 @@ export function ManageStorageFilesModal({
       default:
         return 'draft';
     }
+  };
+
+  const getGoogleDriveUrl = (file: StorageFileItem): string | null => {
+    // 1. Direct url or fileUrl
+    const candidateUrl = file.url || file.fileUrl || file.directUrl;
+    if (candidateUrl && candidateUrl.startsWith('http')) {
+      const matchId = candidateUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (candidateUrl.includes('drive.google.com') && matchId && matchId[1]) {
+        return `https://drive.google.com/file/d/${matchId[1]}/view`;
+      }
+      return candidateUrl;
+    }
+    // 2. Download URL
+    if (file.downloadUrl && file.downloadUrl.startsWith('http')) {
+      const matchId = file.downloadUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (matchId && matchId[1]) {
+        return `https://drive.google.com/file/d/${matchId[1]}/view`;
+      }
+      const matchFileD = file.downloadUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (matchFileD && matchFileD[1]) {
+        return `https://drive.google.com/file/d/${matchFileD[1]}/view`;
+      }
+      return file.downloadUrl;
+    }
+    // 3. Fallback using publicId or fileId if it looks like a Google Drive ID
+    const driveId = file.publicId || file.fileId;
+    if (driveId && typeof driveId === 'string' && !driveId.includes(' ') && driveId.length >= 10) {
+      if (!driveId.startsWith('mat-') && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(driveId)) {
+        return `https://drive.google.com/file/d/${driveId}/view`;
+      }
+    }
+    return null;
   };
 
   return (
@@ -136,21 +169,53 @@ export function ManageStorageFilesModal({
             <div className="divide-y divide-slate-200/60 dark:divide-[#444746]/40">
               {files.map((file) => {
                 const isDeleting = deletingId === file.id;
+                const driveUrl = getGoogleDriveUrl(file);
+
                 return (
                   <div
                     key={file.id}
-                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-white dark:hover:bg-[#1E1F20] rounded-xl transition-colors"
+                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-white dark:hover:bg-[#1E1F20] rounded-xl transition-colors group/item"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[20px]">
-                          {getFileIcon(file.fileType)}
-                        </span>
-                      </div>
+                      {driveUrl ? (
+                        <a
+                          href={driveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Mở tệp trên Google Drive"
+                          className="w-9 h-9 rounded-xl bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#D3E3FD]/50 dark:hover:bg-[#282A2C] flex items-center justify-center shrink-0 transition-colors shadow-sm dark:shadow-none cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {getFileIcon(file.fileType)}
+                          </span>
+                        </a>
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[20px]">
+                            {getFileIcon(file.fileType)}
+                          </span>
+                        </div>
+                      )}
+
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate">
-                          {file.name}
-                        </span>
+                        {driveUrl ? (
+                          <a
+                            href={driveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Mở tệp trên Google Drive"
+                            className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] hover:underline truncate flex items-center gap-1.5 cursor-pointer transition-colors"
+                          >
+                            <span className="truncate">{file.name}</span>
+                            <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover/item:text-[#0B57D0] dark:group-hover/item:text-[#A8C7FA] shrink-0">
+                              open_in_new
+                            </span>
+                          </a>
+                        ) : (
+                          <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3] truncate">
+                            {file.name}
+                          </span>
+                        )}
                         <div className="flex items-center gap-2 text-[11px] text-[#747775] dark:text-[#8E918F]">
                           {file.courseName && <span>{file.courseName}</span>}
                           <span>•</span>

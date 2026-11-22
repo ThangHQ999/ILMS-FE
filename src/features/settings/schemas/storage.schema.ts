@@ -52,6 +52,9 @@ export const storageFileItemSchema = z.object({
   courseName: z.string().optional(),
   uploadedAt: z.string().default(''),
   downloadUrl: z.string().optional(),
+  url: z.string().optional(),
+  fileUrl: z.string().optional(),
+  directUrl: z.string().optional(),
 });
 
 export type StorageFileItem = z.infer<typeof storageFileItemSchema>;

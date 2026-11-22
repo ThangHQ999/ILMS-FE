@@ -88,6 +88,8 @@ let mockFiles: StorageFileItem[] = [
     courseId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     courseName: 'Lập trình Web nâng cao',
     uploadedAt: '2026-11-02T10:15:00Z',
+    url: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
+    fileUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
   },
   {
     id: 'mat-002',
@@ -98,6 +100,8 @@ let mockFiles: StorageFileItem[] = [
     courseId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     courseName: 'Lập trình Web nâng cao',
     uploadedAt: '2026-11-05T14:30:00Z',
+    url: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
+    fileUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
   },
   {
     id: 'mat-003',
@@ -108,6 +112,8 @@ let mockFiles: StorageFileItem[] = [
     courseId: '4fa85f64-5717-4562-b3fc-2c963f66afa7',
     courseName: 'Cấu trúc dữ liệu & Giải thuật',
     uploadedAt: '2026-11-08T09:00:00Z',
+    url: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
+    fileUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
   },
   {
     id: 'mat-004',
@@ -118,6 +124,8 @@ let mockFiles: StorageFileItem[] = [
     courseId: '5fa85f64-5717-4562-b3fc-2c963f66afa8',
     courseName: 'Mạng máy tính & Truyền thông',
     uploadedAt: '2026-11-10T16:45:00Z',
+    url: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
+    fileUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view',
   },
 ];
 
@@ -203,6 +211,13 @@ export async function getStorageFiles(
         : rec.fileId
           ? String(rec.fileId)
           : undefined;
+      const fileUrl = rec.fileUrl ? String(rec.fileUrl) : undefined;
+      const url = rec.url ? String(rec.url) : fileUrl;
+      const directUrl = rec.directUrl ? String(rec.directUrl) : undefined;
+      const downloadUrl = rec.downloadUrl
+        ? String(rec.downloadUrl)
+        : fileUrl ?? url;
+
       return storageFileItemSchema.parse({
         id: String(rec.id ?? rec.materialId ?? publicId ?? idx + 1),
         publicId,
@@ -218,13 +233,10 @@ export async function getStorageFiles(
         courseId: rec.courseId ? String(rec.courseId) : undefined,
         courseName: rec.courseName ? String(rec.courseName) : undefined,
         uploadedAt: String(rec.uploadedAt ?? rec.createdAt ?? ''),
-        downloadUrl: rec.downloadUrl
-          ? String(rec.downloadUrl)
-          : rec.fileUrl
-            ? String(rec.fileUrl)
-            : rec.url
-              ? String(rec.url)
-              : undefined,
+        downloadUrl,
+        url,
+        fileUrl,
+        directUrl,
       });
     });
   } catch {

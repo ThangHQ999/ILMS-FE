@@ -760,7 +760,14 @@ export function ClassStreamTab({
                   <button
                     key={mat.id}
                     type="button"
-                    onClick={() => onToast(`Đang mở tài liệu: ${mat.title}`)}
+                    onClick={() => {
+                      const link = mat.fileUrl || mat.url || mat.downloadUrl;
+                      if (typeof link === 'string' && link.startsWith('http')) {
+                        window.open(link, '_blank', 'noopener,noreferrer');
+                      } else {
+                        onToast(`Đang mở tài liệu: ${mat.title}`);
+                      }
+                    }}
                     className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-80 border-none flex items-center justify-between text-gray-800 dark:text-[#C4C7C5] transition-opacity text-left cursor-pointer"
                   >
                     <span className="flex items-center gap-2 font-medium truncate pr-2">
