@@ -377,7 +377,7 @@ export function ClassSessionsTab({
           onLockSession={handleLockSession}
           isSaving={saveAttendancesMutation.isPending}
           isLocked={isLocked}
-          sidebarPaddingClass="left-0 md:left-20 lg:left-72"
+          sidebarPaddingClass="left-0 sm:left-64"
         />
       </div>
     );

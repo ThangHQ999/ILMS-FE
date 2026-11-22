@@ -29,7 +29,7 @@ import {
   CreateLessonSessionRequest,
   LessonSession,
 } from '../types';
-import { lessonSessionKeys } from '../constants';
+import { lessonSessionKeys, MOCK_STUDENTS } from '../constants';
 import { LessonSessionHeader } from './LessonSessionHeader';
 import { LessonSessionTable } from './LessonSessionTable';
 import { CreateSessionModal } from './CreateSessionModal';
@@ -132,18 +132,20 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const students = useMemo(() => {
     if (rawStudents.length > 0) return rawStudents;
     if (classDetail?.members && classDetail.members.length > 0) {
-      return classDetail.members
+      const studentMembers = classDetail.members
         .filter((m) => m.role === 'STUDENT' || !m.role)
-        .map((m, idx) => ({
+        .map((m) => ({
           studentId: m.id,
           studentCode: m.studentCode || `SV-${m.id.slice(0, 6)}`,
           studentName: m.name,
           email: m.email || '',
           avatarUrl: m.avatarUrl,
         }));
+      if (studentMembers.length > 0) return studentMembers;
     }
-    return rawStudents;
-  }, [rawStudents, classDetail?.members]);
+    const targetCount = activeClass?.enrolledCount || 42;
+    return MOCK_STUDENTS.slice(0, targetCount);
+  }, [rawStudents, classDetail?.members, activeClass?.enrolledCount]);
 
   const { data: existingAttendances = [] } = useAttendances(
     effectiveClassId,

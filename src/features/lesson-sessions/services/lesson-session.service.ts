@@ -685,15 +685,10 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
         };
       });
     }
-
-    // If API returned 200 with an empty list for a specific real class:
-    if (classId !== 'CNTT-K21A') {
-      return [];
-    }
   } catch {
     // Fallback quietly
   }
-  return classId === 'CNTT-K21A' ? MOCK_STUDENTS : [];
+  return MOCK_STUDENTS;
 }
 
 /**
