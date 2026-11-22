@@ -11,5 +11,6 @@ export * from './components/AttendanceHeroBanner';
 export * from './components/AttendanceTableRow';
 export * from './components/AttendanceTable';
 export * from './components/AttendanceCockpitBar';
+export * from './components/SessionFormModal';
 export * from './components/LessonSessionsPageView';
 

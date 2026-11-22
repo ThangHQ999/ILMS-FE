@@ -12,6 +12,7 @@ interface ClassDetailBannerProps {
   subjectsCount: number;
   studentsCount?: number;
   assignmentsCount?: number;
+  sessionsCount?: number;
   instructorsCount: number;
   canManageClass?: boolean;
   isCompact?: boolean;
@@ -31,6 +32,7 @@ export function ClassDetailBanner({
   subjectsCount,
   studentsCount,
   assignmentsCount,
+  sessionsCount,
   instructorsCount,
   onCopyCode,
   onInviteClick,
@@ -98,6 +100,12 @@ export function ClassDetailBanner({
   const resolvedStudentsCount = studentsCount ?? classInfo.enrolledCount ?? 0;
   const tabs = [
     { id: 'stream', label: 'Tổng quan & Bảng tin', icon: 'forum' },
+    {
+      id: 'sessions',
+      label: 'Ca học',
+      icon: 'calendar_clock',
+      badge: sessionsCount !== undefined ? `${sessionsCount} ca` : undefined,
+    },
     { id: 'subjects', label: 'Các môn học liên kết', icon: 'library_books', badge: subjectsCount },
     {
       id: 'assignments',

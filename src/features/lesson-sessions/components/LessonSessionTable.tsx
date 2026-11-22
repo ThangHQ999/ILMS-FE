@@ -10,6 +10,8 @@ interface LessonSessionTableProps {
   isLoading: boolean;
   onSelectAttendance: (session: LessonSession) => void;
   onOpenCreateModal: () => void;
+  onEditSession?: (session: LessonSession) => void;
+  onDeleteSession?: (session: LessonSession) => void;
 }
 
 export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
@@ -17,6 +19,8 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
   isLoading,
   onSelectAttendance,
   onOpenCreateModal,
+  onEditSession,
+  onDeleteSession,
 }) => {
   const { isTeacher } = useUserRole();
   const [searchTerm, setSearchTerm] = useState('');
@@ -200,19 +204,43 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
                         <p className="line-clamp-1 font-medium text-[#444746] dark:text-[#C4C7C5]">{session.note || 'Không có ghi chú'}</p>
                       </td>
                       <td className="py-3.5 px-4 text-right align-middle">
-                        <button
-                          onClick={() => onSelectAttendance(session)}
-                          className={`inline-flex items-center gap-1 text-xs font-medium px-4 py-2 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
-                            isFullyAttended
-                              ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
-                              : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            {isFullyAttended ? 'visibility' : 'how_to_reg'}
-                          </span>
-                          <span>{isFullyAttended ? 'Xem điểm danh' : isTeacher ? 'Điểm danh ngay' : 'Xem chi tiết'}</span>
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => onSelectAttendance(session)}
+                            className={`inline-flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
+                              isFullyAttended
+                                ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
+                                : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {isFullyAttended ? 'visibility' : 'how_to_reg'}
+                            </span>
+                            <span>{isFullyAttended ? 'Xem' : isTeacher ? 'Điểm danh' : 'Xem'}</span>
+                          </button>
+
+                          {isTeacher && onEditSession && (
+                            <button
+                              type="button"
+                              onClick={() => onEditSession(session)}
+                              title="Chỉnh sửa ca học"
+                              className="w-8 h-8 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center transition-colors border-none cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                          )}
+
+                          {isTeacher && onDeleteSession && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteSession(session)}
+                              title="Xóa ca học"
+                              className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors border-none cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

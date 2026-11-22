@@ -21,6 +21,7 @@ import { ClassMaterialsTab } from './ClassMaterialsTab';
 import { ClassStreamTab } from './ClassStreamTab';
 import { ClassAssignmentsTab } from './ClassAssignmentsTab';
 import { ClassAnalyticsSettingsTab } from './ClassAnalyticsSettingsTab';
+import { ClassSessionsTab } from './ClassSessionsTab';
 import {
   RemoveSubjectModal,
   ArchiveModal,
@@ -34,12 +35,14 @@ import {
   CreateSessionModal,
   useRooms,
   useCreateLessonSession,
+  useLessonSessions,
   lessonSessionKeys,
 } from '@/features/lesson-sessions';
 import { toast } from '@/components/ui/sonner';
 
 const VALID_CLASS_TABS = new Set([
   'stream',
+  'sessions',
   'subjects',
   'materials',
   'assignments',
@@ -129,6 +132,7 @@ export function ClassDetailPageView({
   const [isCreateSessionOpen, setIsCreateSessionOpen] = useState(false);
 
   const { data: rooms = [] } = useRooms();
+  const { data: classSessions = [] } = useLessonSessions(apiClassId);
   const createSessionMutation = useCreateLessonSession(apiClassId);
 
   const showToast = useCallback((msg: string) => {
@@ -383,6 +387,7 @@ export function ClassDetailPageView({
                 subjectsCount={bannerStats?.coursesCount ?? courses.length}
                 studentsCount={bannerStats?.studentsCount ?? classInfo.enrolledCount ?? 0}
                 assignmentsCount={assignmentsCount}
+                sessionsCount={classSessions.length}
                 instructorsCount={bannerStats?.teachersCount ?? 1}
                 onCopyCode={handleCopyCode}
                 onInviteClick={() => setIsInviteOpen(true)}
@@ -393,6 +398,15 @@ export function ClassDetailPageView({
               />
 
               {/* Content Tab Panes */}
+              {activeTab === 'sessions' && (
+                <ClassSessionsTab
+                  classId={apiClassId}
+                  classInfo={classInfo}
+                  currentRole={effectiveRole}
+                  onToast={showToast}
+                />
+              )}
+
               {activeTab === 'stream' && (
                 <ClassStreamTab
                   classInfo={classInfo}

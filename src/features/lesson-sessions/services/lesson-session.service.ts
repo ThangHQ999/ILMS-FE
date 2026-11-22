@@ -323,10 +323,120 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
   }
 
   if (apiSucceeded) {
+    if (classId && classId !== 'all') {
+      const stored = getStoredSessions().filter((s) => s.classId === classId);
+      if (stored.length > 0) return stored;
+    }
     return [];
   }
 
-  return getStoredSessions();
+  const allStored = getStoredSessions();
+  if (classId && classId !== 'all') {
+    const matched = allStored.filter((s) => s.classId === classId);
+    if (matched.length > 0) return matched;
+    if (classId !== 'CNTT-K21A') return [];
+  }
+
+  return allStored;
+}
+
+/**
+ * Update an existing lesson session.
+ * Endpoint: PUT /api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}
+ */
+export async function updateLessonSession(
+  classId: string,
+  lessonSessionId: string,
+  payload: Partial<CreateLessonSessionRequest>
+): Promise<LessonSession> {
+  const current = getStoredSessions();
+  let updatedFromApi: LessonSession | null = null;
+
+  try {
+    const res = await api.put<ApiResponse<LessonSession> | LessonSession>(
+      `/classes/${classId}/lesson-sessions/${lessonSessionId}`,
+      payload
+    );
+    const data = res.data;
+    if (data && 'data' in data && data.data) updatedFromApi = data.data;
+    else if (data && 'lessonSessionId' in data) updatedFromApi = data as LessonSession;
+  } catch {
+    try {
+      const res = await api.put<ApiResponse<LessonSession> | LessonSession>(
+        `/classes/${classId}/lessonSessions/${lessonSessionId}`,
+        payload
+      );
+      const data = res.data;
+      if (data && 'data' in data && data.data) updatedFromApi = data.data;
+      else if (data && 'lessonSessionId' in data) updatedFromApi = data as LessonSession;
+    } catch {
+      // Fallback to local storage update
+    }
+  }
+
+  const existing = current.find((s) => s.lessonSessionId === lessonSessionId);
+  const selectedRoom = MOCK_ROOMS.find((r) => r.roomId === payload.roomId);
+  const roomName = selectedRoom ? selectedRoom.roomName : (payload.roomId || existing?.roomName || 'Phòng học');
+
+  const updated: LessonSession = updatedFromApi || {
+    ...(existing || {
+      classId,
+      lessonSessionId,
+      sessionCode: 'CA-UPD',
+      className: 'Lớp học',
+      subjectCode: 'INT3306',
+      status: 'SCHEDULED' as const,
+      attendedCount: 0,
+      totalStudents: 45,
+    }),
+    sessionDate: payload.sessionDate || existing?.sessionDate || new Date().toISOString().split('T')[0],
+    startTime: payload.startTime || existing?.startTime || '07:30',
+    endTime: payload.endTime || existing?.endTime || '09:30',
+    startShift: payload.startShift ?? existing?.startShift ?? 1,
+    endShift: payload.endShift ?? existing?.endShift ?? 3,
+    roomId: payload.roomId || existing?.roomId || 'room-1',
+    roomName,
+    note: payload.note !== undefined ? payload.note : existing?.note || '',
+  };
+
+  const updatedList = current.map((s) => (s.lessonSessionId === lessonSessionId ? updated : s));
+  saveStoredSessions(updatedList);
+  return updated;
+}
+
+/**
+ * Delete a lesson session.
+ * Endpoint: DELETE /api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}?force=true
+ */
+export async function deleteLessonSession(
+  classId: string,
+  lessonSessionId: string,
+  force: boolean = true
+): Promise<void> {
+  try {
+    await api.delete(`/classes/${classId}/lesson-sessions/${lessonSessionId}`, {
+      params: { force },
+    });
+  } catch {
+    try {
+      await api.delete(`/classes/${classId}/lessonSessions/${lessonSessionId}`, {
+        params: { force },
+      });
+    } catch (err) {
+      console.warn('Backend delete lesson session failed, updating local cache:', err);
+    }
+  }
+
+  // Always remove from local storage
+  const current = getStoredSessions();
+  saveStoredSessions(current.filter((s) => s.lessonSessionId !== lessonSessionId));
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(`${ATTENDANCE_KEY_PREFIX}${lessonSessionId}`);
+    } catch {
+      // ignore
+    }
+  }
 }
 
 /**
@@ -571,10 +681,15 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
         };
       });
     }
+
+    // If API returned 200 with an empty list for a specific real class:
+    if (classId !== 'CNTT-K21A') {
+      return [];
+    }
   } catch {
     // Fallback quietly
   }
-  return MOCK_STUDENTS;
+  return classId === 'CNTT-K21A' ? MOCK_STUDENTS : [];
 }
 
 /**

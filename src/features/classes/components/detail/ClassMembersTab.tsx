@@ -202,7 +202,7 @@ export function ClassMembersTab({
   const handleTakeAttendance = () => {
     const targetClassId = classInfo?.id || classCode;
     if (targetClassId) {
-      router.push(`/classes/${targetClassId}/sessions?action=attendance`);
+      router.push(`/classes/${targetClassId}?tab=sessions&action=attendance`);
     } else {
       router.push('/lesson-sessions?action=attendance');
     }

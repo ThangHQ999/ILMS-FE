@@ -3,12 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createLessonSession,
+  deleteLessonSession,
   getAttendances,
   getClassStudents,
   getLessonSessions,
   getRooms,
   getTeacherTodaySessions,
   saveAttendances,
+  updateLessonSession,
 } from '../services/lesson-session.service';
 import { lessonSessionKeys } from '../constants';
 import { AttendanceRecord, CreateLessonSessionRequest } from '../types';
@@ -61,6 +63,50 @@ export function useCreateLessonSession(classId: string) {
   return useMutation({
     mutationFn: (payload: CreateLessonSessionRequest) =>
       createLessonSession(classId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.lists(classId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.today(),
+      });
+    },
+  });
+}
+
+export function useUpdateLessonSession(classId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      lessonSessionId,
+      payload,
+    }: {
+      lessonSessionId: string;
+      payload: Partial<CreateLessonSessionRequest>;
+    }) => updateLessonSession(classId, lessonSessionId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.lists(classId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: lessonSessionKeys.today(),
+      });
+    },
+  });
+}
+
+export function useDeleteLessonSession(classId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      lessonSessionId,
+      force = true,
+    }: {
+      lessonSessionId: string;
+      force?: boolean;
+    }) => deleteLessonSession(classId, lessonSessionId, force),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: lessonSessionKeys.lists(classId),
