@@ -620,18 +620,21 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                   attendanceMap={attendanceMap}
                   onStatusChange={handleStatusChange}
                   onNoteChange={handleNoteChange}
-                />
-                <AttendanceCockpitBar
-                  totalCount={totalCount}
-                  checkedCount={checkedCount}
-                  presenceRate={presenceRate}
                   onBack={handleBackToList}
-                  onSaveDraft={handleSaveDraft}
-                  onLockSession={handleLockSession}
-                  isSaving={saveAttendancesMutation.isPending}
-                  isLocked={isLocked}
-                  sidebarPaddingClass={sidebarPaddingClass}
                 />
+                {totalCount > 0 && (
+                  <AttendanceCockpitBar
+                    totalCount={totalCount}
+                    checkedCount={checkedCount}
+                    presenceRate={presenceRate}
+                    onBack={handleBackToList}
+                    onSaveDraft={handleSaveDraft}
+                    onLockSession={handleLockSession}
+                    isSaving={saveAttendancesMutation.isPending}
+                    isLocked={isLocked}
+                    sidebarPaddingClass={sidebarPaddingClass}
+                  />
+                )}
               </>
             )}
           </div>

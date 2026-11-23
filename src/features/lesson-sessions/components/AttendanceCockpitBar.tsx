@@ -27,13 +27,16 @@ export const AttendanceCockpitBar: React.FC<AttendanceCockpitBarProps> = ({
   sidebarPaddingClass,
   containerClass = 'max-w-7xl',
 }) => {
+  // If class has no students, hide the cockpit floating action bar
+  if (totalCount === 0) return null;
+
   const is100Percent = checkedCount >= totalCount && totalCount > 0;
   const uncheckedCount = Math.max(0, totalCount - checkedCount);
 
   return (
     <div
       className={`fixed bottom-4 sm:bottom-6 right-0 z-40 transition-all duration-300 pointer-events-none px-4 sm:px-6 lg:px-8 ${
-        sidebarPaddingClass ?? 'left-0 sm:left-64'
+        sidebarPaddingClass ?? 'left-0'
       }`}
     >
       <div

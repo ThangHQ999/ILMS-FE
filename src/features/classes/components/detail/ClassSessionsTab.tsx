@@ -441,19 +441,22 @@ export function ClassSessionsTab({
           attendanceMap={attendanceMap}
           onStatusChange={handleStatusChange}
           onNoteChange={handleNoteChange}
+          onBack={handleBackToList}
         />
 
-        <AttendanceCockpitBar
-          totalCount={totalCount}
-          checkedCount={checkedCount}
-          presenceRate={presenceRate}
-          onBack={handleBackToList}
-          onSaveDraft={handleSaveDraft}
-          onLockSession={handleLockSession}
-          isSaving={saveAttendancesMutation.isPending}
-          isLocked={isLocked}
-          sidebarPaddingClass="left-0 sm:left-64"
-        />
+        {totalCount > 0 && (
+          <AttendanceCockpitBar
+            totalCount={totalCount}
+            checkedCount={checkedCount}
+            presenceRate={presenceRate}
+            onBack={handleBackToList}
+            onSaveDraft={handleSaveDraft}
+            onLockSession={handleLockSession}
+            isSaving={saveAttendancesMutation.isPending}
+            isLocked={isLocked}
+            sidebarPaddingClass="left-0"
+          />
+        )}
       </div>
     );
   }

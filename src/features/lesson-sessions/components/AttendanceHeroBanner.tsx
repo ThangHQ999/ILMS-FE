@@ -122,20 +122,33 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap border-none ${
-                isLocked || checkedCount >= totalStudents
-                  ? 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
-                  : 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${
-                  isLocked || checkedCount >= totalStudents ? 'bg-[#0D652D] dark:bg-[#81C995]' : 'bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse'
-                }`} />
-                {isLocked
-                  ? `Đã chốt danh sách (${checkedCount}/${totalStudents})`
-                  : checkedCount >= totalStudents
-                  ? `Đã điểm danh (${checkedCount}/${totalStudents})`
-                  : `Đang điểm danh (${checkedCount}/${totalStudents})`}
-              </span>
+              {totalStudents === 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap border-none bg-[#F0F4F9] text-[#747775] dark:bg-[#282A2C] dark:text-[#8E918F]">
+                  <span className="w-2 h-2 rounded-full bg-[#747775] dark:bg-[#8E918F]" />
+                  Chưa có học viên (0/0)
+                </span>
+              ) : (
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap border-none ${
+                    isLocked || checkedCount >= totalStudents
+                      ? 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
+                      : 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isLocked || checkedCount >= totalStudents
+                        ? 'bg-[#0D652D] dark:bg-[#81C995]'
+                        : 'bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse'
+                    }`}
+                  />
+                  {isLocked
+                    ? `Đã chốt danh sách (${checkedCount}/${totalStudents})`
+                    : checkedCount >= totalStudents
+                    ? `Đã điểm danh (${checkedCount}/${totalStudents})`
+                    : `Đang điểm danh (${checkedCount}/${totalStudents})`}
+                </span>
+              )}
               <span className="font-mono text-xs text-[#747775] dark:text-[#8E918F]">
                 Học phần: {session.subjectCode || 'INT1434'}
               </span>
@@ -167,7 +180,13 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
           <div className="flex items-center gap-2.5 self-start lg:self-center shrink-0">
             <button
               onClick={onMarkAllPresent}
-              className="flex items-center gap-2 bg-[#C4EED0] hover:bg-[#A8E5BA] text-[#0D652D] dark:bg-[#142E20] dark:hover:bg-[#1A3D2A] dark:text-[#81C995] font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors border-none shadow-none cursor-pointer"
+              disabled={totalStudents === 0 || isLocked}
+              type="button"
+              className={`flex items-center gap-2 font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors border-none shadow-none ${
+                totalStudents === 0 || isLocked
+                  ? 'bg-[#F0F4F9] text-[#747775] dark:bg-[#282A2C] dark:text-[#8E918F] opacity-50 cursor-not-allowed'
+                  : 'bg-[#C4EED0] hover:bg-[#A8E5BA] text-[#0D652D] dark:bg-[#142E20] dark:hover:bg-[#1A3D2A] dark:text-[#81C995] cursor-pointer'
+              }`}
             >
               <span className="material-symbols-outlined text-[18px]">done_all</span>
               <span>Đánh dấu tất cả Có mặt</span>

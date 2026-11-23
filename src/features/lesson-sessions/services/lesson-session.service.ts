@@ -597,77 +597,88 @@ export async function saveAttendances(
  * Endpoint: GET /api/v1/classes/{classId}/members?role=STUDENT&size=100
  */
 export async function getClassStudents(classId: string): Promise<Student[]> {
+  let raw: unknown = null;
+
   try {
     const res = await api.get<ApiResponse<unknown>>(`/classes/${classId}/members`, {
       params: { role: 'STUDENT', size: 100 },
     });
-
-    const raw = res.data?.data ?? res.data;
-    const content = Array.isArray(raw)
-      ? raw
-      : (raw as { content?: unknown[]; items?: unknown[] })?.content ??
-        (raw as { items?: unknown[] })?.items ??
-        [];
-
-    if (Array.isArray(content) && content.length > 0) {
-      // Filter student items if role is present
-      const studentItems = content.filter((item: unknown) => {
-        if (!item || typeof item !== 'object') return false;
-        const rec = item as Record<string, unknown>;
-        const userRec = rec.user as Record<string, unknown> | undefined;
-        const role = String(rec.role || userRec?.role || 'STUDENT').toUpperCase();
-        return role === 'STUDENT';
-      });
-
-      const listToMap = studentItems.length > 0 ? studentItems : content;
-
-      return listToMap.map((item: unknown, index: number) => {
-        const rec = item as Record<string, unknown>;
-        const u = (rec.user as Record<string, unknown> | undefined) || rec;
-
-        const nameParts = [u.lastName, u.middleName, u.firstName].filter(Boolean);
-        const studentName =
-          typeof rec.name === 'string' && rec.name.trim().length > 0
-            ? rec.name
-            : typeof u.fullName === 'string' && u.fullName.trim().length > 0
-            ? u.fullName
-            : nameParts.length > 0
-            ? nameParts.join(' ')
-            : typeof u.email === 'string'
-            ? u.email
-            : `Sinh viên ${index + 1}`;
-
-        const email = String(rec.email || u.email || '');
-        const studentCode =
-          typeof rec.studentCode === 'string' && rec.studentCode.length > 0
-            ? rec.studentCode
-            : typeof u.studentCode === 'string' && u.studentCode.length > 0
-            ? u.studentCode
-            : email.includes('@')
-            ? email.split('@')[0].toUpperCase()
-            : u.id
-            ? `SV-${String(u.id).slice(0, 8).toUpperCase()}`
-            : `SV24-${index + 1}`;
-
-        const studentId = String(u.id || rec.id || `stu-${index + 1}`);
-
-        return {
-          studentId,
-          studentCode,
-          studentName,
-          email,
-          avatarUrl:
-            typeof rec.avatarUrl === 'string'
-              ? rec.avatarUrl
-              : typeof u.avatarUrl === 'string'
-              ? u.avatarUrl
-              : undefined,
-        };
-      });
-    }
+    raw = res.data?.data ?? res.data;
   } catch {
-    // Fallback quietly
+    // Retry without query params if the backend rejects role parameter
+    try {
+      const res = await api.get<ApiResponse<unknown>>(`/classes/${classId}/members`);
+      raw = res.data?.data ?? res.data;
+    } catch {
+      raw = null;
+    }
   }
+
+  if (!raw) return [];
+
+  const content = Array.isArray(raw)
+    ? raw
+    : (raw as { content?: unknown[]; items?: unknown[] })?.content ??
+      (raw as { items?: unknown[] })?.items ??
+      [];
+
+  if (Array.isArray(content) && content.length > 0) {
+    // Filter student items if role is present
+    const studentItems = content.filter((item: unknown) => {
+      if (!item || typeof item !== 'object') return false;
+      const rec = item as Record<string, unknown>;
+      const userRec = rec.user as Record<string, unknown> | undefined;
+      const role = String(rec.role || userRec?.role || 'STUDENT').toUpperCase();
+      return role === 'STUDENT';
+    });
+
+    const listToMap = studentItems.length > 0 ? studentItems : content;
+
+    return listToMap.map((item: unknown, index: number) => {
+      const rec = item as Record<string, unknown>;
+      const u = (rec.user as Record<string, unknown> | undefined) || rec;
+
+      const nameParts = [u.lastName, u.middleName, u.firstName].filter(Boolean);
+      const studentName =
+        typeof rec.name === 'string' && rec.name.trim().length > 0
+          ? rec.name
+          : typeof u.fullName === 'string' && u.fullName.trim().length > 0
+          ? u.fullName
+          : nameParts.length > 0
+          ? nameParts.join(' ')
+          : typeof u.email === 'string'
+          ? u.email
+          : `Sinh viên ${index + 1}`;
+
+      const email = String(rec.email || u.email || '');
+      const studentCode =
+        typeof rec.studentCode === 'string' && rec.studentCode.length > 0
+          ? rec.studentCode
+          : typeof u.studentCode === 'string' && u.studentCode.length > 0
+          ? u.studentCode
+          : email.includes('@')
+          ? email.split('@')[0].toUpperCase()
+          : u.id
+          ? `SV-${String(u.id).slice(0, 8).toUpperCase()}`
+          : `SV24-${index + 1}`;
+
+      const studentId = String(u.id || rec.id || `stu-${index + 1}`);
+
+      return {
+        studentId,
+        studentCode,
+        studentName,
+        email,
+        avatarUrl:
+          typeof rec.avatarUrl === 'string'
+            ? rec.avatarUrl
+            : typeof u.avatarUrl === 'string'
+            ? u.avatarUrl
+            : undefined,
+      };
+    });
+  }
+
   return [];
 }
 

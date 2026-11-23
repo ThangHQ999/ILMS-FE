@@ -9,6 +9,7 @@ interface AttendanceTableProps {
   attendanceMap: Record<string, { status: AttendanceStatus | null; note: string }>;
   onStatusChange: (studentId: string, status: AttendanceStatus | null) => void;
   onNoteChange: (studentId: string, note: string) => void;
+  onBack?: () => void;
 }
 
 export const AttendanceTable: React.FC<AttendanceTableProps> = ({
@@ -16,11 +17,39 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   attendanceMap,
   onStatusChange,
   onNoteChange,
+  onBack,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'ALL' | AttendanceStatus | 'UNCHECKED'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number | 'ALL'>(10);
+
+  // Zero-data State (State 3): Class has no students registered yet
+  if (students.length === 0) {
+    return (
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-10 flex flex-col items-center justify-center text-center border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none min-h-[340px]">
+        <div className="w-16 h-16 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] flex items-center justify-center text-[#747775] dark:text-[#8E918F] mb-4">
+          <span className="material-symbols-outlined text-3xl">group_off</span>
+        </div>
+        <h3 className="text-base sm:text-lg font-bold text-[#1F1F1F] dark:text-[#E3E3E3] mb-1.5">
+          Lớp học chưa có sinh viên nào
+        </h3>
+        <p className="text-xs sm:text-sm text-[#747775] dark:text-[#8E918F] max-w-md mb-6 leading-relaxed">
+          Ca học này hiện chưa có danh sách sinh viên để điểm danh. Bạn có thể thêm học viên vào lớp ở tab &ldquo;Thành viên&rdquo; hoặc quay lại danh sách ca học.
+        </p>
+        {onBack && (
+          <button
+            onClick={onBack}
+            type="button"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all cursor-pointer border-none shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span>Quay lại danh sách ca học</span>
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const filteredStudents = students.filter((stu) => {
     const record = attendanceMap[stu.studentId];
@@ -180,8 +209,24 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
           <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 text-[#444746] dark:text-[#C4C7C5] text-xs">
             {paginatedStudents.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-[#747775] dark:text-[#8E918F]">
-                  Không tìm thấy sinh viên nào phù hợp với bộ lọc.
+                <td colSpan={5} className="py-12 text-center text-[#747775] dark:text-[#8E918F]">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-3xl text-[#8E918F]">filter_alt_off</span>
+                    <p className="text-xs sm:text-sm font-medium">
+                      Không tìm thấy sinh viên nào phù hợp với bộ lọc hiện tại.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setFilterCategory('ALL');
+                        setCurrentPage(1);
+                      }}
+                      className="mt-1 text-xs text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium border-none bg-transparent cursor-pointer"
+                    >
+                      Đặt lại bộ lọc &amp; tìm kiếm
+                    </button>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -215,16 +260,20 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
             </strong>{' '}
             trong tổng số <strong className="text-[#1F1F1F] dark:text-[#E3E3E3] font-bold">{students.length}</strong> sinh viên
           </span>
-          <span className="text-[#747775] dark:text-[#8E918F]">•</span>
-          <button
-            onClick={() => {
-              setPageSize(pageSize === 'ALL' ? 10 : 'ALL');
-              setCurrentPage(1);
-            }}
-            className="text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border-none cursor-pointer"
-          >
-            {pageSize === 'ALL' ? 'Chia trang (10 SV/trang)' : `Xem tất cả ${students.length} SV`}
-          </button>
+          {students.length > 10 && (
+            <>
+              <span className="text-[#747775] dark:text-[#8E918F]">•</span>
+              <button
+                onClick={() => {
+                  setPageSize(pageSize === 'ALL' ? 10 : 'ALL');
+                  setCurrentPage(1);
+                }}
+                className="text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border-none cursor-pointer"
+              >
+                {pageSize === 'ALL' ? 'Chia trang (10 SV/trang)' : `Xem tất cả ${students.length} SV`}
+              </button>
+            </>
+          )}
         </div>
 
         {pageSize !== 'ALL' && totalPages > 1 && (
