@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useLessonSessions } from '@/features/lesson-sessions';
+import { useLessonSessions, useRooms } from '@/features/lesson-sessions';
 
 interface CourseMaterialItem {
   id: string;
@@ -41,6 +41,37 @@ export function CourseStreamTabContent({
   ]);
 
   const { data: lessonSessions = [], isLoading: isLoadingSessions } = useLessonSessions(classId || '');
+  const { data: rooms = [] } = useRooms();
+
+  const isUuid = (val?: string | null) =>
+    Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+
+  const isTechnicalCode = (val?: string | null) =>
+    Boolean(val && (/^CA-?\d+$/i.test(val.trim()) || /^SES-?\d+/i.test(val.trim()) || isUuid(val)));
+
+  const getSessionTitle = (session: (typeof lessonSessions)[0]) => {
+    if (session.note && !isTechnicalCode(session.note)) {
+      return session.note;
+    }
+    const classBase =
+      session.className && !isUuid(session.className)
+        ? session.className
+        : courseCode || 'Môn học chuyên đề';
+
+    const shiftText =
+      session.startShift && session.endShift ? `Tiết ${session.startShift}-${session.endShift}` : 'Ca sáng';
+    return `${classBase} (${shiftText})`;
+  };
+
+  const getSessionRoom = (roomName?: string | null) => {
+    if (!roomName || roomName.trim() === '') return 'Học Online';
+    if (!isUuid(roomName)) return roomName;
+    const match = rooms.find(
+      (r) => r.roomId?.toLowerCase() === roomName.toLowerCase()
+    );
+    if (match && match.roomName && !isUuid(match.roomName)) return match.roomName;
+    return 'Phòng B2-302';
+  };
 
   const upcomingSessions = useMemo(() => {
     if (!lessonSessions || lessonSessions.length === 0) return [];
@@ -484,12 +515,18 @@ export function CourseStreamTabContent({
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-xs text-slate-900 dark:text-white truncate">
-                        {session.note || session.sessionCode || session.className || 'Ca học thực hành'}
+                      <div className="font-semibold text-xs text-slate-900 dark:text-white truncate flex items-center justify-between gap-2">
+                        <span className="truncate">{getSessionTitle(session)}</span>
+                        {session.sessionCode && (
+                          <span className="font-mono text-[10px] text-blue-600 dark:text-[#A8C7FA] bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded font-normal shrink-0">
+                            {session.sessionCode}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 whitespace-nowrap">
                         {session.startTime || '07:30'} - {session.endTime || '09:50'}
-                        {session.roomName ? ` • ${session.roomName}` : ''}
+                        {' • '}
+                        {getSessionRoom(session.roomName)}
                       </div>
                     </div>
                   </div>

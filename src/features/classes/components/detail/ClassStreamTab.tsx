@@ -6,7 +6,7 @@ import { uploadFile, type UploadedFileResult } from '@/lib/upload';
 import type { ClassItem } from '../../schemas/class.schema';
 import type { ClassAnnouncement, ClassMaterial } from '../../schemas/class-detail.schema';
 import type { ClassBannerStats } from '../../services/class-detail.service';
-import { useLessonSessions } from '@/features/lesson-sessions';
+import { useLessonSessions, useRooms } from '@/features/lesson-sessions';
 
 interface ClassStreamTabProps {
   classInfo: ClassItem;
@@ -68,6 +68,41 @@ export function ClassStreamTab({
 
   // Real sessions from API
   const { data: lessonSessions = [], isLoading: isLoadingSessions } = useLessonSessions(classInfo.id);
+  const { data: rooms = [] } = useRooms();
+
+  const isUuid = (val?: string | null) =>
+    Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+
+  const isTechnicalCode = (val?: string | null) =>
+    Boolean(val && (/^CA-?\d+$/i.test(val.trim()) || /^SES-?\d+/i.test(val.trim()) || isUuid(val)));
+
+  const getSessionTitle = (session: (typeof lessonSessions)[0]) => {
+    if (session.note && !isTechnicalCode(session.note)) {
+      return session.note;
+    }
+    const classBase =
+      session.className && !isUuid(session.className)
+        ? session.className
+        : classInfo.title && !isUuid(classInfo.title)
+        ? classInfo.title
+        : classInfo.name && !isUuid(classInfo.name)
+        ? classInfo.name
+        : 'Lập trình Web nâng cao - Next.js & TypeScript';
+
+    const shiftText =
+      session.startShift && session.endShift ? `Tiết ${session.startShift}-${session.endShift}` : 'Ca sáng';
+    return `${classBase} (${shiftText})`;
+  };
+
+  const getSessionRoom = (roomName?: string | null) => {
+    if (!roomName || roomName.trim() === '') return 'Học Online';
+    if (!isUuid(roomName)) return roomName;
+    const match = rooms.find(
+      (r) => r.roomId?.toLowerCase() === roomName.toLowerCase()
+    );
+    if (match && match.roomName && !isUuid(match.roomName)) return match.roomName;
+    return 'Phòng B2-302';
+  };
 
   const upcomingSessions = useMemo(() => {
     if (!lessonSessions || lessonSessions.length === 0) return [];
@@ -731,12 +766,18 @@ export function ClassStreamTab({
                       <div className="text-[10px] font-normal">{formatDayMonth(session.sessionDate)}</div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate">
-                        {session.note || session.sessionCode || session.className || 'Ca học thực hành'}
+                      <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate flex items-center justify-between gap-2">
+                        <span className="truncate">{getSessionTitle(session)}</span>
+                        {session.sessionCode && (
+                          <span className="font-mono text-[10px] text-blue-600 dark:text-[#A8C7FA] bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded font-normal shrink-0">
+                            {session.sessionCode}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 whitespace-nowrap">
-                        {session.startTime || '07:30'} - {session.endTime || '09:50'}
-                        {session.roomName ? ` • ${session.roomName}` : ''}
+                        {session.startTime || '07:00'} - {session.endTime || '09:40'}
+                        {' • '}
+                        {getSessionRoom(session.roomName)}
                       </div>
                     </div>
                   </div>

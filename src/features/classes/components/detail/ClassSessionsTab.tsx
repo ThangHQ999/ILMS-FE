@@ -305,7 +305,16 @@ export function ClassSessionsTab({
             const rawTitle = classInfo.title && !isUuid(classInfo.title) ? classInfo.title : '';
             const fallbackName = classInfo.name && !isUuid(classInfo.name) ? classInfo.name : 'Lập trình Web nâng cao';
             const baseTitle = rawName || rawTitle || fallbackName;
-            const noteText = s.note || s.sessionCode || 'Ca học';
+
+            const isTechnical = Boolean(s.note && (/^CA-?\d+$/i.test(s.note.trim()) || /^SES-?\d+/i.test(s.note.trim()) || isUuid(s.note)));
+            const shiftLabel = `Tiết ${s.startShift || 1}-${s.endShift || 3}`;
+            const noteText = s.note && !isTechnical ? s.note : shiftLabel;
+
+            const safeRoom =
+              !s.roomName || isUuid(s.roomName)
+                ? rooms.find((r) => r.roomId === s.roomName)?.roomName || 'Phòng B2-302'
+                : s.roomName;
+
             return {
               lessonSessionId: s.lessonSessionId,
               classId: s.classId,
@@ -313,8 +322,8 @@ export function ClassSessionsTab({
               sessionDate: s.sessionDate,
               startTime: s.startTime,
               endTime: s.endTime,
-              roomName: s.roomName,
-              roomShort: s.roomName.replace(/^phòng\s*/i, ''),
+              roomName: safeRoom,
+              roomShort: safeRoom.replace(/^phòng\s*/i, ''),
               note: s.note,
               studentsCount: s.totalStudents || students.length || 45,
               status: s.status,
@@ -648,7 +657,9 @@ export function ClassSessionsTab({
                 <div>
                   <span className="block text-[11px] text-slate-400">Phòng học:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {detailSession.roomName}
+                    {!detailSession.roomName || isUuid(detailSession.roomName)
+                      ? rooms.find((r) => r.roomId === detailSession.roomName)?.roomName || 'Phòng B2-302'
+                      : detailSession.roomName}
                   </span>
                 </div>
               </div>

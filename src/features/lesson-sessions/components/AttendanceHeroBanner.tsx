@@ -85,20 +85,27 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
               onChange={(e) => onSelectSession(e.target.value)}
               className="h-8 px-2.5 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] text-xs font-semibold text-gray-900 dark:text-[#E3E3E3] border border-slate-200/70 dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#0B57D0] cursor-pointer max-w-[240px] sm:max-w-[340px] md:max-w-[420px] truncate"
             >
-              {sessions.map((s) => (
-                <option key={s.lessonSessionId} value={s.lessonSessionId}>
-                  {s.sessionDate} • {s.startTime}-{s.endTime} | {s.roomName} (
-                  {s.note || s.sessionCode || 'Ca học'}){' '}
-                  {s.status === 'COMPLETED' ? '✓ Đã chốt' : s.status === 'IN_PROGRESS' ? '• Đang học' : ''}
-                </option>
-              ))}
+              {sessions.map((s) => {
+                const roomText = !s.roomName || isRawUuid(s.roomName) ? 'Phòng B2-302' : s.roomName;
+                const shiftText = s.startShift && s.endShift ? `Tiết ${s.startShift}-${s.endShift}` : 'Ca học';
+                const noteText =
+                  s.note && !isRawUuid(s.note) && !/^CA-?\d+$/i.test(s.note)
+                    ? s.note
+                    : shiftText;
+                return (
+                  <option key={s.lessonSessionId} value={s.lessonSessionId}>
+                    {s.sessionDate} • {s.startTime}-{s.endTime} | {roomText} ({noteText}){' '}
+                    {s.status === 'COMPLETED' ? '✓ Đã chốt' : s.status === 'IN_PROGRESS' ? '• Đang học' : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}
 
         <div className="flex items-center gap-2 self-end md:self-auto">
           <span className="font-mono text-xs text-[#747775] dark:text-[#8E918F]">
-            Mã ca: #{session.lessonSessionId || 'SES-2024-B1-09'}
+            Mã ca: #{session.sessionCode || (isRawUuid(session.lessonSessionId) ? session.lessonSessionId.slice(0, 8).toUpperCase() : session.lessonSessionId || 'SES-2024-B1-09')}
           </span>
           <button
             type="button"
