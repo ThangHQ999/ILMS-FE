@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/features/auth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { useClasses } from '@/features/classes/hooks/useClasses';
 import { useClassDetail } from '@/features/classes/hooks/useClassDetail';
@@ -58,6 +59,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
+  const { isTeacher } = useUserRole();
   const { isFocus, toggleMode } = useDashboardMode();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
@@ -503,34 +505,38 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const todayIso = formatDateIso();
-                        const todaySess =
-                          sessions.find((s) => s.sessionDate === todayIso) ||
-                          sessions.find((s) => s.status === 'IN_PROGRESS') ||
-                          sessions[0];
-                        if (todaySess) {
-                          setSelectedSession(todaySess);
-                        } else {
-                          showToast('Chưa có ca học nào được lên lịch cho lớp!');
-                        }
-                      }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-                      <span>Điểm danh hôm nay</span>
-                    </button>
+                    {isTeacher && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const todayIso = formatDateIso();
+                            const todaySess =
+                              sessions.find((s) => s.sessionDate === todayIso) ||
+                              sessions.find((s) => s.status === 'IN_PROGRESS') ||
+                              sessions[0];
+                            if (todaySess) {
+                              setSelectedSession(todaySess);
+                            } else {
+                              showToast('Chưa có ca học nào được lên lịch cho lớp!');
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+                          <span>Điểm danh hôm nay</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleOpenCreateModal()}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">add</span>
-                      <span>+ Thêm ca học</span>
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCreateModal()}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">add</span>
+                          <span>+ Thêm ca học</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -578,7 +584,8 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                   <LessonSessionTable
                     sessions={sessions}
                     isLoading={isLoadingSessions}
-                    onSelectAttendance={(session) => setSelectedSession(session)}
+                    isTeacher={isTeacher}
+                    onSelectAttendance={isTeacher ? (session) => setSelectedSession(session) : undefined}
                     onOpenCreateModal={() => handleOpenCreateModal()}
                     onEditSession={(session) => handleOpenEditModal(session)}
                     onDeleteSession={(session) => handleDeleteSession(session.lessonSessionId)}
@@ -733,18 +740,20 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  const s = detailModalSession;
-                  setDetailModalSession(null);
-                  setSelectedSession(s);
-                }}
-                className="px-5 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1.5 border-none cursor-pointer ml-auto"
-              >
-                <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-                <span>Điểm danh ca này</span>
-              </button>
+              {isTeacher && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const s = detailModalSession;
+                    setDetailModalSession(null);
+                    setSelectedSession(s);
+                  }}
+                  className="px-5 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1.5 border-none cursor-pointer ml-auto"
+                >
+                  <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                  <span>Điểm danh ca này</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

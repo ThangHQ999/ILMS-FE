@@ -9,8 +9,9 @@ import { LessonSession } from '../types';
 interface LessonSessionTableProps {
   sessions: LessonSession[];
   isLoading: boolean;
-  onSelectAttendance: (session: LessonSession) => void;
-  onOpenCreateModal: () => void;
+  isTeacher?: boolean;
+  onSelectAttendance?: (session: LessonSession) => void;
+  onOpenCreateModal?: () => void;
   onEditSession?: (session: LessonSession) => void;
   onDeleteSession?: (session: LessonSession) => void;
 }
@@ -18,12 +19,14 @@ interface LessonSessionTableProps {
 export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
   sessions,
   isLoading,
+  isTeacher: propIsTeacher,
   onSelectAttendance,
   onOpenCreateModal,
   onEditSession,
   onDeleteSession,
 }) => {
-  const { isTeacher } = useUserRole();
+  const { isTeacher: roleIsTeacher } = useUserRole();
+  const isTeacher = propIsTeacher !== undefined ? propIsTeacher : roleIsTeacher;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const todayStr = formatDateIso();
@@ -200,14 +203,16 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
                       )}
 
                       <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => onSelectAttendance(session)}
-                          className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1 border-none cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">how_to_reg</span>
-                          <span>Điểm danh</span>
-                        </button>
+                        {isTeacher && onSelectAttendance && (
+                          <button
+                            type="button"
+                            onClick={() => onSelectAttendance(session)}
+                            className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1 border-none cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">how_to_reg</span>
+                            <span>Điểm danh</span>
+                          </button>
+                        )}
                         {isTeacher && (
                           <>
                             {onEditSession && (
@@ -309,19 +314,21 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
                         </td>
                         <td className="py-3.5 px-4 text-right align-middle">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => onSelectAttendance(session)}
-                              className={`inline-flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
-                                isFullyAttended
-                                  ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
-                                  : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
-                              }`}
-                            >
-                              <span className="material-symbols-outlined text-[16px]">
-                                {isFullyAttended ? 'visibility' : 'how_to_reg'}
-                              </span>
-                              <span>{isFullyAttended ? 'Xem' : isTeacher ? 'Điểm danh' : 'Xem'}</span>
-                            </button>
+                            {isTeacher && onSelectAttendance && (
+                              <button
+                                onClick={() => onSelectAttendance(session)}
+                                className={`inline-flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
+                                  isFullyAttended
+                                    ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
+                                    : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  {isFullyAttended ? 'visibility' : 'how_to_reg'}
+                                </span>
+                                <span>{isFullyAttended ? 'Xem' : 'Điểm danh'}</span>
+                              </button>
+                            )}
 
                             {isTeacher && onEditSession && (
                               <button
@@ -356,31 +363,33 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
         )}
       </div>
 
-      {/* Live Session Sticky Prompt Banner */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[24px]">timer</span>
+      {/* Live Session Sticky Prompt Banner - Chỉ hiển thị cho Giảng viên */}
+      {isTeacher && onSelectAttendance && (
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-none flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[24px]">timer</span>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">Ca học hôm nay đang sẵn sàng mở điểm danh</h4>
+              <p className="text-xs text-[#747775] dark:text-[#8E918F]">Hệ thống mở cổng điểm danh cho giảng viên trước giờ học 15 phút.</p>
+            </div>
           </div>
-          <div>
-            <h4 className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">Ca học hôm nay đang sẵn sàng mở điểm danh</h4>
-            <p className="text-xs text-[#747775] dark:text-[#8E918F]">Hệ thống mở cổng điểm danh cho giảng viên trước giờ học 15 phút.</p>
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
+            <button
+              onClick={() => {
+                const live = sessions.find((s) => s.status === 'IN_PROGRESS') || sessions[0];
+                if (live) onSelectAttendance(live);
+              }}
+              className="w-full md:w-auto bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-6 py-2.5 whitespace-nowrap transition-colors text-xs flex items-center justify-center gap-2 cursor-pointer border-none shadow-none"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+              <span>Vào điểm danh ca học</span>
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <button
-            onClick={() => {
-              const live = sessions.find((s) => s.status === 'IN_PROGRESS') || sessions[0];
-              if (live) onSelectAttendance(live);
-            }}
-            className="w-full md:w-auto bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium rounded-full px-6 py-2.5 whitespace-nowrap transition-colors text-xs flex items-center justify-center gap-2 cursor-pointer border-none shadow-none"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-            <span>Vào điểm danh ca học</span>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

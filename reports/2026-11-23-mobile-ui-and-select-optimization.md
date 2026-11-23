@@ -44,6 +44,12 @@
      - Trên Desktop (`>= lg`): Giữ nguyên vẹn tính năng Sidebar truyền thống (mở rộng 256px hoặc thu gọn 72px).
    - **Full Width 100% cho Main Container trên Mobile:** Cập nhật Header `left-0 lg:left-64` và Main Content `pl-0 lg:pl-64`. Trên điện thoại, giao diện đạt 100% chiều rộng hiển thị, không bị chiếm bất kỳ pixel nào từ Sidebar.
 
-## 4. Kết quả kiểm tra xác thực
+4. **Phân Quyền Điểm Danh: Ẩn toàn bộ nút Điểm danh đối với Học sinh:**
+   - **Tab Ca học Lớp học (`ClassSessionsTab.tsx`):** Ẩn nút "Điểm danh hôm nay", nút "+ Thêm ca học", và nút "Điểm danh ca này" (trong modal chi tiết ca học) khi vai trò của người dùng trong lớp là `student` (`currentRole === 'student'`).
+   - **Bảng & Thẻ Ca học (`LessonSessionTable.tsx`):** Bổ sung prop `isTeacher`, ẩn các nút "Điểm danh" trong cả Mobile Card View lẫn Desktop Table View, ẩn Banner "Ca học hôm nay đang sẵn sàng mở điểm danh" đối với học sinh.
+   - **Tab Thành viên Lớp học (`ClassMembersTab.tsx`):** Ẩn nút "Điểm danh hôm nay" trong thanh thao tác chọn khi vai trò là `student`.
+   - **Trang Ca học toàn cục (`LessonSessionsPageView.tsx`):** Ẩn nút "Điểm danh hôm nay", "+ Thêm ca học", và "Điểm danh ca này" đối với tài khoản học sinh.
+
+## 5. Kết quả kiểm tra xác thực
 - `npx tsc --noEmit`: Đạt **0 lỗi** (Exit code 0), đảm bảo 100% TypeScript strict.
 - Toàn bộ giao diện tương thích mượt mà từ màn hình 360px (Mobile) đến 1920px (Desktop).

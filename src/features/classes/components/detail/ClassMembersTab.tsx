@@ -371,14 +371,16 @@ export function ClassMembersTab({
             <span>Gửi nhắc nhở</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleTakeAttendance}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold transition-all cursor-pointer shadow-xs border-none"
-          >
-            <span className="material-symbols-outlined text-[17px]">fact_check</span>
-            <span>Điểm danh hôm nay</span>
-          </button>
+          {currentRole !== 'student' && (
+            <button
+              type="button"
+              onClick={handleTakeAttendance}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold transition-all cursor-pointer shadow-xs border-none"
+            >
+              <span className="material-symbols-outlined text-[17px]">fact_check</span>
+              <span>Điểm danh hôm nay</span>
+            </button>
+          )}
         </div>
       </div>
 

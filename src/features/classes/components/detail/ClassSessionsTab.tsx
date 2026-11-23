@@ -517,26 +517,28 @@ export function ClassSessionsTab({
             </button>
           </div>
 
-          {/* Điểm danh hôm nay button */}
-          <button
-            type="button"
-            onClick={() => {
-              const todayIso = formatDateIso();
-              const todaySess =
-                sessions.find((s) => s.sessionDate === todayIso) ||
-                sessions.find((s) => s.status === 'IN_PROGRESS') ||
-                sessions[0];
-              if (todaySess) {
-                handleSelectAttendanceSession(todaySess);
-              } else {
-                onToast('Chưa có ca học nào được lên lịch cho lớp!');
-              }
-            }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-            <span>Điểm danh hôm nay</span>
-          </button>
+          {/* Điểm danh hôm nay button (Chỉ hiển thị cho Giảng viên / Chủ nhiệm lớp) */}
+          {isTeacher && (
+            <button
+              type="button"
+              onClick={() => {
+                const todayIso = formatDateIso();
+                const todaySess =
+                  sessions.find((s) => s.sessionDate === todayIso) ||
+                  sessions.find((s) => s.status === 'IN_PROGRESS') ||
+                  sessions[0];
+                if (todaySess) {
+                  handleSelectAttendanceSession(todaySess);
+                } else {
+                  onToast('Chưa có ca học nào được lên lịch cho lớp!');
+                }
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+              <span>Điểm danh hôm nay</span>
+            </button>
+          )}
 
           {/* + Lên lịch học */}
           {isTeacher && (
@@ -600,7 +602,8 @@ export function ClassSessionsTab({
         <LessonSessionTable
           sessions={sessions}
           isLoading={isLoadingSessions}
-          onSelectAttendance={handleSelectAttendanceSession}
+          isTeacher={isTeacher}
+          onSelectAttendance={isTeacher ? handleSelectAttendanceSession : undefined}
           onOpenCreateModal={() => handleOpenCreate()}
           onEditSession={(session) => handleOpenEdit(session)}
           onDeleteSession={(session) => handleDeleteSession(session.lessonSessionId)}
@@ -705,18 +708,20 @@ export function ClassSessionsTab({
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  const s = detailSession;
-                  setDetailSession(null);
-                  handleSelectAttendanceSession(s);
-                }}
-                className="px-5 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1.5 border-none cursor-pointer ml-auto"
-              >
-                <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-                <span>Điểm danh ca này</span>
-              </button>
+              {isTeacher && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const s = detailSession;
+                    setDetailSession(null);
+                    handleSelectAttendanceSession(s);
+                  }}
+                  className="px-5 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1.5 border-none cursor-pointer ml-auto"
+                >
+                  <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                  <span>Điểm danh ca này</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
