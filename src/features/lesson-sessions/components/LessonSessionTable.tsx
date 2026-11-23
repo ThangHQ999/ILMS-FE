@@ -119,137 +119,241 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
           <span className="text-xs font-mono text-[#747775] dark:text-[#8E918F]">Hiển thị {filteredSessions.length} ca học</span>
         </div>
 
-        <div className="w-full overflow-x-auto rounded-2xl">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] text-xs uppercase tracking-wider">
-                <th className="py-3 px-4 rounded-l-2xl">Ngày học (Session Date)</th>
-                <th className="py-3 px-4">Thời gian &amp; Ca</th>
-                <th className="py-3 px-4">Phòng học</th>
-                <th className="py-3 px-4">Trạng thái điểm danh</th>
-                <th className="py-3 px-4 min-w-[240px]">Ghi chú &amp; Nội dung bài học</th>
-                <th className="py-3 px-4 text-right rounded-r-2xl">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 text-[#444746] dark:text-[#C4C7C5] text-xs">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-xs text-[#747775] dark:text-[#8E918F]">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent rounded-full animate-spin" />
-                      <span>Đang tải kế hoạch ca học...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredSessions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-xs text-[#747775] dark:text-[#8E918F]">
-                    Không tìm thấy ca học nào phù hợp với bộ lọc hiện tại.
-                  </td>
-                </tr>
-              ) : (
-                filteredSessions.map((session) => {
-                  const total = session.totalStudents ?? 0;
-                  const attended = session.attendedCount ?? 0;
-                  const isFullyAttended = attended >= total && total > 0;
+        {isLoading ? (
+          <div className="py-12 text-center text-xs text-[#747775] dark:text-[#8E918F]">
+            <div className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent rounded-full animate-spin" />
+              <span>Đang tải kế hoạch ca học...</span>
+            </div>
+          </div>
+        ) : filteredSessions.length === 0 ? (
+          <div className="py-12 text-center text-xs text-[#747775] dark:text-[#8E918F]">
+            Không tìm thấy ca học nào phù hợp với bộ lọc hiện tại.
+          </div>
+        ) : (
+          <>
+            {/* A. Mobile Session Cards (md:hidden) */}
+            <div className="md:hidden flex flex-col gap-3">
+              {filteredSessions.map((session) => {
+                const total = session.totalStudents ?? 0;
+                const attended = session.attendedCount ?? 0;
+                const isFullyAttended = attended >= total && total > 0;
+                const isToday = session.sessionDate === todayStr;
 
-                  return (
-                    <tr key={session.lessonSessionId} className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors">
-                      <td className="py-3.5 px-4 align-middle">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center font-bold font-mono text-xs">
-                            {session.sessionDate.slice(-2)}
-                          </div>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.sessionDate}</span>
-                              {session.sessionDate === todayStr && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] uppercase font-bold whitespace-nowrap border-none">Hôm nay</span>
-                              )}
-                            </div>
-                            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">{session.instructorName || 'Giảng viên'}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 align-middle">
-                        <div className="flex flex-col">
-                          <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.startTime} - {session.endTime}</span>
-                          <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">Tiết {session.startShift} - {session.endShift}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 align-middle">
-                        <span className="inline-flex items-center gap-1 text-[#444746] dark:text-[#C4C7C5] font-mono font-semibold">
-                          <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">computer</span>
-                          {session.roomName}
+                return (
+                  <div
+                    key={session.lessonSessionId}
+                    className="p-4 rounded-2xl bg-[#F0F4F9]/60 dark:bg-[#282A2C]/40 border border-slate-200/60 dark:border-white/5 flex flex-col gap-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-xs text-[#1F1F1F] dark:text-[#E3E3E3]">
+                          {session.sessionDate}
                         </span>
-                      </td>
-                      <td className="py-3.5 px-4 align-middle">
-                        {isFullyAttended ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[11px] font-medium whitespace-nowrap border-none">
-                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                            Đã điểm danh ({attended}/{total})
-                          </span>
-                        ) : attended > 0 || session.status === 'IN_PROGRESS' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[11px] font-medium whitespace-nowrap border-none">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse" />
-                            Đang điểm danh ({attended}/{total})
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F4F9] text-[#444746] dark:bg-[#282A2C] dark:text-[#C4C7C5] text-[11px] font-medium whitespace-nowrap border-none">
-                            <span className="material-symbols-outlined text-[14px]">schedule</span>
-                            Chưa điểm danh (0/{total})
+                        {isToday && (
+                          <span className="px-2 py-0.5 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] font-bold">
+                            Hôm nay
                           </span>
                         )}
-                      </td>
-                      <td className="py-3.5 px-4 align-middle">
-                        <p className="line-clamp-1 font-medium text-[#444746] dark:text-[#C4C7C5]">{session.note || 'Không có ghi chú'}</p>
-                      </td>
-                      <td className="py-3.5 px-4 text-right align-middle">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => onSelectAttendance(session)}
-                            className={`inline-flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
-                              isFullyAttended
-                                ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
-                                : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[16px]">
-                              {isFullyAttended ? 'visibility' : 'how_to_reg'}
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-[#0B57D0] dark:text-[#A8C7FA]">
+                        {session.startTime} - {session.endTime}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 text-xs text-slate-700 dark:text-[#C4C7C5]">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
+                          Tiết {session.startShift} - {session.endShift}
+                        </span>
+                        <span>•</span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[15px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                            meeting_room
+                          </span>
+                          <span>{session.roomName}</span>
+                        </span>
+                      </div>
+                      {session.note && (
+                        <p className="text-[11px] text-[#747775] dark:text-[#8E918F] line-clamp-2 italic">
+                          {session.note}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      {isFullyAttended ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[11px] font-semibold">
+                          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                          Đã điểm danh ({attended}/{total})
+                        </span>
+                      ) : attended > 0 || session.status === 'IN_PROGRESS' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[11px] font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse" />
+                          Đang điểm danh ({attended}/{total})
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#282A2C] text-[#747775] dark:text-[#8E918F] text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[14px]">schedule</span>
+                          Chưa điểm danh (0/{total})
+                        </span>
+                      )}
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onSelectAttendance(session)}
+                          className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1 border-none cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">how_to_reg</span>
+                          <span>Điểm danh</span>
+                        </button>
+                        {isTeacher && (
+                          <>
+                            {onEditSession && (
+                              <button
+                                type="button"
+                                onClick={() => onEditSession(session)}
+                                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#282A2C] dark:hover:bg-[#333538] flex items-center justify-center text-slate-700 dark:text-[#C4C7C5] border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">edit</span>
+                              </button>
+                            )}
+                            {onDeleteSession && (
+                              <button
+                                type="button"
+                                onClick={() => onDeleteSession(session)}
+                                className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">delete</span>
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* B. Desktop Table View (hidden md:block) */}
+            <div className="hidden md:block w-full overflow-x-auto rounded-2xl">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] text-xs uppercase tracking-wider">
+                    <th className="py-3 px-4 rounded-l-2xl">Ngày học (Session Date)</th>
+                    <th className="py-3 px-4">Thời gian &amp; Ca</th>
+                    <th className="py-3 px-4">Phòng học</th>
+                    <th className="py-3 px-4">Trạng thái điểm danh</th>
+                    <th className="py-3 px-4 min-w-[240px]">Ghi chú &amp; Nội dung bài học</th>
+                    <th className="py-3 px-4 text-right rounded-r-2xl">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 text-[#444746] dark:text-[#C4C7C5] text-xs">
+                  {filteredSessions.map((session) => {
+                    const total = session.totalStudents ?? 0;
+                    const attended = session.attendedCount ?? 0;
+                    const isFullyAttended = attended >= total && total > 0;
+
+                    return (
+                      <tr key={session.lessonSessionId} className="hover:bg-[#F0F4F9]/60 dark:hover:bg-[#282A2C]/40 transition-colors">
+                        <td className="py-3.5 px-4 align-middle">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center font-bold font-mono text-xs">
+                              {session.sessionDate.slice(-2)}
+                            </div>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.sessionDate}</span>
+                                {session.sessionDate === todayStr && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[10px] uppercase font-bold whitespace-nowrap border-none">Hôm nay</span>
+                                )}
+                              </div>
+                              <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">{session.instructorName || 'Giảng viên'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 align-middle">
+                          <div className="flex flex-col">
+                            <span className="font-mono font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.startTime} - {session.endTime}</span>
+                            <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">Tiết {session.startShift} - {session.endShift}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 align-middle">
+                          <span className="inline-flex items-center gap-1 text-[#444746] dark:text-[#C4C7C5] font-mono font-semibold">
+                            <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">computer</span>
+                            {session.roomName}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 align-middle">
+                          {isFullyAttended ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[11px] font-medium whitespace-nowrap border-none">
+                              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                              Đã điểm danh ({attended}/{total})
                             </span>
-                            <span>{isFullyAttended ? 'Xem' : isTeacher ? 'Điểm danh' : 'Xem'}</span>
-                          </button>
-
-                          {isTeacher && onEditSession && (
-                            <button
-                              type="button"
-                              onClick={() => onEditSession(session)}
-                              title="Chỉnh sửa ca học"
-                              className="w-8 h-8 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center transition-colors border-none cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">edit</span>
-                            </button>
+                          ) : attended > 0 || session.status === 'IN_PROGRESS' ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] text-[11px] font-medium whitespace-nowrap border-none">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-pulse" />
+                              Đang điểm danh ({attended}/{total})
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0F4F9] text-[#444746] dark:bg-[#282A2C] dark:text-[#C4C7C5] text-[11px] font-medium whitespace-nowrap border-none">
+                              <span className="material-symbols-outlined text-[14px]">schedule</span>
+                              Chưa điểm danh (0/{total})
+                            </span>
                           )}
-
-                          {isTeacher && onDeleteSession && (
+                        </td>
+                        <td className="py-3.5 px-4 align-middle">
+                          <p className="line-clamp-1 font-medium text-[#444746] dark:text-[#C4C7C5]">{session.note || 'Không có ghi chú'}</p>
+                        </td>
+                        <td className="py-3.5 px-4 text-right align-middle">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
-                              type="button"
-                              onClick={() => onDeleteSession(session)}
-                              title="Xóa ca học"
-                              className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors border-none cursor-pointer"
+                              onClick={() => onSelectAttendance(session)}
+                              className={`inline-flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer border-none shadow-none ${
+                                isFullyAttended
+                                  ? 'bg-transparent hover:bg-[#F0F4F9] text-[#0B57D0] dark:hover:bg-[#282A2C] dark:text-[#A8C7FA]'
+                                  : 'bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F]'
+                              }`}
                             >
-                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {isFullyAttended ? 'visibility' : 'how_to_reg'}
+                              </span>
+                              <span>{isFullyAttended ? 'Xem' : isTeacher ? 'Điểm danh' : 'Xem'}</span>
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+
+                            {isTeacher && onEditSession && (
+                              <button
+                                type="button"
+                                onClick={() => onEditSession(session)}
+                                title="Chỉnh sửa ca học"
+                                className="w-8 h-8 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center transition-colors border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                              </button>
+                            )}
+
+                            {isTeacher && onDeleteSession && (
+                              <button
+                                type="button"
+                                onClick={() => onDeleteSession(session)}
+                                title="Xóa ca học"
+                                className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Live Session Sticky Prompt Banner */}

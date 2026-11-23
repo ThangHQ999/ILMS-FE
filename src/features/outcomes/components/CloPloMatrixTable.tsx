@@ -267,17 +267,17 @@ export function CloPloMatrixTable({
       </div>
 
       {/* 2D Matrix Table */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-5 shadow-sm border border-slate-200/80 dark:border-[#333537] overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[760px]">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-3.5 sm:p-5 shadow-sm border border-slate-200/80 dark:border-[#333537] overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[620px] sm:min-w-[760px]">
           <thead>
             <tr className="border-b border-slate-200 dark:border-[#282A2C] text-xs font-bold text-slate-600 dark:text-slate-300">
-              <th className="py-3 px-4 min-w-[240px] sticky left-0 bg-white dark:bg-[#1E1F20] z-10">
-                Chuẩn đầu ra môn học (CLO)
+              <th className="py-3 px-3 sm:px-4 min-w-[130px] sm:min-w-[220px] max-w-[160px] sm:max-w-[260px] sticky left-0 bg-white dark:bg-[#1E1F20] z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
+                Chuẩn đầu ra (CLO)
               </th>
               {plos.map((plo) => (
                 <th
                   key={plo.id}
-                  className="py-3 px-2 text-center min-w-[100px] max-w-[140px]"
+                  className="py-3 px-1.5 sm:px-2 text-center min-w-[70px] sm:min-w-[100px] max-w-[140px]"
                   title={plo.description}
                 >
                   <p className="font-bold text-slate-800 dark:text-[#E3E3E3] text-xs">
@@ -288,7 +288,7 @@ export function CloPloMatrixTable({
                   </p>
                 </th>
               ))}
-              <th className="py-3 px-3 text-right min-w-[130px]">
+              <th className="py-3 px-2 sm:px-3 text-right min-w-[90px] sm:min-w-[130px]">
                 Gán tri thức
               </th>
             </tr>
@@ -309,16 +309,16 @@ export function CloPloMatrixTable({
                   key={clo.id}
                   className="hover:bg-slate-50/80 dark:hover:bg-[#282A2C]/50 transition-colors"
                 >
-                  <td className="py-3.5 px-4 sticky left-0 bg-white dark:bg-[#1E1F20] z-10">
+                  <td className="py-3 px-3 sm:px-4 min-w-[130px] sm:min-w-[220px] max-w-[160px] sm:max-w-[260px] sticky left-0 bg-white dark:bg-[#1E1F20] z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-blue-600 dark:text-blue-400">
+                      <span className="font-bold text-blue-600 dark:text-blue-400 text-xs">
                         {clo.code}
                       </span>
                       <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                         {clo.bloomLevel}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-1 sm:line-clamp-2">
                       {clo.description}
                     </p>
                   </td>
@@ -329,7 +329,7 @@ export function CloPloMatrixTable({
                     return (
                       <td
                         key={plo.id}
-                        className="py-3 px-2 text-center align-middle cursor-pointer"
+                        className="py-3 px-1.5 sm:px-2 text-center align-middle cursor-pointer"
                         onClick={() => handleCellClick(clo.id, plo.id)}
                       >
                         {renderBadge(level)}
@@ -337,14 +337,15 @@ export function CloPloMatrixTable({
                     );
                   })}
 
-                  <td className="py-3 px-3 text-right">
+                  <td className="py-3 px-2 sm:px-3 text-right">
                     <button
                       type="button"
                       onClick={() => setMappingClo(clo)}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] hover:opacity-90 transition-all cursor-pointer border-none"
+                      className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] hover:opacity-90 transition-all cursor-pointer border-none"
                     >
                       <span className="material-symbols-outlined text-[15px]">account_tree</span>
-                      <span>Gán Concepts</span>
+                      <span className="hidden sm:inline">Gán Concepts</span>
+                      <span className="sm:hidden">Gán</span>
                     </button>
                   </td>
                 </tr>

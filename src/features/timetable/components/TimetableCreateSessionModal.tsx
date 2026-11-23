@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { CustomSelect } from '@/components/shared';
 import { useClasses } from '@/features/classes/hooks/useClasses';
 import type { ClassItem } from '@/features/classes/types';
 import { ACADEMIC_SHIFTS } from '../constants';
@@ -116,7 +117,7 @@ export function TimetableCreateSessionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-[#E3E3E3] flex flex-col gap-5">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#1E1F20] rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-[#E3E3E3] flex flex-col gap-5 max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -161,22 +162,26 @@ export function TimetableCreateSessionModal({
               Lớp học áp dụng <span className="text-rose-500">*</span>
             </label>
             {isClassesLoading ? (
-              <div className="h-9 w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+              <div className="h-10 w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
             ) : (
-              <select
+              <CustomSelect<string>
                 value={classId}
-                onChange={(e) => setClassId(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-slate-900 dark:text-[#E3E3E3] font-medium text-xs outline-none focus:ring-2 focus:ring-[#0B57D0]"
-              >
-                {classesList.map((cls: ClassItem) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name} ({cls.code || (cls as unknown as { subjectCode?: string }).subjectCode || 'Lớp'})
-                  </option>
-                ))}
-                {classesList.length === 0 && (
-                  <option value="CNTT-K21A">Lớp Công nghệ Thông tin K21A (CNTT-K21A)</option>
-                )}
-              </select>
+                onChange={setClassId}
+                options={
+                  classesList.length > 0
+                    ? classesList.map((cls: ClassItem) => ({
+                        value: cls.id,
+                        label: cls.name,
+                        sublabel: cls.code || (cls as unknown as { subjectCode?: string }).subjectCode || 'Lớp học',
+                        icon: 'school',
+                      }))
+                    : [{ value: 'CNTT-K21A', label: 'Lớp Công nghệ Thông tin K21A (CNTT-K21A)', icon: 'school' }]
+                }
+                placeholder="Chọn lớp học..."
+                className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full"
+              />
             )}
           </div>
 
@@ -199,38 +204,41 @@ export function TimetableCreateSessionModal({
               <label className="font-semibold text-slate-700 dark:text-[#C4C7C5] block">
                 Tiết bắt đầu
               </label>
-              <select
+              <CustomSelect<number>
                 value={startShift}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
+                onChange={(val) => {
                   setStartShift(val);
                   if (endShift < val) setEndShift(val);
                 }}
-                className="w-full h-10 px-3 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-slate-900 dark:text-[#E3E3E3] font-medium text-xs outline-none"
-              >
-                {ACADEMIC_SHIFTS.map((s) => (
-                  <option key={`start-${s.shift}`} value={s.shift}>
-                    Tiết {s.shift} ({s.timeRange.split(' - ')[0]})
-                  </option>
-                ))}
-              </select>
+                options={ACADEMIC_SHIFTS.map((s) => ({
+                  value: s.shift,
+                  label: `Tiết ${s.shift} (${s.timeRange.split(' - ')[0]})`,
+                  sublabel: s.timeRange,
+                  icon: 'schedule',
+                }))}
+                className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full min-w-[200px]"
+              />
             </div>
 
             <div className="space-y-1.5">
               <label className="font-semibold text-slate-700 dark:text-[#C4C7C5] block">
                 Tiết kết thúc
               </label>
-              <select
+              <CustomSelect<number>
                 value={endShift}
-                onChange={(e) => setEndShift(parseInt(e.target.value, 10))}
-                className="w-full h-10 px-3 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-slate-900 dark:text-[#E3E3E3] font-medium text-xs outline-none"
-              >
-                {ACADEMIC_SHIFTS.filter((s) => s.shift >= startShift).map((s) => (
-                  <option key={`end-${s.shift}`} value={s.shift}>
-                    Tiết {s.shift} ({s.timeRange.split(' - ')[1]})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setEndShift(val)}
+                options={ACADEMIC_SHIFTS.filter((s) => s.shift >= startShift).map((s) => ({
+                  value: s.shift,
+                  label: `Tiết ${s.shift} (${s.timeRange.split(' - ')[1]})`,
+                  sublabel: s.timeRange,
+                  icon: 'schedule',
+                }))}
+                className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full min-w-[200px]"
+              />
             </div>
           </div>
 
@@ -251,19 +259,30 @@ export function TimetableCreateSessionModal({
               <span>Phòng học (Tùy chọn)</span>
               <span className="text-[11px] font-normal text-slate-400">Học Online / Để trống</span>
             </label>
-            <select
+            <CustomSelect<string>
               value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-slate-900 dark:text-[#E3E3E3] font-medium text-xs outline-none"
-            >
-              <option value="">Không chọn phòng (Học Online / Chốt sau)</option>
-              {PRESET_ROOMS.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-              <option value="custom">Nhập tên phòng khác...</option>
-            </select>
+              onChange={setRoomId}
+              options={[
+                {
+                  value: '',
+                  label: 'Không chọn phòng (Học Online / Chốt sau)',
+                  icon: 'cloud_off',
+                },
+                ...PRESET_ROOMS.map((r) => ({
+                  value: r.id,
+                  label: r.name,
+                  icon: 'meeting_room',
+                })),
+                {
+                  value: 'custom',
+                  label: 'Nhập tên phòng khác...',
+                  icon: 'edit_location',
+                },
+              ]}
+              className="w-full"
+              triggerClassName="h-10 text-xs font-medium rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+              popupClassName="w-full"
+            />
             {roomId === 'custom' && (
               <input
                 type="text"

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { AttendanceStatus, Student } from '../types';
 import { AttendanceTableRow } from './AttendanceTableRow';
+import { AttendanceStudentCard } from './AttendanceStudentCard';
 
 interface AttendanceTableProps {
   students: Student[];
@@ -97,9 +98,9 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 flex flex-col gap-4 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+    <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-4 sm:p-6 flex flex-col gap-4 border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
       {/* Search & Category Filter Toolbar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         {/* Search */}
         <div className="relative w-full md:w-80">
           <span className="material-symbols-outlined text-[18px] text-[#747775] dark:text-[#8E918F] absolute left-3 top-1/2 -translate-y-1/2">
@@ -118,11 +119,11 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-[#F0F4F9] dark:bg-[#1E1F20] rounded-full max-w-full">
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-[#F0F4F9] dark:bg-[#1E1F20] rounded-full max-w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => handleFilterChange('ALL')}
             type="button"
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
               filterCategory === 'ALL'
                 ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
                 : 'text-[#444746] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]'
@@ -136,7 +137,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
           <button
             onClick={() => handleFilterChange('PRESENT')}
             type="button"
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
               filterCategory === 'PRESENT'
                 ? 'bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995]'
                 : 'text-[#444746] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]'
@@ -150,7 +151,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
           <button
             onClick={() => handleFilterChange('LATE')}
             type="button"
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
               filterCategory === 'LATE'
                 ? 'bg-[#FCEBA4] text-[#725200] dark:bg-[#3C2A1E] dark:text-[#FFB784]'
                 : 'text-[#444746] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]'
@@ -164,7 +165,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
           <button
             onClick={() => handleFilterChange('ABSENT')}
             type="button"
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
               filterCategory === 'ABSENT'
                 ? 'bg-[#FAD2CF] text-[#B3261E] dark:bg-[#3C1919] dark:text-[#F28B82]'
                 : 'text-[#444746] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]'
@@ -179,7 +180,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
             <button
               onClick={() => handleFilterChange('UNCHECKED')}
               type="button"
-              className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border-none cursor-pointer ${
                 filterCategory === 'UNCHECKED'
                   ? 'bg-[#E1E5EA] text-[#1F1F1F] dark:bg-[#333537] dark:text-[#E3E3E3]'
                   : 'text-[#444746] hover:text-[#1F1F1F] dark:text-[#C4C7C5] dark:hover:text-[#E3E3E3] hover:bg-[#E1E5EA] dark:hover:bg-[#282A2C]'
@@ -194,61 +195,81 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-2xl">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] text-xs uppercase tracking-wider">
-              <th className="py-3 px-4 w-14 text-center font-mono rounded-l-2xl">STT</th>
-              <th className="py-3 px-4 min-w-[240px]">Học sinh &amp; Sinh viên</th>
-              <th className="py-3 px-4 min-w-[340px] text-center">Trạng thái điểm danh (1-Click)</th>
-              <th className="py-3 px-4 min-w-[220px]">Ghi chú cá nhân</th>
-              <th className="py-3 px-4 w-12 text-center rounded-r-2xl" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 text-[#444746] dark:text-[#C4C7C5] text-xs">
-            {paginatedStudents.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-12 text-center text-[#747775] dark:text-[#8E918F]">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-3xl text-[#8E918F]">filter_alt_off</span>
-                    <p className="text-xs sm:text-sm font-medium">
-                      Không tìm thấy sinh viên nào phù hợp với bộ lọc hiện tại.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery('');
-                        setFilterCategory('ALL');
-                        setCurrentPage(1);
-                      }}
-                      className="mt-1 text-xs text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium border-none bg-transparent cursor-pointer"
-                    >
-                      Đặt lại bộ lọc &amp; tìm kiếm
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              paginatedStudents.map((student, idx) => {
-                const globalIndex = startIndex + idx;
-                const record = attendanceMap[student.studentId] || { status: null, note: '' };
-                return (
-                  <AttendanceTableRow
-                    key={student.studentId}
-                    index={globalIndex}
-                    student={student}
-                    status={record.status}
-                    note={record.note}
-                    onStatusChange={onStatusChange}
-                    onNoteChange={onNoteChange}
-                  />
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Filter Mismatch State (State 4) */}
+      {paginatedStudents.length === 0 ? (
+        <div className="py-12 text-center text-[#747775] dark:text-[#8E918F]">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-3xl text-[#8E918F]">filter_alt_off</span>
+            <p className="text-xs sm:text-sm font-medium">
+              Không tìm thấy sinh viên nào phù hợp với bộ lọc hiện tại.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setFilterCategory('ALL');
+                setCurrentPage(1);
+              }}
+              className="mt-1 text-xs text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-medium border-none bg-transparent cursor-pointer"
+            >
+              Đặt lại bộ lọc &amp; tìm kiếm
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Mobile Student Cards View (md:hidden) */}
+          <div className="md:hidden flex flex-col gap-3">
+            {paginatedStudents.map((student, idx) => {
+              const globalIndex = startIndex + idx;
+              const record = attendanceMap[student.studentId] || { status: null, note: '' };
+              return (
+                <AttendanceStudentCard
+                  key={student.studentId}
+                  index={globalIndex}
+                  student={student}
+                  status={record.status}
+                  note={record.note}
+                  onStatusChange={onStatusChange}
+                  onNoteChange={onNoteChange}
+                />
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto rounded-2xl">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#F0F4F9] dark:bg-[#282A2C]/60 text-[#747775] dark:text-[#8E918F] text-xs uppercase tracking-wider">
+                  <th className="py-3 px-4 w-14 text-center font-mono rounded-l-2xl">STT</th>
+                  <th className="py-3 px-4 min-w-[240px]">Học sinh &amp; Sinh viên</th>
+                  <th className="py-3 px-4 min-w-[340px] text-center">Trạng thái điểm danh (1-Click)</th>
+                  <th className="py-3 px-4 min-w-[220px]">Ghi chú cá nhân</th>
+                  <th className="py-3 px-4 w-12 text-center rounded-r-2xl" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F0F4F9] dark:divide-[#282A2C]/50 text-[#444746] dark:text-[#C4C7C5] text-xs">
+                {paginatedStudents.map((student, idx) => {
+                  const globalIndex = startIndex + idx;
+                  const record = attendanceMap[student.studentId] || { status: null, note: '' };
+                  return (
+                    <AttendanceTableRow
+                      key={student.studentId}
+                      index={globalIndex}
+                      student={student}
+                      status={record.status}
+                      note={record.note}
+                      onStatusChange={onStatusChange}
+                      onNoteChange={onNoteChange}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-[#747775] dark:text-[#8E918F]">

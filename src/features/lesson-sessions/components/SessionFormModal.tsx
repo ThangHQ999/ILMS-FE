@@ -162,7 +162,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-[#1E1F20] rounded-3xl p-6 sm:p-7 shadow-2xl border-none ring-0 outline-none transform animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg bg-white dark:bg-[#1E1F20] rounded-3xl p-5 sm:p-7 shadow-2xl border-none ring-0 outline-none transform animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

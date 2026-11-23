@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { TimetableFilterType } from '../types';
 
 interface TimetableHeaderControlsProps {
@@ -164,18 +165,22 @@ export function TimetableHeaderControls({
             <span className="text-xs text-slate-500 dark:text-[#C4C7C5] font-semibold whitespace-nowrap">
               Lớp:
             </span>
-            <select
+            <CustomSelect<string>
               value={selectedClassId || ''}
-              onChange={(e) => onSelectClassId(e.target.value || undefined)}
-              className="h-8 px-3 rounded-full bg-gray-100 dark:bg-[#282A2C] border-none text-xs text-slate-900 dark:text-[#E3E3E3] font-medium outline-none cursor-pointer"
-            >
-              <option value="">Tất cả các lớp</option>
-              {classesList.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => onSelectClassId(val || undefined)}
+              options={[
+                { value: '', label: 'Tất cả các lớp', icon: 'apps' },
+                ...classesList.map((cls) => ({
+                  value: cls.id,
+                  label: cls.name,
+                  icon: 'school',
+                })),
+              ]}
+              variant="pill"
+              className="min-w-[180px] sm:min-w-[220px]"
+              triggerClassName="h-8 text-xs font-semibold rounded-full bg-gray-100 dark:bg-[#282A2C] border-none px-3"
+              popupClassName="w-full min-w-[220px]"
+            />
           </div>
         )}
       </div>

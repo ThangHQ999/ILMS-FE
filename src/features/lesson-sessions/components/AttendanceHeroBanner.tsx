@@ -119,7 +119,7 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
       </div>
 
       {/* Hero Banner */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 relative overflow-hidden border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-4 sm:p-6 relative overflow-hidden border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
@@ -178,12 +178,12 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
           </div>
 
           {/* Quick 1-Click Action */}
-          <div className="flex items-center gap-2.5 self-start lg:self-center shrink-0">
+          <div className="flex items-center gap-2.5 self-stretch sm:self-start lg:self-center shrink-0">
             <button
               onClick={onMarkAllPresent}
               disabled={totalStudents === 0 || isLocked}
               type="button"
-              className={`flex items-center gap-2 font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors border-none shadow-none ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 font-medium rounded-full px-5 py-2.5 text-xs whitespace-nowrap transition-colors border-none shadow-none ${
                 totalStudents === 0 || isLocked
                   ? 'bg-[#F0F4F9] text-[#747775] dark:bg-[#282A2C] dark:text-[#8E918F] opacity-50 cursor-not-allowed'
                   : 'bg-[#C4EED0] hover:bg-[#A8E5BA] text-[#0D652D] dark:bg-[#142E20] dark:hover:bg-[#1A3D2A] dark:text-[#81C995] cursor-pointer'
@@ -195,7 +195,7 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
             <button
               onClick={onRefresh}
               title="Làm mới trạng thái"
-              className="w-10 h-10 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#C4C7C5] flex items-center justify-center transition-colors border-none shadow-none cursor-pointer"
+              className="w-10 h-10 shrink-0 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] text-[#444746] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:text-[#C4C7C5] flex items-center justify-center transition-colors border-none shadow-none cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">refresh</span>
             </button>
@@ -203,59 +203,59 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
         </div>
       </div>
 
-      {/* 4 KPI Quick Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div>
-            <span className="text-[11px] font-semibold text-[#444746] dark:text-[#C4C7C5] uppercase tracking-wider block">Tổng sĩ số</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{totalStudents}</span>
-              <span className="text-xs text-[#444746] dark:text-[#C4C7C5]">sinh viên</span>
+      {/* 4 KPI Quick Metric Cards (2x2 on Mobile, 4 Cols on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="bg-white dark:bg-[#1E1F20] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#444746] dark:text-[#C4C7C5] uppercase tracking-wider block truncate">Tổng sĩ số</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{totalStudents}</span>
+              <span className="text-[11px] sm:text-xs text-[#444746] dark:text-[#C4C7C5]">SV</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] flex items-center justify-center text-[#444746] dark:text-[#8E918F]">
-            <span className="material-symbols-outlined text-[22px]">group</span>
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] flex items-center justify-center text-[#444746] dark:text-[#8E918F] shrink-0">
+            <span className="material-symbols-outlined text-[18px] sm:text-[22px]">group</span>
           </div>
         </div>
 
-        <div className="bg-[#C4EED0] dark:bg-[#142E20] rounded-3xl p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div>
-            <span className="text-[11px] font-semibold text-[#0D652D] dark:text-[#81C995] uppercase tracking-wider block">Có mặt</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-[#0D652D] dark:text-[#81C995]">{presentCount}</span>
-              <span className="text-[11px] font-mono text-[#0D652D] dark:text-[#81C995] px-1.5 py-0.5 rounded">{presentPct}%</span>
+        <div className="bg-[#C4EED0] dark:bg-[#142E20] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#0D652D] dark:text-[#81C995] uppercase tracking-wider block truncate">Có mặt</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-bold text-[#0D652D] dark:text-[#81C995]">{presentCount}</span>
+              <span className="text-[10px] sm:text-[11px] font-mono text-[#0D652D] dark:text-[#81C995] px-1 py-0.5 rounded">{presentPct}%</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#0D652D]/15 dark:bg-[#81C995]/20 text-[#0D652D] dark:text-[#81C995] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[22px]">check_circle</span>
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#0D652D]/15 dark:bg-[#81C995]/20 text-[#0D652D] dark:text-[#81C995] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[18px] sm:text-[22px]">check_circle</span>
           </div>
         </div>
 
-        <div className="bg-[#FCEBA4] dark:bg-[#3C2A1E] rounded-3xl p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div>
-            <span className="text-[11px] font-semibold text-[#725200] dark:text-[#FFB784] uppercase tracking-wider block">Đi muộn</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-[#725200] dark:text-[#FFB784]">{lateCount}</span>
-              <span className="text-[11px] font-mono text-[#725200] dark:text-[#FFB784] px-1.5 py-0.5 rounded">{latePct}%</span>
+        <div className="bg-[#FCEBA4] dark:bg-[#3C2A1E] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#725200] dark:text-[#FFB784] uppercase tracking-wider block truncate">Đi muộn</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-bold text-[#725200] dark:text-[#FFB784]">{lateCount}</span>
+              <span className="text-[10px] sm:text-[11px] font-mono text-[#725200] dark:text-[#FFB784] px-1 py-0.5 rounded">{latePct}%</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#725200]/15 dark:bg-[#FFB784]/20 text-[#725200] dark:text-[#FFB784] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[22px]">schedule</span>
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#725200]/15 dark:bg-[#FFB784]/20 text-[#725200] dark:text-[#FFB784] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[18px] sm:text-[22px]">schedule</span>
           </div>
         </div>
 
-        <div className="bg-[#FAD2CF] dark:bg-[#3C1919] rounded-3xl p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div>
-            <span className="text-[11px] font-semibold text-[#B3261E] dark:text-[#F28B82] uppercase tracking-wider block">Vắng mặt</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-[#B3261E] dark:text-[#F28B82]">{absentCount + excusedCount}</span>
-              <span className="text-[11px] font-mono text-[#B3261E] dark:text-[#F28B82] px-1.5 py-0.5 rounded">
-                {absentPct}% ({excusedCount} phép)
+        <div className="bg-[#FAD2CF] dark:bg-[#3C1919] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex items-center justify-between border-none shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#B3261E] dark:text-[#F28B82] uppercase tracking-wider block truncate">Vắng mặt</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl sm:text-2xl font-bold text-[#B3261E] dark:text-[#F28B82]">{absentCount + excusedCount}</span>
+              <span className="text-[10px] sm:text-[11px] font-mono text-[#B3261E] dark:text-[#F28B82] px-1 py-0.5 rounded">
+                {absentPct}%
               </span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-[#B3261E]/15 dark:bg-[#F28B82]/20 text-[#B3261E] dark:text-[#F28B82] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[22px]">cancel</span>
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#B3261E]/15 dark:bg-[#F28B82]/20 text-[#B3261E] dark:text-[#F28B82] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[18px] sm:text-[22px]">cancel</span>
           </div>
         </div>
       </div>
