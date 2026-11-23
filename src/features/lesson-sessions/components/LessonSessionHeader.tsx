@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { CustomSelect } from '@/components/shared';
 
 interface LessonSessionHeaderProps {
   onBackToClasses?: () => void;
@@ -69,17 +70,19 @@ export const LessonSessionHeader: React.FC<LessonSessionHeaderProps> = ({
             <span className="text-xs font-medium text-slate-500 dark:text-[#8E918F] hidden sm:inline font-sans">
               Lớp học:
             </span>
-            <select
+            <CustomSelect<string>
               value={selectedClassId || ''}
-              onChange={(e) => onSelectClassId(e.target.value)}
-              className="h-8 px-3 rounded-full bg-white dark:bg-[#1E1F20] text-xs font-medium text-slate-800 dark:text-[#E3E3E3] border border-slate-200 dark:border-slate-800 shadow-sm outline-none focus:ring-2 focus:ring-[#0B57D0]"
-            >
-              {classesList.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name} ({cls.code || 'Lớp'})
-                </option>
-              ))}
-            </select>
+              onChange={onSelectClassId}
+              options={classesList.map((cls) => ({
+                value: cls.id,
+                label: `${cls.name} (${cls.code || 'Lớp'})`,
+                icon: 'school',
+              }))}
+              variant="pill"
+              className="min-w-[200px] max-w-[280px]"
+              triggerClassName="h-8 text-xs font-medium bg-white dark:bg-[#1E1F20] border border-slate-200 dark:border-slate-800 shadow-xs"
+              popupClassName="w-[280px]"
+            />
           </div>
         )}
       </div>

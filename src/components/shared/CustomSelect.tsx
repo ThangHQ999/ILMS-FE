@@ -18,6 +18,7 @@ export interface CustomSelectProps<T extends string | number = string> {
   label?: string;
   disabled?: boolean;
   variant?: 'default' | 'pill';
+  align?: 'left' | 'right';
   className?: string;
   triggerClassName?: string;
   popupClassName?: string;
@@ -31,6 +32,7 @@ export function CustomSelect<T extends string | number = string>({
   label,
   disabled = false,
   variant = 'default',
+  align = 'left',
   className = '',
   triggerClassName = '',
   popupClassName = '',
@@ -126,7 +128,9 @@ export function CustomSelect<T extends string | number = string>({
       {isOpen && (
         <div
           role="listbox"
-          className={`absolute left-0 top-full mt-1.5 z-50 min-w-full w-max max-w-[300px] p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#333537] shadow-xl dark:shadow-2xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 origin-top ${popupClassName}`}
+          className={`absolute ${
+            align === 'right' ? 'right-0' : 'left-0'
+          } top-full mt-1.5 z-50 w-full min-w-[200px] p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-slate-200/90 dark:border-[#333537] shadow-xl dark:shadow-2xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 origin-top ${popupClassName}`}
         >
           <div className="flex flex-col gap-0.5">
             {options.map((option) => {

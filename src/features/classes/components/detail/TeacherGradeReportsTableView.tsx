@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { CustomSelect } from '@/components/shared';
 import {
   useClassGradeReports,
   useClassStudentMembers,
@@ -348,15 +349,18 @@ export function TeacherGradeReportsTableView({
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
             Sắp xếp:
           </span>
-          <select
-            id="select-sort-order"
+          <CustomSelect<'newest' | 'oldest'>
             value={sortOption}
-            onChange={(e) => handleSortChange(e.target.value as 'newest' | 'oldest')}
-            className="h-9 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm text-slate-800 dark:text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer shadow-2xs"
-          >
-            <option value="newest">Cập nhật mới nhất</option>
-            <option value="oldest">Cập nhật cũ nhất</option>
-          </select>
+            onChange={(val) => handleSortChange(val)}
+            options={[
+              { value: 'newest', label: 'Cập nhật mới nhất', icon: 'schedule' },
+              { value: 'oldest', label: 'Cập nhật cũ nhất', icon: 'history' },
+            ]}
+            variant="pill"
+            className="w-48"
+            triggerClassName="h-9 text-xs font-medium bg-white dark:bg-[#1E1F20] border border-slate-200/80 dark:border-slate-800"
+            popupClassName="w-48"
+          />
         </div>
       </div>
 
@@ -631,24 +635,24 @@ export function TeacherGradeReportsTableView({
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                   Học viên <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <CustomSelect<string>
                   value={createStudentId}
-                  onChange={(e) => setCreateStudentId(e.target.value)}
-                  className="w-full bg-[#F6FAFE] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white dark:focus:bg-slate-900 cursor-pointer transition-all"
-                >
-                  <option value="" disabled>
-                    -- Chọn học viên thuộc lớp --
-                  </option>
-                  {studentMembers.map((st) => {
+                  onChange={setCreateStudentId}
+                  placeholder="-- Chọn học viên thuộc lớp --"
+                  options={studentMembers.map((st) => {
                     const stId = st.userId || st.studentId || st.id || '';
                     const isAlreadyGraded = existingStudentIds.has(stId);
-                    return (
-                      <option key={stId} value={stId} disabled={isAlreadyGraded}>
-                        {st.fullName || st.name} ({stId}){isAlreadyGraded ? ' — Đã có bảng điểm' : ''}
-                      </option>
-                    );
+                    return {
+                      value: stId,
+                      label: `${st.fullName || st.name} (${stId})${isAlreadyGraded ? ' — Đã có bảng điểm' : ''}`,
+                      disabled: isAlreadyGraded,
+                      icon: isAlreadyGraded ? 'check_circle' : 'person',
+                    };
                   })}
-                </select>
+                  variant="pill"
+                  triggerClassName="h-10 text-xs font-medium rounded-xl bg-[#F6FAFE] dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  popupClassName="w-full"
+                />
               </div>
 
               {/* Thông báo chú thích */}

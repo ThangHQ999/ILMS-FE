@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { CustomSelect } from '@/components/shared';
 import { LessonSession } from '../types';
 
 interface AttendanceHeroBannerProps {
@@ -73,33 +74,33 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
             <span className="material-symbols-outlined text-[#0B57D0] dark:text-[#A8C7FA] text-[18px]">
               event_repeat
             </span>
-            <label
-              htmlFor="attendance-session-select"
-              className="text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] whitespace-nowrap"
-            >
+            <span className="text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] whitespace-nowrap hidden sm:inline">
               Chọn hôm điểm danh:
-            </label>
-            <select
-              id="attendance-session-select"
+            </span>
+            <CustomSelect<string>
               value={session.lessonSessionId}
-              onChange={(e) => onSelectSession(e.target.value)}
-              className="h-8 px-2.5 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] text-xs font-semibold text-gray-900 dark:text-[#E3E3E3] border border-slate-200/70 dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#0B57D0] cursor-pointer max-w-[240px] sm:max-w-[340px] md:max-w-[420px] truncate"
-            >
-              {sessions.map((s) => {
+              onChange={onSelectSession}
+              options={sessions.map((s) => {
                 const roomText = !s.roomName || isRawUuid(s.roomName) ? 'Phòng B2-302' : s.roomName;
                 const shiftText = s.startShift && s.endShift ? `Tiết ${s.startShift}-${s.endShift}` : 'Ca học';
                 const noteText =
                   s.note && !isRawUuid(s.note) && !/^CA-?\d+$/i.test(s.note)
                     ? s.note
                     : shiftText;
-                return (
-                  <option key={s.lessonSessionId} value={s.lessonSessionId}>
-                    {s.sessionDate} • {s.startTime}-{s.endTime} | {roomText} ({noteText}){' '}
-                    {s.status === 'COMPLETED' ? '✓ Đã chốt' : s.status === 'IN_PROGRESS' ? '• Đang học' : ''}
-                  </option>
-                );
+                const isCompleted = s.status === 'COMPLETED';
+                const isCurrent = s.lessonSessionId === session.lessonSessionId;
+                return {
+                  value: s.lessonSessionId,
+                  label: `${s.sessionDate} • ${s.startTime}-${s.endTime} (${noteText})${isCompleted ? ' ✓' : ''}`,
+                  sublabel: `${roomText} • ${s.instructorName || 'ThS. Nguyễn Văn An'}${isCompleted ? ' • Đã chốt' : ''}`,
+                  icon: isCompleted ? 'task_alt' : isCurrent ? 'event_available' : 'schedule',
+                };
               })}
-            </select>
+              variant="pill"
+              className="max-w-[240px] sm:max-w-[320px] md:max-w-[380px]"
+              triggerClassName="h-8 text-xs font-semibold rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none px-3"
+              popupClassName="w-[360px] max-w-[90vw]"
+            />
           </div>
         )}
 

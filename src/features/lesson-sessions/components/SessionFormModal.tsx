@@ -226,14 +226,20 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
                   {
                     value: '',
                     label: 'Không chọn phòng (Học Online / Chốt sau)',
+                    icon: 'cloud_off',
                   },
                   ...rooms.map((r) => ({
                     value: r.roomId,
                     label: r.roomName,
+                    sublabel: r.building ? `Tòa ${r.building} • Sức chứa ${r.capacity || 40} chỗ` : undefined,
+                    icon: 'meeting_room',
                   })),
                 ]}
                 variant="pill"
+                align="right"
                 className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full min-w-[260px]"
               />
             </div>
           </div>
@@ -244,40 +250,42 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5">
                 Tiết bắt đầu
               </label>
-              <select
+              <CustomSelect<number>
                 value={startShift}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  handleShiftChange(val, Math.max(val, endShift));
-                }}
-                className="w-full px-3 py-2.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3] text-xs font-medium outline-none border border-transparent focus:border-[#0B57D0]"
-              >
-                {ACADEMIC_SHIFTS.map((s) => (
-                  <option key={s.shift} value={s.shift}>
-                    Tiết {s.shift} ({s.timeRange.split(' - ')[0]})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => handleShiftChange(val, Math.max(val, endShift))}
+                options={ACADEMIC_SHIFTS.map((s) => ({
+                  value: s.shift,
+                  label: `Tiết ${s.shift} (${s.timeRange.split(' - ')[0]})`,
+                  sublabel: s.timeRange,
+                  icon: 'schedule',
+                }))}
+                variant="pill"
+                className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full min-w-[220px]"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5">
                 Tiết kết thúc
               </label>
-              <select
+              <CustomSelect<number>
                 value={endShift}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  handleShiftChange(Math.min(startShift, val), val);
-                }}
-                className="w-full px-3 py-2.5 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] text-gray-900 dark:text-[#E3E3E3] text-xs font-medium outline-none border border-transparent focus:border-[#0B57D0]"
-              >
-                {ACADEMIC_SHIFTS.map((s) => (
-                  <option key={s.shift} value={s.shift}>
-                    Tiết {s.shift} ({s.timeRange.split(' - ')[1]})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => handleShiftChange(Math.min(startShift, val), val)}
+                options={ACADEMIC_SHIFTS.map((s) => ({
+                  value: s.shift,
+                  label: `Tiết ${s.shift} (${s.timeRange.split(' - ')[1]})`,
+                  sublabel: s.timeRange,
+                  icon: 'schedule',
+                  disabled: s.shift < startShift,
+                }))}
+                variant="pill"
+                align="right"
+                className="w-full"
+                triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
+                popupClassName="w-full min-w-[220px]"
+              />
             </div>
           </div>
 

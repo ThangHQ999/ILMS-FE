@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { CustomSelect } from '@/components/shared';
 import type {
   GradebookStudent,
   GradebookAiAnalysis,
@@ -787,17 +788,18 @@ export function ClassAssignmentsTab({
                   <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
                     Môn học liên kết
                   </label>
-                  <select
+                  <CustomSelect<string>
                     value={selectedCourseId}
-                    onChange={(e) => setSelectedCourseId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none outline-none"
-                  >
-                    {courses.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.code})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSelectedCourseId}
+                    options={courses.map((c) => ({
+                      value: c.id,
+                      label: `${c.name} (${c.code})`,
+                      icon: 'book',
+                    }))}
+                    variant="pill"
+                    triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none"
+                    popupClassName="w-full"
+                  />
                 </div>
               )}
 
