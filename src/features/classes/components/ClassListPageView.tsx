@@ -400,7 +400,7 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
       {/* 3. Main Workspace Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
+          isSidebarCollapsed ? 'pl-[72px]' : 'pl-[72px] lg:pl-64'
         }`}
       >
         <div className="pt-20 pb-16 px-4 sm:px-8 max-w-[1600px] w-full mx-auto space-y-6">

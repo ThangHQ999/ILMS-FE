@@ -34,6 +34,11 @@
    - **Ma trận Chuẩn đầu ra CLO-PLO:** `src/features/outcomes/components/CloPloMatrixTable.tsx`
      - Tối ưu cột cố định CLO từ `min-w-[240px]` xuống `min-w-[130px] sm:min-w-[220px]`, `line-clamp-1 sm:line-clamp-2` để màn hình 375px vẫn có thể vuốt và click tương tác với các ô ánh xạ PLO.
 
-## 3. Kết quả kiểm tra xác thực
+3. **Cơ chế Tự động Nén Sidebar trên Mobile (Tránh che khuất giao diện):**
+   - **Tự động nhận diện thiết bị:** Cập nhật `src/hooks/useSidebarCollapsed.ts` tự động phát hiện màn hình nhỏ (`window.innerWidth < 1024px`) và lắng nghe sự kiện `resize` để tự động chuyển sang chế độ nén (`sidebarCollapsed = true`).
+   - **Thanh Icon Bar tinh gọn & Drawer Overlay:** Cập nhật `src/features/dashboard/components/DashboardSidebar.tsx` luôn ở dạng thanh icon 72px gọn gàng trên mobile. Khi người dùng chủ động mở rộng trên mobile, sidebar hiển thị dạng Drawer trượt kèm backdrop mờ (`fixed inset-0 bg-black/60 backdrop-blur-xs lg:hidden`); tự động nén lại khi người dùng bấm vào backdrop hoặc chọn một mục điều hướng.
+   - **Định vị Header & Main Container chuẩn xác:** Cập nhật `DashboardHeader.tsx` và các trang chính (`DashboardPageView`, `LessonSessionsPageView`, `ClassListPageView`, `TimetablePageView`, `SettingsPageView`, v.v.) sử dụng `left-[72px] lg:left-64` và `pl-[72px] lg:pl-64`. Trên mobile, nội dung và thanh tiêu đề không bao giờ bị thụt lề 256px gây vỡ layout hay che mất màn hình.
+
+## 4. Kết quả kiểm tra xác thực
 - `npx tsc --noEmit`: Đạt **0 lỗi** (Exit code 0), đảm bảo 100% TypeScript strict.
 - Toàn bộ giao diện tương thích mượt mà từ màn hình 360px (Mobile) đến 1920px (Desktop).

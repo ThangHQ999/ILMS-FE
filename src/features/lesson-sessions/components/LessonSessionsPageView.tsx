@@ -422,7 +422,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
         onToggleCollapse={handleToggleSidebarCollapse}
       />
 
-      <div className={`transition-all duration-300 ${isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'}`}>
+      <div className={`transition-all duration-300 ${isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-[72px] lg:pl-64'}`}>
         <DashboardHeader
           isFocus={isFocus}
           isSidebarCollapsed={isSidebarCollapsed}

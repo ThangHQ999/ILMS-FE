@@ -148,7 +148,7 @@ export function AssignmentsTabView({
       {/* Main Container offset for Sidebar */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
-          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-64'
+          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-[72px] lg:pl-64'
         }`}
       >
         {/* 2. Top Header */}

@@ -1,8 +1,9 @@
 'use client';
 
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useEffect } from 'react';
 
-let sidebarCollapsed = false;
+// Auto-collapse sidebar on mobile & tablet viewports (< 1024px) to prevent covering mobile UI
+let sidebarCollapsed = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void) {
@@ -22,7 +23,7 @@ function getServerSnapshot() {
 
 /**
  * Shared in-memory sidebar collapse state across client-side route transitions.
- * Avoids post-mount localStorage hydration flickers/layout jumps on navigation.
+ * Auto-collapses on mobile/tablet viewports (< 1024px) to prevent covering main UI.
  */
 export function useSidebarCollapsed() {
   const isSidebarCollapsed = useSyncExternalStore(
@@ -41,6 +42,23 @@ export function useSidebarCollapsed() {
     },
     []
   );
+
+  // Auto-collapse when initialized or resized below 1024px (mobile / tablet breakpoint)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024 && !sidebarCollapsed) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
+    // Initial check on mount
+    if (window.innerWidth < 1024 && !sidebarCollapsed) {
+      setIsSidebarCollapsed(true);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsSidebarCollapsed]);
 
   return [isSidebarCollapsed, setIsSidebarCollapsed] as const;
 }

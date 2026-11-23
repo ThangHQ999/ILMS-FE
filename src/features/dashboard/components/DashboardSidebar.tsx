@@ -214,12 +214,29 @@ const isClassesActive =
     }
   };
 
+  const handleNavItemClick = () => {
+    // On mobile / tablet viewports (< 1024px), auto-collapse when user selects an item
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && !collapsed && onToggleCollapse) {
+      onToggleCollapse();
+    }
+  };
+
   return (
-    <aside
-      className={`fixed left-0 top-0 h-screen ${
-        collapsed ? 'w-[72px]' : 'w-64'
-      } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
-    >
+    <>
+      {/* Mobile Drawer Overlay Backdrop when expanded on mobile */}
+      {!collapsed && (
+        <div
+          onClick={handleToggle}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed left-0 top-0 h-screen ${
+          collapsed ? 'w-[72px]' : 'w-64 shadow-2xl lg:shadow-none'
+        } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
+      >
       {/* 1. Header (Brand Logo + Top-Edge Collapse/Expand Button) */}
       <div className="h-[60px] px-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
         {!collapsed ? (
@@ -309,6 +326,7 @@ const isClassesActive =
                       href={item.href}
                       prefetch={item.href.startsWith('/')}
                       title={item.label}
+                      onClick={handleNavItemClick}
                       suppressHydrationWarning
                       className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
                         item.active ? activeClass : inactiveClass
@@ -342,6 +360,7 @@ const isClassesActive =
                     href={item.href}
                     prefetch={item.href.startsWith('/')}
                     title={item.label}
+                    onClick={handleNavItemClick}
                     suppressHydrationWarning
                     className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
                       item.active ? activeClass : inactiveClass
@@ -386,6 +405,7 @@ const isClassesActive =
           <Link
             href="/settings"
             prefetch={true}
+            onClick={handleNavItemClick}
             className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${inactiveClass}`}
             title={t('navHelp')}
           >
@@ -395,6 +415,7 @@ const isClassesActive =
           <Link
             href="/settings"
             prefetch={true}
+            onClick={handleNavItemClick}
             className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${inactiveClass}`}
           >
             <span className="material-symbols-outlined text-[19px] shrink-0">help_outline</span>
@@ -406,6 +427,7 @@ const isClassesActive =
           <Link
             href="/settings"
             prefetch={true}
+            onClick={handleNavItemClick}
             className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${
               isSettingsActive ? activeClass : inactiveClass
             }`}
@@ -417,6 +439,7 @@ const isClassesActive =
           <Link
             href="/settings"
             prefetch={true}
+            onClick={handleNavItemClick}
             className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${
               isSettingsActive ? activeClass : inactiveClass
             }`}
@@ -440,5 +463,6 @@ const isClassesActive =
         )}
       </div>
     </aside>
+    </>
   );
 }
