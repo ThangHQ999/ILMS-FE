@@ -11,6 +11,9 @@ import { GraphFilterBar } from './GraphFilterBar';
 import { NodeInspectorPanel } from './NodeInspectorPanel';
 import { KnowledgeMatrixTable } from './KnowledgeMatrixTable';
 import { ShortestPathModal } from './ShortestPathModal';
+import { EditFloatingPalette } from './EditFloatingPalette';
+import { QuickAddNodeModal } from './QuickAddNodeModal';
+import { QuickConnectModal } from './QuickConnectModal';
 import type {
   KnowledgeNodeData,
   KnowledgeEdgeData,
@@ -81,7 +84,10 @@ interface KnowledgeAnalyticsViewProps {
   onAddNode: (node: KnowledgeNodeData) => void;
   onUpdateNode: (id: string, updates: Partial<KnowledgeNodeData>) => void;
   onDeleteNode: (id: string) => void;
-  onConnectNodes: (source: string, target: string) => void;
+  onConnectNodes: (source: string, target: string, rawRelation?: string, label?: string) => void;
+  hasUnsavedChanges?: boolean;
+  unsavedCount?: number;
+  onResetDraftChanges?: () => void;
   onSwitchToFocus: () => void;
 }
 
@@ -131,11 +137,19 @@ export function KnowledgeAnalyticsView({
   onToggleAuxiliaryNodes,
   auxiliaryCount = 0,
   allNodesData = [],
-  activeTool,
+  isEditMode = false,
+  onToggleEditMode,
+  activeTool = 'select',
+  onSelectTool,
   layoutMode,
   onLayoutModeChange,
+  onAddNode,
+  onUpdateNode,
   onDeleteNode,
   onConnectNodes,
+  hasUnsavedChanges = false,
+  unsavedCount = 0,
+  onResetDraftChanges,
   onSwitchToFocus,
 }: KnowledgeAnalyticsViewProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
@@ -145,9 +159,59 @@ export function KnowledgeAnalyticsView({
   const [highlightPathIds, setHighlightPathIds] = useState<string[] | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Quick CRUD States
+  const [isAddNodeModalOpen, setIsAddNodeModalOpen] = useState(false);
+  const [addNodePosition, setAddNodePosition] = useState<{ x: number; y: number } | null>(null);
+  const [editingNode, setEditingNode] = useState<KnowledgeNodeData | null>(null);
+
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [connectSourceNode, setConnectSourceNode] = useState<KnowledgeNodeData | null>(null);
+  const [connectTargetNode, setConnectTargetNode] = useState<KnowledgeNodeData | null>(null);
+  const [connectPendingNodeId, setConnectPendingNodeId] = useState<string | null>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3200);
+  };
+
+  const connectPendingLabel = React.useMemo(() => {
+    if (!connectPendingNodeId) return null;
+    return nodesData.find((n) => n.id === connectPendingNodeId)?.label || connectPendingNodeId;
+  }, [connectPendingNodeId, nodesData]);
+
+  const handleCanvasAddNodeAtPosition = (pos: { x: number; y: number }) => {
+    setAddNodePosition(pos);
+    setEditingNode(null);
+    setIsAddNodeModalOpen(true);
+  };
+
+  const handleSubmitNodeModal = (data: Partial<KnowledgeNodeData>) => {
+    if (editingNode) {
+      onUpdateNode?.(editingNode.id, data);
+      showToast(`Đã cập nhật khái niệm "${data.label || editingNode.label}"`);
+    } else {
+      const newNode = data as KnowledgeNodeData;
+      onAddNode?.(newNode);
+      showToast(`Đã thêm khái niệm "${newNode.label}" vào đồ thị`);
+    }
+  };
+
+  const handleTriggerConnect = (sourceId: string, targetId: string) => {
+    const sNode = nodesData.find((n) => n.id === sourceId) || null;
+    const tNode = nodesData.find((n) => n.id === targetId) || null;
+    if (sNode && tNode) {
+      setConnectSourceNode(sNode);
+      setConnectTargetNode(tNode);
+      setIsConnectModalOpen(true);
+    }
+  };
+
+  const handleConfirmConnect = (relationType: string, label: string) => {
+    if (connectSourceNode && connectTargetNode) {
+      onConnectNodes?.(connectSourceNode.id, connectTargetNode.id, relationType, label);
+      showToast(`Đã tạo liên kết ${label} giữa "${connectSourceNode.label}" và "${connectTargetNode.label}"`);
+      setConnectPendingNodeId(null);
+    }
   };
 
   const handleConfirmPath = (result: ShortestPathResult) => {
@@ -369,12 +433,34 @@ export function KnowledgeAnalyticsView({
               </div>
 
               <div className="flex items-center gap-2">
+                {canManageGraph && onToggleEditMode && (
+                  <button
+                    type="button"
+                    onClick={onToggleEditMode}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border-none shadow-xs ${
+                      isEditMode
+                        ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400 dark:ring-blue-500'
+                        : 'bg-amber-100 dark:bg-amber-950/70 hover:bg-amber-200 dark:hover:bg-amber-900/70 text-amber-800 dark:text-amber-200'
+                    }`}
+                    title={
+                      isEditMode
+                        ? 'Đang bật chế độ chỉnh sửa (Bấm để thoát)'
+                        : 'Bật chế độ chỉnh sửa đồ thị tri thức'
+                    }
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      {isEditMode ? 'edit_square' : 'architecture'}
+                    </span>
+                    <span>{isEditMode ? 'Đang Chỉnh Sửa' : 'Bật Chỉnh Sửa'}</span>
+                  </button>
+                )}
+
                 {canManageGraph && selectedMaterialId && onStartDraftEdit && (
                   <button
                     type="button"
                     disabled={isStartingDraft}
                     onClick={() => onStartDraftEdit(selectedMaterialId)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-100 dark:bg-amber-950/70 hover:bg-amber-200 dark:hover:bg-amber-900/70 text-amber-800 dark:text-amber-200 text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] hover:bg-slate-200 dark:hover:bg-[#333537] text-slate-700 dark:text-[#E3E3E3] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit_note</span>
                     <span>
@@ -468,7 +554,22 @@ export function KnowledgeAnalyticsView({
                   onSelectNode={(id) => onSelectNode(id)}
                 />
 
-                <div className="relative w-full h-[640px] bg-white dark:bg-[#1E1F20] rounded-3xl overflow-hidden">
+                <div className="relative w-full h-[640px] bg-white dark:bg-[#1E1F20] rounded-3xl overflow-hidden border border-slate-200/60 dark:border-slate-800 shadow-xs">
+                  {/* Floating Edit Toolbar when isEditMode is active */}
+                  {canManageGraph && isEditMode && (
+                    <EditFloatingPalette
+                      activeTool={activeTool}
+                      onSelectTool={onSelectTool}
+                      onOpenAddModal={() => {
+                        setAddNodePosition(null);
+                        setEditingNode(null);
+                        setIsAddNodeModalOpen(true);
+                      }}
+                      onCloseEditMode={onToggleEditMode}
+                      connectPendingLabel={connectPendingLabel}
+                    />
+                  )}
+
                   <GraphCanvas
                     nodes={rawNodes}
                     edges={rawEdges}
@@ -480,14 +581,66 @@ export function KnowledgeAnalyticsView({
                     searchQuery={searchQuery}
                     depth={depth}
                     isSmartDimActive={isSmartDimActive}
-                    isEditMode={false}
+                    isEditMode={Boolean(canManageGraph && isEditMode)}
                     activeTool={activeTool}
                     layoutMode={layoutMode}
-                    onDeleteNode={onDeleteNode}
-                    onConnectNodes={onConnectNodes}
+                    onAddNodeAtPosition={handleCanvasAddNodeAtPosition}
+                    onDeleteNode={(id) => {
+                      onDeleteNode?.(id);
+                      showToast('Đã xóa đối tượng khỏi đồ thị');
+                    }}
+                    onConnectNodes={handleTriggerConnect}
+                    onConnectStartNodeChange={(id) => setConnectPendingNodeId(id)}
                     highlightPathIds={highlightPathIds}
                     isFocusMode={false}
                   />
+
+                  {/* Floating Draft Action Bar at Bottom of Canvas */}
+                  {canManageGraph && (isEditMode || hasUnsavedChanges) && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/90 dark:bg-white/95 text-white dark:text-slate-900 shadow-2xl backdrop-blur-md text-xs font-semibold animate-fade-in border border-slate-700 dark:border-slate-200">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                        <span className="font-bold">
+                          {hasUnsavedChanges
+                            ? `Bản nháp có ${unsavedCount} thay đổi`
+                            : 'Chế độ Chỉnh sửa trực tiếp'}
+                        </span>
+                      </div>
+
+                      <div className="w-[1px] h-4 bg-slate-600 dark:bg-slate-300" />
+
+                      {hasUnsavedChanges && onResetDraftChanges && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onResetDraftChanges();
+                            showToast('Đã hoàn tác các thay đổi local về bản gốc');
+                          }}
+                          className="text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-black font-semibold cursor-pointer border-none bg-transparent"
+                        >
+                          Hoàn tác
+                        </button>
+                      )}
+
+                      {selectedMaterialId && onStartDraftEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onStartDraftEdit(selectedMaterialId)}
+                          className="px-3 py-1 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer border-none shadow-xs"
+                        >
+                          Đồng bộ với Bản nháp AI
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => showToast('Đã lưu các thay đổi trực quan trên đồ thị')}
+                          className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer border-none shadow-xs"
+                        >
+                          Lưu thay đổi
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {isInspectorCollapsed && (
                     <button
@@ -526,6 +679,15 @@ export function KnowledgeAnalyticsView({
                     onWithdrawPublication={onWithdrawPublication}
                     onRetryPublication={onRetryPublication}
                     onSwitchToFocus={onSwitchToFocus}
+                    onEditNode={(node) => {
+                      setEditingNode(node);
+                      setAddNodePosition(null);
+                      setIsAddNodeModalOpen(true);
+                    }}
+                    onDeleteNode={(id) => {
+                      onDeleteNode?.(id);
+                      showToast('Đã xóa đối tượng khỏi đồ thị');
+                    }}
                     isCollapsed={isInspectorCollapsed}
                     onToggleCollapse={() => setIsInspectorCollapsed(true)}
                   />
@@ -553,6 +715,33 @@ export function KnowledgeAnalyticsView({
         nodes={nodesData}
         edges={edgesData}
         onConfirmPath={handleConfirmPath}
+      />
+
+      {/* Quick Add / Edit Node Modal */}
+      <QuickAddNodeModal
+        isOpen={isAddNodeModalOpen}
+        onClose={() => {
+          setIsAddNodeModalOpen(false);
+          setEditingNode(null);
+          setAddNodePosition(null);
+        }}
+        onSubmit={handleSubmitNodeModal}
+        initialNode={editingNode}
+        initialPosition={addNodePosition}
+      />
+
+      {/* Quick Connect Modal */}
+      <QuickConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => {
+          setIsConnectModalOpen(false);
+          setConnectSourceNode(null);
+          setConnectTargetNode(null);
+          setConnectPendingNodeId(null);
+        }}
+        onSubmit={handleConfirmConnect}
+        sourceNode={connectSourceNode}
+        targetNode={connectTargetNode}
       />
     </div>
   );

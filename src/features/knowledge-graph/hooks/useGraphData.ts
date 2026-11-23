@@ -294,16 +294,19 @@ export function useGraphData(options?: UseGraphDataOptions) {
   );
 
   const addEdge = useCallback(
-    (source: string, target: string, label?: string) => {
+    (source: string, target: string, rawRelation?: string, label?: string) => {
       const newEdgeId = `e-${source}-${target}-${Date.now()}`;
+      const rel = (rawRelation || 'PREREQUISITE').toUpperCase();
+      const isPrereq = rel === 'PREREQUISITE' || rel === 'REQUIRES';
       setLocalEdgeOverrides((prev) => [
         ...(prev ?? edgesData),
         {
           id: newEdgeId,
           source,
           target,
-          label: label || 'Liên kết',
-          relationshipType: 'extends',
+          label: label || (isPrereq ? 'Tiên quyết' : 'Liên kết'),
+          rawRelation: rel,
+          relationshipType: isPrereq ? 'requires' : 'extends',
           weight: 1.0,
         },
       ]);
@@ -317,6 +320,16 @@ export function useGraphData(options?: UseGraphDataOptions) {
     },
     [edgesData]
   );
+
+  const resetDraftChanges = useCallback(() => {
+    setLocalNodeOverrides(null);
+    setLocalEdgeOverrides(null);
+  }, []);
+
+  const hasUnsavedChanges = Boolean(localNodeOverrides !== null || localEdgeOverrides !== null);
+  const unsavedCount =
+    (localNodeOverrides ? Math.abs(localNodeOverrides.length - nodesData.length) + 1 : 0) +
+    (localEdgeOverrides ? Math.abs(localEdgeOverrides.length - edgesData.length) + 1 : 0);
 
   const isLoading =
     publishedQuery.isLoading || (Boolean(effectiveMaterialId || selectedCourseId) && activeGraphQuery.isLoading);
@@ -377,6 +390,9 @@ export function useGraphData(options?: UseGraphDataOptions) {
     layoutMode,
     setLayoutMode,
     stats,
+    hasUnsavedChanges,
+    unsavedCount,
+    resetDraftChanges,
     addNode,
     updateNode,
     deleteNode,

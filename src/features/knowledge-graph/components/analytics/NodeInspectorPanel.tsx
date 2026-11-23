@@ -32,6 +32,7 @@ interface NodeInspectorPanelProps {
   onWithdrawPublication?: (materialId: string, publicationId: string, reason?: string) => void;
   onRetryPublication?: (publicationId: string) => void;
   onSwitchToFocus?: () => void;
+  onEditNode?: (node: KnowledgeNodeData) => void;
   onSaveNode?: (id: string, updates: Partial<KnowledgeNodeData>) => void;
   onDeleteNode?: (id: string) => void;
   isCollapsed: boolean;
@@ -58,6 +59,8 @@ export function NodeInspectorPanel({
   onWithdrawPublication,
   onRetryPublication,
   onSwitchToFocus,
+  onEditNode,
+  onDeleteNode,
   isCollapsed,
   onToggleCollapse,
 }: NodeInspectorPanelProps) {
@@ -65,6 +68,7 @@ export function NodeInspectorPanel({
   const [showAdminHistory, setShowAdminHistory] = useState(false);
   const [withdrawReason, setWithdrawReason] = useState('');
   const [confirmWithdrawOpen, setConfirmWithdrawOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const revisionsQuery = useMaterialGraphRevisions(
     selectedMaterialId,
@@ -356,14 +360,36 @@ export function NodeInspectorPanel({
               </span>
             )}
           </div>
-          <button
-            onClick={onToggleCollapse}
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer"
-            title="Thu gọn bảng chi tiết"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[20px]">dock_to_right</span>
-          </button>
+          <div className="flex items-center gap-1">
+            {canManageGraph && onEditNode && (
+              <button
+                type="button"
+                onClick={() => onEditNode(node)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer border-none bg-transparent"
+                title="Chỉnh sửa thông tin node này"
+              >
+                <span className="material-symbols-outlined text-[18px]">edit</span>
+              </button>
+            )}
+            {canManageGraph && onDeleteNode && (
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteOpen(true)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer border-none bg-transparent"
+                title="Xóa node khỏi đồ thị"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            )}
+            <button
+              onClick={onToggleCollapse}
+              className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors cursor-pointer border-none bg-transparent"
+              title="Thu gọn bảng chi tiết"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[20px]">dock_to_right</span>
+            </button>
+          </div>
         </div>
 
         <div>
@@ -851,6 +877,61 @@ export function NodeInspectorPanel({
           )}
         </div>
 
+        {/* Direct CRUD Actions for Teacher */}
+        {canManageGraph && (
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {confirmDeleteOpen ? (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 space-y-2 text-xs">
+                <p className="font-semibold text-rose-800 dark:text-rose-200">
+                  Xác nhận xóa khái niệm "{node.label}" khỏi đồ thị?
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDeleteNode?.(node.id);
+                      setConfirmDeleteOpen(false);
+                    }}
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer border-none text-[11px]"
+                  >
+                    Xóa ngay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteOpen(false)}
+                    className="py-1.5 px-3 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer border-none text-[11px]"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {onEditNode && (
+                  <button
+                    type="button"
+                    onClick={() => onEditNode(node)}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-bold transition-colors cursor-pointer border border-blue-200/60 dark:border-blue-900/60"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    <span>Sửa node</span>
+                  </button>
+                )}
+                {onDeleteNode && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-bold transition-colors cursor-pointer border border-rose-200/60 dark:border-rose-900/60"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <span>Xóa node</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {canManageGraph && targetMaterialId && onStartDraftEdit && (
           <button
             type="button"
@@ -862,7 +943,7 @@ export function NodeInspectorPanel({
             <span>
               {isStartingDraft
                 ? 'Đang tạo bản nháp...'
-                : 'Chỉnh sửa bản nháp'}
+                : 'Mở Trình duyệt nháp tài liệu (/tasks)'}
             </span>
           </button>
         )}

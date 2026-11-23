@@ -310,6 +310,9 @@ export function KnowledgeGraphPageView() {
       onUpdateNode={graphState.updateNode}
       onDeleteNode={graphState.deleteNode}
       onConnectNodes={graphState.addEdge}
+      hasUnsavedChanges={graphState.hasUnsavedChanges}
+      unsavedCount={graphState.unsavedCount}
+      onResetDraftChanges={graphState.resetDraftChanges}
       onSwitchToFocus={() => switchMode('focus')}
     />
   );

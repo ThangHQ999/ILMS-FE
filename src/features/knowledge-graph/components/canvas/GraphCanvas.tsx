@@ -43,6 +43,7 @@ export interface GraphCanvasProps {
   onAddNodeAtPosition?: (position: { x: number; y: number }) => void;
   onDeleteNode?: (id: string) => void;
   onConnectNodes?: (source: string, target: string) => void;
+  onConnectStartNodeChange?: (nodeId: string | null) => void;
   highlightPathIds?: string[] | null;
   isFocusMode?: boolean;
   isMinimapVisible?: boolean;
@@ -67,6 +68,7 @@ function GraphCanvasContent({
   onAddNodeAtPosition,
   onDeleteNode,
   onConnectNodes,
+  onConnectStartNodeChange,
   highlightPathIds,
   isFocusMode = false,
   isMinimapVisible,
@@ -239,6 +241,16 @@ function GraphCanvasContent({
     });
   }, [edges, highlightPathIds, isSmartDimActive, neighborNodeIds, activeHoverTarget]);
 
+  // Reset connect start node when switching away from connect tool
+  useEffect(() => {
+    if (!isEditMode || activeTool !== 'connect') {
+      if (connectStartNodeId) {
+        setConnectStartNodeId(null);
+        onConnectStartNodeChange?.(null);
+      }
+    }
+  }, [isEditMode, activeTool, connectStartNodeId, onConnectStartNodeChange]);
+
   // Node Click handler according to active tool
   const handleNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
@@ -250,18 +262,20 @@ function GraphCanvasContent({
         if (activeTool === 'connect') {
           if (!connectStartNodeId) {
             setConnectStartNodeId(node.id);
+            onConnectStartNodeChange?.(node.id);
           } else {
             if (connectStartNodeId !== node.id) {
               onConnectNodes?.(connectStartNodeId, node.id);
             }
             setConnectStartNodeId(null);
+            onConnectStartNodeChange?.(null);
           }
           return;
         }
       }
       onSelectNode(node.id);
     },
-    [isEditMode, activeTool, connectStartNodeId, onDeleteNode, onConnectNodes, onSelectNode]
+    [isEditMode, activeTool, connectStartNodeId, onDeleteNode, onConnectNodes, onConnectStartNodeChange, onSelectNode]
   );
 
   // Canvas Click for 'add-node' tool
@@ -316,7 +330,15 @@ function GraphCanvasContent({
         maxZoom={2.5}
         defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
         attributionPosition="bottom-right"
-        className="bg-transparent"
+        className={`bg-transparent transition-all ${
+          isEditMode && activeTool === 'add-node'
+            ? '!cursor-crosshair'
+            : isEditMode && activeTool === 'connect'
+            ? '!cursor-cell'
+            : isEditMode && activeTool === 'delete'
+            ? '!cursor-pointer'
+            : ''
+        }`}
       >
         <Background
           variant={BackgroundVariant.Dots}
