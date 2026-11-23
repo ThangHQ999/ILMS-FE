@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import {
   Background,
   Controls,
   MarkerType,
   ReactFlow,
+  useNodesState,
   type Edge,
   type Node,
+  type NodeChange,
 } from '@xyflow/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
@@ -343,15 +345,121 @@ export function DraftGraphEditor({
     const activeRawNodes = synthesizedNodes.length > 0 ? synthesizedNodes : snapshotNodes;
     const activeRawEdges = synthesizedEdges.length > 0 ? synthesizedEdges : snapshotEdges;
 
-    const ordered = [...activeRawNodes].sort((a, b) =>
-      a.path.localeCompare(b.path, undefined, { numeric: true })
-    );
+    // 4. Calculate Hierarchical Sub-tree Cluster Layout with generous spacing
+    const initialPositions = new Map<string, { x: number; y: number }>();
 
-    const rows = new Map<number, number>();
-    const nodes: Node[] = ordered.map((item) => {
-      const column = COLUMNS[item.kind] ?? 4;
-      const row = rows.get(column) ?? 0;
-      rows.set(column, row + 1);
+    // Column 0: Topics (x: 40)
+    let topicY = 40;
+    if (Array.isArray(data.topics)) {
+      data.topics.forEach((_, tIdx) => {
+        initialPositions.set(`topic-${tIdx}`, { x: 40, y: topicY });
+        topicY += 160;
+      });
+    }
+
+    // Column coordinates for clustered trees
+    const COL_X = {
+      Topic: 40,
+      KnowledgeEntity: 440,
+      Child: 880,
+      Step: 1320,
+    };
+
+    let clusterStartY = 40;
+
+    if (Array.isArray(data.entities)) {
+      data.entities.forEach((ent, eIdx) => {
+        const entId = `entity-${eIdx}`;
+        const currentEntityY = clusterStartY;
+        initialPositions.set(entId, { x: COL_X.KnowledgeEntity, y: currentEntityY });
+
+        let childY = currentEntityY;
+
+        // Definition
+        const defText =
+          typeof ent.definition === 'string'
+            ? ent.definition
+            : typeof ent.definition === 'object' && ent.definition !== null
+              ? (ent.definition as { content?: string }).content
+              : '';
+        if (defText) {
+          initialPositions.set(`def-${eIdx}`, { x: COL_X.Child, y: childY });
+          childY += 140;
+        }
+
+        // Examples
+        if (Array.isArray(ent.examples)) {
+          ent.examples.forEach((_, xIdx) => {
+            initialPositions.set(`exm-${eIdx}-${xIdx}`, { x: COL_X.Child, y: childY });
+            childY += 140;
+          });
+        }
+
+        // Processes & ProcessSteps
+        if (Array.isArray(ent.processes)) {
+          ent.processes.forEach((proc, pIdx) => {
+            const procId = `proc-${eIdx}-${pIdx}`;
+            const procStartY = childY;
+            initialPositions.set(procId, { x: COL_X.Child, y: procStartY });
+
+            let stepY = procStartY;
+            if (Array.isArray(proc.steps)) {
+              proc.steps.forEach((_, sIdx) => {
+                initialPositions.set(`step-p-${eIdx}-${pIdx}-${sIdx}`, {
+                  x: COL_X.Step,
+                  y: stepY,
+                });
+                stepY += 135;
+              });
+            }
+
+            childY = Math.max(childY + 140, stepY);
+          });
+        }
+
+        // Exercises & ExerciseSteps
+        if (Array.isArray(ent.exercises)) {
+          ent.exercises.forEach((ex, exIdx) => {
+            const exId = `ex-${eIdx}-${exIdx}`;
+            const exStartY = childY;
+            initialPositions.set(exId, { x: COL_X.Child, y: exStartY });
+
+            let stepY = exStartY;
+            if (Array.isArray(ex.steps)) {
+              ex.steps.forEach((_, sIdx) => {
+                initialPositions.set(`step-e-${eIdx}-${exIdx}-${sIdx}`, {
+                  x: COL_X.Step,
+                  y: stepY,
+                });
+                stepY += 135;
+              });
+            }
+
+            childY = Math.max(childY + 140, stepY);
+          });
+        }
+
+        // Arguments
+        if (Array.isArray(ent.arguments)) {
+          ent.arguments.forEach((_, aIdx) => {
+            initialPositions.set(`arg-${eIdx}-${aIdx}`, { x: COL_X.Child, y: childY });
+            childY += 140;
+          });
+        }
+
+        // Cluster gap: Next Entity starts well below this whole cluster
+        clusterStartY = Math.max(childY, currentEntityY + 160) + 100;
+      });
+    }
+
+    let fallbackY = 40;
+    const nodes: Node[] = activeRawNodes.map((item) => {
+      let pos = initialPositions.get(item.id);
+      if (!pos) {
+        const col = COLUMNS[item.kind] ?? 4;
+        fallbackY += 140;
+        pos = { x: col * 420 + 40, y: fallbackY };
+      }
 
       const nodeFields = getNodeFields(data, item.path, item.kind);
       const displayTitle = nodeFields.label || item.label || item.kind;
@@ -366,7 +474,7 @@ export function DraftGraphEditor({
 
       return {
         id: item.id,
-        position: { x: column * 300, y: row * 110 },
+        position: pos,
         selected: isSelected,
         data: {
           path: item.path,
@@ -418,8 +526,9 @@ export function DraftGraphEditor({
       source: edge.source,
       target: edge.target,
       label: edge.kind,
+      type: 'smoothstep',
       markerEnd: { type: MarkerType.ArrowClosed, color: isDark ? '#94a3b8' : '#64748b' },
-      style: { stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 1.6 },
+      style: { stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 1.8 },
       labelStyle: {
         fontSize: 10,
         fontWeight: 800,
@@ -503,6 +612,37 @@ export function DraftGraphEditor({
     return Number.isNaN(idx) ? null : idx;
   }, [selectedPath]);
 
+  // Keep track of user-dragged node coordinates to persist layout customizations
+  const userPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+
+  // Synchronize ReactFlow nodes state with diagram nodes while preserving manual drag coordinates
+  useEffect(() => {
+    setNodes(
+      diagram.nodes.map((n) => {
+        const customPos = userPositions.current.get(n.id);
+        return customPos ? { ...n, position: customPos } : n;
+      })
+    );
+  }, [diagram.nodes, setNodes]);
+
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      changes.forEach((c) => {
+        if (c.type === 'position' && c.position && c.id) {
+          userPositions.current.set(c.id, c.position);
+        }
+      });
+      onNodesChange(changes);
+    },
+    [onNodesChange]
+  );
+
+  const handleAutoSpread = useCallback(() => {
+    userPositions.current.clear();
+    setNodes(diagram.nodes);
+  }, [diagram.nodes, setNodes]);
+
   return (
     <section className="space-y-3 text-left">
       {/* Top Toolbar with High-contrast Buttons */}
@@ -545,11 +685,21 @@ export function DraftGraphEditor({
 
             <button
               type="button"
-              onClick={() => setIsAddTopicOpen(true)}
+              onClick={setIsAddTopicOpen.bind(null, true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 text-xs font-bold cursor-pointer transition-colors"
             >
               <span className="material-symbols-outlined text-[16px]">folder_special</span>
               <span>+ Thêm chủ đề</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAutoSpread}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-xs font-bold cursor-pointer transition-colors shadow-xs"
+              title="Tự động giãn cách và tách rời các cụm thực thể cho thoáng đãng, dễ nhìn"
+            >
+              <span className="material-symbols-outlined text-[16px]">unfold_more</span>
+              <span>Tách &amp; Giãn cách</span>
             </button>
 
             <button
@@ -599,8 +749,9 @@ export function DraftGraphEditor({
       <div className="h-[32rem] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-100 dark:bg-[#121417] overflow-hidden relative shadow-inner">
         <ReactFlow
           key={`${revisionId}-${isDark ? 'dark' : 'light'}`}
-          nodes={diagram.nodes}
+          nodes={nodes}
           edges={diagram.edges}
+          onNodesChange={handleNodesChange}
           fitView
           minZoom={0.05}
           nodesDraggable={true}
