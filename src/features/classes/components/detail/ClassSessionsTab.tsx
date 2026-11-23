@@ -33,6 +33,15 @@ import {
 } from '@/features/timetable/services/timetable.service';
 import type { DaySchedule, TimetableSession } from '@/features/timetable/types';
 
+const PRESET_ROOM_MAP: Record<string, string> = {
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01': 'Phòng B1-204 (Lý thuyết)',
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a02': 'Lab 302 (Thực hành Mạng)',
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a03': 'Lab 402 (Phát triển Phần mềm)',
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a04': 'Lab AI 501 (Trí tuệ Nhân tạo)',
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a05': 'Phòng A2-301 (Giảng đường lớn)',
+  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a06': 'Lab H6-302 (Hệ thống Nhúng)',
+};
+
 interface ClassSessionsTabProps {
   classId: string;
   classInfo: ClassItem;
@@ -314,10 +323,13 @@ export function ClassSessionsTab({
             const shiftLabel = `Tiết ${s.startShift || 1}-${s.endShift || 3}`;
             const noteText = s.note && !isTechnical ? s.note : shiftLabel;
 
+            const rawRoom = s.roomName?.trim();
             const safeRoom =
-              !s.roomName || isUuid(s.roomName)
-                ? rooms.find((r) => r.roomId === s.roomName)?.roomName || 'Phòng B2-302'
-                : s.roomName;
+              rawRoom && PRESET_ROOM_MAP[rawRoom]
+                ? PRESET_ROOM_MAP[rawRoom]
+                : !rawRoom || isUuid(rawRoom)
+                ? rooms.find((r) => r.roomId === rawRoom)?.roomName || 'Phòng B2-302'
+                : rawRoom;
 
             return {
               lessonSessionId: s.lessonSessionId,
@@ -667,7 +679,9 @@ export function ClassSessionsTab({
                 <div>
                   <span className="block text-[11px] text-slate-400">Phòng học:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {!detailSession.roomName || isUuid(detailSession.roomName)
+                    {detailSession.roomName && PRESET_ROOM_MAP[detailSession.roomName.trim()]
+                      ? PRESET_ROOM_MAP[detailSession.roomName.trim()]
+                      : !detailSession.roomName || isUuid(detailSession.roomName)
                       ? rooms.find((r) => r.roomId === detailSession.roomName)?.roomName || 'Phòng B2-302'
                       : detailSession.roomName}
                   </span>

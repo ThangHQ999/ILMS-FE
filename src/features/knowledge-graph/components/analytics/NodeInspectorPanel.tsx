@@ -75,7 +75,17 @@ export function NodeInspectorPanel({
     Boolean(canManageGraph && selectedMaterialId && showAdminHistory)
   );
 
-  const chunksList = node?.chunks ?? [];
+  const chunksList = useMemo(() => {
+    const raw = node?.chunks ?? [];
+    const seen = new Set<string>();
+    return raw.filter((chk, idx) => {
+      // Deduplicate by ID if present, otherwise by locator + text snippet
+      const key = chk.id ? `id-${chk.id}` : `txt-${chk.locator || ''}-${chk.text?.trim().slice(0, 50) || idx}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [node?.chunks]);
 
   const definition = useMemo(() => {
     if (!node) return '';
@@ -130,7 +140,13 @@ export function NodeInspectorPanel({
 
   const prereqs = useMemo(() => {
     if (!node) return [];
+    const seen = new Set<string>();
     return (node.prerequisites ?? [])
+      .filter((id) => {
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
       .map((id) => nodeMap.get(id))
       .filter(
         (item): item is KnowledgeNodeData =>
@@ -140,7 +156,13 @@ export function NodeInspectorPanel({
 
   const successors = useMemo(() => {
     if (!node) return [];
+    const seen = new Set<string>();
     return (node.successors ?? [])
+      .filter((id) => {
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
       .map((id) => nodeMap.get(id))
       .filter(
         (item): item is KnowledgeNodeData =>
@@ -521,9 +543,9 @@ export function NodeInspectorPanel({
                   Tiền đề cần học trước ({prereqs.length})
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {prereqs.map((pre) => (
+                  {prereqs.map((pre, idx) => (
                     <button
-                      key={pre.id}
+                      key={`pre-${pre.id}-${idx}`}
                       type="button"
                       onClick={() => onSelectNode?.(pre.id)}
                       className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 font-semibold border border-amber-200/70 dark:border-amber-900 cursor-pointer hover:bg-amber-100"
@@ -541,9 +563,9 @@ export function NodeInspectorPanel({
                   Kiến thức kế tiếp ({successors.length})
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {successors.map((succ) => (
+                  {successors.map((succ, idx) => (
                     <button
-                      key={succ.id}
+                      key={`succ-${succ.id}-${idx}`}
                       type="button"
                       onClick={() => onSelectNode?.(succ.id)}
                       className="px-2.5 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] font-semibold cursor-pointer hover:opacity-90"
@@ -563,7 +585,7 @@ export function NodeInspectorPanel({
                 <div className="space-y-2">
                   {chunksList.map((chk, idx) => (
                     <div
-                      key={chk.id || `st-chunk-${idx}`}
+                      key={`st-chunk-${chk.id || 'id'}-${idx}`}
                       className="rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] p-3 text-slate-600 dark:text-[#C4C7C5] leading-relaxed text-[11px]"
                     >
                       {chk.locator && (
@@ -599,7 +621,7 @@ export function NodeInspectorPanel({
                   {proc.steps.length > 0 && (
                     <ol className="space-y-1">
                       {proc.steps.map((s, stepIdx) => (
-                        <li key={s.stepNumber || stepIdx} className="flex items-start gap-2">
+                        <li key={`proc-step-${s.stepNumber || stepIdx}-${stepIdx}`} className="flex items-start gap-2">
                           <span className="font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
                             {stepIdx + 1}.
                           </span>
@@ -628,8 +650,8 @@ export function NodeInspectorPanel({
                   {ex.content && <p className="whitespace-pre-line">{ex.content}</p>}
                   {ex.steps && ex.steps.length > 0 && (
                     <ol className="space-y-1 pt-1">
-                      {ex.steps.map((s) => (
-                        <li key={s.stepNumber}>
+                      {ex.steps.map((s, stepIdx) => (
+                        <li key={`ex-step-${s.stepNumber || stepIdx}-${stepIdx}`}>
                           <strong>Bước {s.stepNumber}:</strong> {s.action}
                         </li>
                       ))}
@@ -690,8 +712,8 @@ export function NodeInspectorPanel({
                   <p className="text-slate-400">Chưa có bản ghi lịch sử revision.</p>
                 ) : (
                   <ul className="space-y-1">
-                    {(revisionsQuery.data ?? []).slice(0, 4).map((rev) => (
-                      <li key={rev.id} className="flex items-center justify-between">
+                    {(revisionsQuery.data ?? []).slice(0, 4).map((rev, revIdx) => (
+                      <li key={`rev-${rev.id || rev.revision}-${revIdx}`} className="flex items-center justify-between">
                         <span>Rev #{rev.revision}</span>
                         <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white dark:bg-[#1E1F20]">
                           {rev.status}
@@ -710,8 +732,8 @@ export function NodeInspectorPanel({
                   <p className="text-slate-400">Chưa có nhật ký thay đổi.</p>
                 ) : (
                   <ul className="space-y-1">
-                    {(auditQuery.data ?? []).slice(0, 4).map((log) => (
-                      <li key={log.id} className="text-slate-600 dark:text-[#C4C7C5]">
+                    {(auditQuery.data ?? []).slice(0, 4).map((log, logIdx) => (
+                      <li key={`audit-${log.id || logIdx}-${logIdx}`} className="text-slate-600 dark:text-[#C4C7C5]">
                         <strong className="font-mono text-[10px]">{log.action}</strong>
                         {log.summary ? ` — ${log.summary}` : ''}
                       </li>

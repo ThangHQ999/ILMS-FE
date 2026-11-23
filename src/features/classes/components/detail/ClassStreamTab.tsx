@@ -94,8 +94,18 @@ export function ClassStreamTab({
     return `${classBase} (${shiftText})`;
   };
 
+  const PRESET_ROOM_MAP: Record<string, string> = {
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01': 'Phòng B1-204 (Lý thuyết)',
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a02': 'Lab 302 (Thực hành Mạng)',
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a03': 'Lab 402 (Phát triển Phần mềm)',
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a04': 'Lab AI 501 (Trí tuệ Nhân tạo)',
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a05': 'Phòng A2-301 (Giảng đường lớn)',
+    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a06': 'Lab H6-302 (Hệ thống Nhúng)',
+  };
+
   const getSessionRoom = (roomName?: string | null) => {
     if (!roomName || roomName.trim() === '') return 'Học Online';
+    if (PRESET_ROOM_MAP[roomName.trim()]) return PRESET_ROOM_MAP[roomName.trim()];
     if (!isUuid(roomName)) return roomName;
     const match = rooms.find(
       (r) => r.roomId?.toLowerCase() === roomName.toLowerCase()
