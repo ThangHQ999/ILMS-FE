@@ -37,9 +37,14 @@ export function DraftCreateEntityModal({
       setError('Vui lòng nhập tên thực thể tri thức');
       return;
     }
+    const defTrimmed = definition.trim();
+    if (!defTrimmed) {
+      setError('Định nghĩa cốt lõi (Definition) là bắt buộc. Vui lòng nhập định nghĩa cho thực thể.');
+      return;
+    }
     onSubmit({
       name: trimmed,
-      definition: definition.trim(),
+      definition: defTrimmed,
       description: description.trim(),
       topicName: selectedTopic || undefined,
     });
@@ -106,13 +111,17 @@ export function DraftCreateEntityModal({
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              Định nghĩa cốt lõi (Definition)
+              Định nghĩa cốt lõi (Definition) <span className="text-rose-500">*</span>
             </label>
             <textarea
               rows={3}
+              required
               value={definition}
-              onChange={(e) => setDefinition(e.target.value)}
-              placeholder="Giải thích ngắn gọn, súc tích bản chất của khái niệm này..."
+              onChange={(e) => {
+                setDefinition(e.target.value);
+                if (error) setError('');
+              }}
+              placeholder="Giải thích ngắn gọn, súc tích bản chất của khái niệm này (Bắt buộc)..."
               className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30"
             />
           </div>
@@ -153,7 +162,8 @@ export function DraftCreateEntityModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+              disabled={!name.trim() || !definition.trim()}
+              className="px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-opacity"
             >
               <span className="material-symbols-outlined text-[16px]">check</span>
               <span>Tạo thực thể</span>

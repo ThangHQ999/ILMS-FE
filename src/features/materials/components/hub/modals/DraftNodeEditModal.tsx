@@ -27,6 +27,7 @@ export function DraftNodeEditModal({
   onOpenFullEntityEditor,
 }: DraftNodeEditModalProps) {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const initial: Record<string, string> = {};
@@ -34,12 +35,34 @@ export function DraftNodeEditModal({
       initial[f.key] = f.value;
     });
     setFormValues(initial);
+    setError('');
   }, [fields, isOpen]);
 
   if (!isOpen) return null;
 
+  const isRequiredField = (fKey: string) => {
+    if (fKey === 'name') return true;
+    if (fKey === 'definition') return true;
+    if (fKey === 'content' && (kind === 'Definition' || path.includes('/definition'))) return true;
+    return false;
+  };
+
+  const hasInvalidRequired = fields.some(
+    (f) => isRequiredField(f.key) && !(formValues[f.key] ?? '').trim()
+  );
+
   const handleSaveAll = (e: React.FormEvent) => {
     e.preventDefault();
+    for (const f of fields) {
+      if (isRequiredField(f.key)) {
+        const val = (formValues[f.key] ?? '').trim();
+        if (!val) {
+          setError(`Trường "${f.label}" là bắt buộc, không được để trống.`);
+          return;
+        }
+      }
+    }
+    setError('');
     Object.entries(formValues).forEach(([key, val]) => {
       onSaveField(key, val);
     });
@@ -78,18 +101,27 @@ export function DraftNodeEditModal({
           </button>
         </div>
 
+        {error && (
+          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">error</span>
+            <span>{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSaveAll} className="space-y-3.5">
           {fields.map((f) => (
             <div key={f.key} className="space-y-1">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                {f.label}
+                {f.label} {isRequiredField(f.key) && <span className="text-rose-500">*</span>}
               </label>
               <textarea
                 rows={f.rows || 2}
+                required={isRequiredField(f.key)}
                 value={formValues[f.key] ?? ''}
-                onChange={(e) =>
-                  setFormValues((prev) => ({ ...prev, [f.key]: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFormValues((prev) => ({ ...prev, [f.key]: e.target.value }));
+                  if (error) setError('');
+                }}
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
@@ -136,7 +168,8 @@ export function DraftNodeEditModal({
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                disabled={hasInvalidRequired}
+                className="px-4 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-opacity"
               >
                 <span className="material-symbols-outlined text-[16px]">check</span>
                 <span>Lưu thay đổi</span>

@@ -26,6 +26,7 @@ export function DraftEntityEditorModal({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [definition, setDefinition] = useState('');
+  const [error, setError] = useState('');
 
   // Sub-items states
   const [processes, setProcesses] = useState<DraftEntity['processes']>([]);
@@ -69,11 +70,22 @@ export function DraftEntityEditorModal({
 
   const handleSaveAll = () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setActiveTab('info');
+      setError('Vui lòng nhập tên thực thể tri thức.');
+      return;
+    }
+    const defTrimmed = definition.trim();
+    if (!defTrimmed) {
+      setActiveTab('info');
+      setError('Định nghĩa cốt lõi (Definition) là bắt buộc. Vui lòng nhập nội dung định nghĩa.');
+      return;
+    }
+    setError('');
     onSave({
       name: trimmed,
       description: description.trim(),
-      definition: { content: definition.trim() },
+      definition: { content: defTrimmed },
       processes,
       exercises,
       examples,
@@ -181,6 +193,13 @@ export function DraftEntityEditorModal({
           </button>
         </div>
 
+        {error && (
+          <div className="mx-5 mt-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">error</span>
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Tab Navigation */}
         <div className="px-5 pt-3 border-b border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 text-xs font-bold">
           <button
@@ -246,25 +265,33 @@ export function DraftEntityEditorModal({
             <div className="space-y-3.5">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Tên thực thể tri thức
+                  Tên thực thể tri thức <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError('');
+                  }}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Định nghĩa cốt lõi (Definition)
+                  Định nghĩa cốt lõi (Definition) <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={4}
+                  required
                   value={definition}
-                  onChange={(e) => setDefinition(e.target.value)}
+                  onChange={(e) => {
+                    setDefinition(e.target.value);
+                    if (error) setError('');
+                  }}
+                  placeholder="Giải thích ngắn gọn bản chất khái niệm (Bắt buộc)..."
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30"
                 />
               </div>
@@ -625,7 +652,8 @@ export function DraftEntityEditorModal({
             <button
               type="button"
               onClick={handleSaveAll}
-              className="px-5 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+              disabled={!name.trim() || !definition.trim()}
+              className="px-5 py-2 rounded-xl bg-[#0059bb] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-opacity"
             >
               <span className="material-symbols-outlined text-[17px]">save</span>
               <span>Lưu thay đổi</span>

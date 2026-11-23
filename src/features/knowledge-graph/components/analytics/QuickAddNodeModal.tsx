@@ -68,7 +68,7 @@ export function QuickAddNodeModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!label.trim()) return;
+    if (!label.trim() || !definition.trim()) return;
 
     const data: Partial<KnowledgeNodeData> = {
       label: label.trim(),
@@ -188,13 +188,14 @@ export function QuickAddNodeModal({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-[#E3E3E3] mb-1.5">
-              Định nghĩa &amp; Bản chất sư phạm
+              Định nghĩa cốt lõi &amp; Bản chất sư phạm <span className="text-rose-500">*</span>
             </label>
             <textarea
               rows={3}
+              required
               value={definition}
               onChange={(e) => setDefinition(e.target.value)}
-              placeholder="Giải thích ngắn gọn bản chất của khái niệm này để sinh viên và AI Tutor tra cứu..."
+              placeholder="Giải thích ngắn gọn bản chất của khái niệm này để sinh viên và AI Tutor tra cứu (Bắt buộc)..."
               className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-[#282A2C] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -237,8 +238,8 @@ export function QuickAddNodeModal({
             </button>
             <button
               type="submit"
-              disabled={!label.trim()}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer border-none shadow-md"
+              disabled={!label.trim() || !definition.trim()}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer border-none shadow-md"
             >
               {isEditing ? 'Lưu cập nhật' : 'Thêm vào Đồ thị'}
             </button>
