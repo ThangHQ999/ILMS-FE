@@ -1,9 +1,9 @@
 'use client';
 
-import { useSyncExternalStore, useCallback, useEffect } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 
-// Auto-collapse sidebar on mobile & tablet viewports (< 1024px) to prevent covering mobile UI
-let sidebarCollapsed = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+// Desktop sidebar collapsed state (persisted in-memory across client-side transitions)
+let sidebarCollapsed = false;
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void) {
@@ -21,9 +21,56 @@ function getServerSnapshot() {
   return false;
 }
 
+// Mobile drawer open/close state (triggered by Hamburger Menu 3-bars button)
+let mobileSidebarOpen = false;
+const mobileListeners = new Set<() => void>();
+
+function subscribeMobile(listener: () => void) {
+  mobileListeners.add(listener);
+  return () => {
+    mobileListeners.delete(listener);
+  };
+}
+
+function getMobileSnapshot() {
+  return mobileSidebarOpen;
+}
+
+function getServerMobileSnapshot() {
+  return false;
+}
+
 /**
- * Shared in-memory sidebar collapse state across client-side route transitions.
- * Auto-collapses on mobile/tablet viewports (< 1024px) to prevent covering main UI.
+ * Hook to control the mobile drawer sidebar via the 3-bars hamburger menu.
+ */
+export function useMobileSidebar() {
+  const isMobileOpen = useSyncExternalStore(
+    subscribeMobile,
+    getMobileSnapshot,
+    getServerMobileSnapshot
+  );
+
+  const setIsMobileOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      const next = typeof value === 'function' ? value(mobileSidebarOpen) : value;
+      if (next !== mobileSidebarOpen) {
+        mobileSidebarOpen = next;
+        mobileListeners.forEach((listener) => listener());
+      }
+    },
+    []
+  );
+
+  const toggleMobileOpen = useCallback(() => {
+    mobileSidebarOpen = !mobileSidebarOpen;
+    mobileListeners.forEach((listener) => listener());
+  }, []);
+
+  return { isMobileOpen, setIsMobileOpen, toggleMobileOpen };
+}
+
+/**
+ * Shared in-memory sidebar collapse state for Desktop viewports.
  */
 export function useSidebarCollapsed() {
   const isSidebarCollapsed = useSyncExternalStore(
@@ -42,23 +89,6 @@ export function useSidebarCollapsed() {
     },
     []
   );
-
-  // Auto-collapse when initialized or resized below 1024px (mobile / tablet breakpoint)
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024 && !sidebarCollapsed) {
-        setIsSidebarCollapsed(true);
-      }
-    };
-
-    // Initial check on mount
-    if (window.innerWidth < 1024 && !sidebarCollapsed) {
-      setIsSidebarCollapsed(true);
-    }
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [setIsSidebarCollapsed]);
 
   return [isSidebarCollapsed, setIsSidebarCollapsed] as const;
 }

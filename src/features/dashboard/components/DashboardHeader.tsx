@@ -8,6 +8,7 @@ import { NotificationDropdown } from './NotificationDropdown';
 import { UserMenuDropdown } from './UserMenuDropdown';
 import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 import { useNotificationStream } from '@/features/notifications';
+import { useMobileSidebar } from '@/hooks/useSidebarCollapsed';
 
 const routeMap: Record<string, string> = {
   '/dashboard': 'Tổng quan',
@@ -85,15 +86,24 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
+  const { toggleMobileOpen } = useMobileSidebar();
   const { latestNotification, clearLatestNotification } = useNotificationStream();
   const isCreateQuiz = pathname?.startsWith('/assignments/create') || pathname?.startsWith('/assignments/create-quiz');
   const currentPageName = title || getPageTitle(pathname || '');
 
   if (isFocus) {
     return (
-      <header className="fixed top-0 left-[72px] right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl z-40 border-b border-slate-200/80 dark:border-[#282A2C] transition-all duration-300">
-        <div className="h-16 w-full px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
+      <header className="fixed top-0 left-0 lg:left-[72px] right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl z-40 border-b border-slate-200/80 dark:border-[#282A2C] transition-all duration-300">
+        <div className="h-16 w-full px-4 sm:px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <button
+              type="button"
+              onClick={toggleMobileOpen}
+              aria-label="Mở menu"
+              className="w-9 h-9 -ml-1 rounded-xl flex items-center justify-center text-slate-700 dark:text-[#E3E3E3] hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors lg:hidden shrink-0 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[24px]">menu</span>
+            </button>
             <nav
               aria-label="Breadcrumb"
               className="flex items-center gap-1.5 text-xs text-[#444746] dark:text-[#8E918F] font-medium whitespace-nowrap shrink-0 flex-nowrap"
@@ -132,12 +142,21 @@ export function DashboardHeader({
   // Header matching unified layout
   return (
     <header
-      className={`fixed top-0 ${
-        isSidebarCollapsed ? 'left-[72px]' : 'left-[72px] lg:left-64'
+      className={`fixed top-0 left-0 ${
+        isSidebarCollapsed ? 'lg:left-[72px]' : 'lg:left-64'
       } right-0 h-16 bg-white/90 dark:bg-[#131314]/95 backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 border-b border-slate-200/80 dark:border-[#282A2C] z-40 transition-all duration-300`}
     >
-      {/* 1. Left: Breadcrumb */}
-      <div className="flex items-center gap-1.5 min-w-0 shrink select-none">
+      {/* 1. Left: Hamburger Button (Mobile only) + Breadcrumb */}
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink select-none">
+        <button
+          type="button"
+          onClick={toggleMobileOpen}
+          aria-label="Mở menu điều hướng"
+          className="w-9 h-9 -ml-1 rounded-xl flex items-center justify-center text-slate-700 dark:text-[#E3E3E3] hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors lg:hidden shrink-0 cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
         <Link
           href="/dashboard"
           prefetch={true}

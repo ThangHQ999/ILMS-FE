@@ -45,8 +45,8 @@ export function DashboardPageView() {
 
       {/* Main Container */}
       <div
-        className={`transition-all duration-300 ${
-          isFocus || isSidebarCollapsed ? 'pl-[72px]' : 'pl-[72px] lg:pl-64'
+        className={`transition-all duration-300 pl-0 ${
+          isFocus || isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-64'
         }`}
       >
         {/* Dynamic Header */}

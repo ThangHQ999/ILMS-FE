@@ -34,10 +34,15 @@
    - **Ma trận Chuẩn đầu ra CLO-PLO:** `src/features/outcomes/components/CloPloMatrixTable.tsx`
      - Tối ưu cột cố định CLO từ `min-w-[240px]` xuống `min-w-[130px] sm:min-w-[220px]`, `line-clamp-1 sm:line-clamp-2` để màn hình 375px vẫn có thể vuốt và click tương tác với các ô ánh xạ PLO.
 
-3. **Cơ chế Tự động Nén Sidebar trên Mobile (Tránh che khuất giao diện):**
-   - **Tự động nhận diện thiết bị:** Cập nhật `src/hooks/useSidebarCollapsed.ts` tự động phát hiện màn hình nhỏ (`window.innerWidth < 1024px`) và lắng nghe sự kiện `resize` để tự động chuyển sang chế độ nén (`sidebarCollapsed = true`).
-   - **Thanh Icon Bar tinh gọn & Drawer Overlay:** Cập nhật `src/features/dashboard/components/DashboardSidebar.tsx` luôn ở dạng thanh icon 72px gọn gàng trên mobile. Khi người dùng chủ động mở rộng trên mobile, sidebar hiển thị dạng Drawer trượt kèm backdrop mờ (`fixed inset-0 bg-black/60 backdrop-blur-xs lg:hidden`); tự động nén lại khi người dùng bấm vào backdrop hoặc chọn một mục điều hướng.
-   - **Định vị Header & Main Container chuẩn xác:** Cập nhật `DashboardHeader.tsx` và các trang chính (`DashboardPageView`, `LessonSessionsPageView`, `ClassListPageView`, `TimetablePageView`, `SettingsPageView`, v.v.) sử dụng `left-[72px] lg:left-64` và `pl-[72px] lg:pl-64`. Trên mobile, nội dung và thanh tiêu đề không bao giờ bị thụt lề 256px gây vỡ layout hay che mất màn hình.
+3. **Chuyển đổi Toàn bộ Sidebar thành Nút 3 gạch (Hamburger Menu Drawer) trên Mobile:**
+   - **Nút 3 gạch (Hamburger Menu Button):** Tích hợp nút 3 gạch `menu` trực tiếp trên `DashboardHeader.tsx` (chỉ hiển thị trên Mobile `lg:hidden`), góc trái cạnh breadcrumb/logo.
+   - **Hook `useMobileSidebar`:** Cung cấp state mở/đóng Drawer và hàm `toggleMobileOpen()` đồng bộ qua `useSyncExternalStore` giữa Header và Sidebar mà không cần prop-drilling qua các trang con.
+   - **Off-canvas Mobile Drawer (`DashboardSidebar.tsx`):**
+     - Trên Mobile (`< lg`): Sidebar mặc định ẩn hoàn toàn khỏi màn hình (`-translate-x-full lg:translate-x-0`).
+     - Khi chạm vào nút 3 gạch: Drawer trượt êm ái ra từ cạnh trái (`translate-x-0 w-72 max-w-[85vw] shadow-2xl`) kèm lớp phủ nền mờ (**Backdrop Overlay** `fixed inset-0 bg-black/60 backdrop-blur-xs z-50`).
+     - Drawer trên Mobile hiển thị đầy đủ logo, các mục điều hướng to rõ ràng, icon sắc nét, nút đóng (X) ở góc phải và tự động đóng lại khi người dùng chọn một trang hoặc chạm ra ngoài màn hình.
+     - Trên Desktop (`>= lg`): Giữ nguyên vẹn tính năng Sidebar truyền thống (mở rộng 256px hoặc thu gọn 72px).
+   - **Full Width 100% cho Main Container trên Mobile:** Cập nhật Header `left-0 lg:left-64` và Main Content `pl-0 lg:pl-64`. Trên điện thoại, giao diện đạt 100% chiều rộng hiển thị, không bị chiếm bất kỳ pixel nào từ Sidebar.
 
 ## 4. Kết quả kiểm tra xác thực
 - `npx tsc --noEmit`: Đạt **0 lỗi** (Exit code 0), đảm bảo 100% TypeScript strict.

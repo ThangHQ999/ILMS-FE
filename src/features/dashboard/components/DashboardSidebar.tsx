@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useMobileSidebar } from '@/hooks/useSidebarCollapsed';
 
 export interface DashboardSidebarProps {
   isFocus?: boolean;
@@ -41,13 +42,14 @@ export function DashboardSidebar({
     setMounted(true);
   }, []);
 
+  const { isMobileOpen, setIsMobileOpen } = useMobileSidebar();
   const { isTeacher: roleIsTeacher } = useUserRole();
   const isTeacher = mounted
     ? (workspaceMode ? workspaceMode === 'faculty' : roleIsTeacher)
     : (workspaceMode === 'faculty');
 
   // In Focus mode, collapse automatically to 72px without triggering any API mutation
-  const collapsed = isFocus || isCollapsed;
+  const isDesktopCollapsed = isFocus || isCollapsed;
 
   // Active route matching (includes teammate routes: /courses, /competency, /timetable)
   const isOverviewActive = pathname === '/dashboard';
@@ -214,255 +216,287 @@ const isClassesActive =
     }
   };
 
-  const handleNavItemClick = () => {
-    // On mobile / tablet viewports (< 1024px), auto-collapse when user selects an item
-    if (typeof window !== 'undefined' && window.innerWidth < 1024 && !collapsed && onToggleCollapse) {
-      onToggleCollapse();
-    }
-  };
-
   return (
     <>
-      {/* Mobile Drawer Overlay Backdrop when expanded on mobile */}
-      {!collapsed && (
+      {/* 1. Mobile Drawer Overlay Backdrop */}
+      {isMobileOpen && (
         <div
-          onClick={handleToggle}
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 lg:hidden animate-in fade-in duration-200"
           aria-hidden="true"
         />
       )}
 
+      {/* 2. Unified Sidebar: Off-canvas Drawer on Mobile, Fixed Column on Desktop */}
       <aside
-        className={`fixed left-0 top-0 h-screen ${
-          collapsed ? 'w-[72px]' : 'w-64 shadow-2xl lg:shadow-none'
-        } bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 z-50 flex flex-col justify-between select-none transition-all duration-300`}
+        className={`fixed left-0 top-0 h-screen z-50 flex flex-col justify-between select-none transition-all duration-300 bg-white dark:bg-[#121620] border-r border-slate-200/80 dark:border-slate-800 ${
+          isMobileOpen
+            ? 'translate-x-0 w-72 max-w-[85vw] shadow-2xl'
+            : '-translate-x-full lg:translate-x-0'
+        } ${
+          isDesktopCollapsed ? 'lg:w-[72px]' : 'lg:w-64'
+        }`}
       >
-      {/* 1. Header (Brand Logo + Top-Edge Collapse/Expand Button) */}
-      <div className="h-[60px] px-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
-        {!collapsed ? (
-          <>
+        {/* 1. Header */}
+        <div className="h-[60px] px-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
+          {/* Mobile Drawer Header: Full Logo + Close Button (X) */}
+          <div className="flex items-center justify-between w-full lg:hidden">
             <Link
               href="/dashboard"
               prefetch={true}
+              onClick={() => setIsMobileOpen(false)}
               className="flex items-center group focus:outline-none min-w-0 h-9"
               title="ILMS EduTech"
             >
               <img
                 src="/logo-full.png"
                 alt="ILMS EduTech"
-                className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                className="h-8 w-auto object-contain"
               />
             </Link>
-
-            {!isFocus && onToggleCollapse && (
-              <button
-                type="button"
-                onClick={handleToggle}
-                aria-label={t('collapseSidebar')}
-                title={t('collapseSidebar')}
-                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-              >
-                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="w-full flex items-center justify-center relative">
-            <Link
-              href="/dashboard"
-              prefetch={true}
-              className="w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-transform"
-              title="ILMS EduTech"
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(false)}
+              aria-label="Đóng menu"
+              className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <img
-                src="/logo-short.png"
-                alt="ILMS"
-                className="w-8 h-8 object-contain"
-              />
-            </Link>
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
 
-            {!isFocus && onToggleCollapse && (
-              <button
-                type="button"
-                onClick={handleToggle}
-                aria-label={t('expandSidebar')}
-                title={t('expandSidebar')}
-                className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:scale-110 transition-transform cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[13px]">chevron_right</span>
-              </button>
+          {/* Desktop Header */}
+          <div className="hidden lg:flex items-center justify-between w-full">
+            {!isDesktopCollapsed ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  className="flex items-center group focus:outline-none min-w-0 h-9"
+                  title="ILMS EduTech"
+                >
+                  <img
+                    src="/logo-full.png"
+                    alt="ILMS EduTech"
+                    className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                  />
+                </Link>
+
+                {!isFocus && onToggleCollapse && (
+                  <button
+                    type="button"
+                    onClick={handleToggle}
+                    aria-label={t('collapseSidebar')}
+                    title={t('collapseSidebar')}
+                    className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="w-full flex items-center justify-center relative">
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-transform"
+                  title="ILMS EduTech"
+                >
+                  <img
+                    src="/logo-short.png"
+                    alt="ILMS"
+                    className="w-8 h-8 object-contain"
+                  />
+                </Link>
+
+                {!isFocus && onToggleCollapse && (
+                  <button
+                    type="button"
+                    onClick={handleToggle}
+                    aria-label={t('expandSidebar')}
+                    title={t('expandSidebar')}
+                    className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:scale-110 transition-transform cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* 2. Scrollable Navigation Area */}
-      <nav
-        suppressHydrationWarning
-        className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none ${
-          collapsed ? 'px-2' : 'px-3'
-        }`}
-      >
-        {navGroups.map((group) => (
-          <div key={group.key} className="space-y-1" suppressHydrationWarning>
-            {!collapsed ? (
-              <div className="px-3 pt-1 pb-1.5">
+        {/* 2. Scrollable Navigation Area */}
+        <nav
+          suppressHydrationWarning
+          className={`flex-1 overflow-y-auto py-3 space-y-4 scrollbar-none px-3 ${
+            isDesktopCollapsed ? 'lg:px-2' : 'lg:px-3'
+          }`}
+        >
+          {navGroups.map((group) => (
+            <div key={group.key} className="space-y-1" suppressHydrationWarning>
+              {/* Group Title: Always visible on Mobile drawer; on Desktop only when not collapsed */}
+              <div className={`px-3 pt-1 pb-1.5 ${isDesktopCollapsed ? 'lg:hidden' : ''}`}>
                 <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
                   {group.title}
                 </span>
               </div>
-            ) : (
-              <div className="h-2 w-full flex items-center justify-center">
-                <div className="h-px w-6 bg-slate-200 dark:bg-slate-800 my-1" />
-              </div>
-            )}
+              {isDesktopCollapsed && (
+                <div className="hidden lg:flex h-2 w-full items-center justify-center">
+                  <div className="h-px w-6 bg-slate-200 dark:bg-slate-800 my-1" />
+                </div>
+              )}
 
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                if (collapsed) {
+              <div className="space-y-1">
+                {group.items.map((item) => {
                   return (
-                    <Link
-                      key={item.href + item.label}
-                      href={item.href}
-                      prefetch={item.href.startsWith('/')}
-                      title={item.label}
-                      onClick={handleNavItemClick}
-                      suppressHydrationWarning
-                      className={`relative flex items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
-                        item.active ? activeClass : inactiveClass
-                      }`}
-                    >
-                      {item.href === '/ai-tutor' ? (
-                        <img
-                          src="/socratic_mascot.png"
-                          alt="AI"
-                          className="w-5 h-5 object-contain"
-                        />
-                      ) : (
-                        <span
-                          className={`material-symbols-outlined text-[20px] ${
-                            !item.active && item.iconColor ? item.iconColor : ''
+                    <React.Fragment key={item.href + item.label}>
+                      {/* Expanded View: Always on Mobile Drawer, and on Desktop when !isDesktopCollapsed */}
+                      <Link
+                        href={item.href}
+                        prefetch={item.href.startsWith('/')}
+                        title={item.label}
+                        onClick={() => setIsMobileOpen(false)}
+                        suppressHydrationWarning
+                        className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
+                          item.active ? activeClass : inactiveClass
+                        } ${isDesktopCollapsed ? 'lg:hidden' : ''}`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0" suppressHydrationWarning>
+                          {item.href === '/ai-tutor' ? (
+                            <img
+                              src="/socratic_mascot.png"
+                              alt="AI"
+                              className="w-5 h-5 object-contain shrink-0"
+                            />
+                          ) : (
+                            <span
+                              className={`material-symbols-outlined text-[20px] shrink-0 ${
+                                !item.active && item.iconColor ? item.iconColor : ''
+                              }`}
+                            >
+                              {item.icon}
+                            </span>
+                          )}
+                          <span className="truncate" suppressHydrationWarning>
+                            {item.label}
+                          </span>
+                        </div>
+                        {item.badge}
+                      </Link>
+
+                      {/* Collapsed Icon View: Desktop Only when isDesktopCollapsed */}
+                      {isDesktopCollapsed && (
+                        <Link
+                          href={item.href}
+                          prefetch={item.href.startsWith('/')}
+                          title={item.label}
+                          onClick={() => setIsMobileOpen(false)}
+                          suppressHydrationWarning
+                          className={`hidden lg:flex relative items-center justify-center w-11 h-11 mx-auto rounded-xl transition-all duration-200 ${
+                            item.active ? activeClass : inactiveClass
                           }`}
                         >
-                          {item.icon}
-                        </span>
+                          {item.href === '/ai-tutor' ? (
+                            <img
+                              src="/socratic_mascot.png"
+                              alt="AI"
+                              className="w-5 h-5 object-contain"
+                            />
+                          ) : (
+                            <span
+                              className={`material-symbols-outlined text-[20px] ${
+                                !item.active && item.iconColor ? item.iconColor : ''
+                              }`}
+                            >
+                              {item.icon}
+                            </span>
+                          )}
+                          {item.badge && (
+                            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 ring-2 ring-white dark:ring-[#121620]" />
+                          )}
+                        </Link>
                       )}
-                      {item.badge && (
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 ring-2 ring-white dark:ring-[#121620]" />
-                      )}
-                    </Link>
+                    </React.Fragment>
                   );
-                }
-
-                return (
-                  <Link
-                    key={item.href + item.label}
-                    href={item.href}
-                    prefetch={item.href.startsWith('/')}
-                    title={item.label}
-                    onClick={handleNavItemClick}
-                    suppressHydrationWarning
-                    className={`flex items-center justify-between gap-3 px-3 h-10 rounded-xl text-sm transition-all duration-200 ${
-                      item.active ? activeClass : inactiveClass
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0" suppressHydrationWarning>
-                      {item.href === '/ai-tutor' ? (
-                        <img
-                          src="/socratic_mascot.png"
-                          alt="AI"
-                          className="w-5 h-5 object-contain shrink-0"
-                        />
-                      ) : (
-                        <span
-                          className={`material-symbols-outlined text-[20px] shrink-0 ${
-                            !item.active && item.iconColor ? item.iconColor : ''
-                          }`}
-                        >
-                          {item.icon}
-                        </span>
-                      )}
-                      <span className="truncate" suppressHydrationWarning>
-                        {item.label}
-                      </span>
-                    </div>
-                    {item.badge}
-                  </Link>
-                );
-              })}
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </nav>
+          ))}
+        </nav>
 
-      {/* 3. Pinned Footer (Help, Settings, Semester Metadata) */}
-      <div
-        className={`shrink-0 pt-2 pb-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-1 ${
-          collapsed ? 'px-2 items-center' : 'px-3'
-        }`}
-      >
-        {collapsed ? (
+        {/* 3. Pinned Footer */}
+        <div
+          className={`shrink-0 pt-2 pb-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-1 px-3 ${
+            isDesktopCollapsed ? 'lg:px-2 lg:items-center' : 'lg:px-3'
+          }`}
+        >
+          {/* Help link */}
           <Link
             href="/settings"
             prefetch={true}
-            onClick={handleNavItemClick}
-            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${inactiveClass}`}
-            title={t('navHelp')}
-          >
-            <span className="material-symbols-outlined text-[20px]">help_outline</span>
-          </Link>
-        ) : (
-          <Link
-            href="/settings"
-            prefetch={true}
-            onClick={handleNavItemClick}
-            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${inactiveClass}`}
+            onClick={() => setIsMobileOpen(false)}
+            className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${inactiveClass} ${
+              isDesktopCollapsed ? 'lg:hidden' : ''
+            }`}
           >
             <span className="material-symbols-outlined text-[19px] shrink-0">help_outline</span>
             <span className="truncate">{t('navHelp')}</span>
           </Link>
-        )}
+          {isDesktopCollapsed && (
+            <Link
+              href="/settings"
+              prefetch={true}
+              onClick={() => setIsMobileOpen(false)}
+              className={`hidden lg:flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${inactiveClass}`}
+              title={t('navHelp')}
+            >
+              <span className="material-symbols-outlined text-[20px]">help_outline</span>
+            </Link>
+          )}
 
-        {collapsed ? (
+          {/* Settings link */}
           <Link
             href="/settings"
             prefetch={true}
-            onClick={handleNavItemClick}
-            className={`flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${
-              isSettingsActive ? activeClass : inactiveClass
-            }`}
-            title={t('navSettings')}
-          >
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-          </Link>
-        ) : (
-          <Link
-            href="/settings"
-            prefetch={true}
-            onClick={handleNavItemClick}
+            onClick={() => setIsMobileOpen(false)}
             className={`flex items-center gap-3 px-3 h-9 rounded-xl text-xs transition-colors ${
               isSettingsActive ? activeClass : inactiveClass
-            }`}
+            } ${isDesktopCollapsed ? 'lg:hidden' : ''}`}
           >
             <span className="material-symbols-outlined text-[19px] shrink-0">settings</span>
             <span className="truncate">{t('navSettings')}</span>
           </Link>
-        )}
+          {isDesktopCollapsed && (
+            <Link
+              href="/settings"
+              prefetch={true}
+              onClick={() => setIsMobileOpen(false)}
+              className={`hidden lg:flex items-center justify-center w-11 h-11 rounded-xl transition-colors ${
+                isSettingsActive ? activeClass : inactiveClass
+              }`}
+              title={t('navSettings')}
+            >
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
+          )}
 
-        {!collapsed ? (
-          <div className="pt-2 px-3 flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+          {/* Version badge */}
+          <div
+            className={`pt-2 px-3 flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 mt-1 ${
+              isDesktopCollapsed ? 'lg:hidden' : ''
+            }`}
+          >
             <span className="truncate">{t('semesterBadge')}</span>
             <span className="font-mono text-[10px] font-semibold text-slate-400">
               {t('systemVersion')}
             </span>
           </div>
-        ) : (
-          <div className="pt-1.5 text-center text-[9px] font-mono font-semibold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 w-8 mx-auto mt-1">
-            {t('systemVersion')}
-          </div>
-        )}
-      </div>
-    </aside>
+          {isDesktopCollapsed && (
+            <div className="hidden lg:block pt-1.5 text-center text-[9px] font-mono font-semibold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/60 w-8 mx-auto mt-1">
+              {t('systemVersion')}
+            </div>
+          )}
+        </div>
+      </aside>
     </>
   );
 }

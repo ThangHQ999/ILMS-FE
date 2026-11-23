@@ -27,8 +27,8 @@ export function TimetablePageView({
       />
 
       <div
-        className={`transition-all duration-300 ${
-          isFocusMode || isSidebarCollapsed ? 'pl-[72px]' : 'pl-[72px] lg:pl-72'
+        className={`transition-all duration-300 pl-0 ${
+          isFocusMode || isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72'
         }`}
       >
         <DashboardHeader
