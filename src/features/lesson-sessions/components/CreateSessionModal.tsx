@@ -31,7 +31,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   defaultRoomId,
   defaultDate,
 }) => {
-  const [roomId, setRoomId] = useState(defaultRoomId || (rooms[0]?.roomId ?? 'Lab 402'));
+  const [roomId, setRoomId] = useState(defaultRoomId ?? '');
   const [sessionDate, setSessionDate] = useState(defaultDate || formatDateIso());
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('10:30');
@@ -43,7 +43,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (selectedRoomOverride) {
+    if (selectedRoomOverride !== undefined) {
       setRoomId(selectedRoomOverride);
     }
   }, [selectedRoomOverride]);
@@ -57,8 +57,8 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Giả lập logic kiểm tra xung đột live khi chọn Lab 402 vào khung giờ sáng
-  const isConflictScenario = roomId.toLowerCase().includes('402') && startTime < '11:00';
+  // Giả lập logic kiểm tra xung đột live khi chọn Lab 402 vào khung giờ sáng (chỉ check khi có roomId)
+  const isConflictScenario = Boolean(roomId) && roomId.toLowerCase().includes('402') && startTime < '11:00';
 
   const conflictInfo: ConflictDetails = {
     roomName: rooms.find((r) => r.roomId === roomId)?.roomName || roomId,
@@ -92,7 +92,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     try {
       setLocalSubmitting(true);
       await onSubmit({
-        roomId,
+        roomId: roomId || null,
         sessionDate,
         startTime,
         endTime,
@@ -165,17 +165,24 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             {/* 1. Chọn Phòng Học */}
             <div className="flex flex-col gap-1.5">
               <label className="font-semibold text-[#444746] dark:text-[#C4C7C5] flex items-center justify-between">
-                <span>Chọn Phòng học *</span>
-                <span className="text-[11px] font-normal text-[#747775] dark:text-[#8E918F]">Tòa Công Nghệ</span>
+                <span>Chọn Phòng học (Tùy chọn)</span>
+                <span className="text-[11px] font-normal text-[#747775] dark:text-[#8E918F]">Học Online / Để trống</span>
               </label>
               <CustomSelect<string>
                 value={roomId}
                 onChange={setRoomId}
-                options={rooms.map((r) => ({
-                  value: r.roomId,
-                  label: r.roomName,
-                  icon: 'location_on',
-                }))}
+                options={[
+                  {
+                    value: '',
+                    label: 'Không chọn phòng (Học Online / Chốt sau)',
+                    icon: 'videocam',
+                  },
+                  ...rooms.map((r) => ({
+                    value: r.roomId,
+                    label: r.roomName,
+                    icon: 'location_on',
+                  })),
+                ]}
                 triggerClassName="bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] rounded-2xl border-none h-11"
               />
             </div>
@@ -288,10 +295,16 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                   <span className="font-semibold block">
                     {isConflictScenario
                       ? `Cảnh báo: Phòng ${conflictInfo?.roomName || roomId} đã có lịch học trùng (${conflictInfo?.conflictingCourse || 'Lớp khác'} - ${conflictInfo?.timeSlot || ''})!`
-                      : `Phòng ${roomId} trống trong khung giờ này ✓`}
+                      : roomId
+                      ? `Phòng ${roomId} trống trong khung giờ này ✓`
+                      : 'Học Online / Chưa gắn phòng học vật lý (Bỏ qua kiểm tra trùng phòng) ✓'}
                   </span>
                   <span className="text-[10px] font-mono opacity-80">
-                    {isConflictScenario ? 'Nhấp vào đây để xem chi tiết xung đột và gợi ý đổi phòng' : 'API ROOM_SCHEDULE_CHECK: OK (status 200)'}
+                    {isConflictScenario
+                      ? 'Nhấp vào đây để xem chi tiết xung đột và gợi ý đổi phòng'
+                      : roomId
+                      ? 'API ROOM_SCHEDULE_CHECK: OK (status 200)'
+                      : 'API ROOM_SCHEDULE_CHECK: SKIPPED (roomId is null)'}
                   </span>
                 </div>
               </div>

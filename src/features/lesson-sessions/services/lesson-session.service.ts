@@ -355,11 +355,17 @@ export async function updateLessonSession(
 ): Promise<LessonSession> {
   const current = getStoredSessions();
   let updatedFromApi: LessonSession | null = null;
+  const isClearingRoom = !payload.roomId || payload.roomId === '' || payload.clearRoom;
+  const apiPayload = {
+    ...payload,
+    roomId: isClearingRoom ? null : payload.roomId,
+    clearRoom: isClearingRoom ? true : undefined,
+  };
 
   try {
     const res = await api.put<ApiResponse<LessonSession> | LessonSession>(
       `/classes/${classId}/lesson-sessions/${lessonSessionId}`,
-      payload
+      apiPayload
     );
     const data = res.data;
     if (data && 'data' in data && data.data) updatedFromApi = data.data;
@@ -368,7 +374,7 @@ export async function updateLessonSession(
     try {
       const res = await api.put<ApiResponse<LessonSession> | LessonSession>(
         `/classes/${classId}/lessonSessions/${lessonSessionId}`,
-        payload
+        apiPayload
       );
       const data = res.data;
       if (data && 'data' in data && data.data) updatedFromApi = data.data;
@@ -379,8 +385,12 @@ export async function updateLessonSession(
   }
 
   const existing = current.find((s) => s.lessonSessionId === lessonSessionId);
-  const selectedRoom = MOCK_ROOMS.find((r) => r.roomId === payload.roomId);
-  const roomName = selectedRoom ? selectedRoom.roomName : (payload.roomId || existing?.roomName || 'Phòng học');
+  const selectedRoom = !isClearingRoom && payload.roomId ? MOCK_ROOMS.find((r) => r.roomId === payload.roomId) : undefined;
+  const roomName = isClearingRoom
+    ? 'Học Online / Chưa xếp phòng'
+    : selectedRoom
+    ? selectedRoom.roomName
+    : payload.roomId || existing?.roomName || 'Phòng học';
 
   const updated: LessonSession = updatedFromApi || {
     ...(existing || {
@@ -398,7 +408,7 @@ export async function updateLessonSession(
     endTime: payload.endTime || existing?.endTime || '09:30',
     startShift: payload.startShift ?? existing?.startShift ?? 1,
     endShift: payload.endShift ?? existing?.endShift ?? 3,
-    roomId: payload.roomId || existing?.roomId || 'room-1',
+    roomId: isClearingRoom ? null : (payload.roomId || existing?.roomId || null),
     roomName,
     note: payload.note !== undefined ? payload.note : existing?.note || '',
   };
@@ -451,38 +461,53 @@ export async function createLessonSession(
   classId: string,
   payload: CreateLessonSessionRequest
 ): Promise<LessonSession> {
-  const selectedRoom = MOCK_ROOMS.find((r) => r.roomId === payload.roomId);
-  const roomName = selectedRoom ? selectedRoom.roomName : payload.roomId;
+  const selectedRoom = payload.roomId ? MOCK_ROOMS.find((r) => r.roomId === payload.roomId) : undefined;
+  const roomName = selectedRoom
+    ? selectedRoom.roomName
+    : payload.roomId
+    ? payload.roomId
+    : 'Học Online / Chưa xếp phòng';
 
   const current = getStoredSessions();
 
-  // Validate conflict against existing sessions
-  const hasInternalConflict = current.some((s) => {
-    const sameRoom =
-      checkRoomMatch(s.roomId, payload.roomId) ||
-      checkRoomMatch(s.roomName, payload.roomId);
-    const sameDate = s.sessionDate === payload.sessionDate;
-    const timeOverlap = checkTimeOverlap(payload.startTime, payload.endTime, s.startTime, s.endTime);
-    return sameRoom && sameDate && timeOverlap;
-  });
+  const targetRoom = payload.roomId;
 
-  // Validate conflict against external schedule
-  const hasExternalConflict = EXTERNAL_CONFLICTS.some((ext) => {
-    const sameRoom = checkRoomMatch(ext.roomName, payload.roomId);
-    const sameDate = ext.date === payload.sessionDate;
-    const [extStart, extEnd] = ext.timeSlot.split(' - ');
-    const timeOverlap = checkTimeOverlap(payload.startTime, payload.endTime, extStart, extEnd);
-    return sameRoom && sameDate && timeOverlap;
-  });
+  // Validate conflict against existing sessions (chỉ kiểm tra khi có roomId vật lý)
+  const hasInternalConflict =
+    Boolean(targetRoom) &&
+    current.some((s) => {
+      const sameRoom =
+        checkRoomMatch(s.roomId, targetRoom) ||
+        checkRoomMatch(s.roomName, targetRoom);
+      const sameDate = s.sessionDate === payload.sessionDate;
+      const timeOverlap = checkTimeOverlap(payload.startTime, payload.endTime, s.startTime, s.endTime);
+      return sameRoom && sameDate && timeOverlap;
+    });
+
+  // Validate conflict against external schedule (chỉ kiểm tra khi có roomId vật lý)
+  const hasExternalConflict =
+    Boolean(targetRoom) &&
+    EXTERNAL_CONFLICTS.some((ext) => {
+      const sameRoom = checkRoomMatch(ext.roomName, targetRoom);
+      const sameDate = ext.date === payload.sessionDate;
+      const [extStart, extEnd] = ext.timeSlot.split(' - ');
+      const timeOverlap = checkTimeOverlap(payload.startTime, payload.endTime, extStart, extEnd);
+      return sameRoom && sameDate && timeOverlap;
+    });
 
   if (hasInternalConflict || hasExternalConflict) {
     throw new Error('ROOM_SCHEDULE_CONFLICT: Ca học bị trùng phòng và khung giờ với ca học đã có!');
   }
 
+  const apiPayload = {
+    ...payload,
+    roomId: payload.roomId ? payload.roomId : null,
+  };
+
   try {
     const res = await api.post<ApiResponse<LessonSession> | LessonSession>(
       `/classes/${classId}/lesson-sessions`,
-      payload
+      apiPayload
     );
     const data = res.data;
     if (data && 'data' in data && data.data) return data.data;
@@ -491,7 +516,7 @@ export async function createLessonSession(
     try {
       const res = await api.post<ApiResponse<LessonSession> | LessonSession>(
         `/classes/${classId}/lessonSessions`,
-        payload
+        apiPayload
       );
       const data = res.data;
       if (data && 'data' in data && data.data) return data.data;
@@ -512,7 +537,7 @@ export async function createLessonSession(
     endTime: payload.endTime,
     startShift: payload.startShift,
     endShift: payload.endShift,
-    roomId: payload.roomId,
+    roomId: payload.roomId ? payload.roomId : null,
     roomName,
     instructorName: 'ThS. Nguyễn Văn An',
     note: payload.note || '',

@@ -11,7 +11,7 @@ export const createLessonSessionSchema = z
       .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Định dạng giờ không hợp lệ (HH:mm)' }),
     startShift: z.coerce.number().min(1).max(12),
     endShift: z.coerce.number().min(1).max(12),
-    roomId: z.string().min(1, { message: 'Vui lòng chọn phòng học' }),
+    roomId: z.string().nullable().optional(),
     note: z.string().optional(),
     sendEmailNotification: z.boolean().default(true),
   })

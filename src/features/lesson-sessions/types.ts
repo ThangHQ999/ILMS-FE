@@ -11,7 +11,7 @@ export interface LessonSession {
   endTime: string;           // HH:mm
   startShift: number;
   endShift: number;
-  roomId: string;
+  roomId?: string | null;
   roomName: string;
   building?: string;
   instructorName?: string;
@@ -22,7 +22,8 @@ export interface LessonSession {
 }
 
 export interface CreateLessonSessionRequest {
-  roomId: string;
+  roomId?: string | null;
+  clearRoom?: boolean;
   sessionDate: string;
   startTime: string;
   endTime: string;

@@ -85,7 +85,11 @@ export function TimetableCreateSessionModal({
 
     const selectedClass = classesList.find((c: ClassItem) => c.id === classId);
     const effectiveRoomName =
-      roomId === 'custom' ? customRoom.trim() : PRESET_ROOMS.find((r) => r.id === roomId)?.name;
+      roomId === 'custom'
+        ? customRoom.trim()
+        : roomId
+        ? PRESET_ROOMS.find((r) => r.id === roomId)?.name
+        : 'Học Online / Chưa xếp phòng';
 
     if (roomId === 'custom' && !customRoom.trim()) {
       setLocalError('Vui lòng nhập tên phòng học.');
@@ -99,7 +103,7 @@ export function TimetableCreateSessionModal({
       endShift,
       startTime: `${startTimeStr}:00`,
       endTime: `${endTimeStr}:00`,
-      roomId: roomId === 'custom' ? customRoom.trim() : roomId,
+      roomId: roomId === 'custom' ? customRoom.trim() : roomId ? roomId : undefined,
       roomName: effectiveRoomName,
       courseId: (selectedClass as unknown as { subjectCode?: string })?.subjectCode || undefined,
       note: note.trim() || undefined,
@@ -243,14 +247,16 @@ export function TimetableCreateSessionModal({
 
           {/* Room selection */}
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700 dark:text-[#C4C7C5] block">
-              Phòng học <span className="text-rose-500">*</span>
+            <label className="font-semibold text-slate-700 dark:text-[#C4C7C5] block flex items-center justify-between">
+              <span>Phòng học (Tùy chọn)</span>
+              <span className="text-[11px] font-normal text-slate-400">Học Online / Để trống</span>
             </label>
             <select
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
               className="w-full h-10 px-3 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-slate-900 dark:text-[#E3E3E3] font-medium text-xs outline-none"
             >
+              <option value="">Không chọn phòng (Học Online / Chốt sau)</option>
               {PRESET_ROOMS.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}

@@ -82,8 +82,8 @@ export const createLessonSessionSchema = z.object({
   endTime: z.string().min(1, 'Vui lòng chọn giờ kết thúc'),
   startShift: z.number().int().min(1).max(12).default(1),
   endShift: z.number().int().min(1).max(12).default(3),
-  roomId: z.string().min(1, 'Vui lòng chọn hoặc nhập phòng học'),
-  roomName: z.string().optional(),
+  roomId: z.string().nullable().optional(),
+  roomName: z.string().nullable().optional(),
   note: z.string().optional(),
 });
 

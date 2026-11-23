@@ -34,7 +34,7 @@ export function checkTimeOverlap(startA: string, endA: string, startB: string, e
   return aStart < bEnd && aEnd > bStart;
 }
 
-export function checkRoomMatch(rA: string, rB: string): boolean {
+export function checkRoomMatch(rA?: string | null, rB?: string | null): boolean {
   if (!rA || !rB) return false;
   const a = rA.toLowerCase().trim();
   const b = rB.toLowerCase().trim();

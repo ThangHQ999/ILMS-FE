@@ -37,7 +37,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   const isEdit = mode === 'edit' && Boolean(session);
 
   const [roomId, setRoomId] = useState<string>(() => {
-    return session?.roomId || rooms[0]?.roomId || 'Lab 402';
+    return session?.roomId || '';
   });
   const [sessionDate, setSessionDate] = useState<string>(() => {
     return session?.sessionDate || defaultDate || formatDateIso();
@@ -63,7 +63,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
 
   useEffect(() => {
     if (session && mode === 'edit') {
-      setRoomId(session.roomId || rooms[0]?.roomId || 'Lab 402');
+      setRoomId(session.roomId || '');
       setSessionDate(session.sessionDate);
       setStartShift(session.startShift || 1);
       setEndShift(session.endShift || 3);
@@ -80,6 +80,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         if (startInfo) setStartTime(startInfo.timeRange.split(' - ')[0]);
         if (endInfo) setEndTime(endInfo.timeRange.split(' - ')[1]);
       }
+      setRoomId('');
       setNote('');
     }
     setConfirmDelete(false);
@@ -110,9 +111,9 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       return;
     }
 
-    // Check conflict demo
+    // Check conflict demo (chỉ check khi có roomId)
     const isConflictScenario =
-      !isEdit && roomId.toLowerCase().includes('402') && startTime < '11:00';
+      !isEdit && Boolean(roomId) && roomId.toLowerCase().includes('402') && startTime < '11:00';
     if (isConflictScenario && onTriggerConflict) {
       onTriggerConflict({
         roomName: rooms.find((r) => r.roomId === roomId)?.roomName || roomId,
@@ -127,7 +128,8 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
 
     try {
       await onSubmit({
-        roomId,
+        roomId: roomId || null,
+        clearRoom: !roomId ? true : undefined,
         sessionDate,
         startTime,
         endTime,
@@ -213,16 +215,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5">
-                Phòng học <span className="text-red-500">*</span>
+              <label className="text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5 flex items-center justify-between">
+                <span>Phòng học (Tùy chọn)</span>
+                <span className="text-[10px] text-gray-500 font-normal">Học Online / Để trống</span>
               </label>
               <CustomSelect<string>
                 value={roomId}
                 onChange={setRoomId}
-                options={rooms.map((r) => ({
-                  value: r.roomId,
-                  label: r.roomName,
-                }))}
+                options={[
+                  {
+                    value: '',
+                    label: 'Không chọn phòng (Học Online / Chốt sau)',
+                  },
+                  ...rooms.map((r) => ({
+                    value: r.roomId,
+                    label: r.roomName,
+                  })),
+                ]}
                 variant="pill"
                 className="w-full"
               />
