@@ -79,6 +79,9 @@ export function MaterialsHubPageView() {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isQueueCollapsed, setIsQueueCollapsed] = useState(false);
+  const [isCompactList, setIsCompactList] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const [statusFilter, setStatusFilter] = useState<StatusFilterKey>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,6 +164,178 @@ export function MaterialsHubPageView() {
     if (!selectedJobId) return null;
     return jobs.find((j) => j.jobId === selectedJobId) ?? null;
   }, [jobs, selectedJobId]);
+
+  interface StatusGroup {
+    id: 'awaiting' | 'completed' | 'failed';
+    title: string;
+    icon: string;
+    iconColor: string;
+    jobs: IngestionJobSummary[];
+  }
+
+  const jobGroups = useMemo<StatusGroup[]>(() => {
+    const awaitingJobs: IngestionJobSummary[] = [];
+    const completedJobs: IngestionJobSummary[] = [];
+    const failedJobs: IngestionJobSummary[] = [];
+
+    filteredJobs.forEach((job) => {
+      if (job.status === 'FAILED') {
+        failedJobs.push(job);
+      } else if (isCompletedIngestionJobStatus(job.status)) {
+        completedJobs.push(job);
+      } else {
+        awaitingJobs.push(job);
+      }
+    });
+
+    const groups: StatusGroup[] = [];
+    if (awaitingJobs.length > 0) {
+      groups.push({
+        id: 'awaiting',
+        title: 'Cần duyệt & Đang xử lý',
+        icon: 'pending_actions',
+        iconColor: 'text-amber-500',
+        jobs: awaitingJobs,
+      });
+    }
+    if (completedJobs.length > 0) {
+      groups.push({
+        id: 'completed',
+        title: 'Đã xuất bản Neo4j',
+        icon: 'task_alt',
+        iconColor: 'text-emerald-500',
+        jobs: completedJobs,
+      });
+    }
+    if (failedJobs.length > 0) {
+      groups.push({
+        id: 'failed',
+        title: 'Bóc tách thất bại',
+        icon: 'error',
+        iconColor: 'text-rose-500',
+        jobs: failedJobs,
+      });
+    }
+    return groups;
+  }, [filteredJobs]);
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  }, []);
+
+  const areAllGroupsCollapsed = useMemo(() => {
+    if (jobGroups.length === 0) return false;
+    return jobGroups.every((g) => collapsedGroups[g.id]);
+  }, [jobGroups, collapsedGroups]);
+
+  const toggleAllGroups = useCallback(() => {
+    const nextVal = !areAllGroupsCollapsed;
+    const nextState: Record<string, boolean> = {};
+    jobGroups.forEach((g) => {
+      nextState[g.id] = nextVal;
+    });
+    setCollapsedGroups(nextState);
+  }, [areAllGroupsCollapsed, jobGroups]);
+
+  const renderJobCard = (job: IngestionJobSummary) => {
+    const isSelected = job.jobId === selectedJobId;
+    if (isCompactList) {
+      return (
+        <button
+          key={job.jobId}
+          type="button"
+          onClick={() => handleSelectJob(job.jobId)}
+          className={`w-full text-left rounded-xl px-3 py-2 border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+            isSelected
+              ? 'bg-blue-50/80 dark:bg-blue-950/50 border-blue-500 shadow-xs ring-1 ring-blue-500/20'
+              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700'
+          }`}
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span
+              className={`material-symbols-outlined text-[18px] shrink-0 ${
+                job.status === 'FAILED'
+                  ? 'text-rose-500'
+                  : job.status === 'AWAITING_REVIEW'
+                  ? 'text-amber-500'
+                  : 'text-blue-600 dark:text-blue-400'
+              }`}
+            >
+              {job.status === 'FAILED'
+                ? 'error'
+                : job.status === 'AWAITING_REVIEW'
+                ? 'rate_review'
+                : 'description'}
+            </span>
+            <span
+              className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate"
+              title={job.title}
+            >
+              {job.title}
+            </span>
+          </div>
+          <div className="shrink-0 flex items-center gap-1.5">
+            {job.status === 'AWAITING_REVIEW' && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-white shadow-xs">
+                <span className="material-symbols-outlined text-[11px]">rate_review</span>
+                Cần duyệt
+              </span>
+            )}
+            {renderJobBadge(job.status)}
+          </div>
+        </button>
+      );
+    }
+
+    return (
+      <button
+        key={job.jobId}
+        type="button"
+        onClick={() => handleSelectJob(job.jobId)}
+        className={`w-full text-left rounded-2xl p-3.5 sm:p-4 border transition-all cursor-pointer ${
+          isSelected
+            ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-xs'
+            : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700'
+        }`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-2">
+            {job.title}
+          </h4>
+          <div className="shrink-0 flex items-center gap-1.5">
+            {job.status === 'AWAITING_REVIEW' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
+                <span className="material-symbols-outlined text-[12px]">rate_review</span>
+                Cần duyệt
+              </span>
+            )}
+            {renderJobBadge(job.status)}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+          {(job.courseTitle || job.subject) && (
+            <span className="truncate max-w-[180px] font-medium text-slate-600 dark:text-slate-300">
+              {job.courseTitle || job.subject}
+            </span>
+          )}
+          {job.stage && (
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+              {job.stage}
+            </span>
+          )}
+          {job.hasBlockers && (
+            <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
+              • BLOCKER
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  };
 
   const handleDirectUpload = (formData: FormData) => {
     const isStorageOnly = formData.get('isStorageOnly') === 'true';
@@ -399,125 +574,245 @@ export function MaterialsHubPageView() {
             </div>
           </div>
 
-          {/* Master-Detail Split Grid (4/12 Left Job Queue · 8/12 Right Draft Review Studio) */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+          {/* Master-Detail Split Layout (Collapsible Left Queue · Fluid Right Review Studio) */}
+          <div className="flex flex-col xl:flex-row gap-5 items-start">
             {/* Left Master Column */}
-            <div className="xl:col-span-4 flex flex-col gap-2.5 max-h-[760px] overflow-y-auto pr-1">
-              {isLoading ? (
-                [1, 2, 3, 4].map((n) => (
-                  <div
-                    key={n}
-                    className="h-24 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 animate-pulse space-y-2.5"
-                  >
-                    <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-3 w-1/2 rounded bg-slate-100 dark:bg-slate-800/70" />
+            {isQueueCollapsed ? (
+              <div className="hidden xl:flex w-14 shrink-0 flex-col items-center py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 gap-2 shadow-xs transition-all">
+                <button
+                  type="button"
+                  onClick={() => setIsQueueCollapsed(false)}
+                  className="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors cursor-pointer"
+                  title="Mở rộng danh sách tài liệu"
+                >
+                  <span className="material-symbols-outlined text-[22px]">last_page</span>
+                </button>
+                <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800 my-0.5" />
+                <span
+                  className="text-[10px] font-bold text-slate-400 font-mono"
+                  title={`${filteredJobs.length} tài liệu`}
+                >
+                  {filteredJobs.length}
+                </span>
+                <div className="flex flex-col gap-1.5 w-full items-center max-h-[640px] overflow-y-auto px-1">
+                  {filteredJobs.map((j) => {
+                    const isSel = j.jobId === selectedJobId;
+                    return (
+                      <button
+                        key={j.jobId}
+                        type="button"
+                        onClick={() => handleSelectJob(j.jobId)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer relative ${
+                          isSel
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                        title={`${j.title} (${j.status})`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {j.status === 'FAILED'
+                            ? 'error'
+                            : j.status === 'AWAITING_REVIEW'
+                            ? 'rate_review'
+                            : 'description'}
+                        </span>
+                        <span
+                          className={`absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full border border-white dark:border-slate-900 ${
+                            j.status === 'FAILED'
+                              ? 'bg-rose-500'
+                              : j.status === 'AWAITING_REVIEW'
+                              ? 'bg-amber-500'
+                              : 'bg-emerald-500'
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="w-full xl:w-[380px] shrink-0 flex flex-col gap-2.5 max-h-[760px] overflow-y-auto pr-1">
+                {/* Header điều khiển danh sách tài liệu */}
+                <div className="flex items-center justify-between px-1 pb-0.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400 shrink-0">
+                      folder_open
+                    </span>
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                      Tài liệu bóc tách ({filteredJobs.length})
+                    </h3>
                   </div>
-                ))
-              ) : isError ? (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 space-y-2">
-                  <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
-                    Không thể tải danh sách tiến trình AI
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => void refetch()}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#0059bb] text-white text-xs font-bold cursor-pointer"
-                  >
-                    Thử lại
-                  </button>
-                </div>
-              ) : jobs.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center border border-dashed border-slate-300 dark:border-slate-700 space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
-                    <span className="material-symbols-outlined text-[26px]">auto_awesome</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Chưa có tiến trình bóc tách AI nào
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Tải tài liệu trực tiếp tại đây hoặc bấm &ldquo;Bóc tách AI&rdquo; từ tab Tài liệu trong khóa học.
-                  </p>
-                  {canUploadOrReview && (
-                    <button
-                      type="button"
-                      onClick={() => setIsUploadOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0059bb] text-white text-xs font-bold cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">cloud_upload</span>
-                      <span>Tải tài liệu đầu tiên</span>
-                    </button>
-                  )}
-                </div>
-              ) : filteredJobs.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 space-y-2">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Không có tiến trình nào khớp bộ lọc hiện tại.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStatusFilter('ALL');
-                      setSearchQuery('');
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
-                  >
-                    Đặt lại bộ lọc
-                  </button>
-                </div>
-              ) : (
-                filteredJobs.map((job) => {
-                  const isSelected = job.jobId === selectedJobId;
-                  return (
-                    <button
-                      key={job.jobId}
-                      type="button"
-                      onClick={() => handleSelectJob(job.jobId)}
-                      className={`w-full text-left rounded-2xl p-4 border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-500 shadow-xs'
-                          : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-2">
-                          {job.title}
-                        </h4>
-                        <div className="shrink-0 flex items-center gap-1.5">
-                          {job.status === 'AWAITING_REVIEW' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
-                              <span className="material-symbols-outlined text-[12px]">rate_review</span>
-                              Cần duyệt
-                            </span>
-                          )}
-                          {renderJobBadge(job.status)}
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Nút thu gọn / mở rộng tất cả nhóm */}
+                    {statusFilter === 'ALL' && jobGroups.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={toggleAllGroups}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        title={areAllGroupsCollapsed ? 'Mở rộng tất cả các nhóm' : 'Thu gọn tất cả các nhóm'}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {areAllGroupsCollapsed ? 'unfold_more' : 'unfold_less'}
+                        </span>
+                      </button>
+                    )}
 
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                        {(job.courseTitle || job.subject) && (
-                          <span className="truncate max-w-[180px] font-medium text-slate-600 dark:text-slate-300">
-                            {job.courseTitle || job.subject}
-                          </span>
-                        )}
-                        {job.stage && (
-                          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
-                            {job.stage}
-                          </span>
-                        )}
-                        {job.hasBlockers && (
-                          <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
-                            • BLOCKER
-                          </span>
-                        )}
-                      </div>
+                    {/* Nút chuyển chế độ xem thu gọn */}
+                    <button
+                      type="button"
+                      onClick={() => setIsCompactList((prev) => !prev)}
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        isCompactList
+                          ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400'
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                      title={isCompactList ? 'Chuyển sang chế độ xem chi tiết' : 'Chuyển sang chế độ xem thu gọn (Compact)'}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {isCompactList ? 'density_small' : 'density_medium'}
+                      </span>
                     </button>
-                  );
-                })
-              )}
-            </div>
+
+                    {/* Nút thu gọn cột panel */}
+                    <button
+                      type="button"
+                      onClick={() => setIsQueueCollapsed(true)}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer hidden xl:inline-flex"
+                      title="Thu gọn cột danh sách (Mở rộng toàn màn hình làm việc)"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">first_page</span>
+                    </button>
+                  </div>
+                </div>
+
+                {isLoading ? (
+                  [1, 2, 3, 4].map((n) => (
+                    <div
+                      key={n}
+                      className="h-24 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 animate-pulse space-y-2.5"
+                    >
+                      <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-3 w-1/2 rounded bg-slate-100 dark:bg-slate-800/70" />
+                    </div>
+                  ))
+                ) : isError ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 space-y-2">
+                    <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                      Không thể tải danh sách tiến trình AI
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void refetch()}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#0059bb] text-white text-xs font-bold cursor-pointer"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
+                ) : jobs.length === 0 ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center border border-dashed border-slate-300 dark:border-slate-700 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
+                      <span className="material-symbols-outlined text-[26px]">auto_awesome</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      Chưa có tiến trình bóc tách AI nào
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Tải tài liệu trực tiếp tại đây hoặc bấm &ldquo;Bóc tách AI&rdquo; từ tab Tài liệu trong khóa học.
+                    </p>
+                    {canUploadOrReview && (
+                      <button
+                        type="button"
+                        onClick={() => setIsUploadOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0059bb] text-white text-xs font-bold cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">cloud_upload</span>
+                        <span>Tải tài liệu đầu tiên</span>
+                      </button>
+                    )}
+                  </div>
+                ) : filteredJobs.length === 0 ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 space-y-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Không có tiến trình nào khớp bộ lọc hiện tại.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter('ALL');
+                        setSearchQuery('');
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                    >
+                      Đặt lại bộ lọc
+                    </button>
+                  </div>
+                ) : statusFilter === 'ALL' && jobGroups.length > 0 ? (
+                  <div className="space-y-3">
+                    {jobGroups.map((group) => {
+                      const isCollapsed = Boolean(collapsedGroups[group.id]);
+                      return (
+                        <div key={group.id} className="space-y-1.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleGroup(group.id)}
+                            className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/70 hover:bg-slate-200/90 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className={`material-symbols-outlined text-[16px] ${group.iconColor}`}>
+                                {group.icon}
+                              </span>
+                              <span className="truncate">{group.title}</span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                {group.jobs.length}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                              <span>{isCollapsed ? 'Thu gọn' : 'Mở rộng'}</span>
+                              <span className="material-symbols-outlined text-[18px]">
+                                {isCollapsed ? 'expand_more' : 'expand_less'}
+                              </span>
+                            </div>
+                          </button>
+
+                          {!isCollapsed && (
+                            <div className="space-y-2 pl-0.5">
+                              {group.jobs.map((job) => renderJobCard(job))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredJobs.map((job) => renderJobCard(job))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Right Detail & Draft Review Column */}
-            <div className="xl:col-span-8">
+            <div className="flex-1 min-w-0 w-full">
+              {isQueueCollapsed && (
+                <div className="mb-3 flex items-center justify-between bg-blue-50/70 dark:bg-blue-950/30 p-2.5 rounded-2xl border border-blue-200/70 dark:border-blue-900/50">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">
+                      view_sidebar
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Đang ở chế độ toàn màn hình Studio ({filteredJobs.length} tài liệu)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsQueueCollapsed(false)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">last_page</span>
+                    <span>Mở lại danh sách tài liệu</span>
+                  </button>
+                </div>
+              )}
               <JobDetailReviewPanel
                 jobId={selectedJobId}
                 summary={selectedSummary}
