@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { TimetableSession } from '../types';
-import { MOCK_STUDENTS } from '@/features/lesson-sessions/constants';
+import { useClassStudents } from '@/features/lesson-sessions';
 
 interface TimetableClassStudentsModalProps {
   isOpen: boolean;
@@ -19,12 +19,9 @@ export function TimetableClassStudentsModal({
   const t = useTranslations('timetable.studentsModal');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Get students list for this class (simulate roster matching studentCount)
-  const students = useMemo(() => {
-    if (!session) return [];
-    const count = Math.min(session.studentsCount, MOCK_STUDENTS.length);
-    return MOCK_STUDENTS.slice(0, count);
-  }, [session]);
+  const { data: students = [] } = useClassStudents(
+    isOpen && session?.classId ? session.classId : ''
+  );
 
   // Filter students based on search query
   const filteredStudents = useMemo(() => {

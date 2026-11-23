@@ -35,7 +35,7 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
       (session.note && session.note.toLowerCase().includes(searchTerm.toLowerCase()));
 
     if (!matchesSearch) return false;
-    const total = session.totalStudents ?? 45;
+    const total = session.totalStudents ?? 0;
     const attended = session.attendedCount ?? 0;
     const isFullyAttended = attended >= total && total > 0;
 
@@ -149,7 +149,7 @@ export const LessonSessionTable: React.FC<LessonSessionTableProps> = ({
                 </tr>
               ) : (
                 filteredSessions.map((session) => {
-                  const total = session.totalStudents ?? 45;
+                  const total = session.totalStudents ?? 0;
                   const attended = session.attendedCount ?? 0;
                   const isFullyAttended = attended >= total && total > 0;
 

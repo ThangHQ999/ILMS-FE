@@ -388,8 +388,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 10/15',
         completedLessons: '18/24',
         instructorInfo: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 GV',
-        capacityText: `${item.enrolledCount || 42}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 42) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'warning',
           icon: 'pending_actions',
@@ -411,8 +411,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 9/15',
         completedLessons: '14/20',
         instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount || 38}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 38) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'info',
           icon: 'assignment_turned_in',
@@ -434,8 +434,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 12/15',
         completedLessons: '22/26',
         instructorInfo: 'ThS. Hoàng Minh Tuấn • 1 GV',
-        capacityText: `${item.enrolledCount || 45}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 45) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'warning',
           icon: 'how_to_reg',
@@ -457,8 +457,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 7/15',
         completedLessons: '11/18',
         instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount || 36}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 36) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'danger',
           icon: 'alarm',
@@ -480,8 +480,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 10/15',
         completedLessons: '16/22',
         instructorInfo: 'TS. Lê Hoàng Nam • 1 GV',
-        capacityText: `${item.enrolledCount || 48}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 48) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'success',
           icon: 'check_circle',
@@ -503,8 +503,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         curriculumWeek: 'Tuần 6/15',
         completedLessons: '9/18',
         instructorInfo: 'TS. Nguyễn Bảo Anh • 3 GV',
-        capacityText: `${item.enrolledCount || 40}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount || 40) / 60) * 100),
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
+        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
         alert: {
           type: 'purple',
           icon: 'smart_toy',
@@ -518,7 +518,7 @@ export const ClassCardItem = React.memo(function ClassCardItem({
     }
 
     // Default / Newly Created Class (e.g. d1)
-    const enrolled = item.enrolledCount || 42;
+    const enrolled = item.enrolledCount ?? 0;
     const maxStudents = item.maxStudents || 60;
     return {
       ploPassRate: 88.0,
@@ -621,7 +621,7 @@ export const ClassCardItem = React.memo(function ClassCardItem({
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
-                    <span>Xem thành viên ({item.enrolledCount || 42})</span>
+                    <span>Xem thành viên ({item.enrolledCount ?? 0})</span>
                   </Link>
 
                   <button

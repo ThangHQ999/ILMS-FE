@@ -23,7 +23,7 @@ export const MOCK_CLASS_INFO: ClassItem = {
   semester: 'Học kỳ 1 • Niên khóa 2024–2025',
   major: 'Khoa học Máy tính',
   maxStudents: 50,
-  enrolledCount: 42,
+  enrolledCount: 0,
   enrollmentKey: 'CNTT-K22-01',
   isCodeClosed: false,
   status: 'ACTIVE',

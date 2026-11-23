@@ -187,7 +187,7 @@ export function ClassGradebookTab({
                 {aiAnalysis.ploPassRate || 88.1}%
               </span>
               <span className="text-xs font-semibold text-gray-500 dark:text-[#8E918F]">
-                {aiAnalysis.ploPassedCount || 37} / {aiAnalysis.totalStudents || 42} sinh viên
+                {aiAnalysis.ploPassedCount ?? 0} / {aiAnalysis.totalStudents ?? students.length} sinh viên
               </span>
             </div>
 
@@ -446,7 +446,7 @@ export function ClassGradebookTab({
 
           <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
             <span>
-              Hiển thị: <strong className="text-slate-900 dark:text-slate-100 font-bold">{filteredStudents.length} / {aiAnalysis.totalStudents || 42}</strong> sinh viên
+              Hiển thị: <strong className="text-slate-900 dark:text-slate-100 font-bold">{filteredStudents.length} / {aiAnalysis.totalStudents ?? students.length}</strong> sinh viên
             </span>
             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
             <span className="text-blue-600 dark:text-blue-400 font-semibold">

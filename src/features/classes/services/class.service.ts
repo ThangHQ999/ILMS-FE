@@ -199,7 +199,7 @@ export async function getClassById(id: string): Promise<ClassItem> {
       semester: CURRENT_SEMESTER,
       major: 'Khoa học Máy tính',
       maxStudents: 60,
-      enrolledCount: 42,
+      enrolledCount: 0,
       enrollmentKey: fallbackName,
       isCodeClosed: false,
       status: 'ACTIVE',

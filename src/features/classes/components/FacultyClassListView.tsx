@@ -167,7 +167,7 @@ export function FacultyClassListView({
         teachingProgress: 75,
         curriculumWeek: 'Tuần 11/15',
         instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount || 42}/60 học viên`,
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
         alert: {
           type: 'warning',
           icon: 'pending_actions',
@@ -188,7 +188,7 @@ export function FacultyClassListView({
         teachingProgress: 65,
         curriculumWeek: 'Tuần 9/15',
         instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount || 38}/60 học viên`,
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
         alert: {
           type: 'info',
           icon: 'assignment_turned_in',
@@ -209,7 +209,7 @@ export function FacultyClassListView({
         teachingProgress: 80,
         curriculumWeek: 'Tuần 12/15',
         instructorInfo: 'ThS. Hoàng Minh Tuấn • 1 GV',
-        capacityText: `${item.enrolledCount || 45}/60 học viên`,
+        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
         alert: {
           type: 'success',
           icon: 'check_circle',
@@ -223,7 +223,7 @@ export function FacultyClassListView({
     }
 
     // Default / Newly Created Class (e.g. d1)
-    const enrolled = item.enrolledCount || 42;
+    const enrolled = item.enrolledCount ?? 0;
     const maxStudents = item.maxStudents || 60;
     return {
       ploPassRate: 88.0,
@@ -447,7 +447,7 @@ export function FacultyClassListView({
                           <span className="material-symbols-outlined text-[16px] text-slate-400">
                             group
                           </span>
-                          <span>Danh sách học viên ({item.enrolledCount || 42})</span>
+                          <span>Danh sách học viên ({item.enrolledCount ?? 0})</span>
                         </Link>
                         <Link
                           href={`/classes/${item.id}?tab=assignments`}

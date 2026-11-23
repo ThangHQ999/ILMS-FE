@@ -670,7 +670,7 @@ export function ClassAnnouncementsTab({
                               visibility
                             </span>
                             <span>
-                              {item.readCount}/{item.totalStudents || 42} sinh viên đã đọc
+                              {item.readCount}/{item.totalStudents ?? 0} sinh viên đã đọc
                             </span>
                             <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-600 text-white ml-0.5">
                               {item.readPercent || 95}%

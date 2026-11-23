@@ -3400,7 +3400,7 @@ export async function getClassHubInfo(classId: string): Promise<ClassHubInfo> {
         title: classItem.title || classItem.name || (classId === 'csdl-k22-01' ? 'Cơ sở dữ liệu — Nhóm 01' : 'Công nghệ thông tin K22 — Nhóm 01'),
         instructorName: classItem.instructor?.fullName || 'TS. Lê Hoàng Nam',
         department: classItem.description || (classId === 'csdl-k22-01' ? 'Học phần: Cơ sở dữ liệu (CS-202) — DATABASE • SQL / NOSQL' : 'Bộ môn: Kỹ thuật Mạng & Truyền thông'),
-        studentsCount: classItem.enrolledCount || 42,
+        studentsCount: classItem.enrolledCount ?? 0,
         assignmentsCount: 6,
         completionRate: 85.0,
 

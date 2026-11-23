@@ -186,21 +186,21 @@ export function ClassDetailPageView({
   const announcements = data?.announcements || [];
   const gradebookStudents = data?.gradebookStudents || [];
   const gradebookAi = data?.gradebookAi || {
-    averageScore: 7.92,
-    ploPassRate: 88.1,
-    ploPassedCount: 37,
-    totalStudents: 42,
-    gradingProgress: '14/16',
-    gradingPercent: 95.8,
-    earlyInterventionCount: 3,
+    averageScore: 0,
+    ploPassRate: 0,
+    ploPassedCount: 0,
+    totalStudents: 0,
+    gradingProgress: '0/0',
+    gradingPercent: 0,
+    earlyInterventionCount: 0,
     distribution: {
-      gradeA: { percent: 28, count: 12 },
-      gradeB: { percent: 45, count: 19 },
-      gradeC: { percent: 20, count: 8 },
-      gradeDF: { percent: 7, count: 3 },
+      gradeA: { percent: 0, count: 0 },
+      gradeB: { percent: 0, count: 0 },
+      gradeC: { percent: 0, count: 0 },
+      gradeDF: { percent: 0, count: 0 },
     },
-    recommendedTopic: 'Cây phân đoạn & Dijkstra',
-    recommendedDescription: 'Đang tải phân tích phổ điểm...',
+    recommendedTopic: 'Chưa có phân tích',
+    recommendedDescription: 'Chưa có dữ liệu phân tích phổ điểm cho lớp học.',
   };
   const members = data?.members || [];
   const materials = data?.materials || [];
@@ -673,7 +673,7 @@ export function ClassDetailPageView({
                     Tổng quan không gian giảng dạy
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-500 dark:text-[#8E918F] max-w-md mx-auto">
-                    Lớp học hiện có {courses.length} môn học đang hoạt động, {classInfo.enrolledCount} sinh viên và tiến độ nhập điểm đạt 95.8%.
+                    Lớp học hiện có {courses.length} môn học đang hoạt động và {classInfo?.enrolledCount ?? 0} sinh viên.
                   </p>
                   <div className="flex justify-center gap-3 pt-2">
                     <button

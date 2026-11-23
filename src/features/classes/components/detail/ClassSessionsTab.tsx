@@ -227,6 +227,10 @@ export function ClassSessionsTab({
   };
 
   const handleMarkAllPresent = () => {
+    if (students.length === 0) {
+      onToast('Lớp học chưa có sinh viên nào để điểm danh!');
+      return;
+    }
     setAttendanceMap((prev) => {
       const updated: typeof prev = {};
       students.forEach((stu) => {
@@ -249,7 +253,7 @@ export function ClassSessionsTab({
       note: data.note,
     }));
     const checked = list.filter((a) => a.status !== null && a.status !== undefined).length;
-    const total = students.length || selectedAttendanceSession.totalStudents || 45;
+    const total = students.length || selectedAttendanceSession.totalStudents || 0;
     const newStatus = checked >= total && total > 0 ? 'COMPLETED' : 'IN_PROGRESS';
     await saveAttendancesMutation.mutateAsync({
       attendances: list,
@@ -266,7 +270,7 @@ export function ClassSessionsTab({
       note: data.note,
     }));
     const checked = list.filter((a) => a.status !== null && a.status !== undefined).length;
-    const total = students.length || selectedAttendanceSession.totalStudents || 45;
+    const total = students.length || selectedAttendanceSession.totalStudents || 0;
     const newStatus = checked >= total && total > 0 ? 'COMPLETED' : 'IN_PROGRESS';
     await saveAttendancesMutation.mutateAsync({
       attendances: list,
@@ -325,7 +329,7 @@ export function ClassSessionsTab({
               roomName: safeRoom,
               roomShort: safeRoom.replace(/^phòng\s*/i, ''),
               note: s.note,
-              studentsCount: s.totalStudents || students.length || 45,
+              studentsCount: s.totalStudents || students.length || 0,
               status: s.status,
               sessionType: (s.note?.toLowerCase().includes('lab') ? 'lab' : 'theory') as 'theory' | 'lab' | 'exam',
               dayOfWeek,
@@ -400,7 +404,7 @@ export function ClassSessionsTab({
   const checkedCount = Object.values(attendanceMap).filter(
     (a) => a.status !== null && a.status !== undefined
   ).length;
-  const totalCount = students.length || classInfo.enrolledCount || 45;
+  const totalCount = students.length;
   const presenceRate =
     totalCount > 0 ? (((presentCount + lateCount) / totalCount) * 100).toFixed(1) : '0';
 

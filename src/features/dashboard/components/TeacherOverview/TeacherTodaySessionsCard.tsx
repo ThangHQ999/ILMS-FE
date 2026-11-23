@@ -64,7 +64,7 @@ export function TeacherTodaySessionsCard({
         ) : (
           <div className="space-y-3.5">
             {sessions.map((session, index) => {
-              const total = session.studentsCount || 45;
+              const total = session.studentsCount ?? 0;
               const attended = session.attendedCount ?? 0;
               // Attendance strictly requires ALL students to be attended (attended >= total)
               const isFullyAttended = attended >= total && total > 0;

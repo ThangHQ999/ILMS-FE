@@ -360,7 +360,7 @@ export async function getClassStudentMembers(
     // Fallback
   }
 
-  return [...MASTER_STUDENTS_LIST];
+  return [];
 }
 
 /**

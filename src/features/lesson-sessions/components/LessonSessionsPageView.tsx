@@ -29,7 +29,7 @@ import {
   CreateLessonSessionRequest,
   LessonSession,
 } from '../types';
-import { lessonSessionKeys, MOCK_STUDENTS } from '../constants';
+import { lessonSessionKeys } from '../constants';
 import { LessonSessionHeader } from './LessonSessionHeader';
 import { LessonSessionTable } from './LessonSessionTable';
 import { CreateSessionModal } from './CreateSessionModal';
@@ -87,7 +87,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
         id: info.id,
         name: info.title || info.name || 'Lớp học',
         code: info.enrollmentKey || info.name,
-        enrolledCount: info.enrolledCount ?? classDetail.members?.length ?? 45,
+        enrolledCount: info.enrolledCount ?? classDetail.members?.length ?? 0,
         academicYear: info.academicYear || '2026-2027',
         semester: info.semester || 'Học kỳ 1',
         schedule: info.schedule,
@@ -143,9 +143,8 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
         }));
       if (studentMembers.length > 0) return studentMembers;
     }
-    const targetCount = activeClass?.enrolledCount || 42;
-    return MOCK_STUDENTS.slice(0, targetCount);
-  }, [rawStudents, classDetail?.members, activeClass?.enrolledCount]);
+    return [];
+  }, [rawStudents, classDetail?.members]);
 
   const { data: existingAttendances = [] } = useAttendances(
     effectiveClassId,
@@ -308,7 +307,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
       note: data.note,
     }));
     const checked = list.filter((a) => a.status !== null && a.status !== undefined).length;
-    const total = students.length || selectedSession.totalStudents || 45;
+    const total = students.length || selectedSession.totalStudents || 0;
     const newStatus = checked >= total && total > 0 ? 'COMPLETED' : 'IN_PROGRESS';
     await saveAttendancesMutation.mutateAsync({
       attendances: list,
@@ -325,7 +324,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
       note: data.note,
     }));
     const checked = list.filter((a) => a.status !== null && a.status !== undefined).length;
-    const total = students.length || selectedSession.totalStudents || 45;
+    const total = students.length || selectedSession.totalStudents || 0;
     const newStatus = checked >= total && total > 0 ? 'COMPLETED' : 'IN_PROGRESS';
     await saveAttendancesMutation.mutateAsync({
       attendances: list,
@@ -372,7 +371,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
             roomName: s.roomName,
             roomShort: s.roomName.replace(/^phòng\s*/i, ''),
             note: s.note,
-            studentsCount: s.totalStudents || students.length || 45,
+            studentsCount: s.totalStudents || students.length || 0,
             status: s.status,
             sessionType: (s.note?.toLowerCase().includes('lab') ? 'lab' : 'theory') as 'theory' | 'lab' | 'exam',
             dayOfWeek,
@@ -408,7 +407,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const checkedCount = Object.values(attendanceMap).filter(
     (a) => a.status !== null && a.status !== undefined
   ).length;
-  const totalCount = students.length || activeClass?.enrolledCount || 45;
+  const totalCount = students.length;
   const presenceRate =
     totalCount > 0 ? (((presentCount + lateCount) / totalCount) * 100).toFixed(1) : '0';
 

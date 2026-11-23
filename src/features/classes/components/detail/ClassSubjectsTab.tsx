@@ -326,7 +326,7 @@ export function ClassSubjectsTab({
                       <span>•</span>
                       <span className="whitespace-nowrap">
                         <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
-                          {c.studentsCount || 42}
+                          {c.studentsCount ?? 0}
                         </strong>{' '}
                         Sinh viên
                       </span>

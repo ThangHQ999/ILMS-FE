@@ -423,7 +423,22 @@ export function ClassMembersTab({
               </tr>
             </thead>
             <tbody className="text-xs">
-              {filteredStudents.map((student) => {
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-16 text-center text-gray-500 dark:text-[#8E918F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl text-gray-400">group_off</span>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-[#C4C7C5]">
+                        {search.trim() ? 'Không tìm thấy học viên nào phù hợp' : 'Chưa có sinh viên trong lớp học'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {search.trim() ? 'Hãy thử tìm kiếm với từ khóa khác' : 'Dữ liệu thành viên của lớp học này đang trống (0 sinh viên)'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map((student) => {
                 const isSelected = selectedIds.includes(student.id);
                 const isRisk = student.learningStatus === 'AT_RISK';
                 const isNeedHelp = student.learningStatus === 'NEED_HELP';
@@ -686,7 +701,7 @@ export function ClassMembersTab({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

@@ -223,7 +223,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
             }}
             className="text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border-none cursor-pointer"
           >
-            {pageSize === 'ALL' ? 'Chia trang (10 SV/trang)' : 'Xem tất cả 45 SV'}
+            {pageSize === 'ALL' ? 'Chia trang (10 SV/trang)' : `Xem tất cả ${students.length} SV`}
           </button>
         </div>
 

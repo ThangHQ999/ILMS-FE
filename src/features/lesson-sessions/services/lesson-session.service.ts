@@ -15,7 +15,6 @@ import {
   EXTERNAL_CONFLICTS,
   MOCK_INITIAL_LESSON_SESSIONS,
   MOCK_ROOMS,
-  MOCK_STUDENTS,
 } from '../constants';
 import {
   fromBackendAttendanceStatus,
@@ -84,7 +83,7 @@ function getStoredSessions(): LessonSession[] {
             const checked = attList.filter(
               (a) => a.status !== null && a.status !== undefined
             ).length;
-            const total = attList.length || sess.totalStudents || 45;
+            const total = attList.length || sess.totalStudents || 0;
             const determinedStatus: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' =
               checked >= total && total > 0
                 ? 'COMPLETED'
@@ -124,56 +123,12 @@ function getStoredAttendances(sessionId: string): AttendanceRecord[] {
     const raw = localStorage.getItem(`${ATTENDANCE_KEY_PREFIX}${sessionId}`);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length >= 45) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch {
     // ignore
   }
-
-  // Find target attendedCount for this session from stored sessions or defaults
-  let targetCount = 0;
-  if (sessionId === 'SES-2024-B1-08') {
-    targetCount = 42;
-  } else if (sessionId === 'SES-2024-B1-09') {
-    targetCount = 30;
-  } else if (sessionId === 'SES-2024-B1-07') {
-    targetCount = 45;
-  } else {
-    try {
-      const rawSessions = localStorage.getItem(SESSIONS_KEY);
-      if (rawSessions) {
-        const sessions: LessonSession[] = JSON.parse(rawSessions);
-        const match = sessions.find((s) => s.lessonSessionId === sessionId);
-        if (match && typeof match.attendedCount === 'number') {
-          targetCount = match.attendedCount;
-        }
-      }
-    } catch {
-      targetCount = 0;
-    }
-  }
-
-  // Seed full 45 students:
-  const seeded: AttendanceRecord[] = MOCK_STUDENTS.map((stu, index) => {
-    if (index >= targetCount) {
-      return { studentId: stu.studentId, status: null, note: '' };
-    }
-
-    if (stu.studentId === 'B21DCCN045') return { studentId: stu.studentId, status: 'LATE', note: 'Trễ 15p do kẹt xe' };
-    if (stu.studentId === 'B21DCCN102') return { studentId: stu.studentId, status: 'ABSENT', note: 'Không lý do' };
-    if (stu.studentId === 'B21DCCN089') return { studentId: stu.studentId, status: 'EXCUSED', note: 'Có đơn xin nghỉ ốm qua email' };
-    if (stu.studentId === 'B21DCCN310') return { studentId: stu.studentId, status: 'LATE', note: 'Vào lớp lúc 08:05' };
-    if (stu.studentId === 'B21DCCN512') return { studentId: stu.studentId, status: 'LATE', note: 'Muộn 10p' };
-
-    return { studentId: stu.studentId, status: 'PRESENT', note: '' };
-  });
-
-  try {
-    localStorage.setItem(`${ATTENDANCE_KEY_PREFIX}${sessionId}`, JSON.stringify(seeded));
-  } catch {
-    // ignore
-  }
-  return seeded;
+  return [];
 }
 
 function saveStoredAttendances(
@@ -280,7 +235,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
     return list.map((item, index) => {
       const sessionId = String(item.lessonSessionId || item.id || `sess-${index + 1}`);
       let attended = typeof item.attendedCount === 'number' ? item.attendedCount : 0;
-      let total = typeof item.totalStudents === 'number' ? item.totalStudents : typeof item.studentsCount === 'number' ? item.studentsCount : 45;
+      let total = typeof item.totalStudents === 'number' ? item.totalStudents : typeof item.studentsCount === 'number' ? item.studentsCount : 0;
       let st: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' = (item.status as 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED') || 'SCHEDULED';
 
       // Check local attendance cache if present
@@ -401,7 +356,7 @@ export async function updateLessonSession(
       subjectCode: 'INT3306',
       status: 'SCHEDULED' as const,
       attendedCount: 0,
-      totalStudents: 45,
+      totalStudents: 0,
     }),
     sessionDate: payload.sessionDate || existing?.sessionDate || new Date().toISOString().split('T')[0],
     startTime: payload.startTime || existing?.startTime || '07:30',
@@ -543,7 +498,7 @@ export async function createLessonSession(
     note: payload.note || '',
     status: 'SCHEDULED',
     attendedCount: 0,
-    totalStudents: 45,
+    totalStudents: 0,
   };
 
   saveStoredSessions([newSession, ...current]);
@@ -713,7 +668,7 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
   } catch {
     // Fallback quietly
   }
-  return MOCK_STUDENTS;
+  return [];
 }
 
 /**
@@ -742,7 +697,7 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
     if (rawList.length > 0) {
       return rawList.map((m, idx) => {
         const id = String(m.lessonSessionId || m.id || `today-${idx}`);
-        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 45;
+        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 0;
         let attended = typeof m.attendedCount === 'number' ? m.attendedCount : 0;
 
         if (typeof window !== 'undefined') {
@@ -807,7 +762,7 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
     if (rawList.length > 0) {
       return rawList.slice(0, 5).map((m, idx) => {
         const id = String(m.lessonSessionId || m.id || `up-${idx}`);
-        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 45;
+        const total = typeof m.totalStudents === 'number' ? m.totalStudents : typeof m.studentsCount === 'number' ? m.studentsCount : 0;
         let attended = typeof m.attendedCount === 'number' ? m.attendedCount : 0;
         const startTime = m.startTime ? String(m.startTime).slice(0, 5) : '07:30';
         const endTime = m.endTime ? String(m.endTime).slice(0, 5) : '09:30';
@@ -847,7 +802,7 @@ export async function getTeacherTodaySessions(): Promise<TodaySessionItem[]> {
 
           for (const m of matches) {
             let attended = m.attendedCount || 0;
-            const total = m.totalStudents || 45;
+            const total = m.totalStudents || 0;
 
             try {
               const attRes = await api.get<ApiResponse<Array<{ status: string }>>>(

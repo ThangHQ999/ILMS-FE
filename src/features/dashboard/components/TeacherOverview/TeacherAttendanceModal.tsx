@@ -123,7 +123,7 @@ export function TeacherAttendanceModal({
     }));
 
     const checkedCount = list.filter((a) => a.status !== null && a.status !== undefined).length;
-    const totalCount = students.length || session.studentsCount || 45;
+    const totalCount = students.length;
     const determinedStatus: 'COMPLETED' | 'IN_PROGRESS' | 'SCHEDULED' =
       isFinal || (checkedCount >= totalCount && totalCount > 0)
         ? 'COMPLETED'
