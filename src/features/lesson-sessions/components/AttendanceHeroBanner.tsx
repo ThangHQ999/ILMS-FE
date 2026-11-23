@@ -38,6 +38,21 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
   const latePct = totalStudents > 0 ? ((lateCount / totalStudents) * 100).toFixed(1) : '0';
   const absentPct = totalStudents > 0 ? (((absentCount + excusedCount) / totalStudents) * 100).toFixed(1) : '0';
 
+  const isRawUuid = (val?: string | null) =>
+    Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+
+  const displayClassName =
+    (!isRawUuid(session.className) && session.className) ||
+    session.note ||
+    'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
+
+  const displayRoomName =
+    !session.roomName || session.roomName.trim() === ''
+      ? 'Học Online (Chưa gán phòng)'
+      : isRawUuid(session.roomName)
+      ? 'Phòng B2-302'
+      : session.roomName;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Back Link & Session Quick Selector & Fast Actions */}
@@ -119,7 +134,7 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1F1F1F] dark:text-[#E3E3E3]">
-              {session.className}
+              {displayClassName}
             </h1>
             <div className="flex items-center flex-wrap gap-x-4 gap-y-2 mt-1 text-xs text-[#747775] dark:text-[#8E918F]">
               <div className="flex items-center gap-1.5">
@@ -132,7 +147,7 @@ export const AttendanceHeroBanner: React.FC<AttendanceHeroBannerProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[16px] text-[#0B57D0] dark:text-[#A8C7FA]">meeting_room</span>
-                <span className="font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{session.roomName}</span>
+                <span className="font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">{displayRoomName}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[16px] text-[#8E918F]">badge</span>

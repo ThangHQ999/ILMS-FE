@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ClassItem } from '../../schemas/class.schema';
 import {
@@ -48,11 +48,17 @@ export function ClassSessionsTab({
 }: ClassSessionsTabProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
 
   const isTeacher = currentRole !== 'student';
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
   const [currentWeek, setCurrentWeek] = useState(() => getCurrentWeekNumber());
+
+  // Helper to check for raw UUID strings
+  const isUuid = useCallback((val?: string | null) => {
+    return Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+  }, []);
 
   // Queries
   const { data: sessions = [], isLoading: isLoadingSessions } = useLessonSessions(classId);
@@ -92,31 +98,87 @@ export function ClassSessionsTab({
   // Handle URL query ?action=attendance or ?sessionId=...
   const paramSessionId = searchParams?.get('sessionId') || null;
   const isAttendanceAction = searchParams?.get('action') === 'attendance';
-  const hasAutoSelectedRef = useRef(false);
 
+  // Navigation handlers that sync attendance state seamlessly with URL
+  const handleSelectAttendanceSession = useCallback(
+    (session: LessonSession) => {
+      setSelectedAttendanceSession(session);
+      const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+      params.set('tab', 'sessions');
+      params.set('action', 'attendance');
+      params.set('sessionId', session.lessonSessionId);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams, pathname]
+  );
+
+  const handleSelectSessionFromDropdown = useCallback(
+    (sessionId: string) => {
+      const found = sessions.find((s) => s.lessonSessionId === sessionId);
+      if (found) {
+        setSelectedAttendanceSession(found);
+        const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+        params.set('tab', 'sessions');
+        params.set('action', 'attendance');
+        params.set('sessionId', found.lessonSessionId);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    },
+    [sessions, router, searchParams, pathname]
+  );
+
+  const handleBackToList = useCallback(() => {
+    setSelectedAttendanceSession(null);
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+    params.set('tab', 'sessions');
+    params.delete('action');
+    params.delete('sessionId');
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [router, searchParams, pathname]);
+
+  // Two-way synchronization between URL params and selected attendance session
   useEffect(() => {
     if (sessions.length === 0) return;
 
+    // Case 1: URL has a specific sessionId
     if (paramSessionId) {
       const match = sessions.find((s) => s.lessonSessionId === paramSessionId);
-      if (match && selectedAttendanceSession?.lessonSessionId !== paramSessionId) {
-        setSelectedAttendanceSession(match);
+      if (match) {
+        if (selectedAttendanceSession?.lessonSessionId !== paramSessionId) {
+          setSelectedAttendanceSession(match);
+        }
+        return;
       }
-      return;
     }
 
-    if (isAttendanceAction && !hasAutoSelectedRef.current && !selectedAttendanceSession) {
-      hasAutoSelectedRef.current = true;
+    // Case 2: URL has ?action=attendance without sessionId
+    if (isAttendanceAction) {
       const todayIso = formatDateIso();
       const todaySession =
         sessions.find((s) => s.sessionDate === todayIso) ||
         sessions.find((s) => s.status === 'IN_PROGRESS') ||
         sessions[0];
       if (todaySession) {
-        setSelectedAttendanceSession(todaySession);
+        if (selectedAttendanceSession?.lessonSessionId !== todaySession.lessonSessionId) {
+          setSelectedAttendanceSession(todaySession);
+        }
+        if (!paramSessionId) {
+          const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+          params.set('tab', 'sessions');
+          params.set('action', 'attendance');
+          params.set('sessionId', todaySession.lessonSessionId);
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
       }
+      return;
     }
-  }, [sessions, paramSessionId, isAttendanceAction, selectedAttendanceSession]);
+
+    // Case 3: URL has neither ?action=attendance nor sessionId, reset attendance if open
+    if (!paramSessionId && !isAttendanceAction && selectedAttendanceSession !== null) {
+      setSelectedAttendanceSession(null);
+    }
+  }, [sessions, paramSessionId, isAttendanceAction, selectedAttendanceSession, searchParams, pathname, router]);
 
   // Attendance state
   const [attendanceMap, setAttendanceMap] = useState<
@@ -214,10 +276,6 @@ export function ClassSessionsTab({
     onToast('Đã chốt thành công danh sách điểm danh!');
   };
 
-  const handleBackToList = () => {
-    setSelectedAttendanceSession(null);
-  };
-
   // Calendar week calculations
   const weekStartDate = useMemo(() => getWeekStartDate(currentWeek), [currentWeek]);
   const weekEndDate = useMemo(() => {
@@ -242,23 +300,30 @@ export function ClassSessionsTab({
       const matchedSessions = sessions
         .filter((s) => s.sessionDate === fullDate)
         .map(
-          (s): TimetableSession => ({
-            lessonSessionId: s.lessonSessionId,
-            classId: s.classId,
-            className: `${classInfo.title || classInfo.name} (${s.note || s.sessionCode || 'Ca học'})`,
-            sessionDate: s.sessionDate,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            roomName: s.roomName,
-            roomShort: s.roomName.replace(/^phòng\s*/i, ''),
-            note: s.note,
-            studentsCount: s.totalStudents || students.length || 45,
-            status: s.status,
-            sessionType: (s.note?.toLowerCase().includes('lab') ? 'lab' : 'theory') as 'theory' | 'lab' | 'exam',
-            dayOfWeek,
-            startShift: s.startShift || 1,
-            endShift: s.endShift || 3,
-          })
+          (s): TimetableSession => {
+            const rawName = s.className && !isUuid(s.className) ? s.className : '';
+            const rawTitle = classInfo.title && !isUuid(classInfo.title) ? classInfo.title : '';
+            const fallbackName = classInfo.name && !isUuid(classInfo.name) ? classInfo.name : 'Lập trình Web nâng cao';
+            const baseTitle = rawName || rawTitle || fallbackName;
+            const noteText = s.note || s.sessionCode || 'Ca học';
+            return {
+              lessonSessionId: s.lessonSessionId,
+              classId: s.classId,
+              className: `${baseTitle} (${noteText})`,
+              sessionDate: s.sessionDate,
+              startTime: s.startTime,
+              endTime: s.endTime,
+              roomName: s.roomName,
+              roomShort: s.roomName.replace(/^phòng\s*/i, ''),
+              note: s.note,
+              studentsCount: s.totalStudents || students.length || 45,
+              status: s.status,
+              sessionType: (s.note?.toLowerCase().includes('lab') ? 'lab' : 'theory') as 'theory' | 'lab' | 'exam',
+              dayOfWeek,
+              startShift: s.startShift || 1,
+              endShift: s.endShift || 3,
+            };
+          }
         );
 
       days.push({
@@ -271,7 +336,7 @@ export function ClassSessionsTab({
       });
     }
     return days;
-  }, [weekStartDate, sessions, classInfo, students.length]);
+  }, [weekStartDate, sessions, classInfo, students.length, isUuid]);
 
   // Open create modal
   const handleOpenCreate = (date?: string, shift?: number) => {
@@ -337,10 +402,7 @@ export function ClassSessionsTab({
         <AttendanceHeroBanner
           session={selectedAttendanceSession}
           sessions={sessions}
-          onSelectSession={(sessionId) => {
-            const found = sessions.find((s) => s.lessonSessionId === sessionId);
-            if (found) setSelectedAttendanceSession(found);
-          }}
+          onSelectSession={handleSelectSessionFromDropdown}
           onBack={handleBackToList}
           onMarkAllPresent={handleMarkAllPresent}
           onRefresh={() => {
@@ -384,6 +446,10 @@ export function ClassSessionsTab({
   }
 
   const completedSessionsCount = sessions.filter((s) => s.status === 'COMPLETED').length;
+  const classDisplayName =
+    (!isUuid(classInfo.title) && classInfo.title) ||
+    (!isUuid(classInfo.name) && classInfo.name) ||
+    'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
 
   return (
     <div className="space-y-6 pt-2">
@@ -403,7 +469,7 @@ export function ClassSessionsTab({
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-[#8E918F]">
-            Theo dõi thời khóa biểu, sắp xếp ca học và tiến hành điểm danh học viên cho lớp {classInfo.title || classInfo.name}
+            Theo dõi thời khóa biểu, sắp xếp ca học và tiến hành điểm danh học viên cho lớp {classDisplayName}
           </p>
         </div>
 
@@ -445,7 +511,7 @@ export function ClassSessionsTab({
                 sessions.find((s) => s.status === 'IN_PROGRESS') ||
                 sessions[0];
               if (todaySess) {
-                setSelectedAttendanceSession(todaySess);
+                handleSelectAttendanceSession(todaySess);
               } else {
                 onToast('Chưa có ca học nào được lên lịch cho lớp!');
               }
@@ -518,7 +584,7 @@ export function ClassSessionsTab({
         <LessonSessionTable
           sessions={sessions}
           isLoading={isLoadingSessions}
-          onSelectAttendance={(session) => setSelectedAttendanceSession(session)}
+          onSelectAttendance={handleSelectAttendanceSession}
           onOpenCreateModal={() => handleOpenCreate()}
           onEditSession={(session) => handleOpenEdit(session)}
           onDeleteSession={(session) => handleDeleteSession(session.lessonSessionId)}
@@ -570,7 +636,7 @@ export function ClassSessionsTab({
                 </span>
               </div>
               <h4 className="text-sm font-bold text-gray-900 dark:text-[#E3E3E3]">
-                {classInfo.title || classInfo.name}
+                {(!isUuid(detailSession.className) && detailSession.className) || (!isUuid(classInfo.title) && classInfo.title) || 'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)'}
               </h4>
               <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-[#C4C7C5] pt-1">
                 <div>
@@ -626,7 +692,7 @@ export function ClassSessionsTab({
                 onClick={() => {
                   const s = detailSession;
                   setDetailSession(null);
-                  setSelectedAttendanceSession(s);
+                  handleSelectAttendanceSession(s);
                 }}
                 className="px-5 py-2 rounded-full bg-[#0B57D0] text-white hover:bg-[#0842a0] dark:bg-[#A8C7FA] dark:text-[#062E6F] text-xs font-semibold flex items-center gap-1.5 border-none cursor-pointer ml-auto"
               >

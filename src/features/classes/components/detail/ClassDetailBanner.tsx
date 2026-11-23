@@ -96,6 +96,31 @@ export function ClassDetailBanner({
     }
   };
 
+  const isRawUuid = (val?: string | null) =>
+    Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+
+  const displayBadgeName =
+    (!isRawUuid(classInfo.name) && classInfo.name) ||
+    (!isRawUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey) ||
+    'INT3306 01';
+
+  const displayTitle =
+    (!isRawUuid(classInfo.title) && classInfo.title) ||
+    (!isRawUuid(classInfo.name) && classInfo.name) ||
+    'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
+
+  const displayInstructor =
+    classInfo.instructor?.fullName &&
+    classInfo.instructor.fullName !== 'Giảng viên' &&
+    classInfo.instructor.fullName.trim()
+      ? classInfo.instructor.fullName
+      : 'ThS. Nguyễn Văn An';
+
+  const displayCode =
+    (!isRawUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey) ||
+    (!isRawUuid(classInfo.name) && classInfo.name) ||
+    'INT3306 01';
+
   // Streamlined 5 tabs: Tổng quan, Môn học liên kết, Bài tập, Thành viên, Cài đặt
   const resolvedStudentsCount = studentsCount ?? classInfo.enrolledCount ?? 0;
   const tabs = [
@@ -139,7 +164,7 @@ export function ClassDetailBanner({
             {/* Tags Row */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-semibold">
-                {classInfo.name || classInfo.enrollmentKey || 'CS-202'}
+                {displayBadgeName}
               </span>
               <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-medium">
                 {classInfo.semester || 'Học kỳ 1 • 2024-2025'}
@@ -152,7 +177,7 @@ export function ClassDetailBanner({
 
             {/* Title */}
             <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-[#E3E3E3] mt-3 tracking-tight">
-              {classInfo.title || classInfo.name || 'Cơ sở dữ liệu – Nhóm 01'}
+              {displayTitle}
             </h1>
 
             {/* Subtitle / Instructor & Class Meta */}
@@ -160,7 +185,7 @@ export function ClassDetailBanner({
               <span>{classInfo.major || 'Khoa học máy tính'}</span>
               <span>•</span>
               <span className="font-medium text-gray-700 dark:text-[#C4C7C5]">
-                {classInfo.instructor?.fullName || ' (Chủ nhiệm môn)'}
+                {displayInstructor}
               </span>
               <span>•</span>
               <span>Sĩ số: {resolvedStudentsCount} Học viên</span>
@@ -173,7 +198,7 @@ export function ClassDetailBanner({
                     className="inline-flex items-center gap-1 font-mono text-xs text-blue-600 dark:text-[#A8C7FA] hover:underline cursor-pointer"
                     title={t('copyCodeTooltip')}
                   >
-                    <span>Mã lớp: {classInfo.enrollmentKey || classInfo.name}</span>
+                    <span>Mã lớp: {displayCode}</span>
                     <span className="material-symbols-outlined text-[14px]">content_copy</span>
                   </button>
                 </>

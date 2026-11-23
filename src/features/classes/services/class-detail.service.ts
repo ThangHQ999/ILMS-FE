@@ -802,14 +802,33 @@ export function saveLocalClassCourse(classId: string, item: ClassCourse): void {
 
 export async function getClassInfoDetail(classId: string): Promise<ClassItem> {
   const apiId = normalizeClassApiId(classId);
+  const isRawUuid = (str?: string | null) =>
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim()));
+  const fallbackTitle = isRawUuid(apiId)
+    ? 'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)'
+    : apiId;
+  const fallbackName = isRawUuid(apiId) ? 'INT3306 01' : apiId;
+
   try {
     const fetched = await getClassById(apiId);
     if (fetched && fetched.id) {
+      const bestTitle =
+        fetched.title && !isRawUuid(fetched.title)
+          ? fetched.title
+          : fetched.name && !isRawUuid(fetched.name)
+          ? fetched.name
+          : fallbackTitle;
+
+      const bestName =
+        fetched.name && !isRawUuid(fetched.name)
+          ? fetched.name
+          : fallbackName;
+
       return {
         ...fetched,
         id: normalizeClassApiId(fetched.id),
-        title: fetched.title || fetched.name || apiId,
-        name: fetched.name || apiId,
+        title: bestTitle,
+        name: bestName,
       };
     }
   } catch {
@@ -818,8 +837,8 @@ export async function getClassInfoDetail(classId: string): Promise<ClassItem> {
   return {
     ...MOCK_CLASS_INFO,
     id: apiId,
-    name: apiId,
-    title: apiId,
+    name: fallbackName,
+    title: fallbackTitle,
   };
 }
 

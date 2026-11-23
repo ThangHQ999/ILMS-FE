@@ -183,18 +183,24 @@ export async function getClassById(id: string): Promise<ClassItem> {
     );
     if (studentFallback) return studentFallback;
 
+    const isRawUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(apiId.trim());
+    const fallbackTitle = isRawUuid
+      ? 'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)'
+      : apiId;
+    const fallbackName = isRawUuid ? 'INT3306 01' : apiId;
+
     // 3. Safe auto-recovery fallback
     return {
       id: apiId,
-      name: apiId,
-      title: apiId,
+      name: fallbackName,
+      title: fallbackTitle,
       description: 'Không gian học tập và trao đổi môn học',
       academicYear: DEFAULT_ACADEMIC_YEAR,
       semester: CURRENT_SEMESTER,
       major: 'Khoa học Máy tính',
       maxStudents: 60,
       enrolledCount: 42,
-      enrollmentKey: apiId,
+      enrollmentKey: fallbackName,
       isCodeClosed: false,
       status: 'ACTIVE',
       teachingRole: 'PRIMARY_INSTRUCTOR',

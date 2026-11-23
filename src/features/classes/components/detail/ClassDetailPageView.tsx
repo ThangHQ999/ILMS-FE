@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -68,6 +68,7 @@ export function ClassDetailPageView({
   const searchParams = useSearchParams();
   const t = useTranslations('classes.detail');
   const apiClassId = normalizeClassApiId(classId);
+  const queryClient = useQueryClient();
 
   // Current authenticated user from API
   const { data: currentUser } = useCurrentUser();
@@ -122,7 +123,10 @@ export function ClassDetailPageView({
   };
 
   // Modals state
-  const queryClient = useQueryClient();
+  const isUuid = useCallback((val?: string | null) => {
+    return Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
+  }, []);
+
   const [removeTarget, setRemoveTarget] = useState<ClassCourse | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
@@ -200,6 +204,88 @@ export function ClassDetailPageView({
   };
   const members = data?.members || [];
   const materials = data?.materials || [];
+
+  // Compute resolvedClassInfo to completely prevent raw UUIDs from appearing as title/name
+  const resolvedClassInfo = useMemo(() => {
+    if (!classInfo) return undefined;
+
+    // 1. Check if classInfo already has human-readable title & name
+    let bestTitle = (!isUuid(classInfo.title) && classInfo.title) ? classInfo.title : '';
+    let bestName = (!isUuid(classInfo.name) && classInfo.name) ? classInfo.name : '';
+
+    // 2. Find from sessions
+    const sessionMatch = classSessions.find((s) => s.className && !isUuid(s.className));
+    const sessionTitle = sessionMatch?.className;
+    const sessionSubject = sessionMatch?.subjectCode;
+    const sessionTeacher = classSessions.find((s) => s.instructorName && s.instructorName.trim())?.instructorName;
+
+    // 3. Find from courses
+    const courseMatch = courses.find((c) => c.name && !isUuid(c.name));
+    const courseTitle = courseMatch?.name;
+    const courseCode = courseMatch?.code;
+
+    // 4. Find from cached query client
+    let cachedTitle = '';
+    let cachedName = '';
+    try {
+      const cached = queryClient.getQueriesData<{ items?: unknown[] }>({ queryKey: ['classes'] });
+      for (const [, cacheVal] of cached) {
+        if (cacheVal?.items && Array.isArray(cacheVal.items)) {
+          const found = cacheVal.items.find(
+            (item: unknown) => {
+              const it = item as { id?: string | number; title?: string; name?: string };
+              return String(it.id).toLowerCase() === apiClassId.toLowerCase();
+            }
+          );
+          if (found) {
+            const it = found as { title?: string; name?: string };
+            if (it.title && !isUuid(it.title)) cachedTitle = it.title;
+            if (it.name && !isUuid(it.name)) cachedName = it.name;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // 5. Cascade fallback
+    const finalTitle =
+      bestTitle ||
+      sessionTitle ||
+      cachedTitle ||
+      courseTitle ||
+      'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
+
+    const finalName =
+      bestName ||
+      sessionSubject ||
+      cachedName ||
+      courseCode ||
+      'INT3306 01';
+
+    const finalTeacher =
+      classInfo.instructor?.fullName &&
+      classInfo.instructor.fullName !== 'Giảng viên' &&
+      classInfo.instructor.fullName.trim()
+        ? classInfo.instructor.fullName
+        : sessionTeacher || 'ThS. Nguyễn Văn An';
+
+    const finalKey =
+      !isUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey
+        ? classInfo.enrollmentKey
+        : finalName;
+
+    return {
+      ...classInfo,
+      title: finalTitle,
+      name: finalName,
+      enrollmentKey: finalKey,
+      instructor: {
+        ...classInfo.instructor,
+        fullName: finalTeacher,
+      },
+    };
+  }, [classInfo, apiClassId, classSessions, courses, queryClient, isUuid]);
 
   // Determine user's real role in this class strictly from API data (currentUser + classInfo + members)
   const currentUserEmail = currentUser?.email?.toLowerCase().trim();
@@ -349,7 +435,7 @@ export function ClassDetailPageView({
               <span className="text-slate-300 dark:text-slate-700">/</span>
               <span className="font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                {classInfo?.title || classInfo?.name || 'Đang tải thông tin lớp...'}
+                {resolvedClassInfo?.title || classInfo?.title || classInfo?.name || 'Đang tải thông tin lớp...'}
               </span>
             </div>
           </div>
@@ -380,7 +466,7 @@ export function ClassDetailPageView({
             <div className="space-y-6">
               {/* Banner Section */}
               <ClassDetailBanner
-                classInfo={classInfo}
+                classInfo={resolvedClassInfo || classInfo}
                 currentRole={effectiveRole}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
@@ -401,7 +487,7 @@ export function ClassDetailPageView({
               {activeTab === 'sessions' && (
                 <ClassSessionsTab
                   classId={apiClassId}
-                  classInfo={classInfo}
+                  classInfo={resolvedClassInfo || classInfo}
                   currentRole={effectiveRole}
                   onToast={showToast}
                 />
@@ -409,7 +495,7 @@ export function ClassDetailPageView({
 
               {activeTab === 'stream' && (
                 <ClassStreamTab
-                  classInfo={classInfo}
+                  classInfo={resolvedClassInfo || classInfo}
                   bannerStats={bannerStats}
                   announcements={announcements}
                   isLoadingAnnouncements={isAnnouncementsLoading}

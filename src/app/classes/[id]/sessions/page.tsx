@@ -1,23 +1,40 @@
 'use client';
 
-import React, { Suspense } from 'react';
-import { useParams } from 'next/navigation';
-import { LessonSessionsPageView } from '@/features/lesson-sessions';
+import React, { Suspense, useEffect } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+
+function ClassLessonSessionsRedirect() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const rawId = params?.id || params?.classId;
+  const classId = typeof rawId === 'string' ? rawId : '';
+
+  useEffect(() => {
+    if (!classId) return;
+    const query = new URLSearchParams(searchParams ? searchParams.toString() : '');
+    query.set('tab', 'sessions');
+    router.replace(`/classes/${classId}?${query.toString()}`);
+  }, [classId, router, searchParams]);
+
+  return (
+    <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+    </div>
+  );
+}
 
 export default function ClassLessonSessionsPage() {
-  const params = useParams();
-  const rawId = params?.id || params?.classId;
-  const classId = typeof rawId === 'string' ? rawId : 'CNTT-K21A';
-
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] flex items-center justify-center">
+        <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#0B0F19] flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
         </div>
       }
     >
-      <LessonSessionsPageView classId={classId} />
+      <ClassLessonSessionsRedirect />
     </Suspense>
   );
 }
+
