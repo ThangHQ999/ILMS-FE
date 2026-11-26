@@ -99,12 +99,6 @@ const isClassesActive =
         !pathname.startsWith('/question-bank') &&
         !pathname.includes('tab=bank'),
     },
-    {
-      href: '/assignments/proctoring',
-      icon: 'visibility',
-      label: 'Giám sát phòng thi',
-      active: pathname.startsWith('/assignments/proctoring') || pathname.includes('proctoring'),
-    },
   ];
 
   const navGroups: NavGroup[] = [
@@ -144,24 +138,9 @@ const isClassesActive =
         {
           href: '/competency',
           icon: 'radar',
-          label: isTeacher ? t('navPloMatrix') : t('navCompetency'),
+          label: t('navCompetency'),
           active: isRadarActive,
         },
-        ...(isTeacher
-          ? []
-          : [
-              {
-                href: '/assignments',
-                icon: 'quiz',
-                label: t('navAssignments'),
-                active: isAssignmentsActive,
-                badge: (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
-                    3
-                  </span>
-                ),
-              },
-            ]),
         {
           href: '/knowledge-graph',
           icon: 'hub',
@@ -170,15 +149,11 @@ const isClassesActive =
         },
       ],
     },
-    ...(isTeacher
-      ? [
-          {
-            key: 'examGroup',
-            title: 'KHẢO THÍ & BÀI THI',
-            items: examItems,
-          },
-        ]
-      : []),
+    {
+      key: 'examGroup',
+      title: 'KHẢO THÍ & BÀI THI',
+      items: examItems,
+    },
     {
       key: 'aiGroup',
       title: t('aiGroup'),

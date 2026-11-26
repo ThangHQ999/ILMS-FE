@@ -14,20 +14,20 @@ export const classStatusSchema = z
 export type ClassStatus = 'ACTIVE' | 'ARCHIVED' | 'DRAFT';
 
 export const teachingRoleSchema = z
-  .union([z.enum(['PRIMARY_INSTRUCTOR', 'TA', 'STUDENT', 'OWNER', 'TEACHER']), z.string()])
+  .union([z.enum(['OWNER', 'PRIMARY_INSTRUCTOR', 'TEACHER', 'TA', 'STUDENT']), z.string()])
   .nullable()
   .optional()
   .transform((val) => {
-    if (!val) return 'PRIMARY_INSTRUCTOR' as const;
+    if (!val) return 'STUDENT' as const;
     const upper = String(val).toUpperCase();
+    if (upper === 'OWNER') return 'OWNER' as const;
+    if (upper === 'PRIMARY_INSTRUCTOR') return 'PRIMARY_INSTRUCTOR' as const;
+    if (upper === 'TEACHER') return 'TEACHER' as const;
     if (upper === 'TA') return 'TA' as const;
     if (upper === 'STUDENT') return 'STUDENT' as const;
-    if (upper === 'OWNER' || upper === 'TEACHER' || upper === 'PRIMARY_INSTRUCTOR') {
-      return 'PRIMARY_INSTRUCTOR' as const;
-    }
-    return 'PRIMARY_INSTRUCTOR' as const;
+    return 'STUDENT' as const;
   });
-export type TeachingRole = 'PRIMARY_INSTRUCTOR' | 'TA' | 'STUDENT';
+export type TeachingRole = 'OWNER' | 'PRIMARY_INSTRUCTOR' | 'TEACHER' | 'TA' | 'STUDENT';
 
 export const scheduleInfoSchema = z.object({
   room: z.string().nullable().optional().default('Chưa xếp phòng'),
@@ -41,6 +41,7 @@ export const classInstructorSchema = z.object({
   fullName: z.string().default('Giảng viên'),
   email: z.string().optional(),
   avatar: z.string().optional(),
+  avatarUrl: z.string().optional(),
 });
 export type ClassInstructor = z.infer<typeof classInstructorSchema>;
 
@@ -78,8 +79,13 @@ export const classItemSchema = z
     endAt: z.string().nullish().transform((v) => (v && v.trim() ? v : undefined)).optional(),
     isCodeClosed: z.boolean().nullish().transform((v) => v ?? false),
     isCodeActive: z.boolean().optional(),
+    isArchived: z.boolean().optional(),
     status: classStatusSchema,
     teachingRole: teachingRoleSchema,
+    memberStatus: z.string().nullish().optional(),
+    membershipStatus: z.string().nullish().optional(),
+    myStatus: z.string().nullish().optional(),
+    enrollmentStatus: z.string().nullish().optional(),
     instructor: z
       .any()
       .nullish()
@@ -87,11 +93,13 @@ export const classItemSchema = z
         if (!val) return { fullName: 'Giảng viên' };
         if (typeof val === 'string') return { fullName: val };
         const obj = val as Record<string, unknown>;
+        const avatarStr = obj.avatar ? String(obj.avatar) : obj.avatarUrl ? String(obj.avatarUrl) : undefined;
         return {
           id: obj.id ? String(obj.id) : undefined,
           fullName: String(obj.fullName || obj.name || 'Giảng viên'),
           email: obj.email ? String(obj.email) : undefined,
-          avatar: obj.avatar ? String(obj.avatar) : obj.avatarUrl ? String(obj.avatarUrl) : undefined,
+          avatar: avatarStr,
+          avatarUrl: avatarStr,
         };
       })
       .optional(),
@@ -102,20 +110,27 @@ export const classItemSchema = z
       .optional(),
     schedule: scheduleInfoSchema.optional(),
     stats: classStatsSchema.optional(),
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-    deletedAt: z.string().optional(),
+    createdAt: z.string().nullish(),
+    updatedAt: z.string().nullish(),
+    deletedAt: z.string().nullish(),
   })
   .transform((item) => {
+    const finalCode = item.classCode || item.code || item.enrollmentKey || '';
     const finalName = item.name || item.className || item.title || '';
     const finalTitle = item.title || item.className || item.name || finalName;
+    const rawMemberStatus =
+      item.memberStatus ?? item.membershipStatus ?? item.myStatus ?? item.enrollmentStatus;
+    const normalizedMemberStatus = rawMemberStatus
+      ? String(rawMemberStatus).toUpperCase().trim()
+      : undefined;
     return {
       ...item,
+      ...(normalizedMemberStatus ? { memberStatus: normalizedMemberStatus } : {}),
       name: finalName,
       title: finalTitle,
       maxStudents: item.maxCapacity ?? item.maxStudents,
       enrolledCount: item.enrolledCount ?? item.studentsCount ?? item.totalStudents ?? item.numberOfStudents ?? 0,
-      enrollmentKey: item.classCode || item.code || item.enrollmentKey,
+      enrollmentKey: finalCode || item.enrollmentKey,
     };
   });
 export type ClassItem = z.infer<typeof classItemSchema>;

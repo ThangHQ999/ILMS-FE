@@ -1,32 +1,90 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
 import { CustomSelect } from '@/components/shared';
-import type { ClassMaterial } from '../../schemas/class-detail.schema';
+import { classDetailKeys } from '../../hooks/useClassDetail';
+import type { ClassCourse, ClassMaterial } from '../../schemas/class-detail.schema';
+import { getClassMaterials } from '../../services/class-detail.service';
 import { UploadMaterialModal } from './UploadMaterialModal';
 
+const PAGE_SIZE = 10;
+
 interface ClassMaterialsTabProps {
-  materials?: ClassMaterial[];
+  classId: string;
+  courses: ClassCourse[];
   currentRole?: 'owner' | 'teacher' | 'student';
   onToast?: (message: string) => void;
 }
 
 export function ClassMaterialsTab({
-  materials: initialMaterials = [],
+  classId,
+  courses,
   currentRole = 'owner',
   onToast,
 }: ClassMaterialsTabProps) {
+  const router = useRouter();
   const t = useTranslations('classes.detail');
 
-  // Filter & Search states
-  const [materials, setMaterials] = useState<ClassMaterial[]>(initialMaterials);
   const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('ALL');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const next = searchQuery.trim();
+    if (next === search) return;
+    const timer = window.setTimeout(() => {
+      setSearch(next);
+      setCurrentPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, search]);
+
+  const params = {
+    page: currentPage - 1,
+    size: PAGE_SIZE,
+    courseId: selectedSubject === 'ALL' ? undefined : selectedSubject,
+    category: selectedCategory === 'ALL' ? undefined : selectedCategory,
+    search: search || undefined,
+  };
+  const materialsQuery = useQuery({
+    queryKey: [...classDetailKeys.materials(classId), params],
+    queryFn: ({ signal }) => getClassMaterials(classId, params, signal),
+    staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const materialPage = materialsQuery.data;
+  const [materials, setMaterials] = useState<ClassMaterial[]>([]);
+  useEffect(() => {
+    if (materialPage) {
+      setMaterials(materialPage.items);
+      setCurrentPage(page => Math.min(page, Math.max(1, materialPage.totalPages)));
+    }
+  }, [materialPage]);
+
+  const subjectOptions = useMemo(() => courses.filter(course => course.status === 'ACTIVE').map(course => ({
+    value: course.id,
+    label: course.code && course.code !== course.name ? `${course.code} · ${course.name}` : course.name,
+  })), [courses]);
+
+  const syncedCount = useMemo(
+    () => materials.filter((m) => m.aiStatusType === 'synced').length,
+    [materials]
+  );
+  const totalConceptsCount = useMemo(
+    () => materials.reduce((sum, m) => sum + (m.conceptsCount ?? 0), 0),
+    [materials]
+  );
+  const aiSyncPercent =
+    materials.length > 0 ? Math.round((syncedCount / materials.length) * 100) : 0;
+
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Modals state
@@ -46,33 +104,14 @@ export function ClassMaterialsTab({
     if (onToast) onToast(msg);
   };
 
-  // Filtered & Sorted items
-  const filteredMaterials = useMemo(() => {
-    return materials
-      .filter((item) => {
-        const matchesQuery =
-          !searchQuery.trim() ||
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.subDetail && item.subDetail.toLowerCase().includes(searchQuery.toLowerCase()));
-
-        const matchesSubject =
-          selectedSubject === 'ALL' || item.subjectCode === selectedSubject;
-
-        const matchesCategory =
-          selectedCategory === 'ALL' || item.categoryType === selectedCategory;
-
-        return matchesQuery && matchesSubject && matchesCategory;
-      })
-      .sort((a, b) => {
-        // Pinned items first
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0;
-      });
-  }, [materials, searchQuery, selectedSubject, selectedCategory]);
+  const paginatedMaterials = useMemo(
+    () => [...materials].sort((a, b) => Number(b.isPinned) - Number(a.isPinned)),
+    [materials],
+  );
+  const totalPages = materialPage?.totalPages ?? 0;
+  const totalMaterials = materialPage?.totalElements ?? 0;
+  const showingFrom = materials.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+  const showingTo = materials.length ? showingFrom + materials.length - 1 : 0;
 
   const handleTogglePin = (id: string) => {
     setMaterials((prev) =>
@@ -97,8 +136,17 @@ export function ClassMaterialsTab({
   };
 
   const handleOpenGraph = (material?: ClassMaterial) => {
-    setSelectedMaterial(material || materials[0] || null);
-    setIsGraphOpen(true);
+    const query = new URLSearchParams();
+    const targetCourseId =
+      material?.courseId || courses[0]?.id || materials[0]?.courseId;
+    if (targetCourseId) {
+      query.set('courseId', targetCourseId);
+    }
+    if (material?.id) {
+      query.set('materialId', material.id);
+    }
+    const qs = query.toString();
+    router.push(qs ? `/knowledge-graph?${qs}` : '/knowledge-graph');
   };
 
   const handleOpenAutoQuiz = (material?: ClassMaterial) => {
@@ -171,9 +219,6 @@ export function ClassMaterialsTab({
               assignment
             </span>
             <span>Hàng đợi AI</span>
-            <span className="px-2 py-0.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] text-[10px] font-bold">
-              2
-            </span>
           </Link>
 
           <button
@@ -200,27 +245,31 @@ export function ClassMaterialsTab({
 
       {/* 2. 4 KPI STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1: Storage */}
+        {/* KPI 1: Extracted Knowledge Concepts */}
         <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
-              {t('kpiStorage')}
+              {t('materialsPageConcepts')}
             </span>
             <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-blue-600 dark:text-[#A8C7FA] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">cloud</span>
+              <span className="material-symbols-outlined text-[18px]">hub</span>
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900 dark:text-[#E3E3E3]">
-              1.4 GB
+              {totalConceptsCount}
             </span>
-            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">/ 10 GB (14%)</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">
+              khái niệm đã bóc tách
+            </span>
           </div>
-          <div className="mt-2 w-full bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full h-1.5 overflow-hidden">
-            <div
-              className="bg-[#007BFF] dark:bg-[#A8C7FA] h-1.5 rounded-full transition-all duration-500"
-              style={{ width: '14%' }}
-            />
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-[#8E918F] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <span>
+              {syncedCount > 0
+                ? `Từ ${syncedCount} học liệu đã đồng bộ đồ thị`
+                : 'Chưa có học liệu nào bóc tách'}
+            </span>
           </div>
         </div>
 
@@ -228,7 +277,7 @@ export function ClassMaterialsTab({
         <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
-              {t('kpiUploaded')}
+              {t('materialsMatching')}
             </span>
             <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-emerald-700 dark:text-[#81C995] flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">description</span>
@@ -236,7 +285,7 @@ export function ClassMaterialsTab({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-emerald-600 dark:text-[#81C995]">
-              38
+              {materialPage ? totalMaterials : '—'}
             </span>
             <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">tài liệu số</span>
           </div>
@@ -258,15 +307,14 @@ export function ClassMaterialsTab({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900 dark:text-[#E3E3E3]">
-              4 / 4
+              {subjectOptions.length}
             </span>
-            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">môn học</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">{t('materialsAssignedCourses')}</span>
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-[#8E918F]">
             <span className="font-semibold text-blue-600 dark:text-[#A8C7FA]">
-              100% môn có giáo trình
+              {materials.length > 0 ? 'Dữ liệu đồng bộ theo môn' : 'Chưa có giáo trình'}
             </span>
-            <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">Kỳ 1</span>
           </div>
         </div>
 
@@ -274,7 +322,7 @@ export function ClassMaterialsTab({
         <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-[#8E918F]">
-              {t('kpiAiExtract')}
+              {t('materialsPageAiSync')}
             </span>
             <span className="w-8 h-8 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] text-purple-700 dark:text-purple-300 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">psychology</span>
@@ -282,9 +330,11 @@ export function ClassMaterialsTab({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">
-              98%
+              {materials.length > 0 ? `${aiSyncPercent}%` : '--'}
             </span>
-            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">(37/38 tài liệu)</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-[#8E918F]">
+              ({syncedCount}/{materials.length} tài liệu)
+            </span>
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-purple-700 dark:text-purple-300 font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
@@ -309,10 +359,7 @@ export function ClassMaterialsTab({
               }}
               options={[
                 { value: 'ALL', label: t('allSubjects') },
-                { value: 'CS-202', label: 'CS-202: Cấu trúc dữ liệu và giải thuật' },
-                { value: 'CS-201', label: 'CS-201: Cơ sở dữ liệu' },
-                { value: 'CS-203', label: 'CS-203: Lập trình hướng đối tượng' },
-                { value: 'CS-204', label: 'CS-204: Nhập môn trí tuệ nhân tạo' },
+                ...subjectOptions,
               ]}
               className="min-w-[200px]"
             />
@@ -349,10 +396,7 @@ export function ClassMaterialsTab({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('searchMaterialPlaceholder')}
               className="w-full pl-9 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-all"
             />
@@ -466,7 +510,9 @@ export function ClassMaterialsTab({
               </h4>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {t('featureGraphDesc')}
+              {syncedCount > 0
+                ? `${syncedCount} học liệu đã đồng bộ vào ${totalConceptsCount} khái niệm (concepts) trên đồ thị tri thức.`
+                : 'Chưa có học liệu nào được đồng bộ lên đồ thị tri thức.'}
             </p>
           </div>
 
@@ -490,7 +536,16 @@ export function ClassMaterialsTab({
       </div>
 
       {/* 5. DATA VIEW: TABLE OR GRID */}
-      {viewMode === 'list' ? (
+      {materialsQuery.isPending ? (
+        <p role="status" className="rounded-3xl bg-surface p-6 text-sm">{t('materialsLoading')}</p>
+      ) : materialsQuery.isError && !materialPage ? (
+        <div role="alert" className="rounded-3xl bg-surface p-6 text-sm">
+          <p>{t('materialsLoadError')}</p>
+          <button type="button" onClick={() => void materialsQuery.refetch()} className="mt-3 font-semibold text-primary">
+            {t('retryClassContent')}
+          </button>
+        </div>
+      ) : viewMode === 'list' ? (
         /* TABLE VIEW */
         <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border-none shadow-sm dark:shadow-none overflow-hidden">
           <div className="overflow-x-auto">
@@ -527,19 +582,19 @@ export function ClassMaterialsTab({
                 </tr>
               </thead>
               <tbody className="text-gray-700 dark:text-[#C4C7C5] border-none font-medium">
-                {filteredMaterials.length === 0 ? (
+                {paginatedMaterials.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center text-gray-400 dark:text-[#8E918F] text-sm align-middle">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-[#8E918F]">
                           find_in_page
                         </span>
-                        <span>Không tìm thấy học liệu nào phù hợp với bộ lọc</span>
+                        <span>{t('materialsNoMatches')}</span>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredMaterials.map((mat, idx) => {
+                  paginatedMaterials.map((mat, idx) => {
                     const badge = getFormatBadge(mat.format);
                     const isPinned = mat.isPinned;
 
@@ -765,72 +820,13 @@ export function ClassMaterialsTab({
             </table>
           </div>
 
-          {/* Pagination bar */}
-          <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <div>
-              {t('showingMaterials', {
-                from: filteredMaterials.length > 0 ? 1 : 0,
-                to: filteredMaterials.length,
-                total: 38,
-              })}
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="w-8 h-8 rounded-full border-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center disabled:opacity-40 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
-                  currentPage === 1
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                }`}
-              >
-                1
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(2)}
-                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
-                  currentPage === 2
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                }`}
-              >
-                2
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(3)}
-                className={`w-8 h-8 rounded-full font-semibold flex items-center justify-center border-none cursor-pointer ${
-                  currentPage === 3
-                    ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F]'
-                    : 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                }`}
-              >
-                3
-              </button>
-              <button
-                type="button"
-                disabled={currentPage === 3}
-                onClick={() => setCurrentPage((p) => Math.min(3, p + 1))}
-                className="w-8 h-8 rounded-full border-none bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5] flex items-center justify-center disabled:opacity-40 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-              </button>
-            </div>
-          </div>
         </div>
+      ) : paginatedMaterials.length === 0 ? (
+        <p className="rounded-3xl bg-surface p-6 text-sm text-muted-foreground">{t('materialsNoMatches')}</p>
       ) : (
         /* GRID VIEW */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredMaterials.map((mat) => {
+          {paginatedMaterials.map((mat) => {
             const badge = getFormatBadge(mat.format);
             return (
               <div
@@ -915,6 +911,25 @@ export function ClassMaterialsTab({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {materialPage && totalMaterials > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 text-sm text-muted-foreground">
+          <span>{t('showingMaterials', { from: showingFrom, to: showingTo, total: totalMaterials })}</span>
+          {totalPages > 1 && (
+            <nav aria-label={t('materialsPagination')} className="flex items-center gap-3">
+              <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage(currentPage - 1)}
+                className="rounded-full bg-surface-hover px-3 py-1.5 font-medium text-on-surface disabled:opacity-40">
+                {t('materialsPrevious')}
+              </button>
+              <span>{t('materialsPage', { page: currentPage, total: totalPages })}</span>
+              <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}
+                className="rounded-full bg-surface-hover px-3 py-1.5 font-medium text-on-surface disabled:opacity-40">
+                {t('materialsNext')}
+              </button>
+            </nav>
+          )}
         </div>
       )}
 

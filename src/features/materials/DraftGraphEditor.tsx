@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import {
   Background,
+  ConnectionMode,
   Controls,
   MarkerType,
   ReactFlow,
   useNodesState,
+  type Connection,
   type Edge,
   type Node,
   type NodeChange,
+  type ReactFlowInstance,
 } from '@xyflow/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
@@ -20,18 +24,38 @@ import {
   addEntityToDraft,
   addRelationToDraft,
   addTopicToDraft,
+  addProcessToEntity,
+  addExerciseToEntity,
+  addExampleToEntity,
+  addArgumentToEntity,
   deleteNodeByPath,
+  deleteRelationBySourceTarget,
   getNodeFields,
   parseDraftGraph,
   stringifyDraftGraph,
   updateNodeFieldByPath,
+  updateRelationInDraft,
   type DraftEntity,
+  type DraftTopic,
 } from './utils/draft-graph-crud';
 import { DraftCreateEntityModal } from './components/hub/modals/DraftCreateEntityModal';
 import { DraftCreateRelationModal } from './components/hub/modals/DraftCreateRelationModal';
 import { DraftCreateTopicModal } from './components/hub/modals/DraftCreateTopicModal';
 import { DraftNodeEditModal } from './components/hub/modals/DraftNodeEditModal';
 import { DraftEntityEditorModal } from './components/hub/modals/DraftEntityEditorModal';
+import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/components/shared';
+import { DraftQuickConnectModal } from './components/hub/modals/DraftQuickConnectModal';
+import { DraftEdgeEditModal } from './components/hub/modals/DraftEdgeEditModal';
+import { DraftCustomNode } from './components/hub/canvas/DraftCustomNode';
+import { DraftDraggableMinimap } from './components/hub/focus/DraftDraggableMinimap';
+import { DraftFloatingNodeCard } from './components/hub/focus/DraftFloatingNodeCard';
+import { DraftFocusToolbar } from './components/hub/focus/DraftFocusToolbar';
+import { DraftStudioHeader } from './components/hub/studio/DraftStudioHeader';
+import { DraftStudioPalette } from './components/hub/studio/DraftStudioPalette';
+import { DraftStudioPropertiesPanel } from './components/hub/studio/DraftStudioPropertiesPanel';
+import { DraftJsonStudioModal } from './components/hub/modals/DraftJsonStudioModal';
+import { DraftAiRepairModal } from './components/hub/modals/DraftAiRepairModal';
 
 const COLUMNS: Record<string, number> = {
   Topic: 0,
@@ -95,30 +119,80 @@ interface DraftGraphEditorProps {
   jobId: string;
   revisionId: string;
   jobStatus: string;
+  courseId?: string | null;
+  courseTitle?: string;
   text: string;
   editable: boolean;
   onChange: (text: string) => void;
+  isDedicatedRoute?: boolean;
+  onExitDedicatedRoute?: () => void;
 }
 
 export function DraftGraphEditor({
   jobId,
   revisionId,
+  jobStatus,
+  courseId,
+  courseTitle,
   text,
   editable,
   onChange,
+  isDedicatedRoute = false,
+  onExitDedicatedRoute,
 }: DraftGraphEditorProps) {
+  const router = useRouter();
+  const confirm = useConfirm();
   const t = useTranslations('materialsHub.draftGraph');
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
   const [selectedPath, setSelectedPath] = useState('');
 
+  // Fullscreen & Studio panel states
+  const [isFullscreen, setIsFullscreen] = useState(Boolean(isDedicatedRoute));
+  const [isLeftPaletteOpen, setIsLeftPaletteOpen] = useState(true);
+  const [isRightInspectorOpen, setIsRightInspectorOpen] = useState(true);
+  const [isMinimapVisible, setIsMinimapVisible] = useState(true);
+  const [isAutoSpreading, setIsAutoSpreading] = useState(false);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+
+  // Direct Interactive Connection states
+  const [isQuickConnectOpen, setIsQuickConnectOpen] = useState(false);
+  const [isAiRepairOpen, setIsAiRepairOpen] = useState(false);
+  const [quickConnectState, setQuickConnectState] = useState<{
+    sourceId: string;
+    targetId: string;
+    sourceLabel: string;
+    targetLabel: string;
+    sourceKind?: string;
+    targetKind?: string;
+  } | null>(null);
+
+  // Direct Edge Edit states
+  const [isEdgeEditOpen, setIsEdgeEditOpen] = useState(false);
+  const [edgeEditState, setEdgeEditState] = useState<{
+    edgeId: string;
+    sourceLabel: string;
+    targetLabel: string;
+    relationType: string;
+    isCustomRelation: boolean;
+  } | null>(null);
+
+  const nodeTypes = useMemo(
+    () => ({
+      draftNode: DraftCustomNode,
+    }),
+    []
+  );
+
   // Modal dialog states
   const [isAddEntityOpen, setIsAddEntityOpen] = useState(false);
   const [isAddRelationOpen, setIsAddRelationOpen] = useState(false);
+  const [relationInitialSource, setRelationInitialSource] = useState<string | undefined>(undefined);
   const [isAddTopicOpen, setIsAddTopicOpen] = useState(false);
   const [isNodeEditModalOpen, setIsNodeEditModalOpen] = useState(false);
   const [isEntityFullEditorOpen, setIsEntityFullEditorOpen] = useState(false);
+  const [isJsonStudioOpen, setIsJsonStudioOpen] = useState(false);
 
   const {
     data: snapshot,
@@ -156,9 +230,10 @@ export function DraftGraphEditor({
     if (Array.isArray(data.entities)) {
       data.entities.forEach((ent, eIdx) => {
         const entId = `entity-${eIdx}`;
+        const entKind = (ent as { kind?: string }).kind || 'KnowledgeEntity';
         synthesizedNodes.push({
           id: entId,
-          kind: 'KnowledgeEntity',
+          kind: entKind,
           path: `entities/${eIdx}`,
           label: ent.name || `Entity #${eIdx + 1}`,
         });
@@ -181,14 +256,14 @@ export function DraftGraphEditor({
           });
         }
 
-        // Definition
+        // Definition (only synthesized as child node for KnowledgeEntity with definition)
         const defText =
           typeof ent.definition === 'string'
             ? ent.definition
             : typeof ent.definition === 'object' && ent.definition !== null
               ? (ent.definition as { content?: string }).content
               : '';
-        if (defText) {
+        if (defText && entKind === 'KnowledgeEntity') {
           const defId = `def-${eIdx}`;
           synthesizedNodes.push({
             id: defId,
@@ -323,21 +398,31 @@ export function DraftGraphEditor({
       });
     }
 
-    // 3. Knowledge Relations between entities
-    if (Array.isArray(data.knowledge_relations) && Array.isArray(data.entities)) {
+    // 3. Knowledge Relations between any nodes (entities, topics, steps, etc.)
+    if (Array.isArray(data.knowledge_relations)) {
       data.knowledge_relations.forEach((rel) => {
-        const srcIdx = data.entities!.findIndex(
-          (e) => e.name.trim().toLowerCase() === rel.source.trim().toLowerCase()
+        const srcNode = synthesizedNodes.find(
+          (n) => n.label.trim().toLowerCase() === rel.source.trim().toLowerCase()
         );
-        const tgtIdx = data.entities!.findIndex(
-          (e) => e.name.trim().toLowerCase() === rel.target.trim().toLowerCase()
+        const tgtNode = synthesizedNodes.find(
+          (n) => n.label.trim().toLowerCase() === rel.target.trim().toLowerCase()
         );
-        if (srcIdx !== -1 && tgtIdx !== -1) {
-          synthesizedEdges.push({
-            source: `entity-${srcIdx}`,
-            target: `entity-${tgtIdx}`,
-            kind: rel.relation_type || 'REQUIRES',
-          });
+        if (srcNode && tgtNode) {
+          const relationKind = rel.relation_type || 'REQUIRES';
+          if (
+            !synthesizedEdges.some(
+              (e) =>
+                e.source === srcNode.id &&
+                e.target === tgtNode.id &&
+                e.kind === relationKind
+            )
+          ) {
+            synthesizedEdges.push({
+              source: srcNode.id,
+              target: tgtNode.id,
+              kind: relationKind,
+            });
+          }
         }
       });
     }
@@ -370,8 +455,10 @@ export function DraftGraphEditor({
     if (Array.isArray(data.entities)) {
       data.entities.forEach((ent, eIdx) => {
         const entId = `entity-${eIdx}`;
+        const entKind = (ent as { kind?: string }).kind || 'KnowledgeEntity';
         const currentEntityY = clusterStartY;
-        initialPositions.set(entId, { x: COL_X.KnowledgeEntity, y: currentEntityY });
+        const col = COLUMNS[entKind] ?? 1;
+        initialPositions.set(entId, { x: col * 420 + 40, y: currentEntityY });
 
         let childY = currentEntityY;
 
@@ -474,49 +561,16 @@ export function DraftGraphEditor({
 
       return {
         id: item.id,
+        type: 'draftNode',
         position: pos,
         selected: isSelected,
         data: {
+          kind: item.kind,
           path: item.path,
-          label: (
-            <div className="text-left px-0.5 select-none">
-              <div className="flex items-center justify-between mb-1">
-                <span
-                  className="text-[10px] font-extrabold uppercase tracking-wider font-mono px-1.5 py-0.5 rounded"
-                  style={{
-                    color: activeColor.tag,
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-                  }}
-                >
-                  {item.kind}
-                </span>
-                {isSelected && (
-                  <span className="material-symbols-outlined text-[14px] text-blue-400">
-                    check_circle
-                  </span>
-                )}
-              </div>
-              <div
-                className="text-xs font-bold line-clamp-2 leading-snug"
-                style={{ color: activeColor.text }}
-              >
-                {displayTitle}
-              </div>
-            </div>
-          ),
-        },
-        style: {
-          background: activeColor.bg,
-          border: `${isSelected ? 2.5 : 1.5}px solid ${isSelected ? '#38bdf8' : activeColor.border}`,
-          borderRadius: '14px',
-          padding: '8px 11px',
-          width: 250,
-          boxShadow: isSelected
-            ? '0 0 0 3px rgba(56, 189, 248, 0.3), 0 8px 24px rgba(0,0,0,0.3)'
-            : isDark
-              ? '0 4px 12px rgba(0,0,0,0.4)'
-              : '0 2px 6px rgba(0,0,0,0.06)',
-          cursor: 'grab',
+          title: displayTitle,
+          isSelected,
+          activeColor,
+          isDark,
         },
       };
     });
@@ -564,19 +618,53 @@ export function DraftGraphEditor({
   }
 
   // Delete current selected node
-  function handleDeleteSelectedNode() {
+  async function handleDeleteSelectedNode() {
     if (!selectedNodeMeta || !editable) return;
-    if (
-      !window.confirm(
-        `Bạn có chắc chắn muốn xóa [${selectedNodeMeta.kind}] "${selectedNodeInfo?.label || selectedNodeMeta.label}"?`
-      )
-    ) {
+    const ok = await confirm({
+      title: `Xác nhận xóa [${selectedNodeMeta.kind}]`,
+      message: `Bạn có chắc chắn muốn xóa [${selectedNodeMeta.kind}] "${selectedNodeInfo?.label || selectedNodeMeta.label}" khỏi đồ thị không? Hành động này không thể hoàn tác.`,
+      variant: 'danger',
+      confirmText: 'Xóa phần tử',
+      cancelText: 'Hủy',
+    });
+    if (!ok) {
       return;
     }
     const next = deleteNodeByPath(data, selectedNodeMeta.path);
     setSelectedPath('');
     onChange(stringifyDraftGraph(next));
   }
+
+  // Diagrams.net Keyboard Shortcuts: F for fullscreen, ESC for exit, Delete/Backspace to delete selected node
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        setIsFullscreen((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        }
+      } else if (e.key === 'm' || e.key === 'M') {
+        if (isFullscreen) {
+          setIsMinimapVisible((prev) => !prev);
+        }
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedPath && editable) {
+          e.preventDefault();
+          handleDeleteSelectedNode();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, selectedPath, editable, selectedNodeMeta, selectedNodeInfo]);
 
   // Move exercise between entities
   function moveExercise(destination: number) {
@@ -643,6 +731,546 @@ export function DraftGraphEditor({
     setNodes(diagram.nodes);
   }, [diagram.nodes, setNodes]);
 
+  const handleFitView = useCallback(() => {
+    reactFlowInstance?.fitView({ padding: 0.2, duration: 400 });
+  }, [reactFlowInstance]);
+
+  const paletteNodeList = useMemo(() => {
+    return diagram.rawNodes.map((n) => {
+      const nodeFields = getNodeFields(data, n.path, n.kind);
+      const descField = nodeFields.fields.find(
+        (f) =>
+          f.key === 'description' ||
+          f.key === 'summary' ||
+          f.key === 'statement' ||
+          f.key === 'explanation'
+      );
+      return {
+        id: n.id,
+        label: nodeFields.label || n.label,
+        kind: n.kind,
+        path: n.path,
+        description: descField?.value || '',
+      };
+    });
+  }, [diagram.rawNodes, data]);
+
+  const handleSelectAndFocusNode = useCallback(
+    (path: string, nodeId: string) => {
+      setSelectedPath(path);
+      setIsRightInspectorOpen(true);
+      if (reactFlowInstance) {
+        reactFlowInstance.fitView({
+          nodes: [{ id: nodeId }],
+          duration: 600,
+          maxZoom: 1.25,
+        });
+      }
+    },
+    [reactFlowInstance]
+  );
+
+  const handleExitFullscreen = useCallback(() => {
+    if (isDedicatedRoute) {
+      if (onExitDedicatedRoute) {
+        onExitDedicatedRoute();
+      } else {
+        router.push(`/materials?jobId=${jobId}`);
+      }
+    } else {
+      setIsFullscreen(false);
+    }
+  }, [isDedicatedRoute, jobId, onExitDedicatedRoute, router]);
+
+  // Create a new node of any kind (used by Draw.io Shape Palette and Drag & Drop)
+  // All shapes are created as completely standalone independent nodes with ZERO auto-connections!
+  const handleCreateNodeOfKind = useCallback(
+    (kind: string, pos?: { x: number; y: number }) => {
+      if (!editable) return;
+      let next = structuredClone(data);
+      let newId = '';
+
+      if (kind === 'Topic') {
+        const count = (next.topics?.length ?? 0) + 1;
+        const name = `Chủ đề mới #${count}`;
+        next = addTopicToDraft(next, { name, summary: '' });
+        newId = `topic-${(next.topics?.length ?? 1) - 1}`;
+      } else {
+        const count = (next.entities?.length ?? 0) + 1;
+        const defaultNames: Record<string, string> = {
+          KnowledgeEntity: `Thực thể mới #${count}`,
+          Definition: `Định nghĩa #${count}`,
+          Process: `Quy trình #${count}`,
+          ProcessStep: `Bước quy trình #${count}`,
+          Exercise: `Bài tập #${count}`,
+          ExerciseStep: `Bước giải #${count}`,
+          Example: `Ví dụ #${count}`,
+          Argument: `Luận cứ #${count}`,
+        };
+        const defaultDescriptions: Record<string, string> = {
+          KnowledgeEntity: 'Mô tả thực thể tri thức',
+          Definition: 'Nội dung định nghĩa',
+          Process: 'Mô tả quy trình thực hiện',
+          ProcessStep: 'Nội dung hành động của bước',
+          Exercise: 'Nội dung đề bài tập',
+          ExerciseStep: 'Chỉ dẫn giải quyết bước này',
+          Example: 'Mô tả ví dụ minh họa thực tiễn',
+          Argument: 'Giả thuyết và chứng minh',
+        };
+
+        const name = defaultNames[kind] || `${kind} #${count}`;
+        const description = defaultDescriptions[kind] || '';
+
+        next = addEntityToDraft(next, {
+          name,
+          description,
+          kind,
+        });
+        newId = `entity-${(next.entities?.length ?? 1) - 1}`;
+      }
+
+      if (pos && newId) {
+        userPositions.current.set(newId, pos);
+      }
+
+      onChange(stringifyDraftGraph(next));
+    },
+    [data, editable, onChange]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      const kind = e.dataTransfer.getData('application/reactflow-kind');
+      if (!kind || !editable) return;
+
+      const position = reactFlowInstance
+        ? reactFlowInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY })
+        : { x: e.clientX, y: e.clientY };
+
+      handleCreateNodeOfKind(kind, position);
+    },
+    [editable, reactFlowInstance, handleCreateNodeOfKind]
+  );
+
+  // Direct Interactive Connection on Canvas via drag-and-drop handles
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      if (!editable || !connection.source || !connection.target) return;
+      if (connection.source === connection.target) return;
+
+      const srcNode = diagram.rawNodes.find((n) => n.id === connection.source);
+      const tgtNode = diagram.rawNodes.find((n) => n.id === connection.target);
+      if (!srcNode || !tgtNode) return;
+
+      const srcFields = getNodeFields(data, srcNode.path, srcNode.kind);
+      const tgtFields = getNodeFields(data, tgtNode.path, tgtNode.kind);
+
+      const sourceLabel = srcFields.label || srcNode.label;
+      const targetLabel = tgtFields.label || tgtNode.label;
+
+      setQuickConnectState({
+        sourceId: connection.source,
+        targetId: connection.target,
+        sourceLabel,
+        targetLabel,
+        sourceKind: srcNode.kind,
+        targetKind: tgtNode.kind,
+      });
+      setIsQuickConnectOpen(true);
+    },
+    [editable, diagram.rawNodes, data]
+  );
+
+  const handleConfirmQuickConnect = useCallback(
+    (relationType: string) => {
+      if (!quickConnectState) return;
+      let next = structuredClone(data);
+
+      if (
+        quickConnectState.sourceKind === 'Topic' &&
+        (relationType === 'INCLUDES' || quickConnectState.targetKind === 'KnowledgeEntity')
+      ) {
+        if (!Array.isArray(next.topics)) next.topics = [];
+        const top = next.topics.find(
+          (t: DraftTopic) =>
+            t.name.trim().toLowerCase() === quickConnectState.sourceLabel.trim().toLowerCase()
+        );
+        if (top) {
+          if (!Array.isArray(top.concepts_included)) top.concepts_included = [];
+          if (
+            !top.concepts_included.some(
+              (c) => c.trim().toLowerCase() === quickConnectState.targetLabel.trim().toLowerCase()
+            )
+          ) {
+            top.concepts_included.push(quickConnectState.targetLabel);
+          }
+        }
+      }
+
+      next = addRelationToDraft(next, {
+        source: quickConnectState.sourceLabel,
+        target: quickConnectState.targetLabel,
+        relation_type: relationType,
+      });
+
+      onChange(stringifyDraftGraph(next));
+      setIsQuickConnectOpen(false);
+      setQuickConnectState(null);
+    },
+    [data, onChange, quickConnectState]
+  );
+
+  // Click directly on edge to edit or delete relation
+  const handleEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: Edge) => {
+      if (!editable) return;
+      const srcNode = diagram.rawNodes.find((n) => n.id === edge.source);
+      const tgtNode = diagram.rawNodes.find((n) => n.id === edge.target);
+
+      const sourceLabel = srcNode
+        ? getNodeFields(data, srcNode.path, srcNode.kind).label || srcNode.label
+        : edge.source;
+      const targetLabel = tgtNode
+        ? getNodeFields(data, tgtNode.path, tgtNode.kind).label || tgtNode.label
+        : edge.target;
+
+      const relationType = typeof edge.label === 'string' ? edge.label : 'REQUIRES';
+
+      const isCustomRel =
+        Array.isArray(data.knowledge_relations) &&
+        data.knowledge_relations.some(
+          (r) =>
+            r.source.trim().toLowerCase() === sourceLabel.trim().toLowerCase() &&
+            r.target.trim().toLowerCase() === targetLabel.trim().toLowerCase()
+        );
+      const isTopicInclude = edge.label === 'INCLUDES' || relationType === 'INCLUDES';
+
+      setEdgeEditState({
+        edgeId: edge.id,
+        sourceLabel,
+        targetLabel,
+        relationType,
+        isCustomRelation: Boolean(isCustomRel || isTopicInclude),
+      });
+      setIsEdgeEditOpen(true);
+    },
+    [editable, diagram.rawNodes, data]
+  );
+
+  const handleUpdateEdgeRelation = useCallback(
+    (newType: string) => {
+      if (!edgeEditState) return;
+      const relIdx = (data.knowledge_relations || []).findIndex(
+        (r) =>
+          r.source.trim().toLowerCase() === edgeEditState.sourceLabel.trim().toLowerCase() &&
+          r.target.trim().toLowerCase() === edgeEditState.targetLabel.trim().toLowerCase()
+      );
+      if (relIdx !== -1) {
+        const next = updateRelationInDraft(data, relIdx, { relation_type: newType });
+        onChange(stringifyDraftGraph(next));
+      }
+      setIsEdgeEditOpen(false);
+      setEdgeEditState(null);
+    },
+    [data, edgeEditState, onChange]
+  );
+
+  const handleDeleteEdge = useCallback(() => {
+    if (!edgeEditState) return;
+    let next = deleteRelationBySourceTarget(
+      data,
+      edgeEditState.sourceLabel,
+      edgeEditState.targetLabel,
+      edgeEditState.relationType
+    );
+    if (edgeEditState.relationType === 'INCLUDES' && Array.isArray(next.topics)) {
+      const top = next.topics.find(
+        (t) => t.name.trim().toLowerCase() === edgeEditState.sourceLabel.trim().toLowerCase()
+      );
+      if (top && Array.isArray(top.concepts_included)) {
+        top.concepts_included = top.concepts_included.filter(
+          (c) => c.trim().toLowerCase() !== edgeEditState.targetLabel.trim().toLowerCase()
+        );
+      }
+    }
+    onChange(stringifyDraftGraph(next));
+    setIsEdgeEditOpen(false);
+    setEdgeEditState(null);
+  }, [data, edgeEditState, onChange]);
+
+  const modalsJsx = (
+    <>
+      {/* CRUD Modals */}
+      <DraftCreateEntityModal
+        isOpen={isAddEntityOpen}
+        topics={data.topics}
+        onClose={() => setIsAddEntityOpen(false)}
+        onSubmit={(payload) => {
+          const next = addEntityToDraft(data, payload);
+          onChange(stringifyDraftGraph(next));
+        }}
+      />
+
+      <DraftCreateRelationModal
+        isOpen={isAddRelationOpen}
+        entities={data.entities}
+        initialSource={relationInitialSource}
+        onClose={() => {
+          setIsAddRelationOpen(false);
+          setRelationInitialSource(undefined);
+        }}
+        onSubmit={(payload) => {
+          const next = addRelationToDraft(data, payload);
+          onChange(stringifyDraftGraph(next));
+        }}
+      />
+
+      <DraftCreateTopicModal
+        isOpen={isAddTopicOpen}
+        entities={data.entities}
+        onClose={() => setIsAddTopicOpen(false)}
+        onSubmit={(payload) => {
+          const next = addTopicToDraft(data, payload);
+          onChange(stringifyDraftGraph(next));
+        }}
+      />
+
+      {/* Direct Node Edit Modal on Double Click or Click Sửa */}
+      {selectedNodeMeta && selectedNodeInfo && (
+        <DraftNodeEditModal
+          isOpen={isNodeEditModalOpen}
+          kind={selectedNodeMeta.kind}
+          label={selectedNodeInfo.label}
+          path={selectedNodeMeta.path}
+          fields={selectedNodeInfo.fields}
+          onClose={() => setIsNodeEditModalOpen(false)}
+          onSaveField={handleEditField}
+          onDelete={handleDeleteSelectedNode}
+          onOpenFullEntityEditor={
+            selectedNodeMeta.kind === 'KnowledgeEntity'
+              ? () => setIsEntityFullEditorOpen(true)
+              : undefined
+          }
+        />
+      )}
+
+      {/* Full 5-Tab Entity Editor Modal */}
+      {selectedEntityIndex !== null && data.entities?.[selectedEntityIndex] && (
+        <DraftEntityEditorModal
+          isOpen={isEntityFullEditorOpen}
+          entity={data.entities[selectedEntityIndex]}
+          entityIndex={selectedEntityIndex}
+          onClose={() => setIsEntityFullEditorOpen(false)}
+          onSave={(updated) => {
+            const next = structuredClone(data);
+            if (Array.isArray(next.entities) && next.entities[selectedEntityIndex]) {
+              next.entities[selectedEntityIndex] = updated;
+              onChange(stringifyDraftGraph(next));
+            }
+          }}
+          onDelete={() => handleDeleteSelectedNode()}
+        />
+      )}
+
+      {/* Direct Drag-to-Connect Quick Modal */}
+      {quickConnectState && (
+        <DraftQuickConnectModal
+          isOpen={isQuickConnectOpen}
+          sourceLabel={quickConnectState.sourceLabel}
+          targetLabel={quickConnectState.targetLabel}
+          sourceKind={quickConnectState.sourceKind}
+          targetKind={quickConnectState.targetKind}
+          onClose={() => {
+            setIsQuickConnectOpen(false);
+            setQuickConnectState(null);
+          }}
+          onSubmit={handleConfirmQuickConnect}
+        />
+      )}
+
+      {/* Direct Edge Click Edit / Delete Modal */}
+      {edgeEditState && (
+        <DraftEdgeEditModal
+          isOpen={isEdgeEditOpen}
+          edgeId={edgeEditState.edgeId}
+          sourceLabel={edgeEditState.sourceLabel}
+          targetLabel={edgeEditState.targetLabel}
+          relationType={edgeEditState.relationType}
+          isCustomRelation={edgeEditState.isCustomRelation}
+          onClose={() => {
+            setIsEdgeEditOpen(false);
+            setEdgeEditState(null);
+          }}
+          onUpdateRelationType={handleUpdateEdgeRelation}
+          onDeleteEdge={handleDeleteEdge}
+        />
+      )}
+
+      {/* JSON Studio & Insert Entities Modal (Draw.io Style) */}
+      <DraftJsonStudioModal
+        isOpen={isJsonStudioOpen}
+        currentGraphText={text}
+        editable={editable}
+        onClose={() => setIsJsonStudioOpen(false)}
+        onApplyGraph={(newGraphText) => {
+          onChange(newGraphText);
+          setTimeout(() => {
+            handleFitView();
+          }, 300);
+        }}
+      />
+
+      {/* AI Graph Validation & Auto-Repair Modal */}
+      <DraftAiRepairModal
+        isOpen={isAiRepairOpen}
+        onClose={() => setIsAiRepairOpen(false)}
+        courseId={courseId}
+        courseTitle={courseTitle}
+        materialTitle={t('heading')}
+        draftText={text}
+        onApplyRepairedDraft={(newGraphText) => {
+          onChange(newGraphText);
+          setTimeout(() => {
+            handleFitView();
+          }, 300);
+        }}
+        onFocusNode={(nodeName) => {
+          const match = diagram.nodes.find(
+            (n) =>
+              (n.data as { title?: string; label?: string })?.title?.toLowerCase() === nodeName.toLowerCase() ||
+              (n.data as { title?: string; label?: string })?.label?.toLowerCase() === nodeName.toLowerCase() ||
+              n.id.toLowerCase() === nodeName.toLowerCase()
+          );
+          if (match) {
+            handleSelectAndFocusNode((match.data as { path?: string })?.path || '', match.id);
+          }
+        }}
+      />
+    </>
+  );
+
+  // Fullscreen View: Dedicated Diagrams.net (Draw.io) Studio with Search & Direct Edge Connections
+  if (isFullscreen || isDedicatedRoute) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-slate-100 dark:bg-[#0b0f17] flex flex-col w-screen h-screen overflow-hidden select-none animate-in fade-in duration-150">
+        <DraftStudioHeader
+          title={t('heading')}
+          nodeCount={diagram.nodes.length}
+          edgeCount={diagram.edges.length}
+          editable={editable}
+          isLeftPaletteOpen={isLeftPaletteOpen}
+          isRightInspectorOpen={isRightInspectorOpen}
+          isAutoSpreading={isAutoSpreading}
+          onToggleLeftPalette={() => setIsLeftPaletteOpen((prev) => !prev)}
+          onToggleRightInspector={() => setIsRightInspectorOpen((prev) => !prev)}
+          onAutoSpread={() => {
+            setIsAutoSpreading(true);
+            handleAutoSpread();
+            setTimeout(() => setIsAutoSpreading(false), 300);
+          }}
+          onFitView={handleFitView}
+          onOpenAddEntity={() => setIsAddEntityOpen(true)}
+          onOpenAddTopic={() => setIsAddTopicOpen(true)}
+          onOpenAddRelation={() => {
+            setRelationInitialSource(undefined);
+            setIsAddRelationOpen(true);
+          }}
+          onOpenJsonStudio={() => setIsJsonStudioOpen(true)}
+          onOpenAiRepair={() => setIsAiRepairOpen(true)}
+          onExitFullscreen={handleExitFullscreen}
+        />
+
+        <div className="flex-1 flex min-h-0 relative overflow-hidden">
+          {/* Left Shape Palette (draw.io style with Search support) */}
+          {editable && (
+            <DraftStudioPalette
+              isOpen={isLeftPaletteOpen}
+              nodes={paletteNodeList}
+              selectedPath={selectedPath}
+              onToggle={() => setIsLeftPaletteOpen((prev) => !prev)}
+              onAddNode={(kind) => handleCreateNodeOfKind(kind)}
+              onOpenJsonStudio={() => setIsJsonStudioOpen(true)}
+              onSelectAndFocusNode={handleSelectAndFocusNode}
+            />
+          )}
+
+          {/* Center Canvas */}
+          <div
+            className="flex-1 h-full w-full relative bg-slate-100 dark:bg-[#0b0f17] overflow-hidden"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            <ReactFlow
+              key={`studio-${revisionId}-${isDark ? 'dark' : 'light'}`}
+              nodes={nodes}
+              edges={diagram.edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={handleNodesChange}
+              onInit={setReactFlowInstance}
+              fitView
+              minZoom={0.05}
+              nodesDraggable={true}
+              nodesConnectable={editable}
+              connectionMode={ConnectionMode.Loose}
+              onConnect={handleConnect}
+              onEdgeClick={handleEdgeClick}
+              onNodeClick={(_, node) => {
+                const found = diagram.rawNodes.find((item) => item.id === node.id);
+                setSelectedPath(found?.path ?? '');
+                if (!isRightInspectorOpen) setIsRightInspectorOpen(true);
+              }}
+              onNodeDoubleClick={(_, node) => {
+                const found = diagram.rawNodes.find((item) => item.id === node.id);
+                if (found) {
+                  setSelectedPath(found.path);
+                  setIsNodeEditModalOpen(true);
+                }
+              }}
+              onPaneClick={() => setSelectedPath('')}
+            >
+              <Background
+                color={isDark ? '#334155' : '#cbd5e1'}
+                gap={18}
+                size={1.2}
+              />
+              <Controls className="!bottom-4 !left-4" />
+            </ReactFlow>
+          </div>
+
+          {/* Right Format / Properties Inspector */}
+          <DraftStudioPropertiesPanel
+            isOpen={isRightInspectorOpen}
+            editable={editable}
+            selectedNode={selectedNodeMeta || null}
+            selectedNodeFields={selectedNodeInfo || null}
+            onToggle={() => setIsRightInspectorOpen((prev) => !prev)}
+            onEditField={handleEditField}
+            onDeleteNode={handleDeleteSelectedNode}
+            onOpenFullEditor={
+              selectedNodeMeta?.kind === 'KnowledgeEntity'
+                ? () => setIsEntityFullEditorOpen(true)
+                : undefined
+            }
+            onMoveExercise={moveExercise}
+            entityOptions={data.entities?.map((e, idx) => ({
+              value: idx,
+              label: e.name || String(idx + 1),
+            }))}
+          />
+        </div>
+
+        {modalsJsx}
+      </div>
+    );
+  }
+
+  // Normal Inline View on Document / Hub Page
   return (
     <section className="space-y-3 text-left">
       {/* Top Toolbar with High-contrast Buttons */}
@@ -704,6 +1332,28 @@ export function DraftGraphEditor({
 
             <button
               type="button"
+              onClick={() => setIsAiRepairOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/60 dark:to-blue-950/60 hover:from-purple-100 hover:to-blue-100 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 text-xs font-bold cursor-pointer transition-colors shadow-xs"
+              title="Quét kiểm tra cấu trúc đồ thị & gợi ý sửa tự động bằng AI"
+            >
+              <span className="material-symbols-outlined text-[16px] text-purple-600 dark:text-purple-400">
+                troubleshoot
+              </span>
+              <span>Kiểm tra đồ thị</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsJsonStudioOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer shadow-xs"
+              title="Xem mã JSON hoặc chèn nhóm thực thể mới bằng code JSON"
+            >
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">data_object</span>
+              <span>&lt;/&gt; JSON</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => void refetch()}
               className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
               title={t('reload')}
@@ -733,7 +1383,7 @@ export function DraftGraphEditor({
           className="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 p-5 text-center space-y-2.5"
         >
           <p className="text-xs font-medium text-rose-700 dark:text-rose-300">
-            {error instanceof Error ? error.message : 'Không thể tải đồ thị bản nháp.'}
+            {getUserFriendlyErrorMessage(error, 'Không thể tải đồ thị bản nháp.')}
           </p>
           <button
             type="button"
@@ -746,16 +1396,25 @@ export function DraftGraphEditor({
       )}
 
       {/* Interactive Visual Canvas */}
-      <div className="h-[32rem] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-100 dark:bg-[#121417] overflow-hidden relative shadow-inner">
+      <div
+        className="h-[32rem] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-100 dark:bg-[#121417] overflow-hidden relative shadow-inner"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <ReactFlow
           key={`${revisionId}-${isDark ? 'dark' : 'light'}`}
           nodes={nodes}
           edges={diagram.edges}
+          nodeTypes={nodeTypes}
           onNodesChange={handleNodesChange}
+          onInit={setReactFlowInstance}
           fitView
           minZoom={0.05}
           nodesDraggable={true}
-          nodesConnectable={false}
+          nodesConnectable={editable}
+          connectionMode={ConnectionMode.Loose}
+          onConnect={handleConnect}
+          onEdgeClick={handleEdgeClick}
           onNodeClick={(_, node) => {
             const found = diagram.rawNodes.find((item) => item.id === node.id);
             setSelectedPath(found?.path ?? '');
@@ -767,6 +1426,7 @@ export function DraftGraphEditor({
               setIsNodeEditModalOpen(true);
             }
           }}
+          onPaneClick={() => setSelectedPath('')}
         >
           <Background
             color={isDark ? '#334155' : '#cbd5e1'}
@@ -819,10 +1479,10 @@ export function DraftGraphEditor({
         )}
       </div>
 
-      {/* Selected Node Inline Inspector */}
+      {/* Selected Node Inline Inspector (only in inline view) */}
       {!selectedNodeMeta ? (
         <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-          💡 <strong>Mẹo:</strong> Nhấp vào một node trên đồ thị để kiểm tra, hoặc <strong>nhấp đúp (Double Click)</strong> để mở cửa sổ chỉnh sửa nhanh. Bạn có thể kéo thả để sắp xếp các node tùy ý.
+          💡 <strong>Mẹo:</strong> Nhấp vào một node trên đồ thị để kiểm tra, hoặc <strong>nhấp đúp (Double Click)</strong> để mở cửa sổ chỉnh sửa nhanh. Nhấn <strong>Toàn màn hình</strong> để trải nghiệm Studio kéo thả chuẩn Draw.io.
         </p>
       ) : (
         <div className="space-y-4 rounded-2xl bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 shadow-xs">
@@ -874,7 +1534,6 @@ export function DraftGraphEditor({
             )}
           </div>
 
-          {/* Editable Property Fields with Full Support for String and Object nodes */}
           <div className="space-y-3">
             {selectedNodeInfo?.fields.map((field) => (
               <label
@@ -896,7 +1555,6 @@ export function DraftGraphEditor({
             ))}
           </div>
 
-          {/* Special Exercise Move Control */}
           {selectedNodeMeta.kind === 'Exercise' &&
             editable &&
             Array.isArray(data.entities) && (
@@ -916,73 +1574,7 @@ export function DraftGraphEditor({
         </div>
       )}
 
-      {/* CRUD Modals */}
-      <DraftCreateEntityModal
-        isOpen={isAddEntityOpen}
-        topics={data.topics}
-        onClose={() => setIsAddEntityOpen(false)}
-        onSubmit={(payload) => {
-          const next = addEntityToDraft(data, payload);
-          onChange(stringifyDraftGraph(next));
-        }}
-      />
-
-      <DraftCreateRelationModal
-        isOpen={isAddRelationOpen}
-        entities={data.entities}
-        onClose={() => setIsAddRelationOpen(false)}
-        onSubmit={(payload) => {
-          const next = addRelationToDraft(data, payload);
-          onChange(stringifyDraftGraph(next));
-        }}
-      />
-
-      <DraftCreateTopicModal
-        isOpen={isAddTopicOpen}
-        entities={data.entities}
-        onClose={() => setIsAddTopicOpen(false)}
-        onSubmit={(payload) => {
-          const next = addTopicToDraft(data, payload);
-          onChange(stringifyDraftGraph(next));
-        }}
-      />
-
-      {/* Direct Node Edit Modal on Double Click or Click Sửa */}
-      {selectedNodeMeta && selectedNodeInfo && (
-        <DraftNodeEditModal
-          isOpen={isNodeEditModalOpen}
-          kind={selectedNodeMeta.kind}
-          label={selectedNodeInfo.label}
-          path={selectedNodeMeta.path}
-          fields={selectedNodeInfo.fields}
-          onClose={() => setIsNodeEditModalOpen(false)}
-          onSaveField={handleEditField}
-          onDelete={handleDeleteSelectedNode}
-          onOpenFullEntityEditor={
-            selectedNodeMeta.kind === 'KnowledgeEntity'
-              ? () => setIsEntityFullEditorOpen(true)
-              : undefined
-          }
-        />
-      )}
-
-      {/* Full 5-Tab Entity Editor Modal */}
-      {selectedEntityIndex !== null && data.entities?.[selectedEntityIndex] && (
-        <DraftEntityEditorModal
-          isOpen={isEntityFullEditorOpen}
-          entity={data.entities[selectedEntityIndex]}
-          entityIndex={selectedEntityIndex}
-          onClose={() => setIsEntityFullEditorOpen(false)}
-          onSave={(updated) => {
-            const next = structuredClone(data);
-            if (Array.isArray(next.entities) && next.entities[selectedEntityIndex]) {
-              next.entities[selectedEntityIndex] = updated;
-              onChange(stringifyDraftGraph(next));
-            }
-          }}
-          onDelete={() => handleDeleteSelectedNode()}
-        />
-      )}
+      {modalsJsx}
     </section>
   );
 }

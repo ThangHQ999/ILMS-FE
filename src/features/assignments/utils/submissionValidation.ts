@@ -80,7 +80,11 @@ export function evaluateCanSubmitAssignment({
 
   let isStudentActive = isMockAssignment;
 
-  if (!isMockAssignment) {
+  if (!isMockAssignment && classDetail?.callerRole) {
+    const memberStatus = classDetail.classInfo.memberStatus;
+    isStudentActive = classDetail.callerRole === 'STUDENT'
+      && (!memberStatus || memberStatus === 'ACTIVE' || memberStatus === 'APPROVED');
+  } else if (!isMockAssignment) {
     if (currentUser) {
       const normalizedRole = (currentUser.roleName || '').toUpperCase();
       const email = (currentUser.email || '').toLowerCase().trim();
@@ -132,7 +136,7 @@ export function evaluateCanSubmitAssignment({
   const isCourseWritable =
     !classDetail?.courses ||
     classDetail.courses.length === 0 ||
-    classDetail.courses.some((c) => c.status === 'ACTIVE');
+    classDetail.courses.some((c) => c.status === 'ACTIVE' && (!assignment.courseId || c.id === assignment.courseId));
 
   if (!isClassWritable || !isCourseWritable) {
     return {

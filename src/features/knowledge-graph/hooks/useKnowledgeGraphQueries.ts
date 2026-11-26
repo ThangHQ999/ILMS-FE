@@ -11,7 +11,23 @@ import {
   startMaterialGraphDraft,
   withdrawPublishedGraph,
   retryGraphPublication,
+  importKnowledgeGraphFromJson,
+  createCourseKnowledgeNode,
+  updateCourseKnowledgeNode,
+  deleteCourseKnowledgeNode,
+  createCourseKnowledgeEdge,
+  deleteCourseKnowledgeEdge,
+  validateCourseKnowledgeGraph,
+  aiRepairCourseKnowledgeGraph,
+  applyAiRepairCourseKnowledgeGraph,
 } from '../services/knowledge-graph.service';
+import type {
+  ImportKnowledgeGraphRequestDTO,
+  CreateKnowledgeNodeRequestDTO,
+  UpdateKnowledgeNodeRequestDTO,
+  ManageKnowledgeEdgeRequestDTO,
+  ApplyAiRepairRequestDTO,
+} from '../knowledge-graph.schema';
 
 export const knowledgeGraphKeys = {
   all: ['knowledge-graph'] as const,
@@ -149,6 +165,158 @@ export function useRetryGraphPublicationMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
       queryClient.invalidateQueries({ queryKey: ['materials-ingestion'] });
+    },
+  });
+}
+
+export function useImportKnowledgeGraphMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: ImportKnowledgeGraphRequestDTO;
+    }) => importKnowledgeGraphFromJson(courseId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useCreateCourseKnowledgeNodeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: CreateKnowledgeNodeRequestDTO;
+    }) => createCourseKnowledgeNode(courseId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useUpdateCourseKnowledgeNodeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      nodeId,
+      payload,
+    }: {
+      courseId: string;
+      nodeId: string;
+      payload: UpdateKnowledgeNodeRequestDTO;
+    }) => updateCourseKnowledgeNode(courseId, nodeId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useDeleteCourseKnowledgeNodeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      nodeId,
+    }: {
+      courseId: string;
+      nodeId: string;
+    }) => deleteCourseKnowledgeNode(courseId, nodeId),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useCreateCourseKnowledgeEdgeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: ManageKnowledgeEdgeRequestDTO;
+    }) => createCourseKnowledgeEdge(courseId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useDeleteCourseKnowledgeEdgeMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: ManageKnowledgeEdgeRequestDTO;
+    }) => deleteCourseKnowledgeEdge(courseId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+}
+
+export function useValidateCourseGraphMutation() {
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      snapshot,
+    }: {
+      courseId: string;
+      snapshot?: { nodes: unknown[]; edges: unknown[] };
+    }) => validateCourseKnowledgeGraph(courseId, snapshot),
+  });
+}
+
+export function useAiRepairCourseGraphMutation() {
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: { nodes?: unknown[]; edges?: unknown[]; instruction?: string };
+    }) => aiRepairCourseKnowledgeGraph(courseId, payload),
+  });
+}
+
+export function useApplyAiRepairCourseGraphMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: ApplyAiRepairRequestDTO;
+    }) => applyAiRepairCourseKnowledgeGraph(courseId, payload),
+    onSuccess: (_data, { courseId }) => {
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.all });
+      queryClient.invalidateQueries({ queryKey: knowledgeGraphKeys.course(courseId) });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
   });
 }

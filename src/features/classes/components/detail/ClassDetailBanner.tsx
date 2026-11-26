@@ -22,6 +22,7 @@ interface ClassDetailBannerProps {
   onOpenArchive: () => void;
   onOpenManageCode: () => void;
   onOpenCreateSession?: () => void;
+  onLeaveClass?: () => void;
 }
 
 export function ClassDetailBanner({
@@ -40,6 +41,7 @@ export function ClassDetailBanner({
   onOpenArchive,
   onOpenManageCode,
   onOpenCreateSession,
+  onLeaveClass,
 }: ClassDetailBannerProps) {
   const t = useTranslations('classes.detail');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -100,26 +102,28 @@ export function ClassDetailBanner({
     Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
 
   const displayBadgeName =
+    (!isRawUuid(classInfo.classCode) && classInfo.classCode) ||
     (!isRawUuid(classInfo.name) && classInfo.name) ||
     (!isRawUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey) ||
-    'INT3306 01';
+    '--';
 
   const displayTitle =
     (!isRawUuid(classInfo.title) && classInfo.title) ||
     (!isRawUuid(classInfo.name) && classInfo.name) ||
-    'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
+    '--';
 
   const displayInstructor =
     classInfo.instructor?.fullName &&
     classInfo.instructor.fullName !== 'Giảng viên' &&
     classInfo.instructor.fullName.trim()
       ? classInfo.instructor.fullName
-      : 'ThS. Nguyễn Văn An';
+      : 'Chưa phân công';
 
   const displayCode =
+    (!isRawUuid(classInfo.classCode) && classInfo.classCode) ||
     (!isRawUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey) ||
     (!isRawUuid(classInfo.name) && classInfo.name) ||
-    'INT3306 01';
+    '--';
 
   // Streamlined 5 tabs: Tổng quan, Môn học liên kết, Bài tập, Thành viên, Cài đặt
   const resolvedStudentsCount = studentsCount ?? classInfo.enrolledCount ?? 0;
@@ -167,12 +171,19 @@ export function ClassDetailBanner({
                 {displayBadgeName}
               </span>
               <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-medium">
-                {classInfo.semester || 'Học kỳ 1 • 2024-2025'}
+                {classInfo.semester || classInfo.academicYear || '--'}
               </span>
-              <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Trực tiếp &amp; Hybrid
-              </span>
+              {classInfo.status && (
+                <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${classInfo.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                  {classInfo.status === 'ACTIVE' ? 'Đang hoạt động' : classInfo.status === 'ARCHIVED' ? 'Đã lưu trữ' : 'Bản nháp'}
+                </span>
+              )}
+              {classInfo.visibility && (
+                <span className="bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-800 dark:text-[#C4C7C5] px-3 py-1 rounded-full text-xs font-medium">
+                  {classInfo.visibility === 'PUBLIC' ? 'Công khai' : 'Riêng tư'}
+                </span>
+              )}
             </div>
 
             {/* Title */}
@@ -286,6 +297,21 @@ export function ClassDetailBanner({
                           <span className="material-symbols-outlined text-[16px]">vpn_key</span>
                           <span>{currentRole === 'student' ? 'Xem mã mời & QR lớp' : t('manageJoinCode')}</span>
                         </button>
+                      )}
+                      {currentRole !== 'owner' && onLeaveClass && (
+                        <div className="mt-1 pt-1 border-t border-slate-100 dark:border-[#282A2C]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              onLeaveClass();
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">logout</span>
+                            <span>Rời khỏi lớp học</span>
+                          </button>
+                        </div>
                       )}
                       {currentRole === 'owner' && (
                         <div className="mt-1 pt-1">

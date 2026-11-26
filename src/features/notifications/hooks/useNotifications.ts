@@ -17,11 +17,13 @@ export function useNotifications() {
   const [activeTab, setActiveTab] = useState<NotificationTab>('all');
   const [isOpen, setIsOpen] = useState(false);
 
-  // 1. Fetch paged notifications (first page size 20 for dropdown)
+  // The bell only needs the count until the dropdown is opened.
   const notificationsQuery = useQuery({
     queryKey: notificationKeys.list({ page: 0, size: 20 }),
     queryFn: () => getNotifications({ page: 0, size: 20 }),
+    enabled: isOpen,
     staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // 2. Dedicated Unread Count query for Header Bell Badge
@@ -213,8 +215,8 @@ export function useNotifications() {
     markAllAsRead: () => markAllMutation.mutate(),
     deleteNotification: (id: string) => deleteMutation.mutate(id),
     refetch: () => {
-      notificationsQuery.refetch();
-      unreadCountQuery.refetch();
+      if (isOpen) void notificationsQuery.refetch();
+      void unreadCountQuery.refetch();
     },
   };
 }

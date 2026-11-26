@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useConfirm } from '@/components/shared';
 import {
   extractDraftGraphOverview,
   type IngestionDraft,
@@ -34,6 +35,7 @@ export function DraftEntitiesChecklist({
   editable = false,
   onChange,
 }: DraftEntitiesChecklistProps) {
+  const confirm = useConfirm();
   const [search, setSearch] = useState('');
   const [showEvidence, setShowEvidence] = useState(false);
 
@@ -317,12 +319,15 @@ export function DraftEntitiesChecklist({
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              `Bạn có chắc chắn muốn xóa thực thể "${entity.name}" và các liên kết liên quan?`
-                            )
-                          ) {
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: 'Xác nhận xóa thực thể tri thức',
+                            message: `Bạn có chắc chắn muốn xóa thực thể "${entity.name}" và các liên kết liên quan khỏi đồ thị không? Hành động này không thể hoàn tác.`,
+                            variant: 'danger',
+                            confirmText: 'Xóa vĩnh viễn',
+                            cancelText: 'Hủy',
+                          });
+                          if (ok) {
                             handleDeleteEntity(entity.index);
                           }
                         }}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { classDetailKeys } from '@/features/classes/constants';
 import {
   createLessonSession,
   deleteLessonSession,
@@ -10,35 +11,57 @@ import {
   getRooms,
   getTeacherTodaySessions,
   saveAttendances,
+  type LessonSessionQueryOptions,
   updateLessonSession,
 } from '../services/lesson-session.service';
 import { lessonSessionKeys } from '../constants';
 import { AttendanceRecord, CreateLessonSessionRequest } from '../types';
 
-export function useLessonSessions(classId: string) {
-  return useQuery({
-    queryKey: lessonSessionKeys.lists(classId),
-    queryFn: () => getLessonSessions(classId),
+type ScheduleOptions = Omit<LessonSessionQueryOptions, 'signal'> & { enabled?: boolean };
+
+export function lessonSessionsQueryOptions(
+  classId: string, { canonical = false, startDate, endDate, enabled = true }: ScheduleOptions = {},
+) {
+  const listKey = lessonSessionKeys.lists(classId);
+  const range = startDate || endDate ? [{ startDate, endDate }] : [];
+  return queryOptions({
+    queryKey: canonical ? [...listKey, 'canonical', ...range] : listKey,
+    queryFn: context => canonical
+      ? getLessonSessions(classId, { canonical: true, startDate, endDate, signal: context.signal })
+      : getLessonSessions(classId),
+    enabled,
     staleTime: 60 * 1000,
+    retry: canonical ? false : undefined,
   });
 }
 
-export function useClassStudents(classId: string) {
+export function useLessonSessions(classId: string, options?: ScheduleOptions) {
+  return useQuery(lessonSessionsQueryOptions(classId, options));
+}
+
+export function useClassStudents(classId: string, { enabled = true, canonical = false } = {}) {
+  const key = lessonSessionKeys.students(classId);
   return useQuery({
-    queryKey: lessonSessionKeys.students(classId),
-    queryFn: () => getClassStudents(classId),
+    queryKey: canonical ? [...key, 'canonical'] : key,
+    queryFn: context => canonical
+      ? getClassStudents(classId, { canonical: true, signal: context.signal })
+      : getClassStudents(classId),
+    enabled: enabled && Boolean(classId && classId !== 'all' && classId !== 'CNTT-K21A'),
     staleTime: 60 * 1000,
+    retry: canonical ? false : undefined,
   });
 }
 
-export function useAttendances(classId: string, sessionId?: string) {
+export function useAttendances(classId: string, sessionId?: string, { canonical = false } = {}) {
+  const key = sessionId ? lessonSessionKeys.attendances(classId, sessionId) : ['noop-attendance'];
   return useQuery({
-    queryKey: sessionId
-      ? lessonSessionKeys.attendances(classId, sessionId)
-      : ['noop-attendance'],
-    queryFn: () => (sessionId ? getAttendances(classId, sessionId) : Promise.resolve([])),
-    enabled: Boolean(sessionId),
+    queryKey: canonical ? [...key, 'canonical'] : key,
+    queryFn: context => !sessionId ? Promise.resolve([])
+      : canonical ? getAttendances(classId, sessionId, { canonical: true, signal: context.signal })
+      : getAttendances(classId, sessionId),
+    enabled: Boolean(sessionId && (!canonical || (classId && classId !== 'all'))),
     staleTime: 30 * 1000,
+    retry: canonical ? false : undefined,
   });
 }
 
@@ -59,6 +82,12 @@ export function useRooms(options?: { enabled?: boolean }) {
   });
 }
 
+function invalidateSchedules(queryClient: QueryClient, classId: string) {
+  void queryClient.invalidateQueries({ queryKey: lessonSessionKeys.lists(classId) });
+  if (classId !== 'all') void queryClient.invalidateQueries({ queryKey: lessonSessionKeys.lists('all') });
+  void queryClient.invalidateQueries({ queryKey: lessonSessionKeys.today() });
+}
+
 export function useCreateLessonSession(classId: string) {
   const queryClient = useQueryClient();
 
@@ -66,12 +95,8 @@ export function useCreateLessonSession(classId: string) {
     mutationFn: (payload: CreateLessonSessionRequest) =>
       createLessonSession(classId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.lists(classId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.today(),
-      });
+      void queryClient.invalidateQueries({ queryKey: classDetailKeys.overview(classId) });
+      invalidateSchedules(queryClient, classId);
     },
   });
 }
@@ -83,17 +108,15 @@ export function useUpdateLessonSession(classId: string) {
     mutationFn: ({
       lessonSessionId,
       payload,
+      targetClassId = classId,
     }: {
       lessonSessionId: string;
       payload: Partial<CreateLessonSessionRequest>;
-    }) => updateLessonSession(classId, lessonSessionId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.lists(classId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.today(),
-      });
+      targetClassId?: string;
+    }) => updateLessonSession(targetClassId, lessonSessionId, payload),
+    onSuccess: (_data, { targetClassId = classId }) => {
+      void queryClient.invalidateQueries({ queryKey: classDetailKeys.overview(targetClassId) });
+      invalidateSchedules(queryClient, targetClassId);
     },
   });
 }
@@ -105,17 +128,15 @@ export function useDeleteLessonSession(classId: string) {
     mutationFn: ({
       lessonSessionId,
       force = true,
+      targetClassId = classId,
     }: {
       lessonSessionId: string;
       force?: boolean;
-    }) => deleteLessonSession(classId, lessonSessionId, force),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.lists(classId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.today(),
-      });
+      targetClassId?: string;
+    }) => deleteLessonSession(targetClassId, lessonSessionId, force),
+    onSuccess: (_data, { targetClassId = classId }) => {
+      void queryClient.invalidateQueries({ queryKey: classDetailKeys.overview(targetClassId) });
+      invalidateSchedules(queryClient, targetClassId);
     },
   });
 }
@@ -141,12 +162,7 @@ export function useSaveAttendances(classId: string, sessionId: string) {
       queryClient.invalidateQueries({
         queryKey: lessonSessionKeys.attendances(classId, sessionId),
       });
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.lists(classId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: lessonSessionKeys.today(),
-      });
+      invalidateSchedules(queryClient, classId);
     },
   });
 }

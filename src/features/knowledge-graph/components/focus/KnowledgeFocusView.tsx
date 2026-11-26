@@ -1,17 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GraphCanvas } from '../canvas/GraphCanvas';
 import { SketchCanvasOverlay } from '../canvas/SketchCanvasOverlay';
 import { FloatingNodeCard } from './FloatingNodeCard';
 import { FocusPillToolbar } from './FocusPillToolbar';
-import { KnowledgeNodeData } from '../../types';
+import { GraphAiRepairModal } from '../analytics/GraphAiRepairModal';
+import { KnowledgeNodeData, KnowledgeEdgeData } from '../../types';
 import type { ConceptDetail } from '../../knowledge-graph.schema';
+import type { StudioCourseOption } from '../../services/knowledge-graph.service';
 import type { Node, Edge } from '@xyflow/react';
 
 interface KnowledgeFocusViewProps {
   userFullName?: string;
+  courseId?: string | null;
+  courseOptions?: StudioCourseOption[];
   nodesData: KnowledgeNodeData[];
+  edgesData?: KnowledgeEdgeData[];
   rawNodes: Node<KnowledgeNodeData>[];
   rawEdges: Edge[];
   selectedNodeId: string | null;
@@ -25,10 +30,14 @@ interface KnowledgeFocusViewProps {
   onOpenLesson?: (node: KnowledgeNodeData) => void;
   onAskAiTutor?: (node: KnowledgeNodeData) => void;
   onExitFocus: () => void;
+  onRefetch?: () => void;
 }
 
 export function KnowledgeFocusView({
+  courseId = null,
+  courseOptions = [],
   nodesData,
+  edgesData = [],
   rawNodes,
   rawEdges,
   selectedNodeId,
@@ -42,16 +51,49 @@ export function KnowledgeFocusView({
   onOpenLesson,
   onAskAiTutor,
   onExitFocus,
+  onRefetch,
 }: KnowledgeFocusViewProps) {
   const [isSpotlightActive, setIsSpotlightActive] = useState(true);
   const [isMinimapVisible, setIsMinimapVisible] = useState(true);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [clearDrawingTrigger, setClearDrawingTrigger] = useState(0);
+  const [isCardDismissed, setIsCardDismissed] = useState(false);
+  const [isAiRepairModalOpen, setIsAiRepairModalOpen] = useState(false);
+  const prevSelectedNodeIdRef = useRef<string | null>(selectedNodeId);
 
-  // Keyboard shortcuts (ESC to exit, D for Draw, M for Minimap)
+  // If a node is selected and it changed to a different node, ensure the card is shown
+  useEffect(() => {
+    if (selectedNodeId && selectedNodeId !== prevSelectedNodeIdRef.current) {
+      setIsCardDismissed(false);
+    }
+    prevSelectedNodeIdRef.current = selectedNodeId;
+  }, [selectedNodeId]);
+
+  const handleCloseCard = () => {
+    setIsCardDismissed(true);
+    onSelectNode(null);
+  };
+
+  const handleSelectNode = (id: string | null) => {
+    if (id !== null) {
+      setIsCardDismissed(false);
+    }
+    onSelectNode(id);
+  };
+
+  // Keyboard shortcuts (ESC to close card or exit, F to toggle fullscreen, D for Draw, M for Minimap)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in an input or textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
       if (e.key === 'Escape') {
+        if (selectedNodeId && !isCardDismissed) {
+          handleCloseCard();
+          return;
+        }
+        onExitFocus();
+      } else if (e.key === 'f' || e.key === 'F') {
         onExitFocus();
       } else if (e.key === 'd' || e.key === 'D') {
         setIsDrawingMode((prev) => !prev);
@@ -61,7 +103,7 @@ export function KnowledgeFocusView({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onExitFocus]);
+  }, [onExitFocus, selectedNodeId, isCardDismissed]);
 
   const activeFocusNode = selectedNode || nodesData[0] || null;
 
@@ -73,30 +115,29 @@ export function KnowledgeFocusView({
         clearTrigger={clearDrawingTrigger}
       />
 
-      {/* 2. TOP-LEFT: Zen Mode Indicator & Spotlight Switch */}
-      <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-white dark:bg-[#1E1F20] backdrop-blur-xl px-4 py-2 rounded-full border-none shadow-none">
-        <div className="flex items-center gap-2.5 pr-2 border-none">
-          <div className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0B57D0] opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0B57D0] dark:bg-[#A8C7FA]" />
-          </div>
+      {/* 2. TOP-LEFT: Fullscreen Mode Indicator & Controls */}
+      <div className="fixed top-6 left-6 z-30 flex items-center gap-2.5 bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-xl px-4 py-2 rounded-full border border-slate-200/60 dark:border-white/10 shadow-md">
+        <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200 dark:border-white/10">
+          <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+            fullscreen
+          </span>
           <span className="text-[11px] font-bold tracking-widest text-slate-900 dark:text-[#E3E3E3] uppercase">
-            Chế độ Tập trung
+            Toàn màn hình
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-[#C4C7C5]">
-          <span className="text-slate-400 font-medium">Đang học:</span>
-          <span className="font-medium text-[#041E49] dark:text-[#A8C7FA] px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center gap-1.5 shadow-none">
-            <span className="material-symbols-outlined text-[15px]">schema</span>
-            {activeFocusNode?.label || 'Chưa chọn khái niệm'}
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#C4C7C5]">
+          <span className="text-slate-400 font-medium">Đang xem:</span>
+          <span className="font-medium text-[#041E49] dark:text-[#A8C7FA] px-3 py-1 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] border-none flex items-center gap-1.5 shadow-none max-w-[220px] truncate">
+            <span className="material-symbols-outlined text-[15px] shrink-0">schema</span>
+            <span className="truncate">{activeFocusNode?.label || 'Chưa chọn khái niệm'}</span>
           </span>
         </div>
 
         {/* Spotlight Switch */}
         <button
           onClick={() => setIsSpotlightActive((prev) => !prev)}
-          className={`ml-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shadow-none border-none cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all shadow-none border-none cursor-pointer ${
             isSpotlightActive
               ? 'bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA]'
               : 'bg-[#F0F4F9] dark:bg-[#282A2C] text-[#444746] dark:text-[#C4C7C5]'
@@ -111,20 +152,20 @@ export function KnowledgeFocusView({
         </button>
       </div>
 
-      {/* 3. TOP-RIGHT: Exit Focus Mode Button */}
+      {/* 3. TOP-RIGHT: Exit Fullscreen Button */}
       <div className="fixed top-6 right-6 z-30 flex items-center gap-2.5">
         <button
           onClick={onExitFocus}
-          className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] border-none shadow-none font-medium text-xs transition-all cursor-pointer whitespace-nowrap"
-          title="Thoát chế độ tập trung (ESC)"
+          className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 hover:bg-slate-100 dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] border border-slate-200/60 dark:border-white/10 shadow-md font-medium text-xs transition-all cursor-pointer whitespace-nowrap"
+          title="Thoát chế độ toàn màn hình (Phím ESC hoặc F)"
           type="button"
         >
-          <span className="material-symbols-outlined text-[17px] text-slate-400 group-hover:rotate-90 transition-transform">
-            close
+          <span className="material-symbols-outlined text-[18px] text-slate-500 group-hover:scale-110 transition-transform">
+            fullscreen_exit
           </span>
-          <span>Thoát chế độ tập trung</span>
-          <kbd className="ml-1 px-2 py-0.5 text-[10px] font-mono font-medium bg-white dark:bg-[#1E1F20] text-slate-500 dark:text-[#C4C7C5] rounded-full border-none">
-            ESC
+          <span>Thoát toàn màn hình</span>
+          <kbd className="ml-1 px-2 py-0.5 text-[10px] font-mono font-medium bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-[#C4C7C5] rounded-full border-none">
+            ESC / F
           </kbd>
         </button>
       </div>
@@ -135,7 +176,7 @@ export function KnowledgeFocusView({
           nodes={rawNodes}
           edges={rawEdges}
           selectedNodeId={selectedNodeId}
-          onSelectNode={onSelectNode}
+          onSelectNode={handleSelectNode}
           hoveredNodeId={hoveredNodeId}
           onHoverNode={onHoverNode}
           filterCategory="all"
@@ -149,17 +190,20 @@ export function KnowledgeFocusView({
           isMinimapVisible={isMinimapVisible}
           onToggleMinimap={() => setIsMinimapVisible((prev) => !prev)}
           onCloseMinimap={() => setIsMinimapVisible(false)}
+          onOpenAiRepairModal={() => setIsAiRepairModalOpen(true)}
         />
       </div>
 
       {/* 5. In-Place Floating Node Detail Popover */}
-      {selectedNode && (
+      {selectedNode && !isCardDismissed && (
         <FloatingNodeCard
           node={selectedNode}
+          allNodes={nodesData}
           conceptDetail={conceptDetail}
           isConceptLoading={isConceptDetailLoading}
           canOpenLesson={canOpenLesson}
-          onClose={() => onSelectNode(null)}
+          onClose={handleCloseCard}
+          onSelectNode={handleSelectNode}
           onOpenLesson={onOpenLesson}
           onAskAiTutor={onAskAiTutor}
         />
@@ -175,6 +219,27 @@ export function KnowledgeFocusView({
         onCenterSegmentTree={() => {
           const center = nodesData.find((n) => n.isCenterpiece) ?? nodesData[0];
           if (center) onSelectNode(center.id);
+        }}
+        onOpenAiRepairModal={() => setIsAiRepairModalOpen(true)}
+      />
+
+      {/* 7. AI Graph Validation & Auto-Repair Modal */}
+      <GraphAiRepairModal
+        isOpen={isAiRepairModalOpen}
+        onClose={() => setIsAiRepairModalOpen(false)}
+        courseId={courseId}
+        courseTitle="Đồ thị toàn màn hình"
+        courseOptions={courseOptions}
+        currentNodes={nodesData}
+        currentEdges={edgesData}
+        onApplyRepairedGraph={() => {
+          onRefetch?.();
+        }}
+        onFocusIssueTarget={(targetId, targetType) => {
+          if (targetType === 'NODE') {
+            handleSelectNode(targetId);
+            setIsAiRepairModalOpen(false);
+          }
         }}
       />
     </div>

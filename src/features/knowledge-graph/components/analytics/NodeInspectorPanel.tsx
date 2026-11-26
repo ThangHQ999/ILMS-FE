@@ -11,6 +11,7 @@ import {
   getPedagogicalDefinition,
   deriveTopicDisplayName,
   isUuidOrCode,
+  deduplicateParagraphs,
 } from '../../services/knowledge-graph.service';
 import { askOwlAboutConcept } from '@/hooks/useSocraticLessonContext';
 
@@ -93,51 +94,70 @@ export function NodeInspectorPanel({
 
   const definition = useMemo(() => {
     if (!node) return '';
+    let rawDef = '';
+
     // 1. Concept detail from API if available
     const candDetail =
-      (conceptDetail?.definition && conceptDetail.definition.trim()) ||
+      (conceptDetail?.definition &&
+        (typeof conceptDetail.definition === 'string'
+          ? conceptDetail.definition.trim()
+          : (conceptDetail.definition as { content?: string })?.content?.trim())) ||
       (conceptDetail?.description && conceptDetail.description.trim());
-    if (candDetail && !isUuidOrCode(candDetail)) return candDetail;
+    if (candDetail && !isUuidOrCode(candDetail)) {
+      rawDef = candDetail;
+    } else {
+      // 2. Injected definition from node
+      const isGenericFallback = (str?: string | null) =>
+        !str || str.startsWith('Khái niệm tri thức nền tảng trong chương trình đào tạo');
 
-    // 2. Injected definition from node
-    const isGenericFallback = (str?: string | null) =>
-      !str || str.startsWith('Khái niệm tri thức nền tảng trong chương trình đào tạo');
+      if (node.definitionText && node.definitionText.trim() && !isGenericFallback(node.definitionText)) {
+        rawDef = node.definitionText.trim();
+      } else if (
+        node.description &&
+        node.description.trim() &&
+        !isUuidOrCode(node.description) &&
+        !isGenericFallback(node.description)
+      ) {
+        rawDef = node.description.trim();
+      } else {
+        // 3. Fallback from linked nodes (DEFINITION or CHUNK)
+        if (allNodes.length > 0) {
+          const isLinked = (n: KnowledgeNodeData) =>
+            node.prerequisites?.includes(n.id) ||
+            node.successors?.includes(n.id) ||
+            n.prerequisites?.includes(node.id) ||
+            n.successors?.includes(node.id);
 
-    if (node.definitionText && node.definitionText.trim() && !isGenericFallback(node.definitionText)) {
-      return node.definitionText.trim();
+          const linkedDef = allNodes.find((n) => {
+            const k = (n.kind ?? '').toUpperCase();
+            return k === 'DEFINITION' && isLinked(n) && n.description && !isUuidOrCode(n.description);
+          });
+          if (linkedDef?.description) {
+            rawDef = linkedDef.description;
+          } else {
+            const linkedChunk = allNodes.find((n) => {
+              const k = (n.kind ?? '').toUpperCase();
+              return k === 'CHUNK' && isLinked(n) && n.description && !isUuidOrCode(n.description);
+            });
+            if (linkedChunk?.description) {
+              rawDef = linkedChunk.description;
+            }
+          }
+        }
+
+        // 4. Fallback from chunks embedded in node
+        if (!rawDef && chunksList.length > 0 && chunksList[0].text) {
+          rawDef = chunksList[0].text;
+        }
+
+        // 5. Pedagogical dictionary fallback
+        if (!rawDef) {
+          rawDef = getPedagogicalDefinition(node.label, node.topic || node.materialTitle);
+        }
+      }
     }
-    if (node.description && node.description.trim() && !isUuidOrCode(node.description) && !isGenericFallback(node.description)) {
-      return node.description.trim();
-    }
 
-    // 3. Fallback from linked nodes (DEFINITION or CHUNK)
-    if (allNodes.length > 0) {
-      const isLinked = (n: KnowledgeNodeData) =>
-        node.prerequisites?.includes(n.id) ||
-        node.successors?.includes(n.id) ||
-        n.prerequisites?.includes(node.id) ||
-        n.successors?.includes(node.id);
-
-      const linkedDef = allNodes.find((n) => {
-        const k = (n.kind ?? '').toUpperCase();
-        return k === 'DEFINITION' && isLinked(n) && n.description && !isUuidOrCode(n.description);
-      });
-      if (linkedDef?.description) return linkedDef.description;
-
-      const linkedChunk = allNodes.find((n) => {
-        const k = (n.kind ?? '').toUpperCase();
-        return k === 'CHUNK' && isLinked(n) && n.description && !isUuidOrCode(n.description);
-      });
-      if (linkedChunk?.description) return linkedChunk.description;
-    }
-
-    // 4. Fallback from chunks embedded in node
-    if (chunksList.length > 0 && chunksList[0].text) {
-      return chunksList[0].text;
-    }
-
-    // 5. Pedagogical dictionary fallback
-    return getPedagogicalDefinition(node.label, node.topic || node.materialTitle);
+    return deduplicateParagraphs(rawDef);
   }, [conceptDetail, node, allNodes, chunksList]);
 
   const nodeMap = useMemo(() => new Map(allNodes.map((n) => [n.id, n])), [allNodes]);
@@ -406,22 +426,29 @@ export function NodeInspectorPanel({
         {!node.isAuxiliary && (
           <>
             {/* Mastery bar */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 dark:text-[#C4C7C5] font-medium">Độ nắm vững</span>
-                <span className="font-bold text-slate-800 dark:text-[#E3E3E3]">
-                  {node.masteryScore}%
-                </span>
+            {typeof node.masteryScore === 'number' && node.masteryScore > 0 ? (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500 dark:text-[#C4C7C5] font-medium">Độ nắm vững</span>
+                  <span className="font-bold text-slate-800 dark:text-[#E3E3E3]">
+                    {node.masteryScore}%
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      node.masteryScore >= 80 ? 'bg-emerald-500' : 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(0, node.masteryScore))}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${
-                    node.masteryScore >= 80 ? 'bg-emerald-500' : 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
-                  }`}
-                  style={{ width: `${Math.min(100, Math.max(0, node.masteryScore))}%` }}
-                />
+            ) : (
+              <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 py-1">
+                <span>Độ nắm vững</span>
+                <span className="font-mono text-[10px]">Chưa có dữ liệu học tập</span>
               </div>
-            </div>
+            )}
 
             {/* 4 Tabs */}
             <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-[#F0F4F9] dark:bg-[#282A2C]">

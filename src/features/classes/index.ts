@@ -32,3 +32,4 @@ export * from './components/detail/ClassDetailPageView';
 export * from './components/detail/StudentDetailDrawer';
 export * from './components/detail/InviteMemberModal';
 export * from './components/detail/CreateAnnouncementModal';
+export * from './components/detail/CreateClassworkPageView';

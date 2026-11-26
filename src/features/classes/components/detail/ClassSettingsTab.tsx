@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { CustomSelect } from '@/components/shared';
 import { uploadImage } from '@/lib/upload';
@@ -13,9 +13,14 @@ interface ClassSettingsTabProps {
   classInfo: ClassItem;
   members?: ClassMember[];
   onSaveClassInfo: (updates: {
+    name?: string;
     title: string;
     description: string;
+    academicYear?: string;
+    major?: string;
     maxCapacity?: number;
+    requireApproval?: boolean;
+    isCodeActive?: boolean;
     backgroundUrl?: string;
     thumbnailUrl?: string;
   }) => void;
@@ -65,14 +70,15 @@ export function ClassSettingsTab({
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Form states: Section 1 (Thông tin chung)
-  const [title, setTitle] = useState(
-    classInfo.title || 'Công nghệ thông tin K22 – Nhóm 01'
-  );
-  const systemCode = classInfo.name || 'CNTT-K22-01';
+  const [name, setName] = useState(classInfo.name || '');
+  const [title, setTitle] = useState(classInfo.title || classInfo.name || '');
+  const systemCode = classInfo.classCode || classInfo.enrollmentKey || classInfo.name || classInfo.id;
   const [semester, setSemester] = useState(
-    classInfo.semester || 'Học kỳ II • 2024 - 2025'
+    classInfo.semester || '2026-2027'
   );
-  const [maxStudents, setMaxStudents] = useState<number>(classInfo.maxStudents || 60);
+  const [academicYear, setAcademicYear] = useState(classInfo.academicYear || '2026-2027');
+  const [major, setMajor] = useState(classInfo.major || 'Khoa học Máy tính');
+  const [maxStudents, setMaxStudents] = useState<number>(classInfo.maxStudents || classInfo.maxCapacity || 60);
   const enrolledCount = classInfo.enrolledCount ?? 0;
   const [description, setDescription] = useState(
     classInfo.description || ''
@@ -82,20 +88,64 @@ export function ClassSettingsTab({
   const [backgroundUploadError, setBackgroundUploadError] = useState<string | null>(null);
   const bgFileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setTitle(classInfo.title || classInfo.name || '');
-    setMaxStudents(classInfo.maxStudents || 60);
-    setDescription(classInfo.description || '');
-    setBackgroundUrl(classInfo.backgroundUrl || '');
-  }, [classInfo.id, classInfo.title, classInfo.name, classInfo.maxStudents, classInfo.description, classInfo.backgroundUrl]);
-
   // Form states: Section 2 (Mã lớp & Ghi danh)
   const [enrollmentKey, setEnrollmentKey] = useState(
-    classInfo.enrollmentKey || 'MATKHAU123'
+    classInfo.classCode || classInfo.enrollmentKey || ''
   );
-  const [allowSelfEnrollment, setAllowSelfEnrollment] = useState(true);
-  const [requireApproval, setRequireApproval] = useState(false);
+  const [allowSelfEnrollment, setAllowSelfEnrollment] = useState(
+    classInfo.isCodeActive !== false && !classInfo.isCodeClosed
+  );
+  const [requireApproval, setRequireApproval] = useState(
+    Boolean(classInfo.requireApproval)
+  );
   const [schoolDomainOnly, setSchoolDomainOnly] = useState(true);
+
+  useEffect(() => {
+    setName(classInfo.name || '');
+    setTitle(classInfo.title || classInfo.name || '');
+    setMaxStudents(classInfo.maxStudents || classInfo.maxCapacity || 60);
+    setDescription(classInfo.description || '');
+    setBackgroundUrl(classInfo.backgroundUrl || '');
+    setSemester(classInfo.semester || '2026-2027');
+    setAcademicYear(classInfo.academicYear || '2026-2027');
+    setMajor(classInfo.major || 'Khoa học Máy tính');
+    setEnrollmentKey(classInfo.classCode || classInfo.enrollmentKey || '');
+    setRequireApproval(Boolean(classInfo.requireApproval));
+    setAllowSelfEnrollment(classInfo.isCodeActive !== false && !classInfo.isCodeClosed);
+  }, [
+    classInfo.id,
+    classInfo.name,
+    classInfo.title,
+    classInfo.classCode,
+    classInfo.enrollmentKey,
+    classInfo.maxStudents,
+    classInfo.maxCapacity,
+    classInfo.description,
+    classInfo.backgroundUrl,
+    classInfo.semester,
+    classInfo.academicYear,
+    classInfo.major,
+    classInfo.requireApproval,
+    classInfo.isCodeActive,
+    classInfo.isCodeClosed,
+  ]);
+
+  const semesterOptions = useMemo(() => {
+    const list = [
+      '2026-2027',
+      'Học kỳ I • 2026 - 2027',
+      'Học kỳ II • 2026 - 2027',
+      'Học kỳ Hè • 2026 - 2027',
+      'Học kỳ I • 2025 - 2026',
+      'Học kỳ II • 2025 - 2026',
+      'Học kỳ I • 2024 - 2025',
+      'Học kỳ II • 2024 - 2025',
+    ];
+    if (classInfo.semester && !list.includes(classInfo.semester)) {
+      list.unshift(classInfo.semester);
+    }
+    return list.map((val) => ({ value: val, label: val }));
+  }, [classInfo.semester]);
 
   // Form states: Section 3 (Phân quyền GV từ API members)
   const ownerMember = members.find((m) => m.role === 'OWNER');
@@ -275,9 +325,14 @@ export function ClassSettingsTab({
       return;
     }
     onSaveClassInfo({
+      name,
       title,
       description,
       maxCapacity: maxStudents,
+      academicYear,
+      major,
+      requireApproval,
+      isCodeActive: allowSelfEnrollment,
       backgroundUrl: backgroundUrl || undefined,
       thumbnailUrl: backgroundUrl || undefined,
     });
@@ -481,10 +536,28 @@ export function ClassSettingsTab({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Tên lớp học */}
-                <div className="flex flex-col gap-1.5 md:col-span-2">
+                {/* Tên ngắn / Tên lớp */}
+                <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5] flex items-center gap-1">
-                    Tên lớp học chính thức
+                    Tên lớp học
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium text-gray-900 dark:text-[#E3E3E3] border-none outline-none transition-all"
+                  />
+                  <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
+                    Tên viết tắt hoặc tên định danh lớp (ví dụ: {classInfo.name || 'soketi'}).
+                  </span>
+                </div>
+
+                {/* Tiêu đề lớp học chính thức */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5] flex items-center gap-1">
+                    Tiêu đề lớp học chính thức
                     <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -495,7 +568,7 @@ export function ClassSettingsTab({
                     className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium text-gray-900 dark:text-[#E3E3E3] border-none outline-none transition-all"
                   />
                   <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
-                    Hiển thị trong bảng điểm sinh viên và chứng chỉ kỹ năng đồ thị.
+                    Tiêu đề hiển thị trong bảng điểm sinh viên và chứng chỉ đồ thị tri thức.
                   </span>
                 </div>
 
@@ -517,7 +590,23 @@ export function ClassSettingsTab({
                     </span>
                   </div>
                   <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
-                    Mã hệ thống tự sinh từ Phòng Đào tạo, không thể sửa đổi trực tiếp.
+                    Mã hệ thống tự sinh từ Phòng Đào tạo ({classInfo.classCode || systemCode}).
+                  </span>
+                </div>
+
+                {/* Chuyên ngành */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-gray-800 dark:text-[#C4C7C5]">
+                    Chuyên ngành đào tạo
+                  </label>
+                  <input
+                    type="text"
+                    value={major}
+                    onChange={(e) => setMajor(e.target.value)}
+                    className="w-full bg-[#F0F4F8] dark:bg-[#131314] px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium text-gray-900 dark:text-[#E3E3E3] border-none outline-none transition-all"
+                  />
+                  <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
+                    Khoa / Bộ môn phụ trách quản lý chuyên môn lớp.
                   </span>
                 </div>
 
@@ -529,11 +618,7 @@ export function ClassSettingsTab({
                   <CustomSelect<string>
                     value={semester}
                     onChange={setSemester}
-                    options={[
-                      { value: 'Học kỳ II • 2024 - 2025', label: 'Học kỳ II • 2024 - 2025' },
-                      { value: 'Học kỳ I • 2024 - 2025', label: 'Học kỳ I • 2024 - 2025' },
-                      { value: 'Học kỳ Hè • 2024 - 2025', label: 'Học kỳ Hè • 2024 - 2025' },
-                    ]}
+                    options={semesterOptions}
                     triggerClassName="bg-[#F0F4F8] dark:bg-[#131314] border-none rounded-2xl h-11"
                   />
                   <span className="text-[11px] text-gray-400 dark:text-[#8E918F]">
@@ -797,25 +882,31 @@ export function ClassSettingsTab({
                   </label>
 
                   {/* Toggle 3 */}
-                  <label className="flex items-start justify-between gap-4 p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                  <div className="flex items-start justify-between gap-4 p-3 rounded-2xl opacity-60 cursor-not-allowed">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
-                        Chỉ cho phép tài khoản Email trường Đại học (@edu.vn)
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                          Chỉ cho phép tài khoản Email trường Đại học (@edu.vn)
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-[#282A2C] text-[10px] font-medium text-slate-600 dark:text-[#8E918F]">
+                          Sắp ra mắt
+                        </span>
+                      </div>
                       <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
-                        Ngăn chặn việc sinh viên sử dụng tài khoản cá nhân Gmail, Outlook đăng ký lớp.
+                        Chức năng giới hạn tên miền email đang chờ Backend hỗ trợ đồng bộ.
                       </span>
                     </div>
-                    <div className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                    <div className="relative inline-flex items-center shrink-0 mt-0.5">
                       <input
                         type="checkbox"
-                        checked={schoolDomainOnly}
-                        onChange={(e) => setSchoolDomainOnly(e.target.checked)}
+                        checked={false}
+                        disabled
+                        readOnly
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-[#E1E5EA] dark:bg-[#282A2C] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#007BFF] dark:peer-checked:bg-[#A8C7FA]" />
+                      <div className="w-11 h-6 bg-[#E1E5EA] dark:bg-[#282A2C] rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5" />
                     </div>
-                  </label>
+                  </div>
                 </div>
               </div>
             </section>
@@ -852,8 +943,16 @@ export function ClassSettingsTab({
                   {/* GV Chủ nhiệm */}
                   <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-none">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center font-bold text-xs shrink-0">
-                        {ownerInitials}
+                      <div className="w-10 h-10 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                        {(classInfo.instructor?.avatarUrl || classInfo.instructor?.avatar) ? (
+                          <img
+                            src={classInfo.instructor.avatarUrl || classInfo.instructor.avatar}
+                            alt={ownerName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          ownerInitials
+                        )}
                       </div>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">

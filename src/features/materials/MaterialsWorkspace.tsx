@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useLocale } from 'next-intl';
-import { CustomSelect } from '@/components/shared';
+import { CustomSelect, useConfirm } from '@/components/shared';
 import { DraftGraphEditor } from './DraftGraphEditor';
 import { ApiError } from '@/types/common';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { materials, type Draft, type Job, type JobSummary } from './materials-api';
 
 const active = new Set(['QUEUED', 'PROCESSING', 'PUBLISHING']);
@@ -13,6 +14,7 @@ const input = 'rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] px-4 py-2.5 text-sm b
 const button = 'rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] font-medium px-5 py-2.5 text-sm border-none shadow-none transition-colors disabled:opacity-40 whitespace-nowrap cursor-pointer';
 
 export function MaterialsWorkspace() {
+  const confirm = useConfirm();
   const locale = useLocale();
   const vi = locale.startsWith('vi');
   const t = (vn: string, en: string) => vi ? vn : en;
@@ -44,7 +46,9 @@ export function MaterialsWorkspace() {
   }, []);
 
   useEffect(() => {
-    void refreshList().catch((failure: Error) => setError(failure.message));
+    void refreshList().catch((failure: unknown) =>
+      setError(getUserFriendlyErrorMessage(failure, 'Không thể tải danh sách tài liệu.'))
+    );
   }, [refreshList]);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export function MaterialsWorkspace() {
         }
       } catch (failure) {
         if (stopped) return;
-        setError((failure as Error).message);
+        setError(getUserFriendlyErrorMessage(failure, 'Không thể kiểm tra trạng thái xử lý.'));
         timer = setTimeout(poll, 5000);
       }
     };
@@ -90,7 +94,7 @@ export function MaterialsWorkspace() {
         })
         .catch((failure: ApiError) => setSaveError(failure.httpStatus === 409
           ? (vi ? 'Bản nháp đã thay đổi trên server. Hãy sao chép phần đang sửa rồi mở lại bản mới.' : 'The draft changed on the server. Copy your edits and reload the latest revision.')
-          : failure.message))
+          : getUserFriendlyErrorMessage(failure, 'Không thể lưu bản nháp.')))
         .finally(() => setSaving(false));
     }, 800);
     return () => clearTimeout(timer);
@@ -109,7 +113,7 @@ export function MaterialsWorkspace() {
     try {
       await work();
     } catch (failure) {
-      setError((failure as Error).message);
+      setError(getUserFriendlyErrorMessage(failure, 'Thao tác thất bại. Vui lòng thử lại.'));
     } finally {
       setBusy(false);
     }
@@ -176,8 +180,15 @@ export function MaterialsWorkspace() {
           {saveError && <p role="alert">{saveError}</p>}
           {dirty && jobId && <div className="flex gap-2">
             {saveError && <button className={button} disabled={busy || saving} onClick={() => setSaveError('')}>{t('Thử lưu lại', 'Retry save')}</button>}
-            <button className={button} disabled={busy || saving} onClick={() => {
-              if (window.confirm(t('Bỏ thay đổi chưa lưu và tải bản trên server?', 'Discard unsaved edits and reload the server draft?'))) {
+            <button className={button} disabled={busy || saving} onClick={async () => {
+              const ok = await confirm({
+                title: t('Bỏ thay đổi', 'Discard changes'),
+                message: t('Bỏ thay đổi chưa lưu và tải bản trên server?', 'Discard unsaved edits and reload the server draft?'),
+                variant: 'warning',
+                confirmText: t('Mở lại bản đã lưu', 'Reload saved draft'),
+                cancelText: t('Hủy', 'Cancel'),
+              });
+              if (ok) {
                 void action(async () => apply(await materials.get(jobId)));
               }
             }}>{t('Mở lại bản đã lưu', 'Reload saved draft')}</button>

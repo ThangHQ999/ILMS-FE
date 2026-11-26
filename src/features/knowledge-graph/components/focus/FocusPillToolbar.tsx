@@ -9,6 +9,7 @@ interface FocusPillToolbarProps {
   onToggleDrawingMode: () => void;
   onClearDrawing: () => void;
   onCenterSegmentTree: () => void;
+  onOpenAiRepairModal?: () => void;
 }
 
 export function FocusPillToolbar({
@@ -18,9 +19,11 @@ export function FocusPillToolbar({
   onToggleDrawingMode,
   onClearDrawing,
   onCenterSegmentTree,
+  onOpenAiRepairModal,
 }: FocusPillToolbarProps) {
   return (
     <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-2 rounded-full bg-white dark:bg-[#1E1F20] backdrop-blur-2xl border-none shadow-none">
+      {/* AI Graph Validation Button */}
       {/* Minimap Toggle */}
       <button
         onClick={onToggleMinimap}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useConfirm } from '@/components/shared';
 import type { DraftEntity } from '../../../utils/draft-graph-crud';
 
 interface DraftEntityEditorModalProps {
@@ -20,6 +21,7 @@ export function DraftEntityEditorModal({
   onSave,
   onDelete,
 }: DraftEntityEditorModalProps) {
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<'info' | 'processes' | 'exercises' | 'examples' | 'arguments'>('info');
 
   // Basic info states
@@ -629,8 +631,15 @@ export function DraftEntityEditorModal({
         <div className="p-4 bg-slate-50 dark:bg-slate-800/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <button
             type="button"
-            onClick={() => {
-              if (window.confirm(`Bạn có chắc chắn muốn xóa thực thể "${entity.name}" và toàn bộ liên kết liên quan?`)) {
+            onClick={async () => {
+              const ok = await confirm({
+                title: 'Xác nhận xóa thực thể tri thức',
+                message: `Bạn có chắc chắn muốn xóa thực thể "${entity.name}" và toàn bộ quy trình, bài tập, liên kết liên quan khỏi đồ thị không? Hành động này không thể hoàn tác.`,
+                variant: 'danger',
+                confirmText: 'Xóa vĩnh viễn',
+                cancelText: 'Hủy',
+              });
+              if (ok) {
                 onDelete(entityIndex);
                 onClose();
               }

@@ -189,7 +189,7 @@ export function StudentAssignmentSubmissionPageView({
   const { data: currentUser } = useCurrentUser();
   const currentStudentId = currentUser?.id ? String(currentUser.id) : undefined;
 
-  const { data: classDetailData } = useClassDetail(classId);
+  const { data: classDetailData } = useClassDetail(classId, 'subjects');
   const { data: hubInfo } = useClassHubInfo(classId);
 
   // Distinguish navigation route slug (classId) from canonical UUID when available

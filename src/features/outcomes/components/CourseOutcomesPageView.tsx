@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useClassworkContexts } from '@/features/assignments';
 import { CloPloMatrixTable } from './CloPloMatrixTable';
 import { ClassKnowledgeHeatmapMatrix } from './ClassKnowledgeHeatmapMatrix';
 import { OutcomeAttainmentDashboard } from './OutcomeAttainmentDashboard';
@@ -14,10 +17,20 @@ interface CourseOutcomesPageViewProps {
 
 export function CourseOutcomesPageView({
   courseId,
-  courseTitle = 'Cấu trúc dữ liệu & Giải thuật nâng cao (CS-202)',
-  classId = 'cls-cs202',
+  courseTitle = '',
+  classId,
 }: CourseOutcomesPageViewProps) {
-  const [activeTab, setActiveTab] = useState<'matrix' | 'heatmap' | 'attainment'>('matrix');
+  const t = useTranslations('assessmentHeatmap');
+  const search = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'matrix' | 'heatmap' | 'attainment'>(
+    search.get('tab') === 'heatmap' ? 'heatmap' : 'matrix',
+  );
+  const [selectedClassId, selectClass] = useState(classId ?? search.get('classId') ?? '');
+  const { data: context, isError: isContextError, refetch: refetchContext } = useClassworkContexts(courseId);
+  const eligibleClasses = context?.items.filter(item => item.canManage) ?? [];
+  const activeClassId = eligibleClasses.some(item => item.classId === selectedClassId)
+    ? selectedClassId
+    : eligibleClasses.length === 1 ? eligibleClasses[0].classId : '';
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3]">
@@ -53,7 +66,7 @@ export function CourseOutcomesPageView({
               <span className="font-mono text-xs text-gray-400">&bull; {courseId}</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-              {courseTitle}
+              {courseTitle || t('courseOutcomes')}
             </h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Quản trị chuẩn đầu ra môn học (CLO), chuẩn chương trình đào tạo (PLO), ma trận ánh xạ 2 chiều và đánh giá mức độ đạt chuẩn.
@@ -112,18 +125,28 @@ export function CourseOutcomesPageView({
         </div>
 
         {/* Tab Content */}
+        {activeTab !== 'matrix' && <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="outcome-class" className="text-sm font-semibold">{t('class')}</label>
+          <select id="outcome-class" value={activeClassId} onChange={event => selectClass(event.target.value)}
+            className="rounded-full border bg-white px-4 py-2 dark:bg-slate-900">
+            <option value="">{t('pickScope')}</option>
+            {eligibleClasses.map(item => <option key={item.classId} value={item.classId}>{item.className}</option>)}
+          </select>
+          {isContextError && <p role="alert">{t('loadError')}{' '}
+            <button type="button" className="underline" onClick={() => void refetchContext()}>{t('retry')}</button></p>}
+        </div>}
         {activeTab === 'matrix' && (
           <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none">
             <CloPloMatrixTable courseId={courseId} isTeacher={true} />
           </div>
         )}
 
-        {activeTab === 'attainment' && (
-          <OutcomeAttainmentDashboard classId={classId} courseId={courseId} isTeacher={true} />
+        {activeTab === 'attainment' && activeClassId && (
+          <OutcomeAttainmentDashboard classId={activeClassId} courseId={courseId} isTeacher={true} />
         )}
 
-        {activeTab === 'heatmap' && (
-          <ClassKnowledgeHeatmapMatrix classId={classId} courseId={courseId} />
+        {activeTab === 'heatmap' && activeClassId && (
+          <ClassKnowledgeHeatmapMatrix key={activeClassId} classId={activeClassId} courseId={courseId} />
         )}
       </main>
     </div>

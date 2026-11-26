@@ -10,6 +10,7 @@ interface ClassCardGridProps {
   viewMode?: ClassViewMode;
   onArchiveClick: (item: ClassItem) => void;
   onRestoreClick?: (item: ClassItem) => void;
+  onLeaveClick?: (item: ClassItem) => void;
   copiedCode: string | null;
   onCopyCode: (code: string) => void;
 }
@@ -20,6 +21,7 @@ export const ClassCardGrid = React.memo(function ClassCardGrid({
   viewMode = 'grid',
   onArchiveClick,
   onRestoreClick,
+  onLeaveClick,
   copiedCode,
   onCopyCode,
 }: ClassCardGridProps) {
@@ -44,6 +46,7 @@ export const ClassCardGrid = React.memo(function ClassCardGrid({
           viewMode={viewMode}
           onArchiveClick={onArchiveClick}
           onRestoreClick={onRestoreClick}
+          onLeaveClick={onLeaveClick}
           isCopied={copiedCode === (item.enrollmentKey || item.name)}
           onCopyCode={onCopyCode}
         />

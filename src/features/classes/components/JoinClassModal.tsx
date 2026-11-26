@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { useJoinClass } from '../hooks/useJoinClass';
 
 interface JoinClassModalProps {
@@ -49,17 +50,18 @@ export function JoinClassModal({
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: unknown) {
-      let msg = 'Không thể tham gia lớp học. Vui lòng kiểm tra lại mã lớp.';
+      let msg = getUserFriendlyErrorMessage(
+        err,
+        'Không thể tham gia lớp học. Vui lòng kiểm tra lại mã lớp.'
+      );
       if (typeof err === 'object' && err !== null) {
-        const anyErr = err as { httpStatus?: number; message?: string };
+        const anyErr = err as { httpStatus?: number };
         if (anyErr.httpStatus === 401) {
           msg = 'Bạn cần đăng nhập để tham gia lớp học!';
         } else if (anyErr.httpStatus === 404) {
           msg = 'Mã lớp không tồn tại hoặc đã bị khóa!';
         } else if (anyErr.httpStatus === 409) {
           msg = 'Bạn đã tham gia lớp học này rồi!';
-        } else if (typeof anyErr.message === 'string') {
-          msg = anyErr.message;
         }
       }
       setApiError(msg);

@@ -207,10 +207,12 @@ export function useResolveComplaint(quizId: string = 'all') {
   });
 }
 
-export function useQuizAnalytics(quizId: string) {
+export function useQuizAnalytics(quizId: string, classId?: string) {
   return useQuery<QuizAnalyticsDTO>({
-    queryKey: quizKeys.analytics(quizId),
-    queryFn: () => getQuizAnalytics(quizId),
-    staleTime: 60_000,
+    queryKey: [...quizKeys.analytics(quizId), classId ?? null],
+    queryFn: () => getQuizAnalytics(quizId, classId),
+    enabled: Boolean(quizId),
+    retry: false,
+    refetchOnMount: 'always',
   });
 }

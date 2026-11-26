@@ -124,7 +124,7 @@ export function StudentAssignmentDetailPageView({
   const deleteMutation = useDeleteSubmission(assignmentId, currentStudentId, classId);
 
   // Fetch Class Info from unified class registry
-  const { data: classDetailData } = useClassDetail(classId);
+  const { data: classDetailData } = useClassDetail(classId, 'subjects');
   const { data: hubInfo } = useClassHubInfo(classId);
 
   // Fetch Assignment Detail & Personal Submission Status

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { CustomSelect } from '@/components/shared';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { createClassRequestSchema, type CreateClassRequest, type ClassItem } from '../schemas/class.schema';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
 import { useCreateClass } from '../hooks/useCreateClass';
@@ -56,7 +57,10 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
       for (const issue of result.error.issues) {
         const field = issue.path[0] as keyof CreateClassRequest;
         if (field && !fieldErrors[field]) {
-          fieldErrors[field] = issue.message;
+          const rawMsg = issue.message;
+          fieldErrors[field] = rawMsg.startsWith('classes.')
+            ? t(rawMsg.slice('classes.'.length) as Parameters<typeof t>[0])
+            : rawMsg;
         }
       }
       setErrors(fieldErrors);
@@ -79,14 +83,15 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
       onSuccess?.(created);
       onClose();
     } catch (err: unknown) {
-      let msg = 'Có lỗi xảy ra khi gửi yêu cầu tới API Spring Boot.';
+      let msg = getUserFriendlyErrorMessage(
+        err,
+        'Có lỗi xảy ra khi gửi yêu cầu tới máy chủ.'
+      );
       if (typeof err === 'object' && err !== null) {
-        const anyErr = err as { httpStatus?: number; message?: string };
+        const anyErr = err as { httpStatus?: number };
         if (anyErr.httpStatus === 401) {
           msg =
-            'Lỗi 401 Unauthorized: Bạn cần đăng nhập tài khoản Giảng viên / Quản trị viên (tại /login) để thực hiện tạo lớp học!';
-        } else if (typeof anyErr.message === 'string') {
-          msg = anyErr.message;
+            'Lỗi 401 Unauthorized: Bạn cần đăng nhập tài khoản Giảng viên / Quản trị viên để thực hiện tạo lớp học!';
         }
       }
       setApiError(msg);

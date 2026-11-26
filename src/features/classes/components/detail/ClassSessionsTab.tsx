@@ -3,6 +3,9 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import { ApiError } from '@/types/common';
 import type { ClassItem } from '../../schemas/class.schema';
 import {
   useLessonSessions,
@@ -33,15 +36,6 @@ import {
 } from '@/features/timetable/services/timetable.service';
 import type { DaySchedule, TimetableSession } from '@/features/timetable/types';
 
-const PRESET_ROOM_MAP: Record<string, string> = {
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01': 'Phòng B1-204 (Lý thuyết)',
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a02': 'Lab 302 (Thực hành Mạng)',
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a03': 'Lab 402 (Phát triển Phần mềm)',
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a04': 'Lab AI 501 (Trí tuệ Nhân tạo)',
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a05': 'Phòng A2-301 (Giảng đường lớn)',
-  '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a06': 'Lab H6-302 (Hệ thống Nhúng)',
-};
-
 interface ClassSessionsTabProps {
   classId: string;
   classInfo: ClassItem;
@@ -55,10 +49,13 @@ export function ClassSessionsTab({
   currentRole,
   onToast,
 }: ClassSessionsTabProps) {
+  const t = useTranslations('classes.detail');
+  const unassignedRoom = t('classSessionRoomUnassigned');
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const [isSidebarCollapsed] = useSidebarCollapsed();
 
   const isTeacher = currentRole !== 'student';
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
@@ -69,19 +66,22 @@ export function ClassSessionsTab({
     return Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
   }, []);
 
-  // Queries
-  const { data: sessions = [], isLoading: isLoadingSessions } = useLessonSessions(classId);
-  const { data: rooms = [] } = useRooms();
-  const { data: students = [] } = useClassStudents(classId);
+  // Queries (lazy-load students only when attendance mode is active)
+  const { data: sessions = [], isLoading: isLoadingSessions, error: sessionsError,
+    refetch: refetchSessions } = useLessonSessions(classId, { canonical: true });
 
   // Selected session for attendance
   const [selectedAttendanceSession, setSelectedAttendanceSession] = useState<LessonSession | null>(
     null
   );
+  const { data: students = [] } = useClassStudents(classId, {
+    enabled: Boolean(selectedAttendanceSession),
+  });
   const [isLocked, setIsLocked] = useState(false);
 
   // Modal states for Create / Edit
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const { data: rooms = [] } = useRooms({ enabled: isFormModalOpen });
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [activeEditingSession, setActiveEditingSession] = useState<LessonSession | null>(null);
   const [selectedCellDate, setSelectedCellDate] = useState<string | undefined>();
@@ -324,12 +324,7 @@ export function ClassSessionsTab({
             const noteText = s.note && !isTechnical ? s.note : shiftLabel;
 
             const rawRoom = s.roomName?.trim();
-            const safeRoom =
-              rawRoom && PRESET_ROOM_MAP[rawRoom]
-                ? PRESET_ROOM_MAP[rawRoom]
-                : !rawRoom || isUuid(rawRoom)
-                ? rooms.find((r) => r.roomId === rawRoom)?.roomName || 'Phòng B2-302'
-                : rawRoom;
+            const safeRoom = rawRoom && !isUuid(rawRoom) ? rawRoom : unassignedRoom;
 
             return {
               lessonSessionId: s.lessonSessionId,
@@ -361,7 +356,7 @@ export function ClassSessionsTab({
       });
     }
     return days;
-  }, [weekStartDate, sessions, classInfo, students.length, isUuid]);
+  }, [weekStartDate, sessions, classInfo, students.length, isUuid, unassignedRoom]);
 
   // Open create modal
   const handleOpenCreate = (date?: string, shift?: number) => {
@@ -420,6 +415,18 @@ export function ClassSessionsTab({
   const presenceRate =
     totalCount > 0 ? (((presentCount + lateCount) / totalCount) * 100).toFixed(1) : '0';
 
+  if (sessionsError) {
+    const status = sessionsError instanceof ApiError ? sessionsError.httpStatus : undefined;
+    return (
+      <div role="alert" className="rounded-3xl bg-surface p-6 text-sm">
+        <p>{t(status === 401 ? 'classOverviewSignIn' : status === 403 ? 'classSessionsForbidden' : 'classSessionsLoadError')}</p>
+        <button type="button" onClick={() => void refetchSessions()} className="mt-3 font-semibold text-primary">
+          {t('retryClassContent')}
+        </button>
+      </div>
+    );
+  }
+
   // If attendance mode is active
   if (selectedAttendanceSession) {
     return (
@@ -466,7 +473,7 @@ export function ClassSessionsTab({
             onLockSession={handleLockSession}
             isSaving={saveAttendancesMutation.isPending}
             isLocked={isLocked}
-            sidebarPaddingClass="left-0"
+            sidebarPaddingClass={isSidebarCollapsed ? 'left-0 lg:left-[72px]' : 'left-0 lg:left-64'}
           />
         )}
       </div>
@@ -679,11 +686,7 @@ export function ClassSessionsTab({
                 <div>
                   <span className="block text-[11px] text-slate-400">Phòng học:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {detailSession.roomName && PRESET_ROOM_MAP[detailSession.roomName.trim()]
-                      ? PRESET_ROOM_MAP[detailSession.roomName.trim()]
-                      : !detailSession.roomName || isUuid(detailSession.roomName)
-                      ? rooms.find((r) => r.roomId === detailSession.roomName)?.roomName || 'Phòng B2-302'
-                      : detailSession.roomName}
+                    {detailSession.roomName && !isUuid(detailSession.roomName) ? detailSession.roomName : unassignedRoom}
                   </span>
                 </div>
               </div>

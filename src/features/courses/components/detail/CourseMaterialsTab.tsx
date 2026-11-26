@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { CustomSelect } from '@/components/shared';
+import { CustomSelect, useConfirm } from '@/components/shared';
 import { useCourseMaterials } from '../../hooks/useCourse';
 import { downloadCourseMaterial } from '../../services/course.service';
 import {
@@ -163,6 +163,7 @@ export function CourseMaterialsTab({
   autoPublish: propAutoPublish,
   onAutoPublishChange,
 }: CourseMaterialsTabProps) {
+  const confirm = useConfirm();
   const t = useTranslations('courseMaterials');
   const tHub = useTranslations('materialsHub');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -470,8 +471,15 @@ export function CourseMaterialsTab({
     );
   };
 
-  const handleDelete = (mat: CourseMaterialItem) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa tài liệu "${mat.title}"?`)) return;
+  const handleDelete = async (mat: CourseMaterialItem) => {
+    const ok = await confirm({
+      title: 'Xác nhận xóa tài liệu',
+      message: `Bạn có chắc chắn muốn xóa tài liệu "${mat.title}" khỏi khóa học không? Hành động này sẽ xóa các liên kết tài liệu liên quan.`,
+      variant: 'danger',
+      confirmText: 'Xóa tài liệu',
+      cancelText: 'Hủy',
+    });
+    if (!ok) return;
     setDeletingId(mat.id);
     deleteMutation.mutate(mat.id, {
       onSuccess: () => onShowToast?.(`Đã xóa tài liệu "${mat.title}".`),

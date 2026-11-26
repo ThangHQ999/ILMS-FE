@@ -39,7 +39,7 @@ export default function CreateQuizPage() {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'TS. Lê Hoàng Nam';
+      : '';
 
   const classIdParam = searchParams.get('classId') || undefined;
   const classCodeParam = searchParams.get('classCode') || undefined;
@@ -49,7 +49,6 @@ export default function CreateQuizPage() {
     <TeacherCreateQuizStudioView
       onBack={() => router.push('/assignments')}
       userFullName={userFullName}
-      onPublishSuccess={() => router.push('/assignments')}
       initialClassId={classIdParam}
       initialClassCode={classCodeParam}
       initialClassName={classNameParam}

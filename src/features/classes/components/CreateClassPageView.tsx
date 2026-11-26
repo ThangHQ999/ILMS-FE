@@ -8,6 +8,7 @@ import { DashboardSidebar } from '@/features/dashboard/components/DashboardSideb
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { CustomSelect } from '@/components/shared';
 import { uploadImage } from '@/lib/upload';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
 import { createClassRequestSchema } from '../schemas/class.schema';
 import { useCreateClass } from '../hooks/useCreateClass';
@@ -69,11 +70,7 @@ export function CreateClassPageView({ userFullName }: CreateClassPageViewProps) 
       setBackgroundUrl(uploaded.url);
       setUploadedFileName(uploaded.originalFilename || file.name);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error && err.message
-          ? err.message
-          : tCreate('uploadFailed');
-      setUploadError(msg);
+      setUploadError(getUserFriendlyErrorMessage(err, tCreate('uploadFailed')));
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) {
@@ -114,7 +111,10 @@ export function CreateClassPageView({ userFullName }: CreateClassPageViewProps) 
       for (const issue of parsed.error.issues) {
         const key = String(issue.path[0] || '');
         if (key && !fieldErrors[key]) {
-          fieldErrors[key] = issue.message;
+          const rawMsg = issue.message;
+          fieldErrors[key] = rawMsg.startsWith('classes.')
+            ? t(rawMsg.slice('classes.'.length) as Parameters<typeof t>[0])
+            : rawMsg;
         }
       }
       setErrors(fieldErrors);
@@ -125,9 +125,7 @@ export function CreateClassPageView({ userFullName }: CreateClassPageViewProps) 
       const created = await createClassAsync(parsed.data);
       router.push(`/classes/${created.id}`);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error && err.message ? err.message : t('errorCreateApi');
-      setApiError(msg);
+      setApiError(getUserFriendlyErrorMessage(err, t('errorCreateApi')));
     }
   };
 

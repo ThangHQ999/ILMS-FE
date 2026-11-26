@@ -1,19 +1,22 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { MarkdownContent } from '@/components/shared';
 import { uploadFile, type UploadedFileResult } from '@/lib/upload';
 import type { ClassItem } from '../../schemas/class.schema';
-import type { ClassAnnouncement, ClassMaterial } from '../../schemas/class-detail.schema';
+import type { ClassAnnouncement, ClassMaterial, UpcomingClassSession } from '../../schemas/class-detail.schema';
 import type { ClassBannerStats } from '../../services/class-detail.service';
-import { useLessonSessions, useRooms } from '@/features/lesson-sessions';
 
 interface ClassStreamTabProps {
   classInfo: ClassItem;
   bannerStats?: ClassBannerStats;
   announcements?: ClassAnnouncement[];
   isLoadingAnnouncements?: boolean;
+  announcementsError?: string;
+  onRetryAnnouncements?: () => void;
   currentRole: 'student' | 'teacher' | 'owner';
+  canPostAnnouncements: boolean;
   onNavigateTab: (tab: string) => void;
   onOpenCreateAnnouncement?: () => void;
   onPostAnnouncement?: (payload: { title: string; content: string }) => void;
@@ -21,7 +24,14 @@ interface ClassStreamTabProps {
   onDeleteAnnouncement?: (announcementId: string) => void;
   isPostingAnnouncement?: boolean;
   materials?: ClassMaterial[];
+  onMaterialsPreviewVisible: () => void;
+  materialsCount?: number;
+  isMaterialsLoading?: boolean;
+  isMaterialsError?: boolean;
   onOpenCreateSession?: () => void;
+  upcomingSessions?: UpcomingClassSession[];
+  recentSession?: UpcomingClassSession | null;
+  sessionsCount?: number | null;
   onToast: (msg: string) => void;
 }
 
@@ -30,7 +40,10 @@ export function ClassStreamTab({
   bannerStats,
   announcements = [],
   isLoadingAnnouncements = false,
+  announcementsError,
+  onRetryAnnouncements,
   currentRole,
+  canPostAnnouncements,
   onNavigateTab,
   onOpenCreateAnnouncement,
   onPostAnnouncement,
@@ -38,9 +51,20 @@ export function ClassStreamTab({
   onDeleteAnnouncement,
   isPostingAnnouncement = false,
   materials = [],
+  onMaterialsPreviewVisible,
+  materialsCount = materials.length,
+  isMaterialsLoading = false,
+  isMaterialsError = false,
   onOpenCreateSession,
+  upcomingSessions = [],
+  recentSession,
+  sessionsCount,
   onToast,
 }: ClassStreamTabProps) {
+  const t = useTranslations('classes.detail');
+  const canViewSchedule = sessionsCount !== null;
+  const showsRecentSession = upcomingSessions.length === 0 && Boolean(recentSession);
+  const displayedSessions = upcomingSessions.length > 0 ? upcomingSessions : recentSession ? [recentSession] : [];
   interface QuickAttachmentItem {
     id: string;
     fileName: string;
@@ -54,6 +78,24 @@ export function ClassStreamTab({
   const [quickPostContent, setQuickPostContent] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<QuickAttachmentItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const materialsPreviewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const preview = materialsPreviewRef.current;
+    if (!preview) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      onMaterialsPreviewVisible();
+      return;
+    }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        onMaterialsPreviewVisible();
+        observer.disconnect();
+      }
+    });
+    observer.observe(preview);
+    return () => observer.disconnect();
+  }, [onMaterialsPreviewVisible]);
 
   const hasUploadingFiles = attachedFiles.some((f) => f.status === 'uploading');
   const hasFailedFiles = attachedFiles.some((f) => f.status === 'error');
@@ -66,60 +108,29 @@ export function ClassStreamTab({
     });
   }, [announcements]);
 
-  // Real sessions from API
-  const { data: lessonSessions = [], isLoading: isLoadingSessions } = useLessonSessions(classInfo.id);
-  const { data: rooms = [] } = useRooms();
-
   const isUuid = (val?: string | null) =>
     Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()));
 
   const isTechnicalCode = (val?: string | null) =>
     Boolean(val && (/^CA-?\d+$/i.test(val.trim()) || /^SES-?\d+/i.test(val.trim()) || isUuid(val)));
 
-  const getSessionTitle = (session: (typeof lessonSessions)[0]) => {
+  const getSessionTitle = (session: UpcomingClassSession) => {
     if (session.note && !isTechnicalCode(session.note)) {
       return session.note;
     }
     const classBase =
-      session.className && !isUuid(session.className)
-        ? session.className
+      session.courseName && !isUuid(session.courseName)
+        ? session.courseName
         : classInfo.title && !isUuid(classInfo.title)
         ? classInfo.title
         : classInfo.name && !isUuid(classInfo.name)
         ? classInfo.name
-        : 'Lập trình Web nâng cao - Next.js & TypeScript';
+        : 'Lớp học';
 
-    const shiftText =
-      session.startShift && session.endShift ? `Tiết ${session.startShift}-${session.endShift}` : 'Ca sáng';
-    return `${classBase} (${shiftText})`;
+    return session.startShift && session.endShift
+      ? t('upcomingClassSessionTitle', { title: classBase, start: session.startShift, end: session.endShift })
+      : classBase;
   };
-
-  const PRESET_ROOM_MAP: Record<string, string> = {
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a01': 'Phòng B1-204 (Lý thuyết)',
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a02': 'Lab 302 (Thực hành Mạng)',
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a03': 'Lab 402 (Phát triển Phần mềm)',
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a04': 'Lab AI 501 (Trí tuệ Nhân tạo)',
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a05': 'Phòng A2-301 (Giảng đường lớn)',
-    '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a06': 'Lab H6-302 (Hệ thống Nhúng)',
-  };
-
-  const getSessionRoom = (roomName?: string | null) => {
-    if (!roomName || roomName.trim() === '') return 'Học Online';
-    if (PRESET_ROOM_MAP[roomName.trim()]) return PRESET_ROOM_MAP[roomName.trim()];
-    if (!isUuid(roomName)) return roomName;
-    const match = rooms.find(
-      (r) => r.roomId?.toLowerCase() === roomName.toLowerCase()
-    );
-    if (match && match.roomName && !isUuid(match.roomName)) return match.roomName;
-    return 'Phòng B2-302';
-  };
-
-  const upcomingSessions = useMemo(() => {
-    if (!lessonSessions || lessonSessions.length === 0) return [];
-    return [...lessonSessions]
-      .sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
-      .slice(0, 4);
-  }, [lessonSessions]);
 
   const getDayOfWeek = (dateStr: string) => {
     try {
@@ -271,91 +282,8 @@ export function ClassStreamTab({
           ========================================================================= */}
 
       {/* [STUDENT VIEW] Stream Header Alerts & Metrics */}
-      {currentRole === 'student' && (
-        <div className="flex flex-col lg:flex-row gap-5">
-          {/* Urgent Deadline Banner */}
-          <div className="flex-1 p-6 rounded-3xl bg-red-50 dark:bg-[#3C1919] text-red-900 dark:text-[#F28B82] border-none shadow-sm dark:shadow-none flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-[#F28B82] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[28px]">alarm</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-[#F28B82]">
-                  Hạn chót sắp tới
-                </span>
-                <span className="text-xs font-medium text-red-800/80 dark:text-[#F28B82]/80">
-                  23:59 • Chủ nhật tuần này
-                </span>
-              </div>
-              <h2 className="text-base sm:text-lg font-semibold text-red-950 dark:text-white truncate mt-1">
-                Bài tập lớn 01: Thiết kế mạng phân cụm VLSM &amp; Cấu hình OSPF
-              </h2>
-              <p className="text-xs sm:text-sm text-red-900/80 dark:text-[#F28B82]/90 mt-1 line-clamp-2">
-                Nộp file Cisco Packet Tracer (.pkt) kèm bản báo cáo phân tích bảng routing.
-              </p>
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('assignments')}
-                  className="px-5 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs transition-all cursor-pointer border-none shadow-xs"
-                >
-                  Nộp bài ngay
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onToast('Mở đề cương bài thực hành Lab định tuyến OSPF')}
-                  className="px-4 py-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-red-950 dark:text-white font-semibold text-xs transition-colors cursor-pointer border-none"
-                >
-                  Xem đề cương lab
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Academic Performance Quick Card */}
-          <div className="w-full lg:w-80 p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col justify-between gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-500 dark:text-[#8E918F] uppercase tracking-wider">
-                  Tiến độ cá nhân
-                </span>
-                <span className="text-sm font-bold text-blue-600 dark:text-[#A8C7FA]">
-                  68%
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] overflow-hidden">
-                <div
-                  className="h-full bg-[#007BFF] dark:bg-[#A8C7FA] rounded-full transition-all duration-500"
-                  style={{ width: '68%' }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none">
-                <div className="text-[11px] font-medium text-gray-500 dark:text-[#8E918F]">
-                  GPA Quá trình
-                </div>
-                <div className="text-xl font-bold text-gray-900 dark:text-[#E3E3E3] mt-0.5">
-                  8.6<span className="text-xs font-normal text-gray-400 dark:text-[#8E918F]">/10</span>
-                </div>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none">
-                <div className="text-[11px] font-medium text-gray-500 dark:text-[#8E918F]">
-                  Chuẩn PLO
-                </div>
-                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  <span>Đạt chuẩn</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* [TEACHER VIEW] Quick Actions & Instructor Radar */}
-      {(currentRole === 'teacher' || currentRole === 'owner') && (
+      {canPostAnnouncements && (
         <div className="flex flex-col gap-5">
           {/* 4. SIMPLIFY THE QUICK POST INPUT (Single, flat, elevated card) */}
           <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none">
@@ -621,6 +549,13 @@ export function ClassStreamTab({
               <div className="h-36 rounded-3xl bg-white dark:bg-[#1E1F20]" />
               <div className="h-36 rounded-3xl bg-white dark:bg-[#1E1F20]" />
             </div>
+          ) : announcementsError && sortedAnnouncements.length === 0 ? (
+            <div role="alert" className="rounded-3xl bg-surface p-6 text-sm">
+              <p>{announcementsError}</p>
+              {onRetryAnnouncements && <button type="button" onClick={onRetryAnnouncements} className="mt-3 font-semibold text-primary">
+                {t('retryClassContent')}
+              </button>}
+            </div>
           ) : sortedAnnouncements.length === 0 ? (
             <div className="p-10 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none text-center space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-[#F0F4F8] dark:bg-[#282A2C] text-gray-500 dark:text-[#8E918F] flex items-center justify-center mx-auto">
@@ -731,11 +666,20 @@ export function ClassStreamTab({
         <div className="flex flex-col gap-5">
           {/* Live Session & Lab Scheduler */}
           <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3]">
-                Lịch học tuần này
+                {t('upcomingClassSessions')}
               </h3>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {canViewSchedule && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('sessions')}
+                    className="border-none bg-transparent text-xs font-semibold text-primary hover:underline"
+                  >
+                    {t('viewClassSchedule')}
+                  </button>
+                )}
                 {currentRole !== 'student' && onOpenCreateSession && (
                   <button
                     type="button"
@@ -747,22 +691,20 @@ export function ClassStreamTab({
                     <span>Thêm ca</span>
                   </button>
                 )}
-                <span className="text-xs font-semibold text-blue-600 dark:text-[#A8C7FA] bg-[#E1E5EA] dark:bg-[#282A2C] px-3 py-1 rounded-full">
-                  {upcomingSessions.length > 0 ? `${upcomingSessions.length} ca học` : 'Lịch tuần'}
-                </span>
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
-              {isLoadingSessions ? (
-                <div className="space-y-3 animate-pulse">
-                  <div className="h-16 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314]" />
-                  <div className="h-16 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314]" />
+              {showsRecentSession && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('noUpcomingClassSessions')}</p>
+                  <h4 className="text-xs font-semibold">{t('mostRecentPastClassSession')}</h4>
                 </div>
-              ) : upcomingSessions.length > 0 ? (
-                upcomingSessions.map((session, idx) => (
+              )}
+              {displayedSessions.length > 0 ? (
+                displayedSessions.map((session, idx) => (
                   <div
-                    key={session.lessonSessionId || idx}
+                    key={session.lessonSessionId}
                     className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none flex items-start gap-3.5"
                   >
                     <div
@@ -778,16 +720,10 @@ export function ClassStreamTab({
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-xs text-gray-900 dark:text-[#E3E3E3] truncate flex items-center justify-between gap-2">
                         <span className="truncate">{getSessionTitle(session)}</span>
-                        {session.sessionCode && (
-                          <span className="font-mono text-[10px] text-blue-600 dark:text-[#A8C7FA] bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded font-normal shrink-0">
-                            {session.sessionCode}
-                          </span>
-                        )}
                       </div>
                       <div className="text-[11px] text-gray-500 dark:text-[#8E918F] mt-0.5 whitespace-nowrap">
-                        {session.startTime || '07:00'} - {session.endTime || '09:40'}
-                        {' • '}
-                        {getSessionRoom(session.roomName)}
+                        {session.startTime && session.endTime && `${session.startTime.slice(0, 5)} – ${session.endTime.slice(0, 5)} · `}
+                        {session.roomName?.trim() || t('classSessionRoomUnassigned')}
                       </div>
                     </div>
                   </div>
@@ -796,7 +732,8 @@ export function ClassStreamTab({
                 <div className="p-6 text-center rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] space-y-1">
                   <span className="material-symbols-outlined text-gray-400 text-2xl">event_busy</span>
                   <p className="text-xs text-gray-500 dark:text-[#8E918F]">
-                    Chưa có lịch ca học nào được xếp
+                    {t(!canViewSchedule ? 'classSessionsForbidden'
+                      : sessionsCount === 0 ? 'noClassSessionsScheduled' : 'noUpcomingClassSessions')}
                   </p>
                   {currentRole !== 'student' && onOpenCreateSession && (
                     <button
@@ -814,7 +751,7 @@ export function ClassStreamTab({
           </div>
 
           {/* Fast Links & Reference Materials */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col gap-3">
+          <div ref={materialsPreviewRef} className="p-6 rounded-3xl bg-white dark:bg-[#1E1F20] shadow-sm dark:shadow-none border-none flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm text-gray-900 dark:text-[#E3E3E3]">
                 Kho tài liệu chuẩn
@@ -825,13 +762,17 @@ export function ClassStreamTab({
                   onClick={() => onNavigateTab('materials')}
                   className="text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline bg-transparent border-none cursor-pointer"
                 >
-                  Xem tất cả ({materials.length})
+                  {t('viewAllClassMaterials', { count: materialsCount })}
                 </button>
               )}
             </div>
 
             <div className="flex flex-col gap-2 text-xs">
-              {materials.length > 0 ? (
+              {isMaterialsLoading && materials.length === 0 ? (
+                <p role="status" className="text-muted-foreground">{t('materialsLoading')}</p>
+              ) : isMaterialsError && materials.length === 0 ? (
+                <p role="status" className="text-muted-foreground">{t('materialsLoadError')}</p>
+              ) : materials.length > 0 ? (
                 materials.slice(0, 4).map((mat) => (
                   <button
                     key={mat.id}

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ApiError } from '@/types/common';
+import { useConfirm } from '@/components/shared';
 import { DraftGraphEditor } from '../../DraftGraphEditor';
 import {
   useIngestionJobDetail,
@@ -22,6 +23,7 @@ import {
 } from '../../schemas/ingestion.schema';
 import { PipelineStepper } from './PipelineStepper';
 import { DraftEntitiesChecklist } from './DraftEntitiesChecklist';
+import { DraftAiRepairModal } from './modals/DraftAiRepairModal';
 
 interface JobDetailReviewPanelProps {
   jobId: string | null;
@@ -34,6 +36,7 @@ export function JobDetailReviewPanel({
   summary,
   onShowToast,
 }: JobDetailReviewPanelProps) {
+  const confirm = useConfirm();
   const tActions = useTranslations('materialsHub.actions');
   const {
     data: job,
@@ -55,6 +58,7 @@ export function JobDetailReviewPanel({
   const [isRawJsonOpen, setIsRawJsonOpen] = useState(false);
   const [rawJsonSection, setRawJsonSection] = useState<'graph' | 'validation' | 'source'>('graph');
   const [reviewComment, setReviewComment] = useState('');
+  const [isAiRepairModalOpen, setIsAiRepairModalOpen] = useState(false);
 
   // Sync draft state whenever job or revision changes from server
   const serverDraftId = job?.draft?.id ?? null;
@@ -206,13 +210,18 @@ export function JobDetailReviewPanel({
     if (!activeDraft || !jobId) return;
 
     if (decision === 'APPROVED' && validationSummary.blockerIssues.length > 0 && !overrideBlocker) {
-      if (
-        window.confirm(
-          `Bản nháp vẫn còn ${validationSummary.blockerIssues.length} cảnh báo BLOCKER. Bạn có chắc chắn muốn DUYỆT CƯỠNG CHẾ và xuất bản lên Neo4j không?`
-        )
-      ) {
-        executeReview('APPROVED', true);
-      }
+      void (async () => {
+        const ok = await confirm({
+          title: 'Cảnh báo lỗi BLOCKER',
+          message: `Bản nháp vẫn còn ${validationSummary.blockerIssues.length} cảnh báo BLOCKER chưa được xử lý. Bạn có chắc chắn muốn DUYỆT CƯỠNG CHẾ và xuất bản lên Neo4j không?`,
+          variant: 'warning',
+          confirmText: 'Duyệt cưỡng chế',
+          cancelText: 'Xem lại',
+        });
+        if (ok) {
+          executeReview('APPROVED', true);
+        }
+      })();
       return;
     }
 
@@ -418,6 +427,16 @@ export function JobDetailReviewPanel({
 
                 <button
                   type="button"
+                  onClick={() => setIsAiRepairModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  title="Quét kiểm tra lỗi đồ thị bằng thuật toán DFS & gọi AI sửa trực tiếp"
+                >
+                  <span className="material-symbols-outlined text-[16px]">troubleshoot</span>
+                  <span>Kiểm tra đồ thị (AI)</span>
+                </button>
+
+                <button
+                  type="button"
                   disabled={isBusy}
                   onClick={() => handleReviewDecision('CHANGES_REQUESTED')}
                   className="px-2.5 py-1.5 rounded-xl text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-bold transition-colors cursor-pointer disabled:opacity-40"
@@ -547,9 +566,20 @@ export function JobDetailReviewPanel({
                   Phát hiện {validationSummary.blockerIssues.length} lỗi BLOCKER cần xử lý trước khi xuất bản
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
-                (Dùng các nút CRUD bên dưới để sửa/xóa liên kết lỗi)
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAiRepairModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  title="Mở AI Engine phân tích và tự động bẻ gãy chu trình lặp"
+                >
+                  <span className="material-symbols-outlined text-[16px]">auto_fix_high</span>
+                  <span>AI Sửa lỗi Blocker</span>
+                </button>
+                <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                  (Hoặc dùng các nút CRUD bên dưới)
+                </span>
+              </div>
             </div>
             <ul className="list-disc pl-5 space-y-1 text-xs text-rose-700 dark:text-rose-300">
               {validationSummary.blockerIssues.map((issue, idx) => (
@@ -643,6 +673,15 @@ export function JobDetailReviewPanel({
                   <span className="material-symbols-outlined text-[16px]">checklist</span>
                   <span>Danh sách Thực thể &amp; Bằng chứng (CRUD List)</span>
                 </button>
+
+                <Link
+                  href={`/materials/draft-studio?jobId=${job.jobId}&revisionId=${activeDraft.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs shrink-0"
+                  title="Mở Studio Toàn màn hình với URL riêng biệt (Hỗ trợ F5 giữ trang)"
+                >
+                  <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                  <span>Mở Studio Toàn màn hình</span>
+                </Link>
               </div>
 
               {isDirty && (
@@ -656,8 +695,15 @@ export function JobDetailReviewPanel({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm('Bỏ các chỉnh sửa chưa lưu và tải lại bản từ máy chủ?')) {
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: 'Xác nhận hoàn tác chỉnh sửa',
+                        message: 'Bạn có chắc chắn muốn bỏ toàn bộ các chỉnh sửa chưa lưu và tải lại bản nháp gốc từ máy chủ không?',
+                        variant: 'warning',
+                        confirmText: 'Bỏ thay đổi',
+                        cancelText: 'Giữ lại',
+                      });
+                      if (ok) {
                         void refetch();
                       }
                     }}
@@ -675,6 +721,8 @@ export function JobDetailReviewPanel({
                 jobId={job.jobId}
                 revisionId={activeDraft.id}
                 jobStatus={job.status}
+                courseId={displayCourseId}
+                courseTitle={displayCourseTitle ?? undefined}
                 text={graphText}
                 editable={isEditable && !isBusy}
                 onChange={setGraphText}
@@ -792,6 +840,16 @@ export function JobDetailReviewPanel({
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAiRepairModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                title="Quét kiểm tra cấu trúc đồ thị & gọi AI sửa trực tiếp"
+              >
+                <span className="material-symbols-outlined text-[17px]">troubleshoot</span>
+                <span>Kiểm tra &amp; Sửa lỗi AI</span>
+              </button>
+
               {validationSummary.blockerIssues.length > 0 && (
                 <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
                   <span className="material-symbols-outlined text-[15px]">warning</span>
@@ -816,6 +874,42 @@ export function JobDetailReviewPanel({
           </div>
         </div>
       )}
+
+      {/* AI Graph Validation & Auto-Repair Modal for Draft Ingestion */}
+      <DraftAiRepairModal
+        isOpen={isAiRepairModalOpen}
+        onClose={() => setIsAiRepairModalOpen(false)}
+        courseId={displayCourseId}
+        courseTitle={displayCourseTitle ?? undefined}
+        materialTitle={displayTitle}
+        draftText={graphText}
+        onApplyRepairedDraft={(newGraphText) => {
+          setGraphText(newGraphText);
+          if (activeDraft && jobId) {
+            try {
+              const candidate = JSON.parse(newGraphText);
+              saveDraftMutation.mutate(
+                {
+                  jobId,
+                  baseRevisionId: activeDraft.id,
+                  baseHash: activeDraft.hash,
+                  graph: candidate,
+                },
+                {
+                  onSuccess: (nextRev) => {
+                    setActiveDraft(nextRev);
+                    setSavedText(newGraphText);
+                    setSaveError('');
+                    onShowToast?.('AI đã sửa và tự động lưu bản nháp đồ thị thành công!');
+                  },
+                }
+              );
+            } catch {
+              // handled
+            }
+          }
+        }}
+      />
     </div>
   );
 }

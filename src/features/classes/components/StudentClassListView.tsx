@@ -147,106 +147,60 @@ export function StudentClassListView({
   };
 
   // Student specific metrics helper
+  // Student metrics helper from real class item data
   const getStudentMetrics = (item: ClassItem) => {
-    const textLower = (item.name + item.title).toLowerCase();
+    const rawStats = item.stats as Record<string, unknown> | undefined;
+    const rawGrade =
+      (item as { studentGrade?: number | string; grade?: number | string }).studentGrade ??
+      (item as { grade?: number | string }).grade ??
+      rawStats?.grade;
 
-    // 1. CTDL
-    if (textLower.includes('ctdl') || textLower.includes('thuật nâng cao')) {
-      return {
-grade: '8.8',
-        gradeColor: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
-        teacher: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
-        progressPercent: 84,
-        nodesUnlocked: '42/50',
-        schedule: 'Thứ 5 (Tiết 4-6) • Phòng H6-302',
+    const hasRealGrade = rawGrade !== undefined && rawGrade !== null && rawGrade !== '';
+    const numericGrade = hasRealGrade ? Number(rawGrade) : null;
+    const gradeDisplay =
+      hasRealGrade && !isNaN(numericGrade!)
+        ? numericGrade!.toFixed(1)
+        : typeof rawGrade === 'string' && rawGrade.trim()
+        ? rawGrade.trim()
+        : null;
 
-        alert: {
-          type: 'danger',
-          icon: 'alarm',
-          text: 'Bài tập Lab 05 (Segment Tree) hết hạn lúc 23:59 hôm nay',
-          action: 'Nộp ngay',
-          actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
-          containerClass: 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200',
-        },
-      };
-    }
+    const gradeColor = gradeDisplay
+      ? Number(gradeDisplay) >= 8.5
+        ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+        : Number(gradeDisplay) >= 7.0
+        ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+        : Number(gradeDisplay) >= 5.0
+        ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300'
+        : 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+      : '';
 
-    // 2. THTT
-    if (textLower.includes('thtt') || textLower.includes('thông minh')) {
-      return {
-        grade: '7.5',
-        gradeColor: 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300',
-        teacher: 'PGS.TS. Vũ Đình Thành',
-        progressPercent: 65,
-        nodesUnlocked: '28/40',
-        schedule: 'Thứ 3 (Tiết 1-3) • Phòng Online MS Teams',
-        alert: {
-          type: 'warning',
-          icon: 'edit_note',
-          text: 'Quiz 04 (Dijkstra & DSU) mở đến Chủ nhật tuần này',
-          action: 'Làm Quiz',
-          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-200',
-        },
-      };
-    }
+    const teacherName = item.instructor?.fullName || 'Chưa phân công';
+    const scheduleText =
+      item.schedule?.dayOfWeek && item.schedule?.dayOfWeek !== 'Chưa xếp lịch'
+        ? `${item.schedule.dayOfWeek} (${item.schedule.timeSlot || 'Linh hoạt'}) • ${item.schedule.room || 'Phòng học'}`
+        : 'Chưa xếp lịch học';
 
-    // 3. OOP
-    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
-      return {
-        grade: '9.2',
-        gradeColor: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
-        teacher: 'ThS. Hoàng Minh Tuấn',
-        progressPercent: 92,
-        nodesUnlocked: '36/40',
-        schedule: 'Thứ 2 (Tiết 7-9) • Phòng Lab B2-104',
-        alert: {
-          type: 'success',
-          icon: 'check_circle',
-          text: 'Đã nộp toàn bộ bài tập tuần này • Điểm Lab gần nhất: Xuất sắc',
-          action: '',
-          actionClass: '',
-          containerClass: 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200',
-        },
-      };
-    }
+    const upcomingAssignments = item.stats?.ungradedAssignmentsCount ?? 0;
 
-    // 4. AI
-    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
-      return {
-        grade: '8.0',
-        gradeColor: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
-        teacher: 'TS. Nguyễn Bảo Anh • Trợ giảng AI Socratic 24/7',
-        progressPercent: 48,
-        nodesUnlocked: '20/45',
-        schedule: 'Thứ 7 (Tiết 4-6) • Hội trường C1',
-        alert: {
-          type: 'purple',
-          icon: 'smart_toy',
-          text: 'Socratic AI gợi ý: Ôn tập 5 câu hỏi Flashcard thuật toán A*',
-          action: 'Ôn ngay',
-          actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
-          containerClass: 'bg-purple-50/90 dark:bg-purple-950/40 border-purple-200 dark:border-purple-900 text-purple-800 dark:text-purple-200',
-        },
-      };
-    }
-
-    // Default
     return {
-      grade: '8.5',
-      gradeColor: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300',
-      teacher: item.instructor?.fullName || 'TS. Lê Hoàng Nam',
-      progressPercent: 75,
-      nodesUnlocked: '30/40',
-      schedule: item.schedule?.dayOfWeek ? `${item.schedule.dayOfWeek} (${item.schedule.timeSlot || 'Tiết 1-3'})` : 'Thứ 4 (Tiết 1-3)',
-      alert: {
-        type: 'info',
-        icon: 'info',
-        text: 'Tuần học 09: Chuẩn bị nội dung tổng kết giữa kỳ',
-        action: 'Xem ngay',
-        actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        containerClass: 'bg-blue-50/90 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-200',
-      },
+      grade: gradeDisplay,
+      gradeColor,
+      teacher: teacherName,
+      progressPercent: item.stats?.attendanceRate ?? 0,
+      nodesUnlocked: null,
+      schedule: scheduleText,
+      alert:
+        upcomingAssignments > 0
+          ? {
+              type: 'danger',
+              icon: 'alarm',
+              text: `${upcomingAssignments} bài tập cần hoàn thành`,
+              action: 'Nộp ngay',
+              actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
+              containerClass:
+                'bg-rose-50/90 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200',
+            }
+          : null,
     };
   };
 
@@ -347,17 +301,28 @@ grade: '8.8',
               {/* MIDDLE BLOCK: ACADEMIC METRICS & KNOWLEDGE PROGRESS */}
               <div className="flex items-center justify-between sm:justify-start xl:justify-center gap-4 sm:gap-6 pt-3 xl:pt-0 border-t xl:border-t-0 border-slate-100 dark:border-slate-800 shrink-0">
                 {/* GPA / Process Grade Badge */}
-                <div
-                  className={`flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border ${student.gradeColor} min-w-[95px] text-center shadow-2xs`}
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
-                    Điểm QT
-                  </span>
-                  <span className="font-mono text-base sm:text-lg font-black tracking-tight">
-                    {student.grade}
-                    <span className="text-[11px] font-normal opacity-70"> / 10</span>
-                  </span>
-                </div>
+                {student.grade ? (
+                  <div
+                    className={`flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border ${student.gradeColor} min-w-[95px] text-center shadow-2xs`}
+                  >
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                      Điểm QT
+                    </span>
+                    <span className="font-mono text-base sm:text-lg font-black tracking-tight">
+                      {student.grade}
+                      <span className="text-[11px] font-normal opacity-70"> / 10</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 min-w-[95px] text-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                      Điểm QT
+                    </span>
+                    <span className="font-mono text-base sm:text-lg font-bold tracking-tight">
+                      --
+                    </span>
+                  </div>
+                )}
 
                 {/* Knowledge Graph Progress Bar */}
                 <div className="w-36 sm:w-44 space-y-1">

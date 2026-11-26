@@ -1,5 +1,38 @@
 import { z } from 'zod';
-import { classItemSchema, type ClassItem } from './class.schema';
+import { classItemSchema, type ClassItem, type TeachingRole } from './class.schema';
+
+const upcomingClassSessionSchema = z.object({
+  lessonSessionId: z.string(),
+  sessionDate: z.string(),
+  startTime: z.string().nullish(),
+  endTime: z.string().nullish(),
+  startShift: z.number().nullish(),
+  endShift: z.number().nullish(),
+  roomName: z.string().nullish(),
+  courseName: z.string().nullish(),
+  note: z.string().nullish(),
+});
+
+export type UpcomingClassSession = z.infer<typeof upcomingClassSessionSchema>;
+
+export const classOverviewResponseSchema = z.object({
+  classInfo: classItemSchema,
+  stats: z.object({
+    coursesCount: z.number().int().nonnegative(),
+    studentsCount: z.number().int().nonnegative(),
+    teachersCount: z.number().int().nonnegative(),
+  }),
+  viewer: z.object({
+    role: z.string().nullable(),
+    canReadAnnouncements: z.boolean(),
+    canPostAnnouncements: z.boolean(),
+    canManageSessions: z.boolean(),
+  }),
+  announcements: z.array(z.object({ id: z.string() }).passthrough()).max(10),
+  upcomingSessions: z.array(upcomingClassSessionSchema).max(4),
+  recentSession: upcomingClassSessionSchema.nullish(),
+  sessionsCount: z.number().int().nonnegative().nullable(),
+});
 
 export const classCourseSchema = z.object({
   id: z.string(),
@@ -48,7 +81,7 @@ export const classAnnouncementSchema = z.object({
   authorRole: z.string().default('Chủ lớp'),
   authorInitials: z.string().default('LN'),
   authorColor: z.string().default('bg-blue-700'),
-  createdAt: z.string(),
+  createdAt: z.string().nullish().transform((v) => v ?? ''),
   isPinned: z.boolean().default(false),
   pinBadge: z.string().optional(),
   badgeType: z.enum(['error', 'secondary', 'primary', 'archived', 'poll']).optional(),
@@ -173,6 +206,7 @@ export type MaterialFormat = z.infer<typeof materialFormatSchema>;
 
 export const classMaterialSchema = z.object({
   id: z.string(),
+  courseId: z.string().optional(),
   stt: z.string().optional(),
   title: z.string(),
   filename: z.string(),
@@ -182,9 +216,10 @@ export const classMaterialSchema = z.object({
   categoryType: z.enum(['syllabus', 'slide', 'quiz', 'code', 'curriculum', 'other']).default('slide'),
   format: materialFormatSchema.default('PDF'),
   size: z.string(),
-  updatedAt: z.string(),
+  updatedAt: z.string().nullish().transform((v) => v ?? ''),
   aiStatus: z.string(),
   aiStatusType: z.enum(['synced', 'ready', 'quiz', 'code', 'standard']).default('ready'),
+  conceptsCount: z.number().default(0).optional(),
   viewsCount: z.number().default(0),
   isPinned: z.boolean().default(false),
   badge: z.string().optional(),
@@ -205,6 +240,7 @@ export interface ClassDetailData {
   materials?: ClassMaterial[];
   courseTemplates?: CourseTemplate[];
   isClassInfoLive?: boolean;
+  callerRole?: TeachingRole;
   isMembersLive?: boolean;
   isCoursesLive?: boolean;
 }

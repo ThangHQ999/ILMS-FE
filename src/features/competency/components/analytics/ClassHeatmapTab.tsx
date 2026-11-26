@@ -12,8 +12,8 @@ interface ClassHeatmapTabProps {
 
 export function ClassHeatmapTab({
   data,
-  classId = 'cls-cs202',
-  courseId = 'cs202',
+  classId = '',
+  courseId = '',
 }: ClassHeatmapTabProps) {
   const [viewMode, setViewMode] = useState<'live' | 'legacy'>('live');
 

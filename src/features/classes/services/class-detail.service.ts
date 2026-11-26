@@ -1,7 +1,8 @@
 import { api } from '@/lib/axios';
-import { ApiResponse } from '@/types/common';
-import { getClassById, normalizeClassApiId } from './class.service';
+import { ApiError, type ApiResponse, type PaginatedResponse } from '@/types/common';
+import { getClassById, normalizeClassApiId, type ClassLookupResult } from './class.service';
 import type { ClassItem } from '../schemas/class.schema';
+import { classOverviewResponseSchema } from '../schemas/class-detail.schema';
 import type {
   ClassDetailData,
   ClassCourse,
@@ -800,14 +801,12 @@ export function saveLocalClassCourse(classId: string, item: ClassCourse): void {
   }
 }
 
-export async function getClassInfoDetail(classId: string): Promise<ClassItem> {
+export async function getClassInfoDetail(classId: string): Promise<ClassLookupResult> {
   const apiId = normalizeClassApiId(classId);
   const isRawUuid = (str?: string | null) =>
     Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim()));
-  const fallbackTitle = isRawUuid(apiId)
-    ? 'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)'
-    : apiId;
-  const fallbackName = isRawUuid(apiId) ? 'INT3306 01' : apiId;
+  const fallbackTitle = isRawUuid(apiId) ? 'Lớp học' : apiId;
+  const fallbackName = isRawUuid(apiId) ? 'Lớp học' : apiId;
 
   try {
     const fetched = await getClassById(apiId);
@@ -835,10 +834,27 @@ export async function getClassInfoDetail(classId: string): Promise<ClassItem> {
     // Fallback below
   }
   return {
-    ...MOCK_CLASS_INFO,
     id: apiId,
     name: fallbackName,
     title: fallbackTitle,
+    description: '',
+    academicYear: '2026-2027',
+    semester: '2026-2027',
+    major: 'Khoa học Máy tính',
+    maxStudents: 60,
+    enrolledCount: 0,
+    enrollmentKey: fallbackName,
+    isCodeClosed: false,
+    status: 'ACTIVE',
+    teachingRole: 'STUDENT',
+    instructor: {
+      fullName: 'Chưa phân công',
+    },
+    schedule: {
+      room: 'Chưa xếp phòng',
+      dayOfWeek: 'Chưa xếp lịch',
+      timeSlot: 'Linh hoạt',
+    },
   };
 }
 
@@ -952,7 +968,7 @@ function mapAnnouncementRecord(entry: unknown, fallbackIdx = 0): ClassAnnounceme
     authorRole: String(rec.authorRole ?? 'Giảng viên'),
     authorInitials: String(rec.authorInitials ?? initials),
     authorColor: String(rec.authorColor ?? 'bg-blue-700'),
-    createdAt: String(rec.createdAt ?? new Date().toISOString()),
+    createdAt: String(rec.createdAt ?? rec.createTime ?? ''),
     isPinned: Boolean(rec.isPinned ?? rec.pinned ?? false),
     tag: rec.tag ? String(rec.tag) : undefined,
     commentsCount:
@@ -967,6 +983,7 @@ function extractArrayPayload(payload: unknown): unknown[] {
   const candidates = [
     obj.content,
     obj.items,
+    obj.members,
     obj.announcements,
     obj.records,
     obj.results,
@@ -985,57 +1002,210 @@ function extractArrayPayload(payload: unknown): unknown[] {
 
 export async function getClassAnnouncements(classId: string): Promise<ClassAnnouncement[]> {
   const apiId = normalizeClassApiId(classId);
-  try {
-    const { data: annRes } = await api.get<ApiResponse<unknown>>(
-      `/classes/${apiId}/announcements`,
-      { timeout: 3500 }
-    );
-    const list = extractArrayPayload(annRes?.data ?? annRes);
-    return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
-  } catch (err) {
-    const status = (err as { httpStatus?: number; response?: { status?: number } })?.httpStatus ??
-      (err as { response?: { status?: number } })?.response?.status;
-    if (status === 404) {
-      try {
-        const { data: legacyRes } = await api.get<ApiResponse<unknown>>(
-          `/classes/class/${apiId}/Announcements`,
-          { timeout: 2500 }
-        );
-        const list = extractArrayPayload(legacyRes?.data ?? legacyRes);
-        return list.map((entry, idx) => mapAnnouncementRecord(entry, idx));
-      } catch {
-        return [];
-      }
-    }
-    return [];
+  const { data } = await api.get<ApiResponse<unknown>>(`/classes/${apiId}/announcements`).catch(error => {
+    if (!(error instanceof ApiError) || error.httpStatus !== 404) throw error;
+    return api.get<ApiResponse<unknown>>(`/classes/class/${apiId}/Announcements`);
+  });
+  return extractArrayPayload(data?.data ?? data).map(mapAnnouncementRecord);
+}
+
+export async function getClassOverview(classId: string, signal?: AbortSignal) {
+  const id = normalizeClassApiId(classId);
+  const { data } = await api.get<ApiResponse<unknown>>(`/classes/${encodeURIComponent(id)}/overview`, { signal });
+  const overview = classOverviewResponseSchema.parse(data.data);
+  if (overview.classInfo.id.toLowerCase() !== id.toLowerCase()) {
+    throw new ApiError('Class overview scope mismatch', 404);
   }
+  const classInfo: ClassLookupResult = {
+    ...overview.classInfo,
+    isClassInfoLive: true,
+    callerRole: overview.viewer.role === overview.classInfo.teachingRole ? overview.classInfo.teachingRole : undefined,
+  };
+  return { ...overview, classInfo, announcements: overview.announcements.map(mapAnnouncementRecord) };
+}
+
+function mapClassMemberRecord(raw: unknown): ClassMember | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rec = raw as Record<string, unknown>;
+  const userObj =
+    rec.user && typeof rec.user === 'object' ? (rec.user as Record<string, unknown>) : undefined;
+  const id = String(rec.userId ?? userObj?.id ?? rec.id ?? '').trim();
+  if (!id) return null;
+
+  const fullName =
+    String(
+      rec.fullName ?? rec.name ?? rec.studentName ?? userObj?.fullName ?? userObj?.name ?? 'Thành viên'
+    ).trim() || 'Thành viên';
+  const rawRole = String(rec.role ?? 'STUDENT').toUpperCase();
+  const role: ClassMember['role'] =
+    rawRole === 'OWNER' ? 'OWNER' : rawRole === 'TEACHER' || rawRole === 'TA' ? 'TEACHER' : 'STUDENT';
+
+  const rawStatus = String(rec.status ?? 'APPROVED').toUpperCase();
+  const status: ClassMember['status'] = rawStatus === 'PENDING' ? 'PENDING' : 'APPROVED';
+
+  const initials =
+    fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(-2)
+      .map((p) => p[0]?.toUpperCase() || '')
+      .join('') || 'SV';
+
+  const resolvedAvatarUrl = rec.avatarUrl
+    ? String(rec.avatarUrl)
+    : userObj?.avatarUrl
+      ? String(userObj.avatarUrl)
+      : undefined;
+
+  return {
+    id,
+    name: fullName,
+    studentCode: rec.studentCode
+      ? String(rec.studentCode)
+      : userObj?.studentCode
+        ? String(userObj.studentCode)
+        : undefined,
+    email: rec.email ? String(rec.email) : userObj?.email ? String(userObj.email) : '',
+    role,
+    status,
+    avatar: rec.avatar ? String(rec.avatar) : initials,
+    avatarUrl: resolvedAvatarUrl,
+    isClassLeader: Boolean(rec.isClassLeader),
+    leaderBadge: rec.leaderBadge ? String(rec.leaderBadge) : undefined,
+    attendanceRate: typeof rec.attendanceRate === 'number' ? rec.attendanceRate : undefined,
+    knowledgeNodesUnlocked:
+      typeof rec.knowledgeNodesUnlocked === 'number' ? rec.knowledgeNodesUnlocked : undefined,
+    knowledgeNodesTotal:
+      typeof rec.knowledgeNodesTotal === 'number' ? rec.knowledgeNodesTotal : undefined,
+    knowledgePercent: typeof rec.knowledgePercent === 'number' ? rec.knowledgePercent : undefined,
+    gpa: typeof rec.gpa === 'number' ? rec.gpa : undefined,
+    learningStatus: rec.learningStatus as ClassMember['learningStatus'],
+    statusBadge: rec.statusBadge ? String(rec.statusBadge) : undefined,
+    statusDetail: rec.statusDetail ? String(rec.statusDetail) : undefined,
+    joinedAt: rec.joinedAt ? String(rec.joinedAt) : rec.createdAt ? String(rec.createdAt) : undefined,
+  };
 }
 
 export async function getClassMembers(classId: string): Promise<ClassMember[]> {
   const apiId = normalizeClassApiId(classId);
-  try {
-    const { data: memRes } = await api.get<ApiResponse<ClassMember[]>>(
-      `/classes/${apiId}/members`
-    );
-    const list = memRes?.data ?? (Array.isArray(memRes) ? memRes : null);
-    if (Array.isArray(list)) {
-      return list;
+  const [allRes, pendingRes] = await Promise.allSettled([
+    api.get<ApiResponse<unknown>>(`/classes/${apiId}/members`, {
+      params: { page: 0, size: 100 },
+    }),
+    api.get<ApiResponse<unknown>>(`/classes/${apiId}/members`, {
+      params: { status: 'PENDING', page: 0, size: 100 },
+    }),
+  ]);
+
+  const merged = new Map<string, ClassMember>();
+
+  if (allRes.status === 'fulfilled') {
+    const rawAll = allRes.value.data?.data ?? allRes.value.data;
+    const list = extractArrayPayload(rawAll);
+    for (const item of list) {
+      const mapped = mapClassMemberRecord(item);
+      if (mapped) merged.set(mapped.id, mapped);
     }
-  } catch {
-    // Backend unavailable
   }
-  return [];
+
+  if (pendingRes.status === 'fulfilled') {
+    const rawPending = pendingRes.value.data?.data ?? pendingRes.value.data;
+    const pendingList = extractArrayPayload(rawPending);
+    for (const item of pendingList) {
+      const mapped = mapClassMemberRecord(item);
+      if (mapped) {
+        merged.set(mapped.id, { ...mapped, status: 'PENDING' });
+      }
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+function mapMaterialFormat(
+  rawType?: unknown
+): ClassMaterial['format'] {
+  const upper = String(rawType ?? '').toUpperCase();
+  if (upper.includes('PPT')) return 'PPTX';
+  if (upper.includes('QUIZ')) return 'QUIZ';
+  if (upper.includes('CODE') || upper.includes('ZIP') || upper.includes('PY') || upper.includes('CPP')) {
+    return 'CODE';
+  }
+  return 'PDF';
+}
+
+function mapMaterialCategoryType(
+  format: ClassMaterial['format']
+): ClassMaterial['categoryType'] {
+  if (format === 'PPTX') return 'slide';
+  if (format === 'QUIZ') return 'quiz';
+  if (format === 'CODE') return 'code';
+  return 'syllabus';
+}
+
+export interface ClassMaterialsParams {
+  page?: number;
+  size?: number;
+  courseId?: string;
+  category?: string;
+  search?: string;
+}
+
+export async function getClassMaterials(
+  classId: string, params: ClassMaterialsParams = {}, signal?: AbortSignal,
+): Promise<PaginatedResponse<ClassMaterial>> {
+  const id = encodeURIComponent(normalizeClassApiId(classId));
+  const { data: { data: page } } = await api.get<ApiResponse<PaginatedResponse<unknown>>>(
+    `/classes/${id}/materials`, { params, signal },
+  );
+  if (!Array.isArray(page?.items) || !Number.isSafeInteger(page.pageNumber) || !Number.isSafeInteger(page.pageSize)
+      || !Number.isSafeInteger(page.totalElements) || !Number.isSafeInteger(page.totalPages)) {
+    throw new Error('Invalid class materials response');
+  }
+
+  const items = page.items.map((entry, index): ClassMaterial => {
+    const rec = entry as Record<string, unknown>;
+    if (typeof rec?.id !== 'string' || !rec.id) throw new Error('Invalid class material ID');
+    const format = mapMaterialFormat(rec.fileType ?? rec.mimeType);
+    const aiStatus = String(rec.aiIngestionStatus ?? '').toUpperCase();
+    const conceptsCount = Number(rec.conceptsCount ?? 0);
+    return {
+      id: rec.id,
+      courseId: typeof rec.courseId === 'string' ? rec.courseId : undefined,
+      stt: String(page.pageNumber * page.pageSize + index + 1).padStart(2, '0'),
+      title: String(rec.title ?? rec.originalFileName ?? 'Tài liệu học tập'),
+      filename: String(rec.originalFileName ?? rec.title ?? 'material'),
+      subjectName: String(rec.courseTitle ?? 'Môn học'),
+      subjectCode: String(rec.courseCode ?? ''),
+      category: String(rec.chapterTitle ?? rec.lessonTitle ?? 'Học liệu môn học'),
+      categoryType: mapMaterialCategoryType(format),
+      format,
+      size: String(rec.fileSizeFormatted ?? '--'),
+      updatedAt: String(rec.updatedAt ?? rec.createdAt ?? ''),
+      aiStatus: aiStatus === 'SUCCESS' ? conceptsCount > 0 ? `Đã đồng bộ (${conceptsCount} khái niệm)` : 'Đã kết nối Đồ thị'
+        : aiStatus === 'PROCESSING' || aiStatus === 'QUEUED' ? 'Đang xử lý AI' : 'Tài liệu chuẩn',
+      aiStatusType: aiStatus === 'SUCCESS' ? 'synced' : 'ready',
+      conceptsCount: Number.isFinite(conceptsCount) ? conceptsCount : 0,
+      viewsCount: Number(rec.viewsCount ?? 0),
+      isPinned: Boolean(rec.isPinned),
+      url: typeof rec.url === 'string' ? rec.url : undefined,
+      fileUrl: typeof rec.url === 'string' ? rec.url : undefined,
+      downloadUrl: typeof rec.downloadUrl === 'string' ? rec.downloadUrl : undefined,
+    };
+  });
+  return { ...page, items, isLast: page.pageNumber + 1 >= page.totalPages };
 }
 
 /**
  * Fetch full class detail bundle with graceful API connect & fallback.
  */
 export async function getClassDetailData(classId: string): Promise<ClassDetailData> {
-  const [classInfo, courses, announcements, members] = await Promise.all([
+  const [classInfo, courses, announcements, members, materials] = await Promise.all([
     getClassInfoDetail(classId),
     getClassCourses(classId),
-    getClassAnnouncements(classId),
+    getClassAnnouncements(classId).catch(() => []),
     getClassMembers(classId),
+    getClassMaterials(classId).then(page => page.items).catch(() => []),
   ]);
 
   return {
@@ -1045,7 +1215,7 @@ export async function getClassDetailData(classId: string): Promise<ClassDetailDa
     gradebookStudents: MOCK_GRADEBOOK_STUDENTS,
     gradebookAi: MOCK_GRADEBOOK_AI,
     members,
-    materials: MOCK_MATERIALS,
+    materials,
     courseTemplates: MOCK_TEMPLATES,
   };
 }
@@ -1097,7 +1267,7 @@ export async function postClassAnnouncement(
     payload
   );
   const created = data?.data ?? data;
-  if (created && typeof created === 'object') {
+  if (created && typeof created === 'object' && 'id' in created && typeof created.id === 'string' && created.id) {
     return mapAnnouncementRecord(created);
   }
   return null;
@@ -1195,6 +1365,7 @@ export async function deleteClassAnnouncement(
 }
 
 export interface ClassBannerStats {
+  sessionsCount?: number;
   coursesCount: number;
   studentsCount: number;
   teachersCount: number;

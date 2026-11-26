@@ -47,6 +47,9 @@ export type AnswerOptionDTO = z.infer<typeof answerOptionSchema>;
  */
 export const questionResponseSchema = z.object({
   id: z.string(),
+  bankQuestionId: z.string().nullish(),
+  orderIndex: z.number().optional(),
+  point: z.number().optional(),
   content: z.string(),
   questionType: QuestionTypeEnum,
   difficultyLevel: DifficultyLevelEnum,
@@ -71,6 +74,8 @@ export type QuestionResponseDTO = z.infer<typeof questionResponseSchema>;
  * docs/api-spec.md Section 9.2 (Enhanced with Bloom, Code, Image & PLO)
  */
 export const questionRequestSchema = z.object({
+  concepts: z.array(z.object({ conceptId: z.string(), name: z.string() })).optional(),
+  courseId: z.string().uuid().optional(),
   content: z.string().min(1, 'Nội dung câu hỏi không được để trống'),
   questionType: QuestionTypeEnum.default('SINGLE_CHOICE'),
   difficultyLevel: DifficultyLevelEnum.default('MEDIUM'),
@@ -105,9 +110,13 @@ export type QuestionRequestDTO = z.input<typeof questionRequestSchema>;
  */
 export const quizRequestSchema = z.object({
   classId: z.string().min(1, 'Mã lớp học không được để trống'),
+  courseId: z.string().uuid().optional(),
+  sourceQuizId: z.string().uuid().optional(),
+  countsTowardGrade: z.boolean().optional(),
+  maxScore: z.number().positive().optional(),
   title: z.string().min(1, 'Tiêu đề đề thi không được để trống'),
   description: z.string().optional().default(''),
-  status: QuizStatusEnum.optional().default('PUBLISHED'),
+  status: QuizStatusEnum.optional().default('DRAFT'),
   chapter: z.string().optional(),
   durationMinutes: z.number().int().positive('Thời gian làm bài phải lớn hơn 0'),
   maxAttempts: z.number().int().min(1, 'Số lần làm bài tối thiểu là 1').default(1),
@@ -120,8 +129,8 @@ export const quizRequestSchema = z.object({
   lockAnswersUntilDeadline: z.boolean().optional().default(true),
   proctoringEnabled: z.boolean().optional().default(false),
   ploIds: z.array(z.string()).optional().default([]),
-  startTime: z.string().min(1, 'Thời gian bắt đầu không được để trống'),
-  endTime: z.string().min(1, 'Thời gian kết thúc không được để trống'),
+  startTime: z.string().min(1, 'Thời gian bắt đầu không được để trống').optional(),
+  endTime: z.string().min(1, 'Thời gian kết thúc không được để trống').optional(),
 });
 
 export type QuizRequestDTO = z.input<typeof quizRequestSchema>;
@@ -134,9 +143,14 @@ export type QuizRequestDTO = z.input<typeof quizRequestSchema>;
 export const quizResponseSchema = z.object({
   id: z.string(),
   classId: z.string(),
+  courseId: z.string().nullish(),
+  assessmentId: z.string().nullish(),
+  isPublished: z.boolean().optional(),
+  countsTowardGrade: z.boolean().optional(),
+  maxScore: z.number().optional(),
   title: z.string(),
   description: z.string().optional().nullable(),
-  status: QuizStatusEnum.optional().default('PUBLISHED'),
+  status: QuizStatusEnum.optional().default('DRAFT'),
   chapter: z.string().optional().nullable(),
   durationMinutes: z.number(),
   maxAttempts: z.number(),
@@ -258,7 +272,7 @@ export const quizAttemptResponseSchema = z.object({
   quizId: z.string(),
   userId: z.string().optional(),
   status: z.enum(['IN_PROGRESS', 'SUBMITTED', 'GRADED', 'EXPIRED']),
-  startTime: z.string(),
+  startTime: z.string().optional(),
   endTime: z.string().optional().nullable(),
   remainingSeconds: z.number().optional(),
 });
@@ -373,19 +387,60 @@ export type ResolveComplaintRequestDTO = z.infer<typeof resolveComplaintSchema>;
 // 6. ANALYTICS & BLOOM SCHEMAS (docs/api-spec.md Section 10.5)
 // ============================================================================
 
+const quizAnalyticsContextSchema = z.object({
+  classId: z.string().nullish(),
+  className: z.string().nullish(),
+  courseId: z.string().nullish(),
+  courseName: z.string().nullish(),
+  title: z.string(),
+  state: z.enum(['DRAFT', 'UPCOMING', 'OPEN', 'CLOSED']),
+  maxScore: z.number().positive(),
+  passingScore: z.number().nullish(),
+  questionCount: z.number().int().nonnegative().nullish(),
+  opensAt: z.string().nullish(),
+  closesAt: z.string().nullish(),
+});
+
+export const quizAnalyticsLearnerState = z.enum(['NOT_STARTED', 'IN_PROGRESS', 'SUBMITTED', 'EXPIRED']);
+
+const quizAnalyticsLearnerSchema = z.object({
+  studentId: z.string(),
+  studentName: z.string(),
+  state: quizAnalyticsLearnerState,
+  score: z.number().nullable(),
+  submittedAt: z.string().nullish(),
+});
+
+const quizAnalyticsQuestionSchema = z.object({
+  questionId: z.string(),
+  orderIndex: z.number().int(),
+  content: z.string(),
+  correctCount: z.number().int().nonnegative(),
+  incorrectCount: z.number().int().nonnegative(),
+  unansweredCount: z.number().int().nonnegative(),
+});
+
 export const quizAnalyticsSchema = z.object({
   quizId: z.string(),
-  totalParticipants: z.number(),
-  averageScore: z.number(),
-  highestScore: z.number(),
-  lowestScore: z.number(),
-  passRate: z.number(),
-  scoreDistribution: z.record(z.string(), z.number()),
-  bloomDistribution: z.record(z.string(), z.number()),
-  discriminationIndex: z.number().optional(),
+  context: quizAnalyticsContextSchema.optional(),
+  enrolledCount: z.number().int().nonnegative().nullish(),
+  submittedCount: z.number().int().nonnegative().nullish(),
+  totalParticipants: z.number().int().nonnegative(),
+  averageScore: z.number().nullish(),
+  highestScore: z.number().nullish(),
+  lowestScore: z.number().nullish(),
+  passRate: z.number().nullish(),
+  scoreDistribution: z.record(z.string(), z.number().int().nonnegative()),
+  bloomDistribution: z.record(z.string(), z.number()).nullish(),
+  discriminationIndex: z.number().nullish(),
+  learners: z.array(quizAnalyticsLearnerSchema).optional(),
+  questions: z.array(quizAnalyticsQuestionSchema).optional(),
 });
 
 export type QuizAnalyticsDTO = z.infer<typeof quizAnalyticsSchema>;
+export type QuizAnalyticsLearner = z.infer<typeof quizAnalyticsLearnerSchema>;
+export type QuizAnalyticsQuestion = z.infer<typeof quizAnalyticsQuestionSchema>;
+export type QuizAnalyticsContext = z.infer<typeof quizAnalyticsContextSchema>;
 
 // ============================================================================
 // 7. EXAM DTO SCHEMAS (docs/api-spec.md Section 13)
@@ -432,6 +487,8 @@ export interface QuizItem {
   code: string;
   className: string;
   classId: string;
+  courseId?: string | null;
+  assessmentId?: string | null;
   title: string;
   type: 'quiz' | 'exam' | 'draft';
   status: 'live' | 'upcoming' | 'completed' | 'complaints' | 'draft' | 'pending';

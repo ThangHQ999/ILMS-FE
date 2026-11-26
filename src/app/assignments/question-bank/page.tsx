@@ -5,19 +5,17 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/features/auth';
 
-const TeacherQuestionBankView = dynamic(
+const QuestionBankPageView = dynamic(
   () =>
-    import('@/features/assignments').then(
-      (mod) => mod.TeacherQuestionBankView
-    ),
+    import('@/features/assignments').then((mod) => mod.QuestionBankPageView),
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-[#F6FAFE] dark:bg-[#131314]">
+      <div className="flex min-h-screen items-center justify-center bg-[#F0F4F9] dark:bg-[#131314]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-blue-400 dark:border-t-transparent" />
-          <p className="text-xs font-semibold text-slate-500 dark:text-[#C4C7C5]">
-            Đang tải Ngân hàng Câu hỏi & Ma trận Đề thi...
+          <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#0B57D0] border-t-transparent dark:border-[#A8C7FA] dark:border-t-transparent" />
+          <p className="text-xs font-medium text-[#444746] dark:text-[#C4C7C5]">
+            Đang tải Ngân hàng Câu hỏi...
           </p>
         </div>
       </div>
@@ -38,7 +36,7 @@ export default function QuestionBankPage() {
   const userFullName =
     user?.firstName || user?.lastName
       ? `${user.lastName || ''} ${user.firstName || ''}`.trim()
-      : 'TS. Lê Hoàng Nam';
+      : '';
 
-  return <TeacherQuestionBankView userFullName={userFullName} />;
+  return <QuestionBankPageView userFullName={userFullName} />;
 }

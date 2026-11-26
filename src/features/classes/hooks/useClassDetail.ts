@@ -1,14 +1,16 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getClassInfoDetail,
+  getClassOverview,
   getClassStats,
   getClassCourses,
   getAvailableClassCourses,
   getClassAnnouncements,
   getClassMembers,
+  getClassMaterials,
   getClassAssignments,
   getClassExams,
   getClassGradeReports,
@@ -22,48 +24,70 @@ import {
   removeMember,
   updateMemberRole,
   MOCK_GRADEBOOK_AI,
-  MOCK_MATERIALS,
   MOCK_TEMPLATES,
 } from '../services/class-detail.service';
-import { updateClass, inviteMemberByEmail } from '../services/class.service';
+import { updateClass, inviteMemberByEmail, leaveClass } from '../services/class.service';
 import type { UpdateClassRequest, ClassItem } from '../schemas/class.schema';
 import type { ClassAnnouncement, ClassDetailData } from '../schemas/class-detail.schema';
+import { classDetailKeys } from '../constants';
 
-export const classDetailKeys = {
-  all: ['class-detail'] as const,
-  detail: (id: string) => [...classDetailKeys.all, id] as const,
-  info: (id: string) => [...classDetailKeys.detail(id), 'info'] as const,
-  stats: (id: string) => [...classDetailKeys.detail(id), 'stats'] as const,
-  courses: (id: string) => [...classDetailKeys.detail(id), 'courses'] as const,
-  availableCourses: (id: string) => [...classDetailKeys.detail(id), 'available-courses'] as const,
-  announcements: (id: string) => [...classDetailKeys.detail(id), 'announcements'] as const,
-  members: (id: string) => [...classDetailKeys.detail(id), 'members'] as const,
-  assignments: (id: string) => [...classDetailKeys.detail(id), 'assignments'] as const,
-  exams: (id: string) => [...classDetailKeys.detail(id), 'exams'] as const,
-  gradeReports: (id: string, isStudent: boolean) =>
-    [...classDetailKeys.detail(id), 'grade-reports', isStudent ? 'me' : 'all'] as const,
-};
+export { classDetailKeys } from '../constants';
 
 export function useClassDetail(
   classId: string,
   activeTab: string = 'stream',
-  isStudent: boolean = false
+  isStudent: boolean = false,
+  { loadAssessmentLists = true, loadAvailableCourses = true, loadOverview = false,
+    loadMaterialsPreview = true, enabled = true } = {},
 ) {
   const queryClient = useQueryClient();
+  const isStreamOverview = loadOverview && activeTab === 'stream';
+  const overviewKey = classDetailKeys.overview(classId);
 
   const shouldLoadCourses =
-    activeTab === 'subjects' || activeTab === 'modules' || activeTab === 'overview';
+    (activeTab === 'stream' && !isStreamOverview) ||
+    activeTab === 'materials' ||
+    activeTab === 'subjects' ||
+    activeTab === 'modules' ||
+    activeTab === 'overview' ||
+    activeTab === 'assignments' ||
+    activeTab === 'gradebook';
   const shouldLoadAnnouncements =
-    activeTab === 'stream' || activeTab === 'announcements';
+    (activeTab === 'stream' && !isStreamOverview) || activeTab === 'announcements';
   const shouldLoadMembers =
     activeTab === 'people' || activeTab === 'members' || activeTab === 'settings';
   const shouldLoadAssessments =
-    activeTab === 'assignments' || activeTab === 'gradebook';
+    loadAssessmentLists && (activeTab === 'assignments' || activeTab === 'gradebook');
+
+  const overviewQuery = useQuery({
+    queryKey: overviewKey,
+    queryFn: ({ signal }) => getClassOverview(classId, signal),
+    enabled: enabled && isStreamOverview,
+    staleTime: 60_000,
+    retry: false,
+    refetchOnMount: true,
+  });
+  const overview = isStreamOverview && !overviewQuery.isError ? overviewQuery.data : undefined;
+  const overviewTime = overviewQuery.dataUpdatedAt;
+
+  useEffect(() => {
+    if (!overview) return;
+    const infoKey = classDetailKeys.info(classId);
+    const statsKey = classDetailKeys.stats(classId);
+    if ((queryClient.getQueryState(infoKey)?.dataUpdatedAt ?? 0) <= overviewTime) {
+      queryClient.setQueryData(infoKey, overview.classInfo, { updatedAt: overviewTime });
+    }
+    if ((queryClient.getQueryState(statsKey)?.dataUpdatedAt ?? 0) <= overviewTime) {
+      queryClient.setQueryData(statsKey, { ...overview.stats, sessionsCount: overview.sessionsCount ?? undefined },
+        { updatedAt: overviewTime });
+    }
+  }, [classId, overview, overviewTime, queryClient]);
 
   // Core class metadata & banner stats (loaded once & cached)
   const infoQuery = useQuery({
     queryKey: classDetailKeys.info(classId),
     queryFn: () => getClassInfoDetail(classId),
+    enabled: enabled && !isStreamOverview,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     placeholderData: () => {
@@ -90,6 +114,7 @@ export function useClassDetail(
   const statsQuery = useQuery({
     queryKey: classDetailKeys.stats(classId),
     queryFn: () => getClassStats(classId),
+    enabled: enabled && !isStreamOverview,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     placeholderData: () => {
@@ -123,7 +148,7 @@ export function useClassDetail(
   const coursesQuery = useQuery({
     queryKey: classDetailKeys.courses(classId),
     queryFn: () => getClassCourses(classId),
-    enabled: shouldLoadCourses,
+    enabled: enabled && shouldLoadCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
@@ -131,7 +156,8 @@ export function useClassDetail(
   const availableCoursesQuery = useQuery({
     queryKey: classDetailKeys.availableCourses(classId),
     queryFn: () => getAvailableClassCourses(classId),
-    enabled: shouldLoadCourses,
+    enabled: enabled && loadAvailableCourses && (activeTab === 'subjects' || activeTab === 'modules')
+      && infoQuery.data?.isClassInfoLive === true && infoQuery.data.callerRole !== 'STUDENT',
     staleTime: 1000 * 30,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
@@ -140,15 +166,16 @@ export function useClassDetail(
   const announcementsQuery = useQuery({
     queryKey: classDetailKeys.announcements(classId),
     queryFn: () => getClassAnnouncements(classId),
-    enabled: shouldLoadAnnouncements,
+    enabled: enabled && shouldLoadAnnouncements,
     staleTime: 1000 * 60 * 5,
+    retry: false,
     refetchOnWindowFocus: false,
   });
 
   const membersQuery = useQuery({
     queryKey: classDetailKeys.members(classId),
     queryFn: () => getClassMembers(classId),
-    enabled: shouldLoadMembers,
+    enabled: enabled && shouldLoadMembers,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
@@ -156,7 +183,7 @@ export function useClassDetail(
   const assignmentsQuery = useQuery({
     queryKey: classDetailKeys.assignments(classId),
     queryFn: () => getClassAssignments(classId),
-    enabled: shouldLoadAssessments,
+    enabled: enabled && shouldLoadAssessments,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
@@ -164,7 +191,7 @@ export function useClassDetail(
   const examsQuery = useQuery({
     queryKey: classDetailKeys.exams(classId),
     queryFn: () => getClassExams(classId),
-    enabled: shouldLoadAssessments,
+    enabled: enabled && shouldLoadAssessments,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
@@ -172,34 +199,58 @@ export function useClassDetail(
   const gradeReportsQuery = useQuery({
     queryKey: classDetailKeys.gradeReports(classId, isStudent),
     queryFn: () => getClassGradeReports(classId, isStudent),
-    enabled: shouldLoadAssessments,
+    enabled: enabled && shouldLoadAssessments,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 
+  const materialsQuery = useQuery({
+    queryKey: [...classDetailKeys.materials(classId), 'preview'],
+    queryFn: ({ signal }) => getClassMaterials(classId, { size: 4 }, signal),
+    enabled: enabled && loadMaterialsPreview && activeTab === 'stream'
+      && (isStreamOverview ? Boolean(overview) : infoQuery.data?.isClassInfoLive === true && !infoQuery.isPlaceholderData),
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const classInfo = isStreamOverview ? overview?.classInfo : infoQuery.data;
+  const isClassInfoLive = classInfo?.isClassInfoLive === true && (isStreamOverview || !infoQuery.isPlaceholderData);
+  const announcements = isStreamOverview ? overview?.announcements : announcementsQuery.data;
+  const bannerStats = isStreamOverview ? overview?.stats : statsQuery.data;
+  const refetchOverview = overviewQuery.refetch;
+  const refetchInfo = infoQuery.refetch;
   const data: ClassDetailData | undefined = useMemo(() => {
-    if (!infoQuery.data) return undefined;
+    if (!classInfo) return undefined;
     return {
-      classInfo: infoQuery.data,
+      classInfo,
+      isClassInfoLive,
+      callerRole: isClassInfoLive ? classInfo.callerRole : undefined,
       courses: coursesQuery.data ?? [],
-      announcements: announcementsQuery.data ?? [],
+      announcements: announcements ?? [],
       gradebookStudents: gradeReportsQuery.data ?? [],
       gradebookAi: MOCK_GRADEBOOK_AI,
       members: membersQuery.data ?? [],
-      materials: MOCK_MATERIALS,
+      materials: materialsQuery.data?.items ?? [],
       courseTemplates: MOCK_TEMPLATES,
     };
   }, [
-    infoQuery.data,
+    classInfo,
+    isClassInfoLive,
     coursesQuery.data,
-    announcementsQuery.data,
+    announcements,
     gradeReportsQuery.data,
     membersQuery.data,
+    materialsQuery.data,
   ]);
 
-  const refetch = useCallback(() => {
-    return infoQuery.refetch();
-  }, [infoQuery]);
+  const refetch = useCallback(() => isStreamOverview ? refetchOverview() : refetchInfo(),
+    [isStreamOverview, refetchOverview, refetchInfo]);
+  const invalidateOverview = () => queryClient.invalidateQueries({ queryKey: overviewKey });
+  const refreshAnnouncements = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: classDetailKeys.announcements(classId) }),
+    invalidateOverview(),
+  ]);
 
   const assignCourseMutation = useMutation({
     mutationFn: (courseId: string) => assignCourseToClass(classId, courseId),
@@ -207,6 +258,8 @@ export function useClassDetail(
       queryClient.invalidateQueries({ queryKey: classDetailKeys.courses(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.availableCourses(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      queryClient.invalidateQueries({ queryKey: classDetailKeys.materials(classId) });
+      void invalidateOverview();
     },
   });
 
@@ -216,6 +269,8 @@ export function useClassDetail(
       queryClient.invalidateQueries({ queryKey: classDetailKeys.courses(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.availableCourses(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      queryClient.invalidateQueries({ queryKey: classDetailKeys.materials(classId) });
+      void invalidateOverview();
     },
   });
 
@@ -229,27 +284,20 @@ export function useClassDetail(
           (prev = []) => [created, ...prev.filter((a) => a.id !== created.id)]
         );
       }
-      await queryClient.invalidateQueries({
-        queryKey: classDetailKeys.announcements(classId),
-        refetchType: 'all',
-      });
+      await refreshAnnouncements();
     },
   });
 
   const pinAnnouncementMutation = useMutation({
     mutationFn: ({ announcementId, pin }: { announcementId: string; pin: boolean }) =>
       pinClassAnnouncement(classId, announcementId, pin),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: classDetailKeys.announcements(classId) });
-    },
+    onSuccess: refreshAnnouncements,
   });
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: (announcementId: string) =>
       deleteClassAnnouncement(classId, announcementId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: classDetailKeys.announcements(classId) });
-    },
+    onSuccess: refreshAnnouncements,
   });
 
   const approveMemberMutation = useMutation({
@@ -257,6 +305,9 @@ export function useClassDetail(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.members(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      queryClient.invalidateQueries({ queryKey: classDetailKeys.info(classId) });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      void invalidateOverview();
     },
   });
 
@@ -265,6 +316,17 @@ export function useClassDetail(
       rejectMember(classId, userId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.members(classId) });
+      queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      void invalidateOverview();
+    },
+  });
+
+  const leaveClassMutation = useMutation({
+    mutationFn: () => leaveClass(classId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: classDetailKeys.detail(classId) });
     },
   });
 
@@ -273,6 +335,7 @@ export function useClassDetail(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.members(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      void invalidateOverview();
     },
   });
 
@@ -282,6 +345,7 @@ export function useClassDetail(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.members(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      void invalidateOverview();
     },
   });
 
@@ -290,6 +354,7 @@ export function useClassDetail(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.members(classId) });
       queryClient.invalidateQueries({ queryKey: classDetailKeys.stats(classId) });
+      void invalidateOverview();
     },
   });
 
@@ -298,11 +363,12 @@ export function useClassDetail(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classDetailKeys.info(classId) });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
+      void invalidateOverview();
     },
   });
 
   const assignmentsCount =
-    statsQuery.data?.pendingAssignmentsCount !== undefined
+    !isStreamOverview && statsQuery.data?.pendingAssignmentsCount !== undefined
       ? statsQuery.data.pendingAssignmentsCount
       : assignmentsQuery.isFetched || examsQuery.isFetched
         ? (assignmentsQuery.data?.length ?? 0) + (examsQuery.data?.length ?? 0)
@@ -310,14 +376,22 @@ export function useClassDetail(
 
   return {
     data,
-    bannerStats: statsQuery.data,
+    overview,
+    bannerStats,
+    sessionsCount: isStreamOverview ? overview?.sessionsCount : statsQuery.data?.sessionsCount,
     assignmentsCount,
     availableCourses: availableCoursesQuery.data ?? [],
     assignments: assignmentsQuery.data ?? [],
     exams: examsQuery.data ?? [],
-    isLoading: infoQuery.isLoading,
-    isAnnouncementsLoading: announcementsQuery.isLoading,
-    isError: infoQuery.isError,
+    isLoading: isStreamOverview ? overviewQuery.isPending : infoQuery.isLoading,
+    isAnnouncementsLoading: !isStreamOverview && announcementsQuery.isLoading,
+    announcementsError: isStreamOverview ? null : announcementsQuery.error,
+    refetchAnnouncements: isStreamOverview ? refetchOverview : announcementsQuery.refetch,
+    materialsCount: materialsQuery.data?.totalElements ?? 0,
+    isMaterialsPreviewLoading: materialsQuery.isLoading || (activeTab === 'stream' && !loadMaterialsPreview),
+    isMaterialsPreviewError: materialsQuery.isError,
+    isError: isStreamOverview ? overviewQuery.isError : infoQuery.isError,
+    classError: isStreamOverview ? overviewQuery.error : infoQuery.error,
     refetch,
     assignCourseMutation,
     removeCourseMutation,
@@ -330,6 +404,7 @@ export function useClassDetail(
     updateMemberRoleMutation,
     inviteTeacherMutation,
     updateClassMutation,
+    leaveClassMutation,
   };
 }
 

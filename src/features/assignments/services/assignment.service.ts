@@ -2737,6 +2737,7 @@ export interface ClassSubmissionPermissionContext {
   isClassError?: boolean;
   isClassInfoLive?: boolean;
   isMembersLive?: boolean;
+  callerRole?: string;
   user?: {
     id?: string | null;
     roleName?: string | null;
@@ -2782,6 +2783,10 @@ export function evaluateCanManageClassSubmissions(
 
   if (!ctx.isClassInfoLive || !ctx.classInfo) {
     return false;
+  }
+
+  if (ctx.callerRole === 'OWNER' || ctx.callerRole === 'TEACHER' || ctx.callerRole === 'PRIMARY_INSTRUCTOR') {
+    return true;
   }
 
   if (ctx.classInfo.ownerId && String(ctx.classInfo.ownerId) === String(userId)) {

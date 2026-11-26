@@ -9,6 +9,9 @@ import {
   saveDraftRevision,
   reviewIngestionDraft,
   retryIngestionJob,
+  validateDraftKnowledgeGraph,
+  aiRepairDraftKnowledgeGraph,
+  applyAiRepairDraftKnowledgeGraph,
 } from '../services/ingestion.service';
 import {
   isActiveIngestionJobStatus,
@@ -182,3 +185,45 @@ export function useRetryIngestionJobMutation() {
     },
   });
 }
+
+export function useValidateDraftKnowledgeGraphMutation() {
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      snapshot,
+    }: {
+      courseId: string;
+      snapshot: { nodes: unknown[]; edges: unknown[] };
+    }) => validateDraftKnowledgeGraph(courseId, snapshot),
+  });
+}
+
+export function useAiRepairDraftKnowledgeGraphMutation() {
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: { nodes: unknown[]; edges: unknown[]; instruction?: string };
+    }) => aiRepairDraftKnowledgeGraph(courseId, payload),
+  });
+}
+
+export function useApplyAiRepairDraftKnowledgeGraphMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      payload,
+    }: {
+      courseId: string;
+      payload: { repairSummary?: string; repairedNodes: unknown[]; repairedEdges: unknown[] };
+    }) => applyAiRepairDraftKnowledgeGraph(courseId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ingestionKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['knowledge-graph'] });
+    },
+  });
+}
+

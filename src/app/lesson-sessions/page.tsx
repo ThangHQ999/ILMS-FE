@@ -7,7 +7,7 @@ import { LessonSessionsPageView } from '@/features/lesson-sessions';
 function LessonSessionsContent() {
   const searchParams = useSearchParams();
   const classId = searchParams.get('classId') || undefined;
-  return <LessonSessionsPageView classId={classId} />;
+  return <LessonSessionsPageView key={classId ?? 'all'} classId={classId} />;
 }
 
 export default function LessonSessionsPage() {

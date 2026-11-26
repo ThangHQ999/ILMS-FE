@@ -146,15 +146,15 @@ export function useForceLayout() {
       }));
 
       const simulation = forceSimulation<SimNode>(simNodes)
-        .force('charge', forceManyBody().strength(-420))
+        .force('charge', forceManyBody().strength(-650))
         .force(
           'link',
           forceLink<SimNode, SimLink>(simLinks)
             .id((d) => d.id)
-            .distance(150)
-            .strength(0.6)
+            .distance(220)
+            .strength(0.65)
         )
-        .force('collide', forceCollide().radius(75).strength(0.85))
+        .force('collide', forceCollide().radius(110).strength(0.9))
         .force('center', forceCenter(centerX, centerY).strength(0.08));
 
       // Ghim vị trí node trọng tâm gần giữa

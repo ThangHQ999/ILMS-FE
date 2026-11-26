@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { CustomSelect } from '@/components/shared';
 import type { ClassFilters, ClassViewMode } from '../types';
 
-export type ClassRoleTab = 'TEACHING' | 'ENROLLED' | 'ARCHIVED';
+export type ClassRoleTab = 'TEACHING' | 'ENROLLED' | 'PENDING' | 'ARCHIVED';
 
 interface ClassFilterToolbarProps {
   activeTab: ClassRoleTab;
@@ -12,6 +12,7 @@ interface ClassFilterToolbarProps {
   showTeachingTab: boolean;
   teachingCount: number;
   enrolledCount: number;
+  pendingCount?: number;
   archivedCount: number;
   filters: ClassFilters;
   onFilterChange: (updates: Partial<ClassFilters>) => void;
@@ -27,6 +28,7 @@ export function ClassFilterToolbar({
   showTeachingTab,
   teachingCount,
   enrolledCount,
+  pendingCount = 0,
   archivedCount,
   filters,
   onFilterChange,
@@ -68,6 +70,7 @@ export function ClassFilterToolbar({
   const tabs: Array<{ id: ClassRoleTab; label: string; count: number; visible: boolean }> = [
     { id: 'TEACHING', label: 'Đang giảng dạy', count: teachingCount, visible: showTeachingTab },
     { id: 'ENROLLED', label: 'Đang theo học', count: enrolledCount, visible: true },
+    { id: 'PENDING', label: 'Chờ duyệt', count: pendingCount, visible: true },
     { id: 'ARCHIVED', label: 'Đã lưu trữ', count: archivedCount, visible: true },
   ];
 

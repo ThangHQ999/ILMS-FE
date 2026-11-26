@@ -1181,6 +1181,11 @@ export function saveStoredExamQuestions(examId: string, questions: ExamQuestionI
  *   never reads/writes localStorage, and propagates HTTP/network errors (including 403).
  * - Explicit demo exam (non-UUID such as exam-demo-*, EXAM_001..003): reads local demo storage directly.
  */
+export async function replaceExamQuestions(examId: string, questions: { questionId: string; score: number }[]): Promise<void> {
+  const { data } = await api.put<ApiResponse<unknown>>(`/exams/${encodeURIComponent(examId)}/questions`, questions);
+  if (!Array.isArray(data.data) || data.data.length !== questions.length) throw new Error('Exam questions were not saved');
+}
+
 export async function getExamQuestions(examId: string): Promise<ExamQuestionItem[]> {
   if (!isExamUuid(examId)) {
     const stored = getStoredExamQuestions(examId);

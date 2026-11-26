@@ -6,6 +6,7 @@ import {
   getClasses,
   getClassKpiSummary,
   joinClassByCode,
+  leaveClass,
 } from '../services/class.service';
 import type {
   ClassFilters,
@@ -47,6 +48,24 @@ export function useJoinClassByCode(options?: {
 
   return useMutation({
     mutationFn: (classCode: string) => joinClassByCode(classCode),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: classKeys.all });
+      options?.onSuccess?.();
+    },
+    onError: (err) => {
+      options?.onError?.(err);
+    },
+  });
+}
+
+export function useLeaveClass(options?: {
+  onSuccess?: () => void;
+  onError?: (err: unknown) => void;
+}) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (classId: string) => leaveClass(classId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classKeys.all });
       options?.onSuccess?.();

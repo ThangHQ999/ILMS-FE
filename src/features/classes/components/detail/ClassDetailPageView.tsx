@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useConfirm } from '@/components/shared';
+import { ApiError } from '@/types/common';
 import { useCurrentUser } from '@/features/auth';
+import { ClassworkWorkspace } from '@/features/assignments';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
@@ -17,9 +21,7 @@ import { ClassGradebookTab } from './ClassGradebookTab';
 import { ClassAnnouncementsTab } from './ClassAnnouncementsTab';
 import { ClassMembersTab } from './ClassMembersTab';
 import { ClassSettingsTab } from './ClassSettingsTab';
-import { ClassMaterialsTab } from './ClassMaterialsTab';
 import { ClassStreamTab } from './ClassStreamTab';
-import { ClassAssignmentsTab } from './ClassAssignmentsTab';
 import { ClassAnalyticsSettingsTab } from './ClassAnalyticsSettingsTab';
 import { ClassSessionsTab } from './ClassSessionsTab';
 import {
@@ -35,10 +37,10 @@ import {
   CreateSessionModal,
   useRooms,
   useCreateLessonSession,
-  useLessonSessions,
-  lessonSessionKeys,
 } from '@/features/lesson-sessions';
 import { toast } from '@/components/ui/sonner';
+
+const ClassMaterialsTab = dynamic(() => import('./ClassMaterialsTab').then(module => module.ClassMaterialsTab));
 
 const VALID_CLASS_TABS = new Set([
   'stream',
@@ -69,6 +71,7 @@ export function ClassDetailPageView({
   const t = useTranslations('classes.detail');
   const apiClassId = normalizeClassApiId(classId);
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   // Current authenticated user from API
   const { data: currentUser } = useCurrentUser();
@@ -92,9 +95,9 @@ export function ClassDetailPageView({
         params.set('tab', safeTab);
       }
       const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      window.history.replaceState(null, '', query ? `${pathname}?${query}` : pathname);
     },
-    [pathname, router, searchParams]
+    [pathname, searchParams]
   );
 
   // Socratic AI Tutor popover state
@@ -134,9 +137,10 @@ export function ClassDetailPageView({
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
   const [isCreateSessionOpen, setIsCreateSessionOpen] = useState(false);
+  const [previewClassId, setPreviewClassId] = useState<string>();
+  const loadMaterialsPreview = useCallback(() => setPreviewClassId(apiClassId), [apiClassId]);
 
   const { data: rooms = [] } = useRooms({ enabled: isCreateSessionOpen });
-  const { data: classSessions = [] } = useLessonSessions(apiClassId);
   const createSessionMutation = useCreateLessonSession(apiClassId);
 
   const showToast = useCallback((msg: string) => {
@@ -161,12 +165,20 @@ export function ClassDetailPageView({
   // Data fetching hook
   const {
     data,
+    overview,
     bannerStats,
+    sessionsCount,
     assignmentsCount,
     availableCourses,
     isLoading,
     isAnnouncementsLoading,
+    announcementsError,
+    refetchAnnouncements,
+    materialsCount,
+    isMaterialsPreviewLoading,
+    isMaterialsPreviewError,
     isError,
+    classError,
     refetch,
     assignCourseMutation,
     removeCourseMutation,
@@ -179,31 +191,31 @@ export function ClassDetailPageView({
     updateMemberRoleMutation,
     inviteTeacherMutation,
     updateClassMutation,
-  } = useClassDetail(apiClassId, currentTabForQuery, isLikelyStudent);
+    leaveClassMutation,
+  } = useClassDetail(
+    apiClassId,
+    currentTabForQuery,
+    isLikelyStudent,
+    {
+      loadAssessmentLists: false,
+      loadOverview: isUuid(apiClassId),
+      loadMaterialsPreview: previewClassId === apiClassId,
+      enabled: Boolean(currentUser),
+    },
+  );
 
   const classInfo = data?.classInfo;
   const courses = data?.courses || [];
   const announcements = data?.announcements || [];
-  const gradebookStudents = data?.gradebookStudents || [];
-  const gradebookAi = data?.gradebookAi || {
-    averageScore: 0,
-    ploPassRate: 0,
-    ploPassedCount: 0,
-    totalStudents: 0,
-    gradingProgress: '0/0',
-    gradingPercent: 0,
-    earlyInterventionCount: 0,
-    distribution: {
-      gradeA: { percent: 0, count: 0 },
-      gradeB: { percent: 0, count: 0 },
-      gradeC: { percent: 0, count: 0 },
-      gradeDF: { percent: 0, count: 0 },
-    },
-    recommendedTopic: 'Chưa có phân tích',
-    recommendedDescription: 'Chưa có dữ liệu phân tích phổ điểm cho lớp học.',
-  };
   const members = data?.members || [];
   const materials = data?.materials || [];
+  const announcementStatus = announcementsError instanceof ApiError ? announcementsError.httpStatus : undefined;
+  const announcementErrorMessage = overview?.viewer.canReadAnnouncements === false ? t('announcementsForbidden')
+    : announcementsError ? t(announcementStatus === 401 ? 'announcementsSignIn'
+    : announcementStatus === 403 ? 'announcementsForbidden' : 'announcementsLoadError') : undefined;
+  const classStatus = classError instanceof ApiError ? classError.httpStatus : undefined;
+  const classErrorMessage = t(classStatus === 401 ? 'classOverviewSignIn' : classStatus === 403 ? 'classOverviewForbidden'
+    : classStatus === 404 ? 'classOverviewNotFound' : 'classOverviewLoadError');
 
   // Compute resolvedClassInfo to completely prevent raw UUIDs from appearing as title/name
   const resolvedClassInfo = useMemo(() => {
@@ -213,13 +225,7 @@ export function ClassDetailPageView({
     let bestTitle = (!isUuid(classInfo.title) && classInfo.title) ? classInfo.title : '';
     let bestName = (!isUuid(classInfo.name) && classInfo.name) ? classInfo.name : '';
 
-    // 2. Find from sessions
-    const sessionMatch = classSessions.find((s) => s.className && !isUuid(s.className));
-    const sessionTitle = sessionMatch?.className;
-    const sessionSubject = sessionMatch?.subjectCode;
-    const sessionTeacher = classSessions.find((s) => s.instructorName && s.instructorName.trim())?.instructorName;
-
-    // 3. Find from courses
+    // Fall back to courses for legacy class records.
     const courseMatch = courses.find((c) => c.name && !isUuid(c.name));
     const courseTitle = courseMatch?.name;
     const courseCode = courseMatch?.code;
@@ -251,28 +257,27 @@ export function ClassDetailPageView({
     // 5. Cascade fallback
     const finalTitle =
       bestTitle ||
-      sessionTitle ||
       cachedTitle ||
       courseTitle ||
-      'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)';
+      (isUuid(apiClassId) ? 'Lớp học' : apiClassId);
 
     const finalName =
       bestName ||
-      sessionSubject ||
       cachedName ||
       courseCode ||
-      'INT3306 01';
+      (isUuid(apiClassId) ? 'Lớp học' : apiClassId);
 
     const finalTeacher =
       classInfo.instructor?.fullName &&
       classInfo.instructor.fullName !== 'Giảng viên' &&
       classInfo.instructor.fullName.trim()
         ? classInfo.instructor.fullName
-        : sessionTeacher || 'ThS. Nguyễn Văn An';
+        : 'Chưa phân công';
 
     const finalKey =
-      !isUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey
-        ? classInfo.enrollmentKey
+      classInfo.classCode ||
+      (!isUuid(classInfo.enrollmentKey) && classInfo.enrollmentKey)
+        ? (classInfo.classCode || classInfo.enrollmentKey)
         : finalName;
 
     return {
@@ -285,7 +290,7 @@ export function ClassDetailPageView({
         fullName: finalTeacher,
       },
     };
-  }, [classInfo, apiClassId, classSessions, courses, queryClient, isUuid]);
+  }, [classInfo, apiClassId, courses, queryClient, isUuid]);
 
   // Determine user's real role in this class strictly from API data (currentUser + classInfo + members)
   const currentUserEmail = currentUser?.email?.toLowerCase().trim();
@@ -301,20 +306,23 @@ export function ClassDetailPageView({
   const isSystemAdmin = userRoleUpper.includes('ADMIN');
 
   const isClassOwner = Boolean(
-    currentUser &&
-    (isSystemAdmin ||
-      (classInfo?.ownerId && String(classInfo.ownerId) === String(currentUser.id)) ||
-      (classInfo?.instructor?.id &&
-        String(classInfo.instructor.id) === String(currentUser.id)) ||
-      (currentUserEmail &&
-        classInfo?.instructor?.email?.toLowerCase().trim() === currentUserEmail) ||
-      currentMemberRecord?.role === 'OWNER')
+    isSystemAdmin ||
+    classInfo?.teachingRole === 'OWNER' ||
+    classInfo?.teachingRole === 'PRIMARY_INSTRUCTOR' ||
+    (currentUser &&
+      ((classInfo?.ownerId && String(classInfo.ownerId) === String(currentUser.id)) ||
+        (classInfo?.instructor?.id &&
+          String(classInfo.instructor.id) === String(currentUser.id)) ||
+        (currentUserEmail &&
+          classInfo?.instructor?.email?.toLowerCase().trim() === currentUserEmail) ||
+        currentMemberRecord?.role === 'OWNER'))
   );
 
   const isClassTeacher = Boolean(
     isClassOwner ||
-    currentMemberRecord?.role === 'TEACHER' ||
+    classInfo?.teachingRole === 'TEACHER' ||
     classInfo?.teachingRole === 'TA' ||
+    currentMemberRecord?.role === 'TEACHER' ||
     (currentMemberRecord?.role !== 'STUDENT' &&
       (userRoleUpper.includes('TEACHER') ||
         userRoleUpper.includes('FACULTY') ||
@@ -326,6 +334,34 @@ export function ClassDetailPageView({
     : isClassTeacher
       ? 'teacher'
       : 'student';
+  const canPostAnnouncements = overview?.viewer.canPostAnnouncements ?? (effectiveRole !== 'student');
+  const canManageSessions = overview?.viewer.canManageSessions ?? (effectiveRole !== 'student');
+
+  const isPendingMember = Boolean(
+    !isClassOwner &&
+    !isSystemAdmin &&
+    (classInfo?.memberStatus === 'PENDING' || currentMemberRecord?.status === 'PENDING')
+  );
+
+  const handleLeaveClass = async () => {
+    const ok = await confirm({
+      title: 'Rời khỏi lớp học?',
+      message: `Bạn có chắc chắn muốn rời khỏi lớp "${resolvedClassInfo?.title || classInfo?.title || classInfo?.name || 'này'}"? Bạn sẽ không còn thấy bảng tin, tài liệu và bài tập của lớp.`,
+      confirmText: 'Rời lớp',
+      cancelText: 'Hủy',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    leaveClassMutation.mutate(undefined, {
+      onSuccess: () => {
+        showToast('Bạn đã rời khỏi lớp học.');
+        router.push('/classes');
+      },
+      onError: () => {
+        showToast('Không thể rời khỏi lớp học lúc này.');
+      },
+    });
+  };
 
   const activeTab =
     rawTab && VALID_CLASS_TABS.has(rawTab)
@@ -342,7 +378,7 @@ export function ClassDetailPageView({
   }, [isLoading, effectiveRole, rawTab, handleTabChange]);
 
   const handleCopyCode = () => {
-    const code = classInfo?.enrollmentKey || classInfo?.name || classId;
+    const code = classInfo?.classCode || classInfo?.enrollmentKey || classInfo?.name || classId;
     navigator.clipboard.writeText(code).catch(() => { });
     showToast(`Đã sao chép mã lớp "${code}" vào bộ nhớ tạm!`);
   };
@@ -452,15 +488,42 @@ export function ClassDetailPageView({
                 error_outline
               </span>
               <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">
-                Không thể tải thông tin lớp học
+                {classErrorMessage}
               </p>
               <button
                 type="button"
                 onClick={() => refetch()}
                 className="px-5 py-2 text-xs font-bold rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 transition-all border-none cursor-pointer"
               >
-                Thử lại
+                {t('retryClassContent')}
               </button>
+            </div>
+          ) : isPendingMember ? (
+            <div className="my-8 p-10 rounded-3xl bg-white dark:bg-[#1E1F20] border-none shadow-sm dark:shadow-none text-center max-w-xl mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+                <span className="material-symbols-outlined text-[30px]">hourglass_top</span>
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-[#E3E3E3]">
+                  Yêu cầu tham gia lớp đang chờ phê duyệt
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-[#8E918F] leading-relaxed">
+                  Bạn đã gửi yêu cầu tham gia lớp{' '}
+                  <strong className="text-gray-900 dark:text-[#E3E3E3]">
+                    {resolvedClassInfo?.title || classInfo.title || classInfo.name}
+                  </strong>
+                  . Vui lòng chờ Giảng viên / Chủ lớp phê duyệt trước khi xem nội dung lớp học.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  href="/classes"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span>Quay lại danh sách lớp học</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -473,14 +536,15 @@ export function ClassDetailPageView({
                 subjectsCount={bannerStats?.coursesCount ?? courses.length}
                 studentsCount={bannerStats?.studentsCount ?? classInfo.enrolledCount ?? 0}
                 assignmentsCount={assignmentsCount}
-                sessionsCount={classSessions.length}
+                sessionsCount={sessionsCount ?? undefined}
                 instructorsCount={bannerStats?.teachersCount ?? 1}
                 onCopyCode={handleCopyCode}
                 onInviteClick={() => setIsInviteOpen(true)}
                 onOpenSettings={() => handleTabChange('settings')}
                 onOpenArchive={() => setIsArchiveOpen(true)}
                 onOpenManageCode={() => setIsInviteOpen(true)}
-                onOpenCreateSession={() => setIsCreateSessionOpen(true)}
+                onOpenCreateSession={canManageSessions ? () => setIsCreateSessionOpen(true) : undefined}
+                onLeaveClass={handleLeaveClass}
               />
 
               {/* Content Tab Panes */}
@@ -499,10 +563,17 @@ export function ClassDetailPageView({
                   bannerStats={bannerStats}
                   announcements={announcements}
                   isLoadingAnnouncements={isAnnouncementsLoading}
+                  announcementsError={announcementErrorMessage}
+                  onRetryAnnouncements={overview?.viewer.canReadAnnouncements === false ? undefined
+                    : () => void refetchAnnouncements()}
                   currentRole={effectiveRole}
+                  canPostAnnouncements={canPostAnnouncements}
                   onNavigateTab={handleTabChange}
-                  onOpenCreateAnnouncement={() => setIsCreateAnnouncementOpen(true)}
-                  onOpenCreateSession={() => setIsCreateSessionOpen(true)}
+                  onOpenCreateAnnouncement={canPostAnnouncements ? () => setIsCreateAnnouncementOpen(true) : undefined}
+                  onOpenCreateSession={canManageSessions ? () => setIsCreateSessionOpen(true) : undefined}
+                  upcomingSessions={overview?.upcomingSessions}
+                  recentSession={overview?.recentSession}
+                  sessionsCount={sessionsCount}
                   isPostingAnnouncement={postAnnouncementMutation.isPending}
                   onPostAnnouncement={(payload) => {
                     postAnnouncementMutation.mutate(payload, {
@@ -510,7 +581,7 @@ export function ClassDetailPageView({
                       onError: () => showToast('Không thể đăng thông báo lúc này. Vui lòng thử lại.'),
                     });
                   }}
-                  onPinAnnouncement={(announcementId, pin) => {
+                  onPinAnnouncement={canPostAnnouncements ? (announcementId, pin) => {
                     pinAnnouncementMutation.mutate(
                       { announcementId, pin },
                       {
@@ -519,14 +590,18 @@ export function ClassDetailPageView({
                         onError: () => showToast('Không thể cập nhật trạng thái ghim.'),
                       }
                     );
-                  }}
-                  onDeleteAnnouncement={(announcementId) => {
+                  } : undefined}
+                  onDeleteAnnouncement={canPostAnnouncements ? (announcementId) => {
                     deleteAnnouncementMutation.mutate(announcementId, {
                       onSuccess: () => showToast('Đã xóa thông báo!'),
                       onError: () => showToast('Không thể xóa thông báo lúc này.'),
                     });
-                  }}
+                  } : undefined}
                   materials={materials}
+                  onMaterialsPreviewVisible={loadMaterialsPreview}
+                  materialsCount={materialsCount}
+                  isMaterialsLoading={isMaterialsPreviewLoading}
+                  isMaterialsError={isMaterialsPreviewError}
                   onToast={showToast}
                 />
               )}
@@ -553,21 +628,10 @@ export function ClassDetailPageView({
               )}
 
               {(activeTab === 'assignments' || activeTab === 'gradebook') && (
-                <ClassAssignmentsTab
+                <ClassworkWorkspace
                   classId={apiClassId}
-                  courses={courses}
-                  members={members}
-                  currentRole={effectiveRole}
-                  onToast={showToast}
-                  gradebookStudents={gradebookStudents}
-                  gradebookAi={gradebookAi}
-                  onSendAiSuggestion={() =>
-                    showToast('Đã gửi tự động gợi ý ôn tập Socratic AI tới 2 học viên cần hỗ trợ!')
-                  }
-                  onInterveneClick={(s) =>
-                    showToast(`Mở khung hỗ trợ cá nhân hóa cho học viên: ${s.name}`)
-                  }
-                  initialSubTab={activeTab === 'gradebook' ? 'gradebook' : 'assignments'}
+                  courses={courses.filter((course) => course.status === 'ACTIVE')}
+                  view={activeTab}
                 />
               )}
 
@@ -580,13 +644,20 @@ export function ClassDetailPageView({
                   classCode={classInfo?.name || classInfo?.enrollmentKey || 'CS-202'}
                   onApproveMember={handleApproveMember}
                   onRejectMember={(m) => {
-                    rejectMemberMutation.mutate(
-                      { userId: m.id },
-                      {
-                        onSuccess: () => showToast(`Đã từ chối yêu cầu của ${m.name}`),
-                        onError: () => showToast(`Không thể từ chối yêu cầu của ${m.name}`),
-                      }
-                    );
+                    if (m.status === 'PENDING') {
+                      rejectMemberMutation.mutate(
+                        { userId: m.id },
+                        {
+                          onSuccess: () => showToast(`Đã từ chối yêu cầu của ${m.name}`),
+                          onError: () => showToast(`Không thể từ chối yêu cầu của ${m.name}`),
+                        }
+                      );
+                    } else {
+                      removeMemberMutation.mutate(m.id, {
+                        onSuccess: () => showToast(`Đã xóa thành viên ${m.name} khỏi lớp`),
+                        onError: () => showToast(`Không thể xóa thành viên ${m.name}`),
+                      });
+                    }
                   }}
                   onInviteClick={() => setIsInviteOpen(true)}
                   onToast={showToast}
@@ -634,7 +705,16 @@ export function ClassDetailPageView({
                 />
               )}
 
-              {activeTab === 'announcements' && (
+              {activeTab === 'announcements' && (isAnnouncementsLoading ? (
+                <p role="status" className="rounded-3xl bg-surface p-6 text-sm">{t('announcementsLoading')}</p>
+              ) : announcementErrorMessage && announcements.length === 0 ? (
+                <div role="alert" className="rounded-3xl bg-surface p-6 text-sm">
+                  <p>{announcementErrorMessage}</p>
+                  <button type="button" onClick={() => void refetchAnnouncements()} className="mt-3 font-semibold text-primary">
+                    {t('retryClassContent')}
+                  </button>
+                </div>
+              ) : (
                 <ClassAnnouncementsTab
                   classId={classId}
                   announcements={announcements}
@@ -648,7 +728,7 @@ export function ClassDetailPageView({
                   onPostClick={() => setIsCreateAnnouncementOpen(true)}
                   onToast={showToast}
                 />
-              )}
+              ))}
 
               {activeTab === 'members' && (
                 <ClassMembersTab
@@ -696,7 +776,9 @@ export function ClassDetailPageView({
 
               {activeTab === 'materials' && (
                 <ClassMaterialsTab
-                  materials={materials}
+                  key={apiClassId}
+                  classId={apiClassId}
+                  courses={courses}
                   currentRole={effectiveRole}
                   onToast={showToast}
                 />
@@ -885,12 +967,6 @@ export function ClassDetailPageView({
         onClose={() => setIsCreateSessionOpen(false)}
         onSubmit={async (payload) => {
           await createSessionMutation.mutateAsync(payload);
-          queryClient.invalidateQueries({
-            queryKey: lessonSessionKeys.lists(apiClassId),
-          });
-          queryClient.invalidateQueries({
-            queryKey: lessonSessionKeys.lists(classId),
-          });
           showToast('Đã lên lịch ca học mới cho lớp thành công!');
         }}
         rooms={rooms}

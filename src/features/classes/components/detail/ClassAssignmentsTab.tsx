@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { CustomSelect } from '@/components/shared';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import type { ClassworkType } from './CreateClassworkPageView';
 import type {
   GradebookStudent,
   GradebookAiAnalysis,
@@ -14,8 +16,9 @@ import {
   useClassAssignmentsWithSubmissions,
   useAssignmentSubmissions,
   useGradeSubmission,
-  useCreateAssignment,
   useSubmitAssignment,
+  useAllClassExams,
+  getQuizzes,
   isAssignmentUnsubmitted,
   isAssignmentPendingGrading,
   isAssignmentGraded,
@@ -66,25 +69,34 @@ export function ClassAssignmentsTab({
   onInterveneClick = () => {},
   initialSubTab = 'assignments',
 }: ClassAssignmentsTabProps) {
+  const router = useRouter();
   const [subView, setSubView] = useState<'assignments' | 'gradebook'>(initialSubTab);
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'submitted' | 'graded'>('all');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [submitTargetAssignment, setSubmitTargetAssignment] = useState<EnrichedAssignment | null>(null);
   const [submitContent, setSubmitContent] = useState('');
-  const [isCreateAssignmentOpen, setIsCreateAssignmentOpen] = useState(false);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(() => courses[0]?.id || '');
-  const [newTitle, setNewTitle] = useState('');
-  const [newDueDate, setNewDueDate] = useState('');
-  const [newMaxScore, setNewMaxScore] = useState(10);
-  const [newDescription, setNewDescription] = useState('');
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
 
-  // 1. Fetch real assignments & student submissions from API
+  const openCreatePage = (type: ClassworkType) => {
+    setIsCreateMenuOpen(false);
+    router.push(`/classes/${classId}/assignments/new?type=${type}`);
+  };
+
+  // 1. Fetch real assignments, quizzes & exams from API
   const {
     assignments = [],
     kpi,
     isLoading: isLoadingAssignments,
     refetch: refetchAssignments,
   } = useClassAssignmentsWithSubmissions(classId);
+
+  const { data: classExams = [], refetch: refetchExams } = useAllClassExams(classId);
+  const { data: classQuizzes = [], refetch: refetchQuizzes } = useQuery({
+    queryKey: ['class-quizzes', classId],
+    queryFn: () => getQuizzes({ classId }),
+    enabled: Boolean(classId),
+    staleTime: 60_000,
+  });
 
   // Filter assignments according to filterStatus
   const filteredAssignments = useMemo(() => {
@@ -121,7 +133,6 @@ export function ClassAssignmentsTab({
 
   // Mutations
   const gradeMutation = useGradeSubmission(activeAssignment?.id, classId);
-  const createAssignmentMutation = useCreateAssignment(classId);
   const submitAssignmentMutation = useSubmitAssignment(
     submitTargetAssignment?.id || '',
     classId
@@ -155,35 +166,6 @@ export function ClassAssignmentsTab({
       onToast(`Đã lưu điểm ${numScore}/${max} cho sinh viên ${studentName}!`);
     } catch {
       onToast('Không thể lưu điểm lúc này. Vui lòng thử lại.');
-    }
-  };
-
-  const handleCreateAssignmentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) {
-      onToast('Vui lòng nhập tiêu đề bài tập!');
-      return;
-    }
-
-    const effectiveCourseId = selectedCourseId || courses[0]?.id || classId || 'default-course';
-
-    try {
-      await createAssignmentMutation.mutateAsync({
-        courseId: effectiveCourseId,
-        title: newTitle.trim(),
-        description: newDescription.trim(),
-        dueDate: newDueDate ? new Date(newDueDate).toISOString() : undefined,
-        maxScore: Number(newMaxScore) || 10,
-        allowLateSubmission: true,
-      });
-      setIsCreateAssignmentOpen(false);
-      setNewTitle('');
-      setNewDescription('');
-      setNewDueDate('');
-      onToast('Đã tạo bài tập mới thành công!');
-      void refetchAssignments();
-    } catch {
-      onToast('Không thể tạo bài tập lúc này.');
     }
   };
 
@@ -364,14 +346,101 @@ export function ClassAssignmentsTab({
                   <span className="material-symbols-outlined text-[18px]">file_download</span>
                   <span>Xuất bảng điểm CSV</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateAssignmentOpen(true)}
-                  className="px-5 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-none shadow-xs"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  <span>+ Tạo bài tập mới</span>
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateMenuOpen((prev) => !prev)}
+                    className="px-5 py-2 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-none shadow-xs"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    <span>Tạo</span>
+                    <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                  </button>
+
+                  {isCreateMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-30"
+                        onClick={() => setIsCreateMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#1E1F20] shadow-xl py-2 z-40 border border-black/5 dark:border-white/5 animate-in fade-in zoom-in-95 duration-150">
+                        <button
+                          type="button"
+                          onClick={() => openCreatePage('ASSIGNMENT')}
+                          className="w-full px-4 py-2.5 text-left hover:bg-[#F0F4F8] dark:hover:bg-[#282A2C] flex items-center gap-3 border-none bg-transparent cursor-pointer"
+                        >
+                          <span className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-[#162B4D] text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">assignment</span>
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                              Bài tập tự luận / Nộp tệp
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                              Giao đề, hạn nộp và chấm điểm
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openCreatePage('QUIZ')}
+                          className="w-full px-4 py-2.5 text-left hover:bg-[#F0F4F8] dark:hover:bg-[#282A2C] flex items-center gap-3 border-none bg-transparent cursor-pointer"
+                        >
+                          <span className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">quiz</span>
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                              Bài tập Trắc nghiệm (Quiz)
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                              Thiết kế bộ câu hỏi &amp; tự chấm
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openCreatePage('EXAM')}
+                          className="w-full px-4 py-2.5 text-left hover:bg-[#F0F4F8] dark:hover:bg-[#282A2C] flex items-center gap-3 border-none bg-transparent cursor-pointer"
+                        >
+                          <span className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">school</span>
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                              Bài kiểm tra / Đề thi
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                              Giới hạn giờ thi &amp; công bố điểm
+                            </div>
+                          </div>
+                        </button>
+
+                        <div className="my-1 border-t border-black/5 dark:border-white/5" />
+
+                        <button
+                          type="button"
+                          onClick={() => openCreatePage('NOTICE')}
+                          className="w-full px-4 py-2.5 text-left hover:bg-[#F0F4F8] dark:hover:bg-[#282A2C] flex items-center gap-3 border-none bg-transparent cursor-pointer"
+                        >
+                          <span className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">campaign</span>
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                              Lời nhắn / Nhắc nhở
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                              Thông báo nhanh, không chấm điểm
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -392,7 +461,7 @@ export function ClassAssignmentsTab({
           )}
 
           {/* Empty State */}
-          {!isLoadingAssignments && assignments.length === 0 && (
+          {!isLoadingAssignments && assignments.length === 0 && classQuizzes.length === 0 && classExams.length === 0 && (
             <div className="p-12 text-center flex flex-col items-center justify-center gap-3 bg-white dark:bg-[#1E1F20] rounded-3xl shadow-sm dark:shadow-none">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0B57D0] dark:text-[#A8C7FA] flex items-center justify-center">
                 <span className="material-symbols-outlined text-[32px]">assignment</span>
@@ -403,17 +472,35 @@ export function ClassAssignmentsTab({
               <p className="text-xs text-gray-500 dark:text-[#8E918F] max-w-sm">
                 {currentRole === 'student'
                   ? 'Hiện tại lớp học chưa có bài tập nào được giao. Hãy quay lại sau khi giảng viên thông báo.'
-                  : 'Lớp học chưa có bài tập nào. Bấm nút bên dưới để tạo bài tập hoặc bài Lab thực hành đầu tiên.'}
+                  : 'Lớp học chưa có bài tập nào. Bấm nút bên dưới để tạo lời nhắn, bài tập, Quiz hoặc bài kiểm tra.'}
               </p>
               {isTeacher && (
-                <button
-                  type="button"
-                  onClick={() => setIsCreateAssignmentOpen(true)}
-                  className="mt-2 px-5 py-2.5 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer border-none transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  <span>+ Tạo bài tập mới</span>
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => openCreatePage('ASSIGNMENT')}
+                    className="px-4 py-2 rounded-full bg-[#0B57D0] hover:bg-[#0842A0] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-none transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">assignment</span>
+                    <span>Tạo bài tập</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openCreatePage('QUIZ')}
+                    className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-none transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">quiz</span>
+                    <span>Tạo Quiz</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openCreatePage('EXAM')}
+                    className="px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-none transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">school</span>
+                    <span>Tạo Bài kiểm tra</span>
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -698,6 +785,77 @@ export function ClassAssignmentsTab({
               </div>
             </div>
           )}
+          {/* Unified Classwork Section: Quizzes & Exams in Class */}
+          {(classQuizzes.length > 0 || classExams.length > 0) && (
+            <div className="bg-white dark:bg-[#1E1F20] rounded-3xl p-6 shadow-sm dark:shadow-none space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[22px] text-purple-600 dark:text-purple-400">
+                    quiz
+                  </span>
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3]">
+                    Bài tập Trắc nghiệm (Quiz) &amp; Đề kiểm tra ({classQuizzes.length + classExams.length})
+                  </h3>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {classQuizzes.map((qz) => (
+                  <div
+                    key={qz.id}
+                    className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase">
+                          Quiz
+                        </span>
+                        <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                          {qz.durationMinutes} phút • {qz.questionCount ?? 0} câu
+                        </span>
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] truncate">
+                        {qz.title}
+                      </h4>
+                    </div>
+                    <Link
+                      href={isTeacher ? `/assignments/quizzes/${qz.id}/analytics` : `/assignments/quizzes/${qz.id}/play`}
+                      className="px-3.5 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] text-xs font-semibold shrink-0 hover:brightness-95 transition-all"
+                    >
+                      {isTeacher ? 'Xem kết quả' : 'Làm Quiz'}
+                    </Link>
+                  </div>
+                ))}
+
+                {classExams.map((ex) => (
+                  <div
+                    key={ex.id}
+                    className="p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-bold uppercase">
+                          Kiểm tra
+                        </span>
+                        <span className="text-[11px] text-gray-500 dark:text-[#8E918F]">
+                          {ex.durationMinutes} phút • {ex.totalScore ?? 10} điểm
+                        </span>
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-[#E3E3E3] truncate">
+                        {ex.title}
+                      </h4>
+                    </div>
+                    <Link
+                      href={`/classes/${classId}/exams/${ex.id}`}
+                      className="px-3.5 py-1.5 rounded-full bg-[#D3E3FD] dark:bg-[#162B4D] text-[#041E49] dark:text-[#A8C7FA] text-xs font-semibold shrink-0 hover:brightness-95 transition-all"
+                    >
+                      {isTeacher ? 'Quản lý đề' : 'Vào thi'}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -751,119 +909,6 @@ export function ClassAssignmentsTab({
         </div>
       )}
 
-      {/* Create Assignment Modal (Teacher) */}
-      {isCreateAssignmentOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1E1F20] w-full max-w-lg rounded-3xl shadow-xl p-6 space-y-4 border-none">
-            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
-              <h3 className="font-semibold text-base text-gray-900 dark:text-[#E3E3E3]">
-                Tạo bài tập / Lab thực hành mới
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsCreateAssignmentOpen(false)}
-                className="text-gray-400 hover:text-gray-600 cursor-pointer border-none bg-transparent"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateAssignmentSubmit} className="space-y-3 text-xs">
-              <div>
-                <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
-                  Tiêu đề bài tập *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Ví dụ: Lab 02 - Cấu hình VLAN & VTP Trunking..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none outline-none"
-                />
-              </div>
-
-              {courses.length > 1 && (
-                <div>
-                  <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
-                    Môn học liên kết
-                  </label>
-                  <CustomSelect<string>
-                    value={selectedCourseId}
-                    onChange={setSelectedCourseId}
-                    options={courses.map((c) => ({
-                      value: c.id,
-                      label: `${c.name} (${c.code})`,
-                      icon: 'book',
-                    }))}
-                    variant="pill"
-                    triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] border-none"
-                    popupClassName="w-full"
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
-                    Hạn chót nộp bài
-                  </label>
-                  <input
-                    type="date"
-                    value={newDueDate}
-                    onChange={(e) => setNewDueDate(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
-                    Thang điểm tối đa
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={newMaxScore}
-                    onChange={(e) => setNewMaxScore(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-medium block mb-1 text-gray-700 dark:text-[#C4C7C5]">
-                  Mô tả &amp; Hướng dẫn nộp bài
-                </label>
-                <textarea
-                  rows={3}
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Nêu rõ yêu cầu định dạng file (.pkt, .pdf), cấu hình cần kiểm tra..."
-                  className="w-full p-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-gray-900 dark:text-[#E3E3E3] border-none outline-none resize-none leading-relaxed"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateAssignmentOpen(false)}
-                  disabled={createAssignmentMutation.isPending}
-                  className="px-5 py-2 rounded-full text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] hover:bg-gray-100 dark:hover:bg-[#282A2C] cursor-pointer border-none bg-transparent transition-colors"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={createAssignmentMutation.isPending}
-                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 cursor-pointer border-none shadow-xs transition-all disabled:opacity-50"
-                >
-                  {createAssignmentMutation.isPending ? 'Đang tạo...' : 'Tạo bài tập'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

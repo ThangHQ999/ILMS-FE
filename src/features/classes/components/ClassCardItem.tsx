@@ -10,6 +10,7 @@ export interface ClassCardItemProps {
   viewMode?: ClassViewMode;
   onArchiveClick: (item: ClassItem) => void;
   onRestoreClick?: (item: ClassItem) => void;
+  onLeaveClick?: (item: ClassItem) => void;
   isCopied: boolean;
   onCopyCode: (code: string) => void;
 }
@@ -20,10 +21,12 @@ export const ClassCardItem = React.memo(function ClassCardItem({
   viewMode = 'grid',
   onArchiveClick,
   onRestoreClick,
+  onLeaveClick,
   isCopied,
   onCopyCode,
 }: ClassCardItemProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isPendingMember = item.memberStatus === 'PENDING';
 
   // Dynamic Tech Gradient, Diagram & Accent Tag (with smart fallback hashing for short/custom names like 'd1')
   const getTechDetails = (major: string = '', title: string = '', name: string = '') => {
@@ -267,277 +270,109 @@ export const ClassCardItem = React.memo(function ClassCardItem({
     item.teachingRole === 'PRIMARY_INSTRUCTOR' ||
     (!item.teachingRole && (item.name.includes('CSDL') || item.name.includes('OOP')));
 
-  // Student mode specific metrics
+  // Student mode specific metrics from real class item data
   const getStudentMetrics = () => {
-    const textLower = (item.name + item.title).toLowerCase();
+    const rawStats = item.stats as Record<string, unknown> | undefined;
+    const rawGrade =
+      (item as { studentGrade?: number | string; grade?: number | string }).studentGrade ??
+      (item as { grade?: number | string }).grade ??
+      rawStats?.grade;
 
-    // 1. CTDL
-    if (textLower.includes('ctdl') || textLower.includes('thuật nâng cao')) {
-      return {
-        grade: '8.8',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
-        teacher: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • ThS. Trần Phương Thảo',
-        progressPercent: 84,
-        nodesUnlocked: '42/50',
-        schedule: 'Thứ 5 (Tiết 4-6) • Phòng H6-302',
-        alert: {
-          type: 'danger',
-          icon: 'alarm',
-          text: 'Bài tập Lab 05 (Segment Tree) hết hạn lúc 23:59 hôm nay',
-          action: 'Nộp ngay',
-          actionHref: `/classes/${item.id}?tab=assignments`,
-          actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
-          containerClass: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-900/60 text-rose-700 dark:text-rose-300',
-        },
-      };
-    }
+    const hasRealGrade = rawGrade !== undefined && rawGrade !== null && rawGrade !== '';
+    const numericGrade = hasRealGrade ? Number(rawGrade) : null;
+    const gradeDisplay =
+      hasRealGrade && !isNaN(numericGrade!)
+        ? numericGrade!.toFixed(1)
+        : typeof rawGrade === 'string' && rawGrade.trim()
+        ? rawGrade.trim()
+        : null;
 
-    // 2. THTT (Thiết kế thuật toán)
-    if (textLower.includes('thtt') || textLower.includes('thông minh')) {
-      return {
-        grade: '7.5',
-        gradeColor: 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300',
-        teacher: 'PGS.TS. Vũ Đình Thành',
-        progressPercent: 65,
-        nodesUnlocked: '28/40',
-        schedule: 'Thứ 3 (Tiết 1-3) • Phòng Online MS Teams',
-        alert: {
-          type: 'warning',
-          icon: 'edit_note',
-          text: 'Quiz 04 (Dijkstra & DSU) mở đến Chủ nhật tuần này',
-          action: 'Làm Quiz',
-          actionHref: `/classes/${item.id}?tab=assignments`,
-          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-900/60 text-amber-800 dark:text-amber-300',
-        },
-      };
-    }
+    const gradeColor = gradeDisplay
+      ? Number(gradeDisplay) >= 8.5
+        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300'
+        : Number(gradeDisplay) >= 7.0
+        ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/60 dark:border-blue-800 dark:text-blue-300'
+        : Number(gradeDisplay) >= 5.0
+        ? 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-300'
+        : 'bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-950/60 dark:border-rose-900/60 dark:text-rose-300'
+      : '';
 
-    // 3. OOP
-    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
-      return {
-        grade: '9.2',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
-        teacher: 'ThS. Hoàng Minh Tuấn',
-        progressPercent: 92,
-        nodesUnlocked: '36/40',
-        schedule: 'Thứ 2 (Tiết 7-9) • Phòng Lab B2-104',
-        alert: {
-          type: 'success',
-          icon: 'check_circle',
-          text: 'Đã nộp toàn bộ bài tập tuần này • Điểm Lab gần nhất: Xuất sắc',
-          action: '',
-          actionHref: '',
-          actionClass: '',
-          containerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300',
-        },
-      };
-    }
+    const teacherName = item.instructor?.fullName || 'Chưa phân công';
+    const scheduleText =
+      item.schedule?.dayOfWeek && item.schedule?.dayOfWeek !== 'Chưa xếp lịch'
+        ? `${item.schedule.dayOfWeek} (${item.schedule.timeSlot || 'Linh hoạt'}) • ${item.schedule.room || 'Phòng học'}`
+        : 'Chưa xếp lịch học';
 
-    // 4. AI
-    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
-      return {
-        grade: '8.0',
-        gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
-        teacher: 'TS. Nguyễn Bảo Anh • Trợ giảng AI Socratic 24/7',
-        progressPercent: 48,
-        nodesUnlocked: '20/45',
-        schedule: 'Thứ 7 (Tiết 4-6) • Hội trường C1',
-        alert: {
-          type: 'purple',
-          icon: 'smart_toy',
-          text: 'Socratic AI gợi ý: Ôn tập 5 câu hỏi Flashcard thuật toán A*',
-          action: 'Ôn ngay',
-          actionHref: `/classes/${item.id}?tab=stream`,
-          actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
-          containerClass: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/60 dark:border-purple-900/60 text-purple-800 dark:text-purple-300',
-        },
-      };
-    }
+    const upcomingAssignments = item.stats?.ungradedAssignmentsCount ?? 0;
 
-    // Default student metrics
     return {
-      grade: '8.5',
-      gradeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300',
-      teacher: item.instructor?.fullName || 'TS. Lê Hoàng Nam',
-      progressPercent: 75,
-      nodesUnlocked: '30/40',
-      schedule: item.schedule?.dayOfWeek ? `${item.schedule.dayOfWeek} (${item.schedule.timeSlot})` : 'Thứ 4 (Tiết 1-3)',
-      alert: {
-        type: 'info',
-        icon: 'info',
-        text: 'Học liệu tuần mới đã được tải lên không gian học tập',
-        action: 'Xem ngay',
-        actionHref: `/classes/${item.id}`,
-        actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/60 dark:border-blue-900/60 text-blue-800 dark:text-blue-300',
-      },
+      grade: gradeDisplay,
+      gradeColor,
+      teacher: teacherName,
+      progressPercent: item.stats?.attendanceRate ?? 0,
+      nodesUnlocked: null,
+      schedule: scheduleText,
+      alert:
+        upcomingAssignments > 0
+          ? {
+              type: 'danger',
+              icon: 'alarm',
+              text: `${upcomingAssignments} bài tập cần hoàn thành`,
+              action: 'Nộp bài',
+              actionHref: `/classes/${item.id}?tab=assignments`,
+              actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
+              containerClass:
+                'bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-900/60 text-rose-700 dark:text-rose-300',
+            }
+          : null,
     };
   };
 
-  // Faculty mode specific metrics & contextual action strip
+  // Faculty mode specific metrics from real class item data
   const getFacultyMetrics = () => {
-    const textLower = (item.name + item.title + (item.major || '')).toLowerCase();
+    const rawStats = item.stats as Record<string, unknown> | undefined;
+    const rawPlo = rawStats?.ploPassRate ?? (item as { ploPassRate?: number }).ploPassRate;
+    const ploPassRate = typeof rawPlo === 'number' && !isNaN(rawPlo) ? rawPlo : null;
 
-    // 1. CSDL
-    if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
-      return {
-        ploPassRate: 88.5,
-        attendanceRate: 98,
-        teachingProgress: 72,
-        curriculumWeek: 'Tuần 10/15',
-        completedLessons: '18/24',
-        instructorInfo: 'TS. Lê Hoàng Nam (Chủ nhiệm môn) • 2 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'warning',
-          icon: 'pending_actions',
-          text: '3 yêu cầu tham gia lớp đang chờ giảng viên duyệt',
-          action: 'Duyệt ngay',
-          actionHref: `/classes/${item.id}?tab=people`,
-          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
-        },
-      };
-    }
-
-    // 2. CTDL / Thuật toán
-    if (textLower.includes('ctdl') || textLower.includes('thuật')) {
-      return {
-        ploPassRate: 91.2,
-        attendanceRate: 96,
-        teachingProgress: 65,
-        curriculumWeek: 'Tuần 9/15',
-        completedLessons: '14/20',
-        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'info',
-          icon: 'assignment_turned_in',
-          text: '5 bài thực hành Lab 04 (Dijkstra) mới nộp cần chấm điểm',
-          action: 'Chấm bài',
-          actionHref: `/classes/${item.id}?tab=assignments`,
-          actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-          containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
-        },
-      };
-    }
-
-    // 3. OOP
-    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
-      return {
-        ploPassRate: 94.0,
-        attendanceRate: 100,
-        teachingProgress: 80,
-        curriculumWeek: 'Tuần 12/15',
-        completedLessons: '22/26',
-        instructorInfo: 'ThS. Hoàng Minh Tuấn • 1 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'warning',
-          icon: 'how_to_reg',
-          text: '1 sinh viên xin phép nghỉ buổi thực hành có phép',
-          action: 'Xem đơn',
-          actionHref: `/classes/${item.id}?tab=people`,
-          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
-        },
-      };
-    }
-
-    // 4. MMT
-    if (textLower.includes('mmt') || textLower.includes('mạng')) {
-      return {
-        ploPassRate: 85.0,
-        attendanceRate: 92,
-        teachingProgress: 55,
-        curriculumWeek: 'Tuần 7/15',
-        completedLessons: '11/18',
-        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'danger',
-          icon: 'alarm',
-          text: 'Bài thực hành Lab 3 hết hạn nộp vào 23:59 ngày mai',
-          action: 'Nhắc nhở',
-          actionHref: `/classes/${item.id}?tab=stream`,
-          actionClass: 'bg-rose-600 hover:bg-rose-700 text-white',
-          containerClass: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/80 dark:border-rose-800/60 text-rose-800 dark:text-rose-300',
-        },
-      };
-    }
-
-    // 5. KTLT
-    if (textLower.includes('ktlt') || textLower.includes('kỹ thuật') || textLower.includes('c++')) {
-      return {
-        ploPassRate: 89.4,
-        attendanceRate: 98,
-        teachingProgress: 70,
-        curriculumWeek: 'Tuần 10/15',
-        completedLessons: '16/22',
-        instructorInfo: 'TS. Lê Hoàng Nam • 1 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'success',
-          icon: 'check_circle',
-          text: '98% sinh viên đã hoàn thành Quiz tuần 09 • Chuẩn bị bài giảng tuần 10',
-          action: '',
-          actionHref: '',
-          actionClass: '',
-          containerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300',
-        },
-      };
-    }
-
-    // 6. AI
-    if (textLower.includes('ai') || textLower.includes('trí tuệ')) {
-      return {
-        ploPassRate: 92.8,
-        attendanceRate: 95,
-        teachingProgress: 45,
-        curriculumWeek: 'Tuần 6/15',
-        completedLessons: '9/18',
-        instructorInfo: 'TS. Nguyễn Bảo Anh • 3 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        capacityPercent: Math.round(((item.enrolledCount ?? 0) / 60) * 100),
-        alert: {
-          type: 'purple',
-          icon: 'smart_toy',
-          text: 'AI Tutor đã giải đáp 142 câu hỏi thắc mắc của sinh viên tuần qua',
-          action: 'Xem AI Log',
-          actionHref: `/classes/${item.id}?tab=stream`,
-          actionClass: 'bg-purple-600 hover:bg-purple-700 text-white',
-          containerClass: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/80 dark:border-purple-800/60 text-purple-800 dark:text-purple-300',
-        },
-      };
-    }
-
-    // Default / Newly Created Class (e.g. d1)
     const enrolled = item.enrolledCount ?? 0;
     const maxStudents = item.maxStudents || 60;
+    const pendingRequests = item.stats?.pendingRequestsCount ?? 0;
+    const ungradedAssignments = item.stats?.ungradedAssignmentsCount ?? 0;
+    const teacherName = item.instructor?.fullName || 'Giảng viên';
+
     return {
-      ploPassRate: 88.0,
-      attendanceRate: 96,
-      teachingProgress: 60,
-      curriculumWeek: 'Tuần 8/15',
-      completedLessons: '12/20',
-      instructorInfo: item.instructor?.fullName || 'TS. Lê Hoàng Nam (Chủ nhiệm lớp)',
+      ploPassRate,
+      attendanceRate: item.stats?.attendanceRate ?? 100,
+      teachingProgress: Math.min(100, Math.round((enrolled / maxStudents) * 100)),
+      curriculumWeek: item.semester || 'Học kỳ hiện tại',
+      completedLessons: null,
+      instructorInfo: teacherName,
       capacityText: `${enrolled}/${maxStudents} học viên`,
       capacityPercent: Math.round((enrolled / maxStudents) * 100),
-      alert: {
-        type: 'info',
-        icon: 'campaign',
-        text: 'Lớp học hoạt động tốt • Đã đồng bộ không gian bài giảng & đề cương',
-        action: 'Vào quản lý',
-        actionHref: `/classes/${item.id}`,
-        actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
-      },
+      alert:
+        pendingRequests > 0
+          ? {
+              type: 'warning',
+              icon: 'pending_actions',
+              text: `${pendingRequests} yêu cầu tham gia lớp đang chờ giảng viên duyệt`,
+              action: 'Duyệt ngay',
+              actionHref: `/classes/${item.id}?tab=people`,
+              actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
+              containerClass:
+                'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
+            }
+          : ungradedAssignments > 0
+          ? {
+              type: 'info',
+              icon: 'assignment_turned_in',
+              text: `${ungradedAssignments} bài nộp cần chấm điểm`,
+              action: 'Chấm bài',
+              actionHref: `/classes/${item.id}?tab=assignments`,
+              actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+              containerClass:
+                'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
+            }
+          : null,
     };
   };
 
@@ -549,22 +384,25 @@ export const ClassCardItem = React.memo(function ClassCardItem({
     if (item.schedule?.dayOfWeek && item.schedule.dayOfWeek !== 'Chưa xếp lịch') {
       return `${item.schedule.dayOfWeek} (${item.schedule.timeSlot || 'Tiết 1-3'})`;
     }
-    const nameLower = (item.name + item.title).toLowerCase();
-    if (nameLower.includes('csdl') || nameLower.includes('dữ liệu')) return 'Thứ 3 (Tiết 1-3)';
-    if (nameLower.includes('ctdl') || nameLower.includes('thuật')) return 'Thứ 5 (Tiết 4-6)';
-    if (nameLower.includes('oop') || nameLower.includes('đối tượng')) return 'Thứ 2 (Tiết 7-9)';
-    if (nameLower.includes('mmt') || nameLower.includes('mạng')) return 'Thứ 6 (Tiết 1-3)';
-    if (nameLower.includes('ktlt') || nameLower.includes('kỹ thuật')) return 'Thứ 4 (Tiết 1-3)';
-    if (nameLower.includes('ai') || nameLower.includes('trí tuệ')) return 'Thứ 7 (Tiết 4-6)';
     return 'Lịch học linh hoạt';
   };
 
   return (
     <article className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between relative shadow-2xs">
       {/* 1. GRAPHIC HEADER BANNER */}
-      <div className={`h-36 w-full relative p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-t-2xl`}>
-        {/* Dynamic Vector Topology Overlay */}
-        {tech.diagram}
+      <div className={`h-36 w-full relative overflow-hidden p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-t-2xl`}>
+        {(item.backgroundUrl || item.thumbnailUrl) ? (
+          <>
+            <img
+              src={item.backgroundUrl || item.thumbnailUrl}
+              alt={item.title || item.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/40 pointer-events-none" />
+          </>
+        ) : (
+          tech.diagram
+        )}
 
         {/* Top Badges & Actions inside banner */}
         <div className="flex items-center justify-between relative z-10">
@@ -615,14 +453,16 @@ export const ClassCardItem = React.memo(function ClassCardItem({
                     <span>Vào lớp học</span>
                   </Link>
 
-                  <Link
-                    href={`/classes/${item.id}?tab=members`}
-                    className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
-                    <span>Xem thành viên ({item.enrolledCount ?? 0})</span>
-                  </Link>
+                  {!isPendingMember && (
+                    <Link
+                      href={`/classes/${item.id}?tab=members`}
+                      className="flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">group</span>
+                      <span>Xem thành viên ({item.enrolledCount ?? 0})</span>
+                    </Link>
+                  )}
 
                   <button
                     type="button"
@@ -647,6 +487,22 @@ export const ClassCardItem = React.memo(function ClassCardItem({
                     </Link>
                   )}
 
+                  {!isOwner && !isPendingMember && onLeaveClick && (
+                    <>
+                      <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          onLeaveClick(item);
+                        }}
+                        className="w-full text-left flex items-center gap-2 px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">logout</span>
+                        <span>Rời khỏi lớp học</span>
+                      </button>
+                    </>
+                  )}
                   {isOwner && (
                     <>
                       <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
@@ -686,14 +542,26 @@ export const ClassCardItem = React.memo(function ClassCardItem({
           {/* Class Title & Dynamic Badge (Grade for Student vs PLO for Faculty) */}
           <div>
             <div className="flex items-start justify-between gap-3">
-              <Link href={`/classes/${item.id}`} className="flex-1 min-w-0">
-                <h3 className="font-display text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 cursor-pointer">
-                  {item.title || item.name}
-                </h3>
-              </Link>
+              {isPendingMember ? (
+                <div className="flex-1 min-w-0 flex items-center gap-2">
+                  <h3 className="font-display text-base font-bold text-slate-900 dark:text-white line-clamp-1">
+                    {item.title || item.name}
+                  </h3>
+                  <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Chờ duyệt
+                  </span>
+                </div>
+              ) : (
+                <Link href={`/classes/${item.id}`} className="flex-1 min-w-0">
+                  <h3 className="font-display text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 cursor-pointer">
+                    {item.title || item.name}
+                  </h3>
+                </Link>
+              )}
 
-              {/* Student Mode: Grade Badge */}
-              {workspaceMode === 'student' && (
+              {/* Student Mode: Grade Badge - ONLY when real grade exists */}
+              {workspaceMode === 'student' && studentData.grade && (
                 <div className={`flex items-center gap-1 shrink-0 px-2.5 py-0.5 rounded border text-[11px] font-semibold ${studentData.gradeColor}`}>
                   <span className="text-[10px] font-medium opacity-70">Điểm QT:</span>
                   <strong className="font-display font-extrabold">{studentData.grade}</strong>
@@ -701,8 +569,8 @@ export const ClassCardItem = React.memo(function ClassCardItem({
                 </div>
               )}
 
-              {/* Faculty Mode: PLO Pass Rate Badge */}
-              {workspaceMode === 'faculty' && (
+              {/* Faculty Mode: PLO Pass Rate Badge - ONLY when real PLO rate exists */}
+              {workspaceMode === 'faculty' && facultyData.ploPassRate !== null && (
                 <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold shadow-2xs">
                   <span className="material-symbols-outlined text-[14px]">verified</span>
                   <span className="text-[10px] font-medium opacity-80">Đạt chuẩn PLO:</span>
@@ -714,11 +582,11 @@ export const ClassCardItem = React.memo(function ClassCardItem({
             {/* Class Code with Copy Action */}
             <div className="flex items-center gap-2 mt-1">
               <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                {item.name}
+                {item.classCode || item.enrollmentKey || item.name}
               </span>
               <button
                 type="button"
-                onClick={() => onCopyCode(item.enrollmentKey || item.name)}
+                onClick={() => onCopyCode(item.classCode || item.enrollmentKey || item.name)}
                 className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                 title="Sao chép mã lớp"
               >
@@ -799,54 +667,86 @@ export const ClassCardItem = React.memo(function ClassCardItem({
 
         {/* Action Strip with contextual Action Button (Both Student & Faculty Mode) */}
         {workspaceMode === 'student' ? (
-          <div className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${studentData.alert.containerClass}`}>
-            <div className="flex items-center gap-2 truncate min-w-0">
-              <span className="material-symbols-outlined text-[17px] shrink-0">
-                {studentData.alert.icon}
-              </span>
-              <span className="font-semibold truncate">
-                {studentData.alert.text}
-              </span>
-            </div>
-            {studentData.alert.action ? (
-              <Link
-                href={studentData.alert.actionHref || `/classes/${item.id}`}
-                className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors shadow-2xs ${studentData.alert.actionClass}`}
-              >
-                {studentData.alert.action}
-              </Link>
-            ) : (
-              studentData.alert.type === 'success' && (
-                <span className="text-[11px] font-bold text-emerald-600 shrink-0">
-                  Xuất sắc
+          studentData.alert ? (
+            <div
+              className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${studentData.alert.containerClass}`}
+            >
+              <div className="flex items-center gap-2 truncate min-w-0">
+                <span className="material-symbols-outlined text-[17px] shrink-0">
+                  {studentData.alert.icon}
                 </span>
-              )
-            )}
-          </div>
-        ) : (
-          <div className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${facultyData.alert.containerClass}`}>
+                <span className="font-semibold truncate">{studentData.alert.text}</span>
+              </div>
+              {studentData.alert.action ? (
+                <Link
+                  href={studentData.alert.actionHref || `/classes/${item.id}`}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors shadow-2xs ${studentData.alert.actionClass}`}
+                >
+                  {studentData.alert.action}
+                </Link>
+              ) : null}
+            </div>
+          ) : (
+            <div className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 text-xs flex items-center justify-between gap-2 text-slate-500 dark:text-slate-400">
+              {isPendingMember ? (
+                <>
+                  <div className="flex items-center gap-2 truncate min-w-0 text-amber-700 dark:text-amber-300">
+                    <span className="material-symbols-outlined text-[16px]">hourglass_top</span>
+                    <span className="truncate text-[11px] font-medium">
+                      Yêu cầu tham gia đang chờ giảng viên phê duyệt
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 shrink-0">
+                    Chờ duyệt
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 truncate min-w-0">
+                    <span className="material-symbols-outlined text-[16px] text-slate-400">school</span>
+                    <span className="truncate text-[11px]">Không gian học tập &amp; bài giảng</span>
+                  </div>
+                  <Link
+                    href={`/classes/${item.id}`}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+                  >
+                    Vào lớp →
+                  </Link>
+                </>
+              )}
+            </div>
+          )
+        ) : facultyData.alert ? (
+          <div
+            className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-2 ${facultyData.alert.containerClass}`}
+          >
             <div className="flex items-center gap-2 truncate min-w-0">
               <span className="material-symbols-outlined text-[17px] shrink-0">
                 {facultyData.alert.icon}
               </span>
-              <span className="font-semibold truncate">
-                {facultyData.alert.text}
-              </span>
+              <span className="font-semibold truncate">{facultyData.alert.text}</span>
             </div>
-            {facultyData.alert.action ? (
+            {facultyData.alert.action && (
               <Link
                 href={facultyData.alert.actionHref}
                 className={`px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors shadow-2xs ${facultyData.alert.actionClass}`}
               >
                 {facultyData.alert.action}
               </Link>
-            ) : (
-              facultyData.alert.type === 'success' && (
-                <span className="text-[11px] font-bold text-emerald-600 shrink-0">
-                  Hoàn thành
-                </span>
-              )
             )}
+          </div>
+        ) : (
+          <div className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 text-xs flex items-center justify-between gap-2 text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 truncate min-w-0">
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
+              <span className="truncate text-[11px]">Lớp học đang hoạt động ổn định</span>
+            </div>
+            <Link
+              href={`/classes/${item.id}`}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+            >
+              Quản lý →
+            </Link>
           </div>
         )}
 

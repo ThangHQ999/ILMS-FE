@@ -341,3 +341,51 @@ export function extractDraftGraphOverview(
 
   return { entities, topics, relationsCount };
 }
+
+// ==========================================
+// 16. GRAPH VALIDATION & AI AUTO-REPAIR DTOs
+// ==========================================
+
+export const graphValidationIssueSchema = z.object({
+  id: z.string().optional(),
+  code: z.string().optional(),
+  severity: z.enum(['BLOCKER', 'WARNING', 'INFO']).default('WARNING'),
+  targetId: z.string().optional(),
+  targetType: z.enum(['NODE', 'EDGE', 'GRAPH']).default('GRAPH'),
+  message: z.string(),
+  suggestion: z.string().optional(),
+});
+export type GraphValidationIssue = z.infer<typeof graphValidationIssueSchema>;
+
+export const graphValidationResponseSchema = z.object({
+  valid: z.boolean(),
+  totalBlockers: z.number().default(0),
+  totalWarnings: z.number().default(0),
+  issues: z.array(graphValidationIssueSchema).default([]),
+});
+export type GraphValidationResponseDTO = z.infer<typeof graphValidationResponseSchema>;
+
+export const aiRepairActionSchema = z.object({
+  action: z.string(),
+  targetId: z.string().optional(),
+  description: z.string(),
+});
+export type AiRepairAction = z.infer<typeof aiRepairActionSchema>;
+
+export const graphAiRepairResponseSchema = z.object({
+  summary: z.string(),
+  changes: z.array(aiRepairActionSchema).default([]),
+  repairedNodes: z.array(z.record(z.string(), z.unknown())).default([]),
+  repairedEdges: z.array(z.record(z.string(), z.unknown())).default([]),
+  remainingIssues: z.array(graphValidationIssueSchema).default([]),
+  applied: z.boolean().default(false),
+});
+export type GraphAiRepairResponseDTO = z.infer<typeof graphAiRepairResponseSchema>;
+
+export const applyAiRepairRequestSchema = z.object({
+  repairSummary: z.string().optional(),
+  repairedNodes: z.array(z.record(z.string(), z.unknown())),
+  repairedEdges: z.array(z.record(z.string(), z.unknown())),
+});
+export type ApplyAiRepairRequestDTO = z.infer<typeof applyAiRepairRequestSchema>;
+

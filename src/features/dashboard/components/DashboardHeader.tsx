@@ -16,7 +16,7 @@ const routeMap: Record<string, string> = {
   '/classes': 'Lớp học của tôi',
   '/teacher/classes': 'Lớp học của tôi',
   '/courses': 'Không gian môn học',
-  '/lesson-sessions': 'Ca học & Điểm danh',
+  '/lesson-sessions': 'Lịch trình cá nhân',
   '/teacher/attendance': 'Ca học & Điểm danh',
   '/teacher/lesson-sessions': 'Ca học & Điểm danh',
   '/knowledge-graph': 'Đồ thị Tri thức',
@@ -227,15 +227,16 @@ export function DashboardHeader({
           </button>
         )}
 
-        {/* Focus Mode Button */}
+        {/* Fullscreen Canvas Mode Button */}
         {showFocusMode && (
           <button
             onClick={onToggleMode}
             className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] transition-colors text-xs font-medium whitespace-nowrap border-none cursor-pointer"
             type="button"
+            title="Mở toàn màn hình Canvas (Phím F)"
           >
             <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
-              center_focus_strong
+              fullscreen
             </span>
             <span>{t('focusModeBtn')}</span>
           </button>

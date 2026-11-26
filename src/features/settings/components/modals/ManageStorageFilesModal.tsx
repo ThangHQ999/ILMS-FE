@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useConfirm } from '@/components/shared';
 import { useStorageFiles, useDeleteStorageFile } from '../../hooks/useStorage';
 import type { StorageFileItem } from '../../schemas/storage.schema';
 
@@ -16,6 +17,7 @@ export function ManageStorageFilesModal({
   onClose,
   onFileDeleted,
 }: ManageStorageFilesModalProps) {
+  const confirm = useConfirm();
   const t = useTranslations('settings');
   const [search, setSearch] = useState('');
   const [fileType, setFileType] = useState('ALL');
@@ -36,8 +38,15 @@ export function ManageStorageFilesModal({
 
   if (!isOpen) return null;
 
-  const handleDelete = (deleteKey: string, rowId: string, name: string) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tệp "${name}" để giải phóng dung lượng?`)) {
+  const handleDelete = async (deleteKey: string, rowId: string, name: string) => {
+    const ok = await confirm({
+      title: 'Xác nhận xóa tệp lưu trữ',
+      message: `Bạn có chắc chắn muốn xóa vĩnh viễn tệp "${name}" để giải phóng dung lượng không? Hành động này không thể hoàn tác.`,
+      variant: 'danger',
+      confirmText: 'Xóa vĩnh viễn',
+      cancelText: 'Hủy',
+    });
+    if (ok) {
       setDeletingId(rowId);
       deleteMutation.mutate(deleteKey);
     }

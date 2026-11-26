@@ -33,10 +33,12 @@ export function ClassMembersTab({
   const router = useRouter();
 
   // Filters & Search
+  const [memberViewTab, setMemberViewTab] = useState<'approved' | 'pending'>('approved');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'good' | 'attention' | 'risk'>('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const canManageMembers = currentRole === 'owner' || currentRole === 'teacher';
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -127,7 +129,10 @@ export function ClassMembersTab({
 
   // Filter students
   const filteredStudents = useMemo(() => {
-    const studentList = members.filter((m) => m.role === 'STUDENT');
+    const studentList =
+      memberViewTab === 'pending' && canManageMembers
+        ? members.filter((m) => m.status === 'PENDING')
+        : members.filter((m) => m.role === 'STUDENT' && m.status !== 'PENDING');
 
     return studentList.filter((m) => {
       // 1. Search Query
@@ -138,6 +143,8 @@ export function ClassMembersTab({
         const matchesCode = m.studentCode?.toLowerCase().includes(q) || false;
         if (!matchesName && !matchesEmail && !matchesCode) return false;
       }
+
+      if (memberViewTab === 'pending') return true;
 
       // 2. Status Filter
       if (statusFilter === 'good') {
@@ -150,7 +157,17 @@ export function ClassMembersTab({
 
       return true;
     });
-  }, [members, search, statusFilter]);
+  }, [members, search, statusFilter, memberViewTab, canManageMembers]);
+
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedStudents = useMemo(
+    () => filteredStudents.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredStudents, safePage]
+  );
+  const showingFrom = filteredStudents.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const showingTo = Math.min(safePage * PAGE_SIZE, filteredStudents.length);
 
   // Selection handlers
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,7 +250,15 @@ export function ClassMembersTab({
 
           {/* Key Capacity & Enrolment Badges */}
           <div className="flex flex-wrap items-center gap-3 mt-1">
-            <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
+            <button
+              type="button"
+              onClick={() => setMemberViewTab('approved')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border-none transition-all cursor-pointer ${
+                memberViewTab === 'approved'
+                  ? 'bg-[#D3E3FD] dark:bg-[#162B4D] ring-1 ring-blue-500/30'
+                  : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-85'
+              }`}
+            >
               <span className="material-symbols-outlined text-blue-600 dark:text-[#A8C7FA] text-[19px]">
                 groups
               </span>
@@ -241,17 +266,38 @@ export function ClassMembersTab({
               <span className="text-sm text-gray-900 dark:text-[#E3E3E3] font-bold">
                 {approvedStudentsCount}
               </span>
-            </div>
+            </button>
 
-            <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
-              <span className="material-symbols-outlined text-gray-400 text-[19px]">
-                pending_actions
-              </span>
-              <span className="text-xs text-gray-500 dark:text-[#8E918F]">Chờ duyệt:</span>
-              <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">
-                {pendingStudentsCount}
-              </span>
-            </div>
+            {canManageMembers ? (
+              <button
+                type="button"
+                onClick={() => setMemberViewTab('pending')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border-none transition-all cursor-pointer ${
+                  memberViewTab === 'pending'
+                    ? 'bg-amber-100 dark:bg-amber-950/60 ring-1 ring-amber-500/40'
+                    : 'bg-[#F0F4F8] dark:bg-[#131314] hover:opacity-85'
+                }`}
+                title="Bấm để xem và phê duyệt danh sách chờ vào lớp"
+              >
+                <span className="material-symbols-outlined text-amber-500 text-[19px]">
+                  pending_actions
+                </span>
+                <span className="text-xs text-gray-600 dark:text-[#C4C7C5]">Chờ duyệt:</span>
+                <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">
+                  {pendingStudentsCount}
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
+                <span className="material-symbols-outlined text-gray-400 text-[19px]">
+                  pending_actions
+                </span>
+                <span className="text-xs text-gray-500 dark:text-[#8E918F]">Chờ duyệt:</span>
+                <span className="text-sm text-amber-600 dark:text-amber-400 font-bold">
+                  {pendingStudentsCount}
+                </span>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 bg-[#F0F4F8] dark:bg-[#131314] px-3.5 py-1.5 rounded-2xl border-none">
               <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[19px]">
@@ -440,7 +486,7 @@ export function ClassMembersTab({
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((student) => {
+                paginatedStudents.map((student) => {
                 const isSelected = selectedIds.includes(student.id);
                 const isRisk = student.learningStatus === 'AT_RISK';
                 const isNeedHelp = student.learningStatus === 'NEED_HELP';
@@ -497,7 +543,7 @@ export function ClassMembersTab({
                             {student.name}
                           </span>
                           <span className="font-mono text-[11px] text-gray-500 dark:text-[#8E918F]">
-                            MSSV: {student.studentCode || '22028190'}
+                            {student.studentCode ? `MSSV: ${student.studentCode}` : `ID: ${student.id.slice(0, 8)}`}
                           </span>
                         </div>
                       </div>
@@ -505,66 +551,87 @@ export function ClassMembersTab({
 
                     {/* Email */}
                     <td className="py-5 px-4 font-mono text-[11px] text-gray-500 dark:text-[#8E918F] align-middle whitespace-nowrap">
-                      {student.email}
+                      {student.email || '--'}
                     </td>
 
                     {/* Attendance */}
                     <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
-                      <span
-                        className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold font-mono border-none ${(student.attendanceRate ?? 90) >= 90
-                            ? 'bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]'
-                            : (student.attendanceRate ?? 90) >= 75
-                              ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
-                              : 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
+                      {typeof student.attendanceRate === 'number' ? (
+                        <span
+                          className={`whitespace-nowrap inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold font-mono border-none ${
+                            student.attendanceRate >= 90
+                              ? 'bg-blue-100 dark:bg-[#162B4D] text-blue-800 dark:text-[#A8C7FA]'
+                              : student.attendanceRate >= 75
+                                ? 'bg-[#E1E5EA] dark:bg-[#282A2C] text-gray-700 dark:text-[#C4C7C5]'
+                                : 'bg-red-100 dark:bg-[#3C1919] text-red-800 dark:text-[#F28B82]'
                           }`}
-                      >
-                        {student.attendanceRate ?? 90}%
-                      </span>
+                        >
+                          {student.attendanceRate}%
+                        </span>
+                      ) : (
+                        <span className="text-xs font-mono text-gray-400 dark:text-[#8E918F]">--</span>
+                      )}
                     </td>
 
                     {/* Knowledge Graph Nodes Progress */}
                     <td className="py-5 px-4 align-middle whitespace-nowrap">
-                      <div className="flex flex-col gap-1 w-36">
-                        <div className="flex justify-between text-[11px]">
-                          <span className="text-gray-700 dark:text-[#C4C7C5] font-medium">
-                            {student.knowledgeNodesUnlocked ?? 60}/{student.knowledgeNodesTotal ?? 82}
-                          </span>
-                          <span
-                            className={`font-semibold font-mono ${isRisk || isNeedHelp
-                                ? 'text-red-700 dark:text-[#F28B82]'
-                                : 'text-[#007BFF] dark:text-[#A8C7FA]'
+                      {typeof student.knowledgePercent === 'number' ? (
+                        <div className="flex flex-col gap-1 w-36">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-gray-700 dark:text-[#C4C7C5] font-medium">
+                              {student.knowledgeNodesUnlocked ?? 0}/{student.knowledgeNodesTotal ?? 0}
+                            </span>
+                            <span
+                              className={`font-semibold font-mono ${
+                                isRisk || isNeedHelp
+                                  ? 'text-red-700 dark:text-[#F28B82]'
+                                  : 'text-[#007BFF] dark:text-[#A8C7FA]'
                               }`}
-                          >
-                            {student.knowledgePercent ?? 75}%
-                          </span>
-                        </div>
-                        <div className="w-full h-1.5 bg-gray-200 dark:bg-[#282A2C] rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${isRisk || isNeedHelp ? 'bg-red-500' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
+                            >
+                              {student.knowledgePercent}%
+                            </span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-200 dark:bg-[#282A2C] rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                isRisk || isNeedHelp ? 'bg-red-500' : 'bg-[#007BFF] dark:bg-[#A8C7FA]'
                               }`}
-                            style={{ width: `${student.knowledgePercent ?? 75}%` }}
-                          />
+                              style={{ width: `${student.knowledgePercent}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <span className="text-xs font-mono text-gray-400 dark:text-[#8E918F]">Chưa có dữ liệu</span>
+                      )}
                     </td>
 
                     {/* GPA / PLO */}
                     <td className="py-5 px-3 text-center align-middle whitespace-nowrap">
-                      <span
-                        className={`text-base font-extrabold font-mono ${isRisk
-                            ? 'text-red-700 dark:text-[#F28B82]'
-                            : (student.gpa ?? 8.0) >= 9.0
-                              ? 'text-blue-600 dark:text-[#A8C7FA]'
-                              : 'text-gray-900 dark:text-[#E3E3E3]'
+                      {typeof student.gpa === 'number' ? (
+                        <span
+                          className={`text-base font-extrabold font-mono ${
+                            isRisk
+                              ? 'text-red-700 dark:text-[#F28B82]'
+                              : student.gpa >= 9.0
+                                ? 'text-blue-600 dark:text-[#A8C7FA]'
+                                : 'text-gray-900 dark:text-[#E3E3E3]'
                           }`}
-                      >
-                        {student.gpa?.toFixed(1) ?? '8.0'}
-                      </span>
+                        >
+                          {student.gpa.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-mono text-gray-400 dark:text-[#8E918F]">--</span>
+                      )}
                     </td>
 
                     {/* Status Badge */}
                     <td className="py-5 px-4 align-middle whitespace-nowrap">
-                      {student.learningStatus === 'EXCELLENT' ? (
+                      {student.status === 'PENDING' ? (
+                        <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold border-none">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          <span>Chờ phê duyệt</span>
+                        </span>
+                      ) : student.learningStatus === 'EXCELLENT' ? (
                         <span className="whitespace-nowrap inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 dark:bg-[#142E20] text-emerald-800 dark:text-[#81C995] text-xs font-semibold border-none">
                           <span>{student.statusBadge || 'Top 1 Xuất sắc'}</span>
                         </span>
@@ -589,8 +656,28 @@ export function ClassMembersTab({
 
                     {/* Actions */}
                     <td className="py-5 px-4 text-right pr-6 align-middle whitespace-nowrap">
-                      <div className="inline-flex items-center gap-1">
-                        {/* Profile button */}
+                      {student.status === 'PENDING' && canManageMembers ? (
+                        <div className="inline-flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onApproveMember?.(student)}
+                            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer border-none"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">check</span>
+                            <span>Phê duyệt</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onRejectMember?.(student)}
+                            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-950/60 hover:bg-rose-200 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-semibold transition-colors cursor-pointer border-none"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">close</span>
+                            <span>Từ chối</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1">
+                          {/* Profile button */}
                         <button
                           type="button"
                           onClick={() => setSelectedStudentForProfile(student)}
@@ -699,7 +786,8 @@ export function ClassMembersTab({
                             </>
                           )}
                         </div>
-                      </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -713,7 +801,7 @@ export function ClassMembersTab({
           <span className="text-gray-500 dark:text-[#8E918F]">
             Hiển thị{' '}
             <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
-              {filteredStudents.length === 0 ? 0 : 1} - {filteredStudents.length}
+              {showingFrom} - {showingTo}
             </strong>{' '}
             trên tổng số{' '}
             <strong className="text-gray-900 dark:text-[#E3E3E3] font-semibold">
@@ -725,18 +813,18 @@ export function ClassMembersTab({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              disabled={currentPage === 1}
+              disabled={safePage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40 cursor-pointer border-none bg-transparent"
             >
               <span className="material-symbols-outlined text-[17px]">chevron_left</span>
             </button>
-            {[1, 2, 3, 4, 5].map((page) => (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
                 type="button"
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all border-none cursor-pointer ${currentPage === page
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all border-none cursor-pointer ${safePage === page
                     ? 'bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] shadow-xs'
                     : 'text-gray-600 dark:text-[#C4C7C5] hover:bg-black/5 dark:hover:bg-white/5 bg-transparent'
                   }`}
@@ -746,8 +834,9 @@ export function ClassMembersTab({
             ))}
             <button
               type="button"
-              onClick={() => setCurrentPage((p) => Math.min(5, p + 1))}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40 cursor-pointer border-none bg-transparent"
             >
               <span className="material-symbols-outlined text-[17px]">chevron_right</span>
             </button>

@@ -1044,6 +1044,7 @@ Base path: `/api/v1/courses`
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/api/v1/lessons/{lessonId}/materials` | `hasAuthority('COURSE_VIEW')` | Lấy danh sách tài liệu của bài học | Trả về `List<MaterialSummaryResponseDTO>` |
 | **GET** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('COURSE_VIEW')` | Lấy toàn bộ tài liệu học liệu của môn học (phân trang, lọc fileType, search) | Trả về `PageResponse<CourseMaterialItemDTO>` (`?fileType=&search=&page=0&size=20`) |
+| **GET** | `/api/v1/classes/{classId}/materials` | `CLASS_VIEW` và `COURSE_VIEW` | Lấy tài liệu theo lớp, gồm tài liệu cấp môn và tài liệu gắn với bài học | `PageResponse<CourseMaterialItemDTO>` với `courseCode`. Lọc bằng `courseId`, `category`, `search`, `page`, `size`. |
 | **GET** | `/api/v1/materials/{materialId}` | `hasAuthority('COURSE_VIEW')` | Xem chi tiết 1 tài liệu | Trả về `MaterialResponseDTO` |
 | **POST** | `/api/v1/lessons/{lessonId}/materials` | `hasAuthority('MATERIAL_UPLOAD')` | Upload tài liệu đính kèm bài học | `multipart/form-data`: `file`, `title`, `description`, `isDownloadable` |
 | **POST** | `/api/v1/courses/{courseId}/materials` | `hasAuthority('MATERIAL_UPLOAD')` | Upload tài liệu trực tiếp ở cấp môn học (không thuộc bài học) | `multipart/form-data`: `file`, `title`, `description`, `isDownloadable` |
@@ -1053,6 +1054,8 @@ Base path: `/api/v1/courses`
 | **PUT** | `/api/v1/materials/{materialId}/file` | `hasAuthority('MATERIAL_UPLOAD')` | Thay thế tệp đính kèm mới | `multipart/form-data`: `file` |
 | **GET** | `/api/v1/materials/{materialId}/download` | `hasAuthority('COURSE_VIEW')` | Tải xuống tệp tài liệu trực tiếp | Binary stream kèm Content-Disposition Header |
 | **DELETE** | `/api/v1/materials/{materialId}` | `hasAuthority('MATERIAL_UPLOAD')` | Xóa tài liệu | Path: `materialId` |
+
+Bảng tin lấy tối đa 4 tài liệu sau khi xác định lớp. Tab Tài liệu lấy từng trang 10 mục và lọc trên BE theo môn, loại và từ khóa. API mặc định dùng trang `0` với 20 mục. Các loại tài liệu gồm `syllabus`, `slide`, `quiz` và `code`.
 
 ---
 
@@ -1069,6 +1072,7 @@ Base path: `/api/v1/classes`
 | **GET** | `/api/v1/classes/kpi-summary` | `hasAuthority('CLASS_VIEW')` | Thống kê KPI tổng quan lớp học (`activeClassesCount`, `totalStudentsCount`, `pendingRequestsCount`, `ungradedAssignmentsCount`) |
 | **GET** | `/api/v1/classes/{id}` | `hasAuthority('CLASS_VIEW')` | Chi tiết lớp học (`ClassResponseDTO` có thêm `enrolledCount`, `isCodeClosed`, `semester`, `teachingRole`, `instructor`) |
 | **GET** | `/api/v1/classes/{id}/stats` | `hasAuthority('CLASS_VIEW')` | Thống kê số lượng môn học, học viên, giảng viên của lớp (`coursesCount`, `studentsCount`, `teachersCount`) |
+| **GET** | `/api/v1/classes/{id}/overview` | `hasAuthority('CLASS_VIEW')` | Phản hồi màn đầu của Bảng tin với thông tin lớp, số liệu, quyền, thông báo và lịch sắp tới. |
 | **POST** | `/api/v1/classes/{id}/regenerate-code` | `hasAuthority('CLASS_UPDATE')` | Làm mới / sinh lại mã tham gia lớp học (`RegenerateCodeResponseDTO`) |
 | **PUT** | `/api/v1/classes/{id}` | `hasAuthority('CLASS_UPDATE')` | Cập nhật thông tin lớp học (`UpdateClassRequestDTO`) |
 | **PATCH** | `/api/v1/classes/{id}/code-status` | `hasAuthority('CLASS_UPDATE')` | Bật/Tắt tính năng tham gia bằng mã lớp (`?isClosed=true|false`) |
@@ -1124,6 +1128,14 @@ Base path: `/api/v1/classes`
   "ungradedAssignmentsCount": 27
 }
 ```
+
+#### Dữ liệu màn đầu Bảng tin
+
+`GET /api/v1/classes/{id}/overview` trả `classInfo`, `stats`, `viewer`, tối đa 10 `announcements`, tối đa 4 `upcomingSessions` kèm tên phòng và `sessionsCount`. FE dùng phản hồi này cho banner và Bảng tin. Tài liệu xem trước gọi `/classes/{id}/materials?size=4` khi khối tài liệu đi vào vùng nhìn. Tab Lịch học gọi `/classes/{id}/lesson-sessions`, còn danh mục phòng tải khi mở biểu mẫu lịch.
+
+FE dùng cache theo ID lớp. Các thay đổi ảnh hưởng Bảng tin làm mới hoặc đánh dấu cache cần cập nhật. Khi GET lịch lỗi, tab hiển thị nút thử lại.
+
+Khi `upcomingSessions` rỗng, Bảng tin hiển thị `recentSession` dưới nhãn **Ca gần nhất đã qua** nếu có dữ liệu. Nút **Xem lịch học** mở lịch chi tiết của lớp.
 
 #### Response `ClassBannerStatsDTO` (`GET /api/v1/classes/{id}/stats`):
 ```json
@@ -1280,6 +1292,12 @@ Base path: `/api/v1/classes`
 | **GET** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bảng điểm danh của ca học |
 | **POST** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('ATTENDANCE_MANAGE')` | Điểm danh hàng loạt học sinh (`BatchAttendanceRequestDTO`) |
 
+Luồng tải ở `/lesson-sessions`
+
+- Màn hình lịch cá nhân gọi `GET /classes?page=0&size=50` cho bộ lọc và `GET /users/me/timetable?startDate=&endDate=` cho tuần đang xem. Khi chọn một lớp, FE dùng `GET /classes/{classId}/lesson-sessions` với cùng khoảng ngày.
+- Chế độ danh sách và liên kết trực tiếp đến một ca học dùng dữ liệu lịch đầy đủ để hiển thị lịch sử hoặc tìm ca ngoài tuần hiện tại. Nút **Điểm danh hôm nay** dùng lại cache của tuần hiện tại khi giảng viên đang xem tuần khác.
+- FE gọi `GET /rooms` khi mở biểu mẫu tạo hoặc sửa ca. Khi mở điểm danh, FE lấy bảng điểm danh và danh sách thành viên `role=STUDENT&status=ACTIVE` theo `classId` của ca đã chọn.
+
 #### Payload `LessonSessionCreateDTO`:
 ```json
 {
@@ -1425,9 +1443,9 @@ Base path: `/api/v1/classes/{classId}/announcements`
 | :--- | :--- | :--- | :--- |
 | **GET** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Danh sách khái niệm (`?keyword=&questionId=`) |
 | **GET** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Xem chi tiết khái niệm |
-| **POST** | `/api/v1/question-concepts` | `hasAuthority('SYSTEM_CONFIG')` | Tạo khái niệm mới (`QuestionConceptRequestDTO`) |
-| **PUT** | `/api/v1/question-concepts/{id}` | `hasAuthority('SYSTEM_CONFIG')` | Cập nhật khái niệm |
-| **DELETE** | `/api/v1/question-concepts/{id}` | `hasAuthority('SYSTEM_CONFIG')` | Xóa khái niệm |
+| **POST** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Tạo khái niệm mới (`QuestionConceptRequestDTO`) |
+| **PUT** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Cập nhật khái niệm |
+| **DELETE** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Xóa khái niệm |
 
 ---
 
@@ -1435,11 +1453,14 @@ Base path: `/api/v1/classes/{classId}/announcements`
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Tìm kiếm câu hỏi (`?search=&difficultyLevel=&conceptId=&page=1&size=10&sort=createdAt,desc`) |
-| **GET** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Xem chi tiết câu hỏi kèm danh sách đáp án |
+| **GET** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Tìm kiếm & lọc câu hỏi (`?search=&courseId=&classId=&chapterId=&questionType=&difficultyLevel=&bloomLevel=&sourceType=&conceptId=&page=1&size=10&sort=createdAt,desc`) |
+| **GET** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Xem chi tiết câu hỏi kèm danh sách đáp án, metadata mở rộng (`bloomLevel`, `tags`, `codeSnippet`, ...) và thống kê (`stats`, `correctRate`, `discriminationIndex`) |
 | **POST** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tạo câu hỏi mới (`QuestionRequestDTO`) |
-| **PUT** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Cập nhật nội dung câu hỏi và đáp án |
-| **DELETE** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Xóa câu hỏi khỏi ngân hàng |
+| **POST** | `/api/v1/questions/batch` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tạo/lưu hàng loạt câu hỏi vào ngân hàng (`BatchCreateQuestionRequestDTO`) |
+| **POST** | `/api/v1/questions/import` | `hasAuthority('QUESTION_BANK_MANAGE')` | Import câu hỏi từ file `.docx`, `.xlsx`, `.csv`, `.json`, `.txt` (`multipart/form-data`: `file`, `courseId`, `chapterId`, `saveToBank=true\|false`) |
+| **POST** | `/api/v1/questions/generate-ai` | `hasAuthority('QUESTION_BANK_MANAGE')` | AI RAG sinh bộ câu hỏi nháp từ học liệu & khái niệm đồ thị tri thức (`AiGenerateQuestionsRequestDTO`) |
+| **PUT** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Cập nhật nội dung câu hỏi, đáp án và metadata mở rộng |
+| **DELETE** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Xóa mềm câu hỏi khỏi ngân hàng |
 
 #### Payload `QuestionRequestDTO`:
 ```json
@@ -1513,6 +1534,16 @@ Base path: `/api/v1/quizzes`
   ]
 }
 ```
+
+---
+
+### Phân tích kết quả quiz
+
+`GET /api/v1/quizzes/{id}/analytics?classId=...` yêu cầu `ASSESSMENT_MANAGE` và quyền quản lý quiz trong lớp, môn tương ứng. Tham số `classId` giúp kiểm tra ngữ cảnh của đường dẫn. Sai lớp trả `404` cho người dùng có quyền quản lý quiz.
+
+FE dùng `context` cho tiêu đề, lịch, trạng thái và thang điểm. `enrolledCount`, `submittedCount` và `totalParticipants` lần lượt là sĩ số đang học, số sinh viên đã nộp và số sinh viên có điểm. `learners` cung cấp kết quả từng sinh viên. `questions` cung cấp số lượt đúng, sai và bỏ trống theo từng câu trong lượt đã chấm gần nhất của mỗi sinh viên. `passRate` là tỷ lệ phần trăm trên thang 0–100.
+
+Điểm `null` hiển thị dấu `—`, điểm `0` hiển thị theo thang điểm thật. Với phiên bản BE trước chỉ có thống kê tổng hợp, FE đọc tiêu đề và thang điểm từ API chi tiết quiz và hiển thị trạng thái chưa có dữ liệu chi tiết cho hai phần câu hỏi và sinh viên. Phản hồi phiên bản mẫu có các chỉ số Bloom hoặc độ phân biệt yêu cầu cập nhật máy chủ.
 
 ---
 
@@ -1785,6 +1816,7 @@ Endpoint mở luồng SSE stream trả lời từ AI theo thời gian thực:
 | Method | Endpoint | Mô tả |
 | :--- | :--- | :--- |
 | **GET** | `/api/v1/knowledge-graphs/courses/{courseId}` | Lấy đồ thị tri thức tổng hợp toàn bộ môn học (`CourseKnowledgeGraphResponseDTO`) |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/import-json` | Nạp trực tiếp đồ thị tri thức môn học từ JSON (`ImportKnowledgeGraphRequestDTO`) |
 | **GET** | `/api/v1/knowledge-graphs/published` | Danh sách đồ thị tri thức đã xuất bản (`?courseId=&subject=&q=&after=&limit=30`) |
 | **GET** | `/api/v1/knowledge-graphs/published/materials/{materialId}` | Lấy toàn bộ cây đồ thị tri thức đã xuất bản của tài liệu (`?nodeId=&depth=2&limit=200`) |
 | **GET** | `/api/v1/knowledge-graphs/published/concepts/{canonicalCode}` | Chi tiết 1 khái niệm, định nghĩa, quy trình, bài tập liên quan |
@@ -1799,6 +1831,77 @@ Endpoint mở luồng SSE stream trả lời từ AI theo thời gian thực:
 | **GET** | `/api/v1/knowledge-graphs/publications/{publicationId}` | Trạng thái của phiên bản xuất bản |
 | **POST** | `/api/v1/knowledge-graphs/publications/{publicationId}/retry` | Thử lại xuất bản đồ thị nếu lỗi |
 | **GET** | `/api/v1/knowledge-graphs/materials/{materialId}/audit` | Xem nhật ký kiểm toán (Audit log) của đồ thị |
+
+#### Chi tiết `POST /api/v1/knowledge-graphs/courses/{courseId}/import-json`:
+Nạp trực tiếp đồ thị tri thức có cấu trúc JSON cho môn học. Hệ thống tự động kiểm tra tính hợp lệ của đồ thị dạng DAG (Directed Acyclic Graph) ngăn chặn chu trình tiên quyết và xuất bản ngay vào cây tri thức môn học.
+
+**Quyền hạn:** `@PreAuthorize("hasAuthority('KNOWLEDGE_GRAPH_EDIT') or hasAuthority('COURSE_UPDATE')")` (Admin, Course Owner, hoặc Teacher dạy môn này trong lớp active).
+
+**Request Body (`ImportKnowledgeGraphRequestDTO`):**
+```json
+{
+  "title": "Cây tri thức Cấu trúc dữ liệu & Giải thuật",
+  "description": "Đồ thị khái niệm môn học từ cơ bản đến nâng cao bao gồm Mảng, Ngăn xếp, Hàng đợi, Cây và Đồ thị",
+  "nodes": [
+    {
+      "id": "concept-array-basics",
+      "label": "Mảng và Con trỏ cơ bản",
+      "level": "BEGINNER",
+      "category": "Cấu trúc dữ liệu tuyến tính",
+      "description": "Khái niệm ô nhớ liên tiếp, cấp phát bộ nhớ động và con trỏ",
+      "prerequisites": []
+    },
+    {
+      "id": "concept-linked-list",
+      "label": "Danh sách liên kết (Linked List)",
+      "level": "BEGINNER",
+      "category": "Cấu trúc dữ liệu tuyến tính",
+      "description": "Danh sách liên kết đơn, danh sách liên kết đôi và node trỏ",
+      "prerequisites": ["concept-array-basics"]
+    },
+    {
+      "id": "concept-tree-basics",
+      "label": "Cây nhị phân cơ bản",
+      "level": "INTERMEDIATE",
+      "category": "Cấu trúc dữ liệu phân cấp",
+      "description": "Định nghĩa cây nhị phân, duyệt tiền thứ tự, trung thứ tự và hậu thứ tự",
+      "prerequisites": ["concept-linked-list"]
+    }
+  ],
+  "edges": [
+    {
+      "source": "concept-array-basics",
+      "target": "concept-linked-list",
+      "relation": "PREREQUISITE"
+    },
+    {
+      "source": "concept-linked-list",
+      "target": "concept-tree-basics",
+      "relation": "PREREQUISITE"
+    }
+  ]
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "status": 200,
+  "message": "Xử lý đồ thị tri thức thành công",
+  "data": {
+    "courseId": "eeeeeeee-eeee-eeee-ffff-ffffffffffff",
+    "courseTitle": "Cấu trúc dữ liệu và Giải thuật",
+    "materialId": "8fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "jobId": "9fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "draftId": "afa85f64-5717-4562-b3fc-2c963f66afa6",
+    "publicationId": "bfa85f64-5717-4562-b3fc-2c963f66afa6",
+    "totalNodes": 3,
+    "totalEdges": 2,
+    "status": "PUBLISHED",
+    "importedAt": "2026-11-23T16:40:00"
+  }
+}
+```
 
 ---
 
@@ -2343,6 +2446,8 @@ Hệ thống thông báo hợp nhất (Unified Notification System) phục vụ 
 ### 20.2. Chi tiết Payloads Phân Hệ Thông Báo
 
 #### 1. `GET /api/v1/notifications`
+
+Chuông thông báo tải trang đầu khi mở danh sách. Khi chuông đóng, sự kiện realtime đánh dấu dữ liệu danh sách cần cập nhật ở lần mở tiếp theo. Badge dùng API số lượng chưa đọc.
 Query Parameters:
 - `isRead` (optional boolean): `false` (chỉ lấy chưa đọc), `true` (chỉ lấy đã đọc), không truyền (lấy tất cả).
 - `type` (optional enum): `SYSTEM`, `CLASS_ANNOUNCEMENT`, `ASSIGNMENT_DUE`, `GRADE_RELEASED`, `ATTENDANCE_WARNING`, `AI_RECOMMENDATION`.
@@ -2844,4 +2949,164 @@ Base path: `/api/v1/courses/{courseId}`
   "timestamp": "2026-11-21T20:00:00.000Z"
 }
 ```
+
+---
+
+## 16. Đồ thị Tri thức Khóa học (Course Knowledge Graph APIs)
+
+Base path: `/api/v1/knowledge-graphs`  
+*Bảo vệ 2 tầng: `@PreAuthorize("hasAuthority('KNOWLEDGE_GRAPH_READ')")` / `EDIT` và kiểm tra quyền trong Service (Admin, Course Owner, hoặc Teacher phụ trách lớp).*
+
+### 16.1. Danh sách Endpoints
+
+| Method | Endpoint | Quyền hạn | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/knowledge-graphs/courses/{courseId}` | `KNOWLEDGE_GRAPH_READ` / `COURSE_VIEW` | Lấy đồ thị tri thức hợp nhất của khóa học |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/import-json` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Khởi tạo / cập nhật đồ thị bằng file JSON hoàn chỉnh (DAG check) |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/nodes` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Thêm 1 node khái niệm (tự sinh slug nếu thiếu id, auto-bootstrap nếu chưa có đồ thị) |
+| **PUT** | `/api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Sửa thông tin node (label, level, mô tả, category, prerequisites) |
+| **DELETE** | `/api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Xóa node và tự động dọn dẹp các cạnh & prerequisites liên quan (Cascade) |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/edges` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Thêm quan hệ giữa 2 node (chặn chu trình lặp vô hạn DAG) |
+| **DELETE** | `/api/v1/knowledge-graphs/courses/{courseId}/edges` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Xóa quan hệ giữa 2 node |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/validate` | `KNOWLEDGE_GRAPH_READ` / `COURSE_VIEW` | Quét kiểm tra lỗi đồ thị (trả về danh sách BLOCKER & WARNING) |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/ai-repair` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | AI phân tích và tự động can thiệp sửa mã JSON (phá chu trình, điền mô tả, dọn rác) |
+| **POST** | `/api/v1/knowledge-graphs/courses/{courseId}/apply-ai-repair` | `KNOWLEDGE_GRAPH_EDIT` / `COURSE_UPDATE` | Chấp nhận (Accept) kết quả của AI và lưu đè đồ thị mới vào DB |
+
+### 16.2. Payload Mẫu
+
+#### Thêm Node (`POST /courses/{courseId}/nodes`):
+```json
+{
+  "id": "concept-polymorphism",
+  "label": "Tính đa hình (Polymorphism)",
+  "description": "Cơ chế cho phép các đối tượng khác nhau phản ứng với cùng một thông điệp theo các cách khác nhau.",
+  "level": "ADVANCED",
+  "category": "OOP",
+  "prerequisites": ["concept-inheritance"],
+  "linkedLessonIds": ["lesson-uuid-1"]
+}
+```
+
+#### Sửa Node (`PUT /courses/{courseId}/nodes/{nodeId}`):
+```json
+{
+  "label": "Tính đa hình & Nạp chồng toán tử",
+  "level": "ADVANCED",
+  "category": "OOP Core"
+}
+```
+
+#### Thêm Cạnh (`POST /courses/{courseId}/edges`):
+```json
+{
+  "source": "concept-class",
+  "target": "concept-inheritance",
+  "relation": "PREREQUISITE"
+}
+```
+
+#### Xóa Cạnh (`DELETE /courses/{courseId}/edges`):
+```json
+{
+  "source": "concept-class",
+  "target": "concept-inheritance",
+  "relation": "PREREQUISITE"
+}
+```
+
+#### Quét kiểm tra lỗi Đồ thị (`POST /courses/{courseId}/validate`):
+Request Body (Tùy chọn, nếu gửi thì validate snapshot hiện tại trên Canvas):
+```json
+{
+  "nodes": [
+    { "id": "a", "label": "Khái niệm A", "description": "" },
+    { "id": "b", "label": "Khái niệm B", "description": "Mô tả B" }
+  ],
+  "edges": [
+    { "source": "a", "target": "b", "relation": "PREREQUISITE" },
+    { "source": "b", "target": "a", "relation": "PREREQUISITE" }
+  ]
+}
+```
+Response (`ApiResponse<GraphValidationResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Thành công",
+  "data": {
+    "valid": false,
+    "totalBlockers": 1,
+    "totalWarnings": 1,
+    "issues": [
+      {
+        "id": "ISSUE-1",
+        "code": "CYCLE_DETECTED",
+        "severity": "BLOCKER",
+        "targetId": "b->a",
+        "targetType": "EDGE",
+        "message": "Phát hiện chu trình vòng lặp phụ thuộc (vòng luẩn quẩn): a ➔ b ➔ a",
+        "suggestion": "Ngắt hoặc đảo chiều cạnh 'b ➔ a' để đảm bảo tính tuần tự."
+      },
+      {
+        "id": "ISSUE-2",
+        "code": "MISSING_DESCRIPTION",
+        "severity": "WARNING",
+        "targetId": "a",
+        "targetType": "NODE",
+        "message": "Khái niệm 'Khái niệm A' chưa có phần giải thích/mô tả.",
+        "suggestion": "Bổ sung 1-2 câu giải thích để sinh viên và AI nắm rõ nội dung."
+      }
+    ]
+  }
+}
+```
+
+#### AI Gợi ý & Tự động Sửa lỗi JSON (`POST /courses/{courseId}/ai-repair`):
+Request Body:
+```json
+{
+  "nodes": [ ... ],
+  "edges": [ ... ],
+  "instruction": "Ưu tiên ngắt cạnh chu trình và tự sinh mô tả chuẩn sư phạm"
+}
+```
+Response (`ApiResponse<GraphAiRepairResponseDTO>`):
+```json
+{
+  "status": 200,
+  "message": "Thành công",
+  "data": {
+    "summary": "AI đã phân tích và tự động can thiệp sửa 2 vấn đề trong đồ thị: ngắt cạnh phụ thuộc ngược để loại bỏ chu trình lặp vô hạn và hoàn thiện mô tả sư phạm chuẩn.",
+    "changes": [
+      {
+        "action": "REMOVE_EDGE",
+        "targetId": "b->a",
+        "description": "Ngắt cạnh phụ thuộc ngược 'b' ➔ 'a' để phá vỡ chu trình vòng lặp"
+      },
+      {
+        "action": "ADD_DESCRIPTION",
+        "targetId": "a",
+        "description": "Tự động bổ sung mô tả học thuật chuẩn cho khái niệm 'Khái niệm A'"
+      }
+    ],
+    "repairedNodes": [ ... ],
+    "repairedEdges": [ ... ],
+    "remainingIssues": [],
+    "applied": false
+  }
+}
+```
+
+#### Chấp nhận (Accept) kết quả của AI (`POST /courses/{courseId}/apply-ai-repair`):
+Request Body:
+```json
+{
+  "repairSummary": "Áp dụng bản sửa đổi AI cho đồ thị môn học",
+  "repairedNodes": [ ... ],
+  "repairedEdges": [ ... ]
+}
+```
+Response: Trả về `ApiResponse<ImportKnowledgeGraphResponseDTO>` xác nhận đồ thị mới đã được lưu và xuất bản thành công!
+
+
 

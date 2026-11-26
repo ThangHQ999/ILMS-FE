@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
+import { useConfirm } from '@/components/shared';
 import { TeacherCreateQuizStudioView } from './TeacherCreateQuizStudioView';
 import { AiExamBlueprintStudioModal } from './AiExamBlueprintStudioModal';
 import { useClasses } from '@/features/classes/hooks/useClasses';
@@ -79,6 +80,7 @@ interface ExamItem {
 export function TeacherExamManagementView({
   userFullName = 'TS. Lê Hoàng Nam',
 }: TeacherExamManagementViewProps) {
+  const confirm = useConfirm();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -231,7 +233,14 @@ export function TeacherExamManagementView({
   const { data: proctorSessions } = useProctorSessions('quiz-04');
 
   const handleDeleteQuizItem = async (examId: string, examTitle: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa bài kiểm tra "${examTitle}"?`)) {
+    const ok = await confirm({
+      title: 'Xác nhận xóa bài kiểm tra',
+      message: `Bạn có chắc chắn muốn xóa bài kiểm tra "${examTitle}" không? Hành động này sẽ xóa dữ liệu các ca thi liên quan.`,
+      variant: 'danger',
+      confirmText: 'Xóa bài kiểm tra',
+      cancelText: 'Hủy',
+    });
+    if (ok) {
       try {
         await deleteQuizMutation.mutateAsync(examId);
         showToast(`Đã xóa bài kiểm tra "${examTitle}" thành công!`);

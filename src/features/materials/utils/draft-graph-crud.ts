@@ -39,6 +39,7 @@ export interface DraftArgument {
 
 export interface DraftEntity {
   name: string;
+  kind?: string;
   description?: string;
   definition?: string | { content: string };
   processes?: DraftProcess[];
@@ -114,6 +115,7 @@ export function addEntityToDraft(
   graph: DraftGraphData,
   params: {
     name: string;
+    kind?: string;
     description?: string;
     definition?: string;
     topicName?: string;
@@ -125,6 +127,7 @@ export function addEntityToDraft(
   const trimmedName = params.name.trim();
   const newEntity: DraftEntity = {
     name: trimmedName,
+    kind: params.kind || 'KnowledgeEntity',
     description: params.description?.trim() || '',
     definition: { content: params.definition?.trim() || '' },
     processes: [],
@@ -306,6 +309,65 @@ export function deleteRelationFromDraft(
   ) {
     next.knowledge_relations.splice(relationIndex, 1);
   }
+  return next;
+}
+
+/**
+ * Update an existing knowledge relation's type or endpoints.
+ */
+export function updateRelationInDraft(
+  graph: DraftGraphData,
+  relationIndex: number,
+  params: {
+    relation_type?: string;
+    source?: string;
+    target?: string;
+  }
+): DraftGraphData {
+  const next = structuredClone(graph);
+  if (
+    Array.isArray(next.knowledge_relations) &&
+    next.knowledge_relations[relationIndex]
+  ) {
+    const rel = next.knowledge_relations[relationIndex];
+    if (params.relation_type) {
+      rel.relation_type = params.relation_type.trim().toUpperCase();
+    }
+    if (params.source) {
+      rel.source = params.source.trim();
+    }
+    if (params.target) {
+      rel.target = params.target.trim();
+    }
+  }
+  return next;
+}
+
+/**
+ * Delete a knowledge relation by its source and target names.
+ */
+export function deleteRelationBySourceTarget(
+  graph: DraftGraphData,
+  sourceName: string,
+  targetName: string,
+  relationType?: string
+): DraftGraphData {
+  const next = structuredClone(graph);
+  if (!Array.isArray(next.knowledge_relations)) return next;
+
+  const s = sourceName.trim().toLowerCase();
+  const t = targetName.trim().toLowerCase();
+  const r = relationType ? relationType.trim().toUpperCase() : null;
+
+  next.knowledge_relations = next.knowledge_relations.filter((rel) => {
+    const matchEnds =
+      rel.source.trim().toLowerCase() === s &&
+      rel.target.trim().toLowerCase() === t;
+    if (!matchEnds) return true;
+    if (r && rel.relation_type.toUpperCase() !== r) return true;
+    return false; // delete this match
+  });
+
   return next;
 }
 
@@ -683,13 +745,78 @@ export function getNodeFields(
       };
     }
 
-    // KnowledgeEntity node itself
+    // Entity node itself or standalone node (Process, Exercise, etc.)
+    const entKind = entity.kind || kind || 'KnowledgeEntity';
     const defContent =
       typeof entity.definition === 'string'
         ? entity.definition
         : typeof entity.definition === 'object' && entity.definition !== null
           ? (entity.definition as { content?: string }).content || ''
           : '';
+
+    if (entKind === 'Process') {
+      return {
+        label: entity.name || `Quy trình #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tên quy trình', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Mô tả quy trình', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
+    if (entKind === 'ProcessStep') {
+      return {
+        label: entity.name || `Bước #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tên bước quy trình', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Hành động bước', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
+    if (entKind === 'Exercise') {
+      return {
+        label: entity.name || `Bài tập #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tiêu đề bài tập', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Nội dung đề bài', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
+    if (entKind === 'ExerciseStep') {
+      return {
+        label: entity.name || `Bước giải #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tên bước giải', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Chỉ dẫn giải quyết', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
+    if (entKind === 'Definition') {
+      return {
+        label: entity.name || `Định nghĩa #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tiêu đề / Thuật ngữ', value: entity.name || '', rows: 1 },
+          { key: 'definition', label: 'Nội dung định nghĩa', value: defContent, rows: 4 },
+        ],
+      };
+    }
+    if (entKind === 'Example') {
+      return {
+        label: entity.name || `Ví dụ #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Tiêu đề ví dụ', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Giải thích chi tiết', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
+    if (entKind === 'Argument') {
+      return {
+        label: entity.name || `Luận cứ #${idx + 1}`,
+        fields: [
+          { key: 'name', label: 'Luận cứ / Giả thuyết', value: entity.name || '', rows: 1 },
+          { key: 'description', label: 'Bằng chứng & Luận cứ', value: entity.description || '', rows: 3 },
+        ],
+      };
+    }
 
     return {
       label: entity.name || `Entity #${idx + 1}`,

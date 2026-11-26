@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
+import { useConfirm } from '@/components/shared';
 import { useStorageSummary } from '../../hooks/useStorage';
 import {
   useMySubscription,
@@ -26,6 +27,7 @@ interface BillingTabProps {
 }
 
 export function BillingTab({ onSuccessToast }: BillingTabProps) {
+  const confirm = useConfirm();
   const t = useTranslations('settings');
   const locale = useLocale();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
@@ -109,8 +111,15 @@ export function BillingTab({ onSuccessToast }: BillingTabProps) {
     : '';
   const cardHolderName = userFullName ? userFullName.toUpperCase() : 'USER';
 
-  const handleCancelAutoRenew = () => {
-    if (confirm('Bạn có chắc chắn muốn hủy tự động gia hạn gói dịch vụ này?')) {
+  const handleCancelAutoRenew = async () => {
+    const ok = await confirm({
+      title: 'Hủy tự động gia hạn gói',
+      message: 'Bạn có chắc chắn muốn hủy tự động gia hạn gói dịch vụ này không? Bạn vẫn có thể sử dụng quyền lợi của gói cho đến hết chu kỳ thanh toán hiện tại.',
+      variant: 'warning',
+      confirmText: 'Hủy gia hạn',
+      cancelText: 'Giữ lại',
+    });
+    if (ok) {
       cancelAutoRenewMutation.mutate();
     }
   };

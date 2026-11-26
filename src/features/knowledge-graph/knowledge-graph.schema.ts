@@ -434,3 +434,122 @@ export const graphAuditLogItemSchema = z
     createdAt: raw.createdAt ?? raw.timestamp ?? null,
   }));
 export type GraphAuditLogItem = z.infer<typeof graphAuditLogItemSchema>;
+
+// --- Import Knowledge Graph from JSON Schemas (docs/api-spec.md §16.2) ---
+
+export const importKnowledgeGraphNodeSchema = z.object({
+  id: z.string().min(1, 'ID nút không được để trống'),
+  label: z.string().min(1, 'Tên nút không được để trống'),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).default('BEGINNER'),
+  category: z.string().default('Chung'),
+  description: z.string().default(''),
+  prerequisites: z.array(z.string()).default([]),
+});
+export type ImportKnowledgeGraphNode = z.infer<typeof importKnowledgeGraphNodeSchema>;
+
+export const importKnowledgeGraphEdgeSchema = z.object({
+  source: z.string().min(1, 'Nguồn không được để trống'),
+  target: z.string().min(1, 'Đích không được để trống'),
+  relation: z.string().default('PREREQUISITE'),
+});
+export type ImportKnowledgeGraphEdge = z.infer<typeof importKnowledgeGraphEdgeSchema>;
+
+export const importKnowledgeGraphRequestSchema = z.object({
+  title: z.string().min(1, 'Tiêu đề đồ thị tri thức là bắt buộc'),
+  description: z.string().default(''),
+  nodes: z.array(importKnowledgeGraphNodeSchema).min(1, 'Cần ít nhất 1 nút tri thức'),
+  edges: z.array(importKnowledgeGraphEdgeSchema).default([]),
+});
+export type ImportKnowledgeGraphRequestDTO = z.infer<typeof importKnowledgeGraphRequestSchema>;
+
+export const importKnowledgeGraphResponseSchema = z
+  .object({
+    courseId: z.string().optional(),
+    courseTitle: z.string().nullable().optional(),
+    materialId: z.string().nullable().optional(),
+    jobId: z.string().nullable().optional(),
+    draftId: z.string().nullable().optional(),
+    publicationId: z.string().nullable().optional(),
+    totalNodes: z.number().nullable().optional(),
+    totalEdges: z.number().nullable().optional(),
+    status: z.string().nullable().optional(),
+    importedAt: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type ImportKnowledgeGraphResponseDTO = z.infer<typeof importKnowledgeGraphResponseSchema>;
+
+// --- Course Knowledge Graph Direct Node & Edge CRUD Schemas (docs/api-spec.md §16.1 & §16.2) ---
+
+export const createKnowledgeNodeRequestSchema = z.object({
+  id: z.string().optional(),
+  label: z.string().min(1, 'Tên nút không được để trống'),
+  description: z.string().optional(),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
+  category: z.string().optional(),
+  prerequisites: z.array(z.string()).optional(),
+  linkedLessonIds: z.array(z.string()).optional(),
+});
+export type CreateKnowledgeNodeRequestDTO = z.infer<typeof createKnowledgeNodeRequestSchema>;
+
+export const updateKnowledgeNodeRequestSchema = z.object({
+  label: z.string().optional(),
+  description: z.string().optional(),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
+  category: z.string().optional(),
+  prerequisites: z.array(z.string()).optional(),
+  linkedLessonIds: z.array(z.string()).optional(),
+});
+export type UpdateKnowledgeNodeRequestDTO = z.infer<typeof updateKnowledgeNodeRequestSchema>;
+
+export const manageKnowledgeEdgeRequestSchema = z.object({
+  source: z.string().min(1, 'Nguồn không được để trống'),
+  target: z.string().min(1, 'Đích không được để trống'),
+  relation: z.string().default('PREREQUISITE'),
+});
+export type ManageKnowledgeEdgeRequestDTO = z.infer<typeof manageKnowledgeEdgeRequestSchema>;
+
+// --- Course Knowledge Graph Validation & AI Auto-Repair Schemas (docs/api-spec.md §16.1 & §16.2) ---
+
+export const graphValidationIssueSchema = z.object({
+  id: z.string().default(''),
+  code: z.string().default('UNKNOWN'),
+  severity: z.enum(['BLOCKER', 'WARNING', 'INFO']).default('WARNING'),
+  targetId: z.string().default(''),
+  targetType: z.enum(['NODE', 'EDGE', 'GRAPH']).default('NODE'),
+  message: z.string().default(''),
+  suggestion: z.string().default(''),
+});
+export type GraphValidationIssue = z.infer<typeof graphValidationIssueSchema>;
+
+export const graphValidationResponseSchema = z.object({
+  valid: z.boolean().default(false),
+  totalBlockers: z.number().default(0),
+  totalWarnings: z.number().default(0),
+  issues: z.array(graphValidationIssueSchema).default([]),
+});
+export type GraphValidationResponseDTO = z.infer<typeof graphValidationResponseSchema>;
+
+export const aiRepairActionSchema = z.object({
+  action: z.string().default('OTHER'),
+  targetId: z.string().default(''),
+  description: z.string().default(''),
+});
+export type AiRepairAction = z.infer<typeof aiRepairActionSchema>;
+
+export const graphAiRepairResponseSchema = z.object({
+  summary: z.string().default(''),
+  changes: z.array(aiRepairActionSchema).default([]),
+  repairedNodes: z.array(z.record(z.string(), z.unknown())).default([]),
+  repairedEdges: z.array(z.record(z.string(), z.unknown())).default([]),
+  remainingIssues: z.array(graphValidationIssueSchema).default([]),
+  applied: z.boolean().default(false),
+});
+export type GraphAiRepairResponseDTO = z.infer<typeof graphAiRepairResponseSchema>;
+
+export const applyAiRepairRequestSchema = z.object({
+  repairSummary: z.string().default('Áp dụng bản sửa đổi AI cho đồ thị môn học'),
+  repairedNodes: z.array(z.record(z.string(), z.unknown())),
+  repairedEdges: z.array(z.record(z.string(), z.unknown())),
+});
+export type ApplyAiRepairRequestDTO = z.infer<typeof applyAiRepairRequestSchema>;
+

@@ -1,5 +1,22 @@
 import type { ClassFilters, ClassItem } from './types';
 
+export const classDetailKeys = {
+  all: ['class-detail'] as const,
+  detail: (id: string) => [...classDetailKeys.all, id] as const,
+  overview: (id: string) => [...classDetailKeys.detail(id), 'overview'] as const,
+  info: (id: string) => [...classDetailKeys.detail(id), 'info'] as const,
+  stats: (id: string) => [...classDetailKeys.detail(id), 'stats'] as const,
+  courses: (id: string) => [...classDetailKeys.detail(id), 'courses'] as const,
+  availableCourses: (id: string) => [...classDetailKeys.detail(id), 'available-courses'] as const,
+  announcements: (id: string) => [...classDetailKeys.detail(id), 'announcements'] as const,
+  materials: (id: string) => [...classDetailKeys.detail(id), 'materials'] as const,
+  members: (id: string) => [...classDetailKeys.detail(id), 'members'] as const,
+  assignments: (id: string) => [...classDetailKeys.detail(id), 'assignments'] as const,
+  exams: (id: string) => [...classDetailKeys.detail(id), 'exams'] as const,
+  gradeReports: (id: string, isStudent: boolean) =>
+    [...classDetailKeys.detail(id), 'grade-reports', isStudent ? 'me' : 'all'] as const,
+};
+
 export const classKeys = {
   all: ['classes'] as const,
   lists: () => [...classKeys.all, 'list'] as const,

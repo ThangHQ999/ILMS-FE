@@ -29,4 +29,6 @@ export interface StudentClassKpiStats {
   enrolledClassesCount: number;
   upcomingAssignmentsCount: number;
   avgProgressPercent: number;
+  gpa?: number | null;
+  gpaTrendText?: string | null;
 }

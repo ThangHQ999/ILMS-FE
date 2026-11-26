@@ -26,6 +26,10 @@ export const ClassKpiStatsBar = React.memo(function ClassKpiStatsBar({
   const t = useTranslations('classes');
 
   if (workspaceMode === 'student') {
+    const hasGpa = typeof studentStats.gpa === 'number' && !isNaN(studentStats.gpa);
+    const hasTasks = (studentStats.upcomingAssignmentsCount ?? 0) > 0;
+    const hasEnrolled = (studentStats.enrolledClassesCount ?? 0) > 0;
+
     return (
       <section className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-1">
         {/* KPI 1: Lớp đang theo học */}
@@ -63,9 +67,17 @@ export const ClassKpiStatsBar = React.memo(function ClassKpiStatsBar({
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            <span className="truncate">Theo kế hoạch học tập hiện tại</span>
+          <div
+            className={`mt-3 flex items-center gap-1.5 text-xs font-medium truncate ${
+              hasEnrolled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {hasEnrolled ? 'check_circle' : 'info'}
+            </span>
+            <span className="truncate">
+              {hasEnrolled ? 'Theo kế hoạch học tập hiện tại' : 'Chưa đăng ký lớp học nào'}
+            </span>
           </div>
         </div>
 
@@ -80,37 +92,65 @@ export const ClassKpiStatsBar = React.memo(function ClassKpiStatsBar({
               onKpiClick?.('tasks');
             }
           }}
-          className={`group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-rose-200/80 dark:border-rose-900/60 shadow-2xs hover:shadow-md hover:border-rose-300 transition-all cursor-pointer ring-1 ring-rose-500/10 ${
-            activeKpi === 'tasks' ? 'ring-2 ring-rose-500' : ''
+          className={`group p-5 rounded-2xl bg-white dark:bg-slate-900 border transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-md ${
+            activeKpi === 'tasks'
+              ? 'ring-2 ring-rose-500 border-rose-500/50'
+              : hasTasks
+              ? 'border-rose-200/80 dark:border-rose-900/60 ring-1 ring-rose-500/10 hover:border-rose-300'
+              : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
           }`}
         >
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            <span
+              className={`text-xs font-semibold flex items-center gap-1.5 uppercase tracking-wider ${
+                hasTasks
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              {hasTasks && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />}
               <span>BÀI TẬP CẦN NỘP</span>
             </span>
-            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-transform group-hover:scale-110">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                hasTasks
+                  ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
+              }`}
+            >
               <span className="material-symbols-outlined text-[22px]">assignment</span>
             </div>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-extrabold text-rose-600 dark:text-rose-400 tracking-tight">
+            <span
+              className={`font-display text-3xl font-extrabold tracking-tight ${
+                hasTasks
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-slate-900 dark:text-white'
+              }`}
+            >
               {studentStats.upcomingAssignmentsCount ?? 0}
             </span>
-            <span className="text-sm font-semibold text-rose-600/80 dark:text-rose-400/80">
+            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
               bài tập cần hoàn thành
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 truncate">
+          <div
+            className={`mt-3 flex items-center gap-1.5 text-xs font-medium truncate ${
+              hasTasks
+                ? 'text-rose-600 dark:text-rose-400'
+                : 'text-slate-500 dark:text-slate-400'
+            }`}
+          >
             <span className="material-symbols-outlined text-[16px]">
-              {(studentStats.upcomingAssignmentsCount ?? 0) > 0 ? 'alarm' : 'check_circle'}
+              {hasTasks ? 'alarm' : 'check_circle'}
             </span>
             <span className="truncate font-semibold">
-              {(studentStats.upcomingAssignmentsCount ?? 0) > 0
+              {hasTasks
                 ? `${studentStats.upcomingAssignmentsCount} bài tập chưa hoàn thành`
-                : 'Đã hoàn thành toàn bộ bài tập'}
+                : 'Không có bài tập cần nộp'}
             </span>
           </div>
         </div>
@@ -126,31 +166,59 @@ export const ClassKpiStatsBar = React.memo(function ClassKpiStatsBar({
               onKpiClick?.('gpa');
             }
           }}
-          className={`group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-900/60 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer ring-1 ring-emerald-500/10 ${
-            activeKpi === 'gpa' ? 'ring-2 ring-emerald-500' : ''
+          className={`group p-5 rounded-2xl bg-white dark:bg-slate-900 border transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-md ${
+            activeKpi === 'gpa'
+              ? 'ring-2 ring-emerald-500 border-emerald-500/50'
+              : hasGpa
+              ? 'border-emerald-200/80 dark:border-emerald-900/60 ring-1 ring-emerald-500/10 hover:border-emerald-300'
+              : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
           }`}
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               ĐIỂM TRUNG BÌNH HỆ 10
             </span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-transform group-hover:scale-110">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                hasGpa
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
+              }`}
+            >
               <span className="material-symbols-outlined text-[22px]">workspace_premium</span>
             </div>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
-              8.8
+            <span
+              className={`font-display text-3xl font-extrabold tracking-tight ${
+                hasGpa
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-400 dark:text-slate-500 font-mono'
+              }`}
+            >
+              {hasGpa ? studentStats.gpa!.toFixed(1) : '--'}
             </span>
             <span className="text-sm font-semibold text-slate-400">
               / 10
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            <span className="material-symbols-outlined text-[16px]">trending_up</span>
-            <span className="truncate">+0.4 so với kỳ trước • Đạt chuẩn PLO</span>
+          <div
+            className={`mt-3 flex items-center gap-1.5 text-xs font-medium truncate ${
+              hasGpa
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-slate-400 dark:text-slate-500'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {hasGpa ? 'trending_up' : 'info'}
+            </span>
+            <span className="truncate">
+              {hasGpa
+                ? (studentStats.gpaTrendText || (studentStats.gpa! >= 8.5 ? 'Xếp loại Giỏi • Đạt chuẩn' : studentStats.gpa! >= 7.0 ? 'Xếp loại Khá' : studentStats.gpa! >= 5.0 ? 'Đạt yêu cầu môn học' : 'Cần cải thiện kết quả'))
+                : 'Chưa có dữ liệu đánh giá'}
+            </span>
           </div>
         </div>
       </section>

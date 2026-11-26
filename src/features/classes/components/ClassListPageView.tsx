@@ -18,9 +18,9 @@ import { MobileFilterBottomSheet } from './MobileFilterBottomSheet';
 import { CreateClassModal } from './CreateClassModal';
 import { ArchiveClassModal } from './ArchiveClassModal';
 import { JoinClassModal } from './JoinClassModal';
-import { useClasses, useClassKpiSummary } from '../hooks/useClasses';
+import { useClasses, useClassKpiSummary, useLeaveClass } from '../hooks/useClasses';
 import { useArchiveClass } from '../hooks/useArchiveClass';
-import { EmptyState, ErrorState, Button } from '@/components/shared';
+import { EmptyState, ErrorState, Button, useConfirm } from '@/components/shared';
 import { toast } from '@/components/ui/sonner';
 import type {
   ClassFilters,
@@ -52,7 +52,7 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(LAST_CLASS_TAB_KEY) as ClassRoleTab | null;
-      if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'ARCHIVED') {
+      if (saved === 'TEACHING' || saved === 'ENROLLED' || saved === 'PENDING' || saved === 'ARCHIVED') {
         setActiveTab(saved);
       }
     } catch {
@@ -68,7 +68,7 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
     page: 0,
     size: 12,
   });
-  const [viewMode, setViewMode] = useState<ClassViewMode>('list');
+  const [viewMode, setViewMode] = useState<ClassViewMode>('grid');
   const [activeKpi, setActiveKpi] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
@@ -140,6 +140,11 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
 
   const { data: kpiData } = useClassKpiSummary();
   const { restoreClass } = useArchiveClass();
+  const confirm = useConfirm();
+  const { mutate: leaveClassMutate } = useLeaveClass({
+    onSuccess: () => toast.success('Bạn đã rời khỏi lớp học.'),
+    onError: () => toast.error('Không thể rời khỏi lớp học lúc này.'),
+  });
 
   const refetchAll = useCallback(() => {
     if (activeTab === 'TEACHING' || teachingQuery.isSuccess) teachingQuery.refetch();
@@ -191,9 +196,16 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
 
   const enrolledBaseItems = useMemo(() => {
     const apiItems = enrolledQuery.data?.items ?? [];
-    const activeItems = apiItems.filter((i) => i.status === 'ACTIVE' && !i.deletedAt);
+    const activeItems = apiItems.filter(
+      (i) => i.status === 'ACTIVE' && !i.deletedAt && i.memberStatus !== 'PENDING'
+    );
     const studentItems = activeItems.filter((x) => x.teachingRole === 'STUDENT');
     return studentItems.length > 0 ? studentItems : activeItems;
+  }, [enrolledQuery.data]);
+
+  const pendingBaseItems = useMemo(() => {
+    const apiItems = enrolledQuery.data?.items ?? [];
+    return apiItems.filter((i) => i.memberStatus === 'PENDING' && !i.deletedAt);
   }, [enrolledQuery.data]);
 
   const archivedBaseItems = useMemo(() => {
@@ -202,7 +214,8 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   }, [archivedQuery.data]);
 
   const teachingCount = teachingQuery.data?.totalElements ?? teachingBaseItems.length;
-  const enrolledCount = enrolledQuery.data?.totalElements ?? enrolledBaseItems.length;
+  const pendingCount = pendingBaseItems.length;
+  const enrolledCount = Math.max(0, (enrolledQuery.data?.totalElements ?? enrolledBaseItems.length) - pendingCount);
   const archivedCount = archivedQuery.data?.totalElements ?? archivedBaseItems.length;
   const showTeachingTab = true;
 
@@ -273,7 +286,7 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
   const activeQuery =
     activeTab === 'TEACHING'
       ? teachingQuery
-      : activeTab === 'ENROLLED'
+      : activeTab === 'ENROLLED' || activeTab === 'PENDING'
       ? enrolledQuery
       : archivedQuery;
 
@@ -282,6 +295,8 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
       ? teachingBaseItems
       : activeTab === 'ENROLLED'
       ? enrolledBaseItems
+      : activeTab === 'PENDING'
+      ? pendingBaseItems
       : archivedBaseItems;
 
   const totalInCurrentTab = baseItemsForTab.length;
@@ -354,14 +369,29 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
     };
   }, [kpiData, teachingBaseItems, teachingCount]);
 
-  const studentKpiStats: StudentClassKpiStats = useMemo(
-    () => ({
+  const studentKpiStats: StudentClassKpiStats = useMemo(() => {
+    // Calculate GPA only if enrolled classes provide actual graded scores
+    const gradesWithScore = enrolledBaseItems
+      .map((c) => {
+        const gradeVal =
+          (c.stats as { grade?: number })?.grade ??
+          (c as { studentGrade?: number }).studentGrade;
+        return typeof gradeVal === 'number' && !isNaN(gradeVal) ? gradeVal : null;
+      })
+      .filter((g): g is number => g !== null);
+
+    const avgGpa =
+      gradesWithScore.length > 0
+        ? gradesWithScore.reduce((a, b) => a + b, 0) / gradesWithScore.length
+        : null;
+
+    return {
       enrolledClassesCount: enrolledCount,
       upcomingAssignmentsCount: kpiData?.ungradedAssignmentsCount ?? 0,
       avgProgressPercent: 0,
-    }),
-    [kpiData, enrolledCount]
-  );
+      gpa: avgGpa,
+    };
+  }, [kpiData, enrolledCount, enrolledBaseItems]);
 
   const hasActiveFilters = Boolean(
     filters.search?.trim() ||
@@ -435,6 +465,7 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
             showTeachingTab={showTeachingTab}
             teachingCount={teachingCount}
             enrolledCount={enrolledCount}
+            pendingCount={pendingCount}
             archivedCount={archivedCount}
             filters={filters}
             onFilterChange={handleFilterUpdate}
@@ -460,6 +491,21 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
                 handleFilterUpdate({ search: '', major: undefined, role: 'ALL', page: 0 });
                 setActiveKpi(null);
               }}
+            />
+          ) : items.length === 0 && activeTab === 'PENDING' ? (
+            <EmptyState
+              variant="zero-data"
+              title="Chưa có lớp học nào đang chờ duyệt"
+              description="Khi bạn nhập mã tham gia các lớp có bật chế độ phê duyệt, lớp học sẽ hiển thị tại đây cho đến khi giảng viên chấp nhận."
+              action={
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsJoinOpen(true)}
+                >
+                  Tham gia bằng mã
+                </Button>
+              }
             />
           ) : items.length === 0 && activeTab === 'ARCHIVED' ? (
             <EmptyState
@@ -500,6 +546,16 @@ export function ClassListPageView({ userFullName }: ClassListPageViewProps) {
                 viewMode={viewMode}
                 onArchiveClick={(item) => setArchiveTarget(item)}
                 onRestoreClick={(item) => restoreClass(item.id)}
+                onLeaveClick={async (item) => {
+                  const ok = await confirm({
+                    title: 'Rời khỏi lớp học?',
+                    message: `Bạn có chắc chắn muốn rời khỏi lớp "${item.title || item.name}"?`,
+                    confirmText: 'Rời lớp',
+                    cancelText: 'Hủy',
+                    variant: 'danger',
+                  });
+                  if (ok) leaveClassMutate(item.id);
+                }}
                 copiedCode={copiedCode}
                 onCopyCode={handleCopyCode}
               />

@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { CustomSelect } from '@/components/shared';
+import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { ACADEMIC_SHIFTS } from '@/features/timetable/constants';
 import { formatDateIso } from '@/features/timetable/services/timetable.service';
 import { CreateLessonSessionRequest, Room, ConflictDetails, LessonSession } from '../types';
@@ -12,6 +14,7 @@ interface SessionFormModalProps {
   mode?: 'create' | 'edit';
   session?: LessonSession | null;
   rooms: Room[];
+  roomsLoading?: boolean;
   existingSessions?: LessonSession[];
   isSubmitting?: boolean;
   onSubmit: (dto: CreateLessonSessionRequest) => Promise<void>;
@@ -27,6 +30,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   mode = 'create',
   session,
   rooms,
+  roomsLoading = false,
   isSubmitting = false,
   onSubmit,
   onDelete,
@@ -34,6 +38,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   defaultDate,
   defaultShift = 1,
 }) => {
+  const t = useTranslations('classes.detail');
   const isEdit = mode === 'edit' && Boolean(session);
 
   const [roomId, setRoomId] = useState<string>(() => {
@@ -62,6 +67,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
     if (session && mode === 'edit') {
       setRoomId(session.roomId || '');
       setSessionDate(session.sessionDate);
@@ -85,7 +91,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     }
     setConfirmDelete(false);
     setErrorMsg(null);
-  }, [session, mode, defaultDate, defaultShift, rooms, isOpen]);
+  }, [session, mode, defaultDate, defaultShift, isOpen]);
 
   if (!isOpen) return null;
 
@@ -139,7 +145,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       });
       onClose();
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Có lỗi xảy ra khi lưu ca học');
+      setErrorMsg(getUserFriendlyErrorMessage(err, 'Có lỗi xảy ra khi lưu ca học'));
     }
   };
 
@@ -152,7 +158,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       onClose();
     } catch (err) {
       setIsDeleting(false);
-      setErrorMsg(err instanceof Error ? err.message : 'Không thể xóa ca học lúc này');
+      setErrorMsg(getUserFriendlyErrorMessage(err, 'Không thể xóa ca học lúc này'));
     }
   };
 
@@ -222,6 +228,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               <CustomSelect<string>
                 value={roomId}
                 onChange={setRoomId}
+                disabled={roomsLoading}
                 options={[
                   {
                     value: '',
@@ -241,6 +248,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
                 triggerClassName="h-10 text-xs font-medium rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none hover:bg-[#E1E5EA] dark:hover:bg-[#333537]"
                 popupClassName="w-full min-w-[260px]"
               />
+              {roomsLoading && <p role="status" className="mt-2 text-xs text-muted-foreground">{t('lessonRoomsLoading')}</p>}
             </div>
           </div>
 
@@ -382,7 +390,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || roomsLoading}
                 className="px-5 py-2 rounded-full bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-[#062E6F] hover:bg-[#0842a0] dark:hover:bg-[#8ab4f8] text-xs font-semibold flex items-center gap-1.5 transition-colors border-none cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 <span className="material-symbols-outlined text-[16px]">

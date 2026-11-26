@@ -6,6 +6,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { useUserRole } from '@/hooks/useUserRole';
+import { ClassworkWorkspace } from '@/features/assignments';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { useCourse } from '../../hooks/useCourse';
@@ -30,19 +31,21 @@ export function CourseDetailPageView({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations('courses.detail');
+  const tClasswork = useTranslations('classworkFlow');
 
   // Layout shell states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  // Sync activeTab with URL ?tab=syllabus|materials|knowledgeGraph|aiTutor
-  type CourseTabKey = 'syllabus' | 'materials' | 'knowledgeGraph' | 'aiTutor';
+  type CourseTabKey = 'syllabus' | 'materials' | 'knowledgeGraph' | 'aiTutor' | 'assignments' | 'gradebook';
   const parseTabParam = (value: string | null): CourseTabKey => {
     if (
       value === 'syllabus' ||
       value === 'materials' ||
       value === 'knowledgeGraph' ||
-      value === 'aiTutor'
+      value === 'aiTutor' ||
+      value === 'assignments' ||
+      value === 'gradebook'
     ) {
       return value;
     }
@@ -394,6 +397,17 @@ export function CourseDetailPageView({
                   <span className="material-symbols-outlined text-[20px] text-amber-500">smart_toy</span>
                   <span>{t('tabAiTutor')}</span>
                 </button>
+                {(['assignments', 'gradebook'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    aria-pressed={activeTab === tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-semibold ${activeTab === tab ? 'bg-primary-container text-on-primary-container' : 'bg-surface hover:bg-surface-hover'}`}
+                  >
+                    {tClasswork(tab)}
+                  </button>
+                ))}
               </div>
 
               {/* Tab Contents */}
@@ -444,6 +458,9 @@ export function CourseDetailPageView({
                     ch.lessons.flatMap((l) => l.materials.map((m) => m.id))
                   )}
                 />
+              )}
+              {(activeTab === 'assignments' || activeTab === 'gradebook') && (
+                <ClassworkWorkspace courseId={courseId} view={activeTab} />
               )}
             </>
           )}

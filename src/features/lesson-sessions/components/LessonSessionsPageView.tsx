@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCurrentUser } from '@/features/auth';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { CustomSelect } from '@/components/shared';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { useClasses } from '@/features/classes/hooks/useClasses';
-import { useClassDetail } from '@/features/classes/hooks/useClassDetail';
-import type { ClassItem } from '@/features/classes/types';
+import { classDetailKeys } from '@/features/classes/constants';
+import { getClassById, normalizeClassApiId } from '@/features/classes/services/class.service';
+import { ApiError } from '@/types/common';
 import {
   DashboardSidebar,
   DashboardHeader,
@@ -20,6 +22,7 @@ import {
   useCreateLessonSession,
   useUpdateLessonSession,
   useDeleteLessonSession,
+  lessonSessionsQueryOptions,
   useLessonSessions,
   useRooms,
   useSaveAttendances,
@@ -30,10 +33,8 @@ import {
   CreateLessonSessionRequest,
   LessonSession,
 } from '../types';
-import { lessonSessionKeys } from '../constants';
 import { LessonSessionHeader } from './LessonSessionHeader';
 import { LessonSessionTable } from './LessonSessionTable';
-import { CreateSessionModal } from './CreateSessionModal';
 import { ConflictWarningModal } from './ConflictWarningModal';
 import { AttendanceHeroBanner } from './AttendanceHeroBanner';
 import { AttendanceTable } from './AttendanceTable';
@@ -42,6 +43,7 @@ import { SessionFormModal } from './SessionFormModal';
 import { TimetableGridMatrix } from '@/features/timetable/components/TimetableGridMatrix';
 import {
   getCurrentWeekNumber,
+  getMondayOfWeek,
   getWeekStartDate,
   formatDateShort,
   formatDateIso,
@@ -52,51 +54,45 @@ interface LessonSessionsPageViewProps {
   classId?: string;
 }
 
+function getWeekEndDate(weekStart: Date): Date {
+  const end = new Date(weekStart);
+  end.setDate(end.getDate() + 6);
+  return end;
+}
+
 export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
-  classId = 'CNTT-K21A',
+  classId,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { data: user } = useCurrentUser();
-  const { isTeacher } = useUserRole();
+  const t = useTranslations('classes.detail');
+  const { user, isTeacher, isAuthenticated, isLoading: isAuthenticating } = useUserRole();
   const { isFocus, toggleMode } = useDashboardMode();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useSidebarCollapsed();
 
-  // Optimized fetching: Only fetch full classes list if no specific class is targeted
-  const isSpecificClass = Boolean(classId && classId !== 'CNTT-K21A');
-  const { data: classesData } = useClasses(
-    { page: 0, size: 50 },
-    { enabled: !isSpecificClass }
-  );
-  const classesList: ClassItem[] = classesData?.items ?? [];
+  const isSpecificClass = Boolean(classId && classId !== 'CNTT-K21A' && classId !== 'all');
+  const classesQuery = useClasses({ page: 0, size: 50 }, { enabled: isAuthenticated });
+  const classesList = classesQuery.data?.items ?? [];
 
-  // Query specific class details immediately from cache or single request
-  const { data: classDetail } = useClassDetail(
-    isSpecificClass ? classId : '',
-    'stream',
-    false
+  const [effectiveClassId, setSelectedClassId] = useState(
+    () => isSpecificClass && classId ? normalizeClassApiId(classId) : 'all'
   );
 
-  const [selectedClassId, setSelectedClassId] = useState<string>(classId || 'CNTT-K21A');
-
-  const effectiveClassId = selectedClassId || classId || 'CNTT-K21A';
-
-  const activeClass = useMemo(() => {
-    if (classDetail?.classInfo) {
-      const info = classDetail.classInfo;
-      return {
-        id: info.id,
-        name: info.title || info.name || 'Lớp học',
-        code: info.enrollmentKey || info.name,
-        enrolledCount: info.enrolledCount ?? classDetail.members?.length ?? 0,
-        academicYear: info.academicYear || '2026-2027',
-        semester: info.semester || 'Học kỳ 1',
-        schedule: info.schedule,
-      };
-    }
-    return classesList.find((c) => c.id === effectiveClassId) || null;
-  }, [classDetail?.classInfo, classDetail?.members?.length, classesList, effectiveClassId]);
+  const listedClass = classesList.find(cls => cls.id === effectiveClassId);
+  const classQuery = useQuery({
+    queryKey: classDetailKeys.info(effectiveClassId),
+    queryFn: () => getClassById(effectiveClassId),
+    enabled: isAuthenticated && classesQuery.isSuccess && effectiveClassId !== 'all' && !listedClass,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const classInfo = listedClass ?? (effectiveClassId !== 'all' ? classQuery.data : undefined);
+  const activeClass = classInfo ? {
+    ...classInfo,
+    name: classInfo.title || classInfo.name,
+    code: classInfo.classCode || classInfo.code || classInfo.enrollmentKey || classInfo.name,
+  } : null;
 
   const handleToggleSidebarCollapse = useCallback(() => {
     setIsSidebarCollapsed((prev) => !prev);
@@ -111,6 +107,11 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar');
   const [currentWeek, setCurrentWeek] = useState(() => getCurrentWeekNumber());
   const [selectedSession, setSelectedSession] = useState<LessonSession | null>(null);
+  const weekStartDate = useMemo(() => getWeekStartDate(currentWeek), [currentWeek]);
+  const weekEndDate = useMemo(() => getWeekEndDate(weekStartDate), [weekStartDate]);
+  const paramSessionId = searchParams.get('sessionId');
+  const isAttendanceAction = searchParams.get('action') === 'attendance';
+  const loadWeek = !isSpecificClass && viewMode === 'calendar' && !paramSessionId;
 
   // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -126,71 +127,53 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Queries
-  const { data: sessions = [], isLoading: isLoadingSessions } = useLessonSessions(effectiveClassId);
-  const { data: rooms = [] } = useRooms();
-  const { data: rawStudents = [] } = useClassStudents(effectiveClassId);
-
-  // Resolve students: prefer rawStudents or classDetail members
-  const students = useMemo(() => {
-    if (rawStudents.length > 0) return rawStudents;
-    if (classDetail?.members && classDetail.members.length > 0) {
-      const studentMembers = classDetail.members
-        .filter((m) => m.role === 'STUDENT' || !m.role)
-        .map((m) => ({
-          studentId: m.id,
-          studentCode: m.studentCode || `SV-${m.id.slice(0, 6)}`,
-          studentName: m.name,
-          email: m.email || '',
-          avatarUrl: m.avatarUrl,
-        }));
-      if (studentMembers.length > 0) return studentMembers;
-    }
-    return [];
-  }, [rawStudents, classDetail?.members]);
-
-  const { data: existingAttendances = [] } = useAttendances(
-    effectiveClassId,
-    selectedSession?.lessonSessionId
+  const scheduleQuery = useLessonSessions(effectiveClassId, {
+    canonical: true,
+    enabled: isAuthenticated,
+    startDate: loadWeek ? formatDateIso(weekStartDate) : undefined,
+    endDate: loadWeek ? formatDateIso(weekEndDate) : undefined,
+  });
+  const { data: sessions = [], isLoading: isLoadingSessions } = scheduleQuery;
+  const { data: rooms = [], isLoading: areRoomsLoading } = useRooms({ enabled: isFormModalOpen && isAuthenticated });
+  const attendanceClassId = selectedSession?.classId ?? '';
+  const studentsQuery = useClassStudents(attendanceClassId, { enabled: isAuthenticated, canonical: true });
+  const attendancesQuery = useAttendances(
+    attendanceClassId,
+    isAuthenticated ? selectedSession?.lessonSessionId : undefined,
+    { canonical: true },
   );
-
-  // Check URL params
-  const paramSessionId = searchParams?.get('sessionId') || null;
-  const isAttendanceAction = searchParams?.get('action') === 'attendance';
-  const hasAutoSelectedRef = useRef(false);
+  const students = studentsQuery.data ?? [];
+  const existingAttendances = attendancesQuery.data ?? [];
+  const attendanceIsReady = studentsQuery.isSuccess && attendancesQuery.isSuccess;
+  const attendanceError = studentsQuery.error ?? attendancesQuery.error;
+  const handledAttendanceLinkRef = useRef<string | null>(null);
   const lastInitializedKeyRef = useRef<string>('');
 
   useEffect(() => {
-    if (sessions.length === 0) return;
-
-    if (paramSessionId) {
-      if (selectedSession?.lessonSessionId !== paramSessionId) {
-        const matched = sessions.find((s) => s.lessonSessionId === paramSessionId);
-        if (matched) {
-          setSelectedSession(matched);
-        }
-      }
+    if (!paramSessionId && !isAttendanceAction) {
+      handledAttendanceLinkRef.current = null;
       return;
     }
 
-    if (isAttendanceAction && !hasAutoSelectedRef.current && !selectedSession) {
-      hasAutoSelectedRef.current = true;
-      const todayStr = formatDateIso();
-      const todaySession =
-        sessions.find((s) => s.sessionDate === todayStr) ||
-        sessions.find((s) => s.status === 'IN_PROGRESS') ||
-        sessions[0];
-      if (todaySession) {
-        setSelectedSession(todaySession);
-      }
+    const link = paramSessionId ?? 'today';
+    if (handledAttendanceLinkRef.current === link) return;
+
+    const today = formatDateIso();
+    const target = sessions.find(session => paramSessionId
+      ? session.lessonSessionId === paramSessionId
+      : session.sessionDate === today);
+    if (target) {
+      handledAttendanceLinkRef.current = link;
+      setSelectedSession(target);
     }
-  }, [sessions, paramSessionId, isAttendanceAction, selectedSession]);
+  }, [sessions, paramSessionId, isAttendanceAction]);
 
   // Mutations
   const createSessionMutation = useCreateLessonSession(effectiveClassId);
   const updateSessionMutation = useUpdateLessonSession(effectiveClassId);
   const deleteSessionMutation = useDeleteLessonSession(effectiveClassId);
   const saveAttendancesMutation = useSaveAttendances(
-    effectiveClassId,
+    attendanceClassId,
     selectedSession?.lessonSessionId || ''
   );
 
@@ -200,7 +183,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   >({});
 
   useEffect(() => {
-    if (!selectedSession || students.length === 0) return;
+    if (!selectedSession || !attendanceIsReady || students.length === 0) return;
 
     const currentSessionId = selectedSession.lessonSessionId;
     const attSignature = existingAttendances
@@ -221,7 +204,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
     });
     setAttendanceMap(initialMap);
     setIsLocked(false);
-  }, [selectedSession, students, existingAttendances]);
+  }, [selectedSession, students, existingAttendances, attendanceIsReady]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -266,6 +249,10 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   };
 
   const handleOpenCreateModal = (date?: string, shift?: number) => {
+    if (effectiveClassId === 'all') {
+      showToast(t('selectClassForLessonSession'));
+      return;
+    }
     setSelectedCellDate(date || formatDateIso());
     setSelectedCellShift(shift || 1);
     setFormMode('create');
@@ -286,6 +273,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
     } else if (formMode === 'edit' && activeEditingSession) {
       await updateSessionMutation.mutateAsync({
         lessonSessionId: activeEditingSession.lessonSessionId,
+        targetClassId: activeEditingSession.classId,
         payload,
       });
       showToast('Đã cập nhật ca học thành công!');
@@ -293,8 +281,12 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   };
 
   const handleDeleteSession = async (sessionId: string) => {
+    const target = [activeEditingSession, detailModalSession, ...sessions]
+      .find(session => session?.lessonSessionId === sessionId);
+    if (!target) return;
     await deleteSessionMutation.mutateAsync({
       lessonSessionId: sessionId,
+      targetClassId: target.classId,
       force: true,
     });
     setDetailModalSession(null);
@@ -337,16 +329,36 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   };
 
   const handleBackToList = () => {
+    if (paramSessionId || isAttendanceAction) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('sessionId');
+      if (isAttendanceAction) url.searchParams.delete('action');
+      window.history.replaceState(null, '', url);
+    }
     setSelectedSession(null);
   };
 
-  // Calendar calculations
-  const weekStartDate = useMemo(() => getWeekStartDate(currentWeek), [currentWeek]);
-  const weekEndDate = useMemo(() => {
-    const end = new Date(weekStartDate);
-    end.setDate(end.getDate() + 6);
-    return end;
-  }, [weekStartDate]);
+  const handleTodayAttendance = async () => {
+    const now = new Date();
+    const today = formatDateIso(now);
+    const isWeekInView = today >= formatDateIso(weekStartDate) && today <= formatDateIso(weekEndDate);
+    try {
+      let available = sessions;
+      if (loadWeek && !isWeekInView) {
+        const currentWeekStart = getMondayOfWeek(now);
+        available = await queryClient.fetchQuery(lessonSessionsQueryOptions(effectiveClassId, {
+          canonical: true,
+          startDate: formatDateIso(currentWeekStart),
+          endDate: formatDateIso(getWeekEndDate(currentWeekStart)),
+        }));
+      }
+      const todaySession = available.find(session => session.sessionDate === today);
+      if (todaySession) setSelectedSession(todaySession);
+      else showToast(t('noLessonSessionsToday'));
+    } catch {
+      showToast(t('classSessionsLoadError'));
+    }
+  };
 
   const daysSchedule = useMemo<DaySchedule[]>(() => {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -373,7 +385,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
             roomName: s.roomName,
             roomShort: s.roomName.replace(/^phòng\s*/i, ''),
             note: s.note,
-            studentsCount: s.totalStudents || students.length || 0,
+            studentsCount: s.totalStudents ?? 0,
             status: s.status,
             sessionType: (s.note?.toLowerCase().includes('lab') ? 'lab' : 'theory') as 'theory' | 'lab' | 'exam',
             dayOfWeek,
@@ -392,7 +404,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
       });
     }
     return days;
-  }, [weekStartDate, sessions, activeClass?.name, students.length]);
+  }, [weekStartDate, sessions, activeClass?.name]);
 
   const handleSelectGridSession = (ts: TimetableSession) => {
     const rawMatch = sessions.find((s) => s.lessonSessionId === ts.lessonSessionId);
@@ -412,6 +424,9 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
   const totalCount = students.length;
   const presenceRate =
     totalCount > 0 ? (((presentCount + lateCount) / totalCount) * 100).toFixed(1) : '0';
+  const attendanceSessions = selectedSession && !sessions.some(session => session.lessonSessionId === selectedSession.lessonSessionId)
+    ? [selectedSession, ...sessions]
+    : sessions;
 
   const sidebarPaddingClass =
     isFocus || isSidebarCollapsed ? 'left-0 sm:left-[72px]' : 'left-0 sm:left-64';
@@ -430,6 +445,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleMode={toggleMode}
           userFullName={userFullName}
+          title={isSpecificClass ? 'Ca học & Điểm danh' : 'Lịch trình cá nhân'}
         />
 
         {toastMsg && (
@@ -445,63 +461,92 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
           <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto flex flex-col gap-6">
             {!selectedSession ? (
               <>
-                <LessonSessionHeader
-                  activeClass={activeClass}
-                  classesList={classesList}
-                  selectedClassId={effectiveClassId}
-                  onSelectClassId={(id) => setSelectedClassId(id)}
-                  totalSessionsCount={sessions.length || 12}
-                  completedSessionsCount={sessions.filter((s) => s.status === 'COMPLETED').length}
-                  attendanceRate={
-                    sessions.length > 0
-                      ? (sessions.reduce(
-                          (acc, s) =>
-                            acc +
-                            (s.totalStudents && s.totalStudents > 0
-                              ? (s.attendedCount ?? 0) / s.totalStudents
-                              : 1),
-                          0
-                        ) /
-                          sessions.length) *
-                        100
-                      : 95.0
-                  }
-                  onBackToClasses={() => {
-                    if (effectiveClassId) {
-                      router.push(`/classes/${effectiveClassId}?tab=sessions`);
-                    } else {
-                      router.push('/classes');
+                {isSpecificClass ? (
+                  <LessonSessionHeader
+                    activeClass={activeClass}
+                    classesList={classesList}
+                    selectedClassId={effectiveClassId}
+                    onSelectClassId={(id) => setSelectedClassId(id)}
+                    totalSessionsCount={sessions.length}
+                    completedSessionsCount={sessions.filter((s) => s.status === 'COMPLETED').length}
+                    attendanceRate={
+                      sessions.length > 0
+                        ? (sessions.reduce(
+                            (acc, s) =>
+                              acc +
+                              (s.totalStudents && s.totalStudents > 0
+                                ? (s.attendedCount ?? 0) / s.totalStudents
+                                : 1),
+                            0
+                          ) /
+                            sessions.length) *
+                          100
+                        : 0
                     }
-                  }}
-                />
+                    onBackToClasses={() => {
+                      if (effectiveClassId && effectiveClassId !== 'all') {
+                        router.push(`/classes/${effectiveClassId}?tab=sessions`);
+                      } else {
+                        router.push('/classes');
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1F1F1F] dark:text-[#E3E3E3]">
+                      Lịch trình cá nhân
+                    </h1>
+                    <p className="text-xs sm:text-sm text-[#444746] dark:text-[#8E918F]">
+                      Tổng hợp lịch học và lịch giảng dạy của bạn theo tuần
+                    </p>
+                  </div>
+                )}
 
                 {/* View switcher & Quick Action Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#1E1F20] p-4 rounded-3xl shadow-xs">
-                  <div className="flex items-center p-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C]">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('calendar')}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
-                        viewMode === 'calendar'
-                          ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
-                          : 'text-slate-600 dark:text-[#C4C7C5]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[17px]">calendar_month</span>
-                      <span>Dạng lịch</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('table')}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
-                        viewMode === 'table'
-                          ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
-                          : 'text-slate-600 dark:text-[#C4C7C5]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[17px]">view_list</span>
-                      <span>Dạng danh sách</span>
-                    </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center p-1 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C]">
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('calendar')}
+                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
+                          viewMode === 'calendar'
+                            ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
+                            : 'text-slate-600 dark:text-[#C4C7C5]'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[17px]">calendar_month</span>
+                        <span>Dạng lịch</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('table')}
+                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border-none cursor-pointer ${
+                          viewMode === 'table'
+                            ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs'
+                            : 'text-slate-600 dark:text-[#C4C7C5]'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[17px]">view_list</span>
+                        <span>Dạng danh sách</span>
+                      </button>
+                    </div>
+
+                    {!isSpecificClass && (
+                      <div className="min-w-[220px]">
+                        <CustomSelect
+                          value={effectiveClassId}
+                          onChange={(val) => setSelectedClassId(val)}
+                          options={[
+                            { value: 'all', label: `Tất cả lớp học (${classesList.length})` },
+                            ...classesList.map((cls) => ({
+                              value: cls.id,
+                              label: cls.code ? `${cls.code} · ${cls.name}` : cls.name,
+                            })),
+                          ]}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -509,18 +554,8 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                       <>
                         <button
                           type="button"
-                          onClick={() => {
-                            const todayIso = formatDateIso();
-                            const todaySess =
-                              sessions.find((s) => s.sessionDate === todayIso) ||
-                              sessions.find((s) => s.status === 'IN_PROGRESS') ||
-                              sessions[0];
-                            if (todaySess) {
-                              setSelectedSession(todaySess);
-                            } else {
-                              showToast('Chưa có ca học nào được lên lịch cho lớp!');
-                            }
-                          }}
+                          onClick={() => void handleTodayAttendance()}
+                          disabled={!isAuthenticated || isLoadingSessions || scheduleQuery.isError}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 text-xs font-semibold shadow-xs transition-all border-none cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
@@ -540,7 +575,19 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                   </div>
                 </div>
 
-                {viewMode === 'calendar' ? (
+                {!isAuthenticated ? (
+                  <p role="status" className="rounded-3xl bg-surface p-6 text-sm">
+                    {t(isAuthenticating ? 'lessonScheduleLoading' : 'classOverviewSignIn')}
+                  </p>
+                ) : scheduleQuery.isError ? (
+                  <div role="alert" className="rounded-3xl bg-surface p-6 text-sm">
+                    <p>{t(scheduleQuery.error instanceof ApiError && scheduleQuery.error.httpStatus === 403
+                      ? 'classSessionsForbidden' : 'classSessionsLoadError')}</p>
+                    <button type="button" onClick={() => void scheduleQuery.refetch()} className="mt-3 font-semibold text-primary">
+                      {t('retryClassContent')}
+                    </button>
+                  </div>
+                ) : viewMode === 'calendar' ? (
                   <div className="space-y-4">
                     {/* Week navigation */}
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#1E1F20] px-5 py-3 rounded-2xl shadow-xs">
@@ -575,10 +622,11 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                       </button>
                     </div>
 
-                    <TimetableGridMatrix
-                      days={daysSchedule}
-                      onSelectSession={handleSelectGridSession}
-                    />
+                    {isLoadingSessions ? (
+                      <p role="status" className="rounded-3xl bg-surface p-6 text-sm">{t('lessonScheduleLoading')}</p>
+                    ) : (
+                      <TimetableGridMatrix days={daysSchedule} onSelectSession={handleSelectGridSession} />
+                    )}
                   </div>
                 ) : (
                   <LessonSessionTable
@@ -592,26 +640,36 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
                   />
                 )}
               </>
+            ) : !attendanceIsReady ? (
+              <div role={attendanceError ? 'alert' : 'status'} className="rounded-3xl bg-surface p-6 text-sm">
+                <p>{t(attendanceError ? 'lessonAttendanceLoadError' : 'lessonAttendanceLoading')}</p>
+                <div className="mt-3 flex gap-4">
+                  <button type="button" onClick={handleBackToList} className="font-semibold text-primary">
+                    {t('viewClassSchedule')}
+                  </button>
+                  {attendanceError && (
+                    <button type="button" onClick={() => {
+                      if (studentsQuery.isError) void studentsQuery.refetch();
+                      if (attendancesQuery.isError) void attendancesQuery.refetch();
+                    }} className="font-semibold text-primary">
+                      {t('retryClassContent')}
+                    </button>
+                  )}
+                </div>
+              </div>
             ) : (
               <>
                 <AttendanceHeroBanner
                   session={selectedSession}
-                  sessions={sessions}
+                  sessions={attendanceSessions}
                   onSelectSession={(sessionId) => {
-                    const found = sessions.find((s) => s.lessonSessionId === sessionId);
+                    const found = attendanceSessions.find((s) => s.lessonSessionId === sessionId);
                     if (found) setSelectedSession(found);
                   }}
                   onBack={handleBackToList}
                   onMarkAllPresent={handleMarkAllPresent}
                   onRefresh={() => {
-                    if (selectedSession) {
-                      queryClient.invalidateQueries({
-                        queryKey: lessonSessionKeys.attendances(
-                          effectiveClassId,
-                          selectedSession.lessonSessionId
-                        ),
-                      });
-                    }
+                    void attendancesQuery.refetch();
                     showToast('Đã làm mới dữ liệu ca học!');
                   }}
                   totalStudents={totalCount}
@@ -766,6 +824,7 @@ export const LessonSessionsPageView: React.FC<LessonSessionsPageViewProps> = ({
         mode={formMode}
         session={activeEditingSession}
         rooms={rooms}
+        roomsLoading={areRoomsLoading}
         existingSessions={sessions}
         defaultDate={selectedCellDate}
         defaultShift={selectedCellShift}

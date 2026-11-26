@@ -13,3 +13,5 @@ export * from './PublicHeader';
 export * from './PublicMinimalFooter';
 export * from './MarkdownContent';
 export * from './QuotaUpgradeModal';
+export * from './ConfirmDialog';
+export * from './ConfirmProvider';

@@ -2,6 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { api } from '@/lib/axios';
 import { useExamDetail } from '../hooks/useExamQueries';
 import { usePublishExam, useUnpublishExam } from '../hooks/useExamMutations';
 import {
@@ -66,6 +69,8 @@ export function TeacherExamDetailView({
   onToast,
 }: TeacherExamDetailViewProps) {
   const router = useRouter();
+  const t = useTranslations('assessmentPlayer');
+  const cache = useQueryClient();
 
   // Queries
   const {
@@ -87,6 +92,14 @@ export function TeacherExamDetailView({
   const deleteQuestionMutation = useDeleteExamQuestion(examId);
   const publishMutation = usePublishExam(classId, examId);
   const unpublishMutation = useUnpublishExam(classId, examId);
+  const releaseMutation = useMutation({
+    mutationFn: () => api.post(`/exams/${examId}/release-results`),
+    onSuccess: async () => {
+      await refetchExam();
+      void cache.invalidateQueries({ queryKey: ['classwork-gradebook'] });
+      onToast?.(t('released'));
+    },
+  });
 
   // Pagination for questions table
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -504,6 +517,16 @@ export function TeacherExamDetailView({
             </button>
 
             {/* NÚT CHUYỂN TRẠNG THÁI THU HỒI / CÔNG BỐ */}
+            {isPublished && exam?.status === 'CLOSED' && (
+              <div className="space-y-1">
+                <button type="button" disabled={Boolean(exam.resultsReleasedAt) || releaseMutation.isPending}
+                  className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                  onClick={() => releaseMutation.mutate()}>
+                  {exam.resultsReleasedAt ? t('released') : t('release')}
+                </button>
+                {releaseMutation.isError && <p role="alert" className="text-sm text-red-700">{t('releaseError')}</p>}
+              </div>
+            )}
             <button
               id="toggle-publish-btn"
               type="button"

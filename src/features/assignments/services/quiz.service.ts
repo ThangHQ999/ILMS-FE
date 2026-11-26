@@ -1,6 +1,10 @@
+import { z } from 'zod';
 import { api } from '@/lib/axios';
-import { ApiResponse, PaginatedResponse } from '@/types/common';
+import { ApiError, ApiResponse, PaginatedResponse } from '@/types/common';
 import {
+  quizResponseSchema,
+  quizPlayResponseSchema,
+  quizAnalyticsSchema,
   type QuizRequestDTO,
   type QuizResponseDTO,
   type AddQuizQuestionRequestDTO,
@@ -499,28 +503,6 @@ export const MOCK_COMPLAINTS: QuizComplaintDTO[] = [
   },
 ];
 
-export const MOCK_ANALYTICS: QuizAnalyticsDTO = {
-  quizId: 'quiz-03',
-  totalParticipants: 58,
-  averageScore: 8.2,
-  highestScore: 10.0,
-  lowestScore: 5.0,
-  passRate: 88.0,
-  scoreDistribution: {
-    '0-4': 0,
-    '5-6': 4,
-    '7-8': 24,
-    '9-10': 30,
-  },
-  bloomDistribution: {
-    remember: 88.5,
-    understand: 82.0,
-    apply: 76.5,
-    analyze: 71.0,
-  },
-  discriminationIndex: 0.74,
-};
-
 // ============================================================================
 // SECTION 10: QUIZ SERVICE IMPLEMENTATION (docs/api-spec.md Section 10)
 // ============================================================================
@@ -536,105 +518,83 @@ export interface QuizQueryParams {
  * 10.1 GET /api/v1/quizzes
  * Lấy danh sách bài kiểm tra trắc nghiệm cho lớp học
  */
+const serverQuizQuestionSchema = z.object({
+  id: z.string(),
+  bankQuestionId: z.string().nullish(),
+  questionText: z.string(),
+  questionType: z.string().nullish(),
+  score: z.number().optional(),
+  orderIndex: z.number().optional(),
+  explanation: z.string().nullish(),
+  options: z.array(z.object({
+    id: z.string(),
+    optionText: z.string(),
+    isCorrect: z.boolean().optional(),
+  })).nullish(),
+});
+
+const serverQuizSchema = quizResponseSchema.omit({questions: true}).extend({
+  startTime: z.string().nullish(),
+  endTime: z.string().nullish(),
+  shuffleAnswers: z.boolean().optional(),
+  shuffleOptions: z.boolean().optional(),
+  questions: z.array(serverQuizQuestionSchema).nullish(),
+});
+
+function readQuiz(value: unknown): QuizResponseDTO {
+  const quiz = serverQuizSchema.parse(value);
+  return quizResponseSchema.parse({
+    ...quiz,
+    status: quiz.isPublished === false ? 'DRAFT' : quiz.status,
+    startTime: quiz.startTime ?? '',
+    endTime: quiz.endTime ?? '',
+    shuffleAnswers: quiz.shuffleAnswers ?? quiz.shuffleOptions ?? false,
+    questions: quiz.questions?.map((question) => ({
+      id: question.id,
+      bankQuestionId: question.bankQuestionId,
+      orderIndex: question.orderIndex,
+      point: question.score,
+      content: question.questionText,
+      questionType: question.questionType ?? 'SINGLE_CHOICE',
+      difficultyLevel: 'MEDIUM',
+      explanation: question.explanation,
+      answers: question.options?.map((option) => ({
+        id: option.id, content: option.optionText, isCorrect: option.isCorrect,
+      })),
+    })),
+  });
+}
+
 export async function getQuizzes(params: QuizQueryParams = {}): Promise<QuizItem[]> {
-  const localList = getLocalQuizzes();
-  let serverItems: QuizItem[] = [];
-
-  try {
-    const { data } = await api.get<ApiResponse<PaginatedResponse<QuizResponseDTO> | QuizResponseDTO[]>>(
-      '/quizzes',
-      {
-        params: {
-          classId: params.classId || undefined,
-          status: params.status,
-          page: params.page ?? 0,
-          size: params.size ?? 20,
-        },
-      }
-    );
-
-    const items = Array.isArray(data?.data)
-      ? data.data
-      : (data?.data as PaginatedResponse<QuizResponseDTO>)?.items;
-
-    if (items && items.length > 0) {
-      serverItems = items.map((q) => {
-        const lifecycle = determineQuizLifecycle({
-          status: q.status,
-          startTime: q.startTime,
-          endTime: q.endTime,
-        });
-
-        return {
-          id: q.id,
-          code: `QUIZ-${q.id.slice(0, 6).toUpperCase()}`,
-          className: 'Lớp: CS202.CLC01',
-          classId: q.classId,
-          title: q.title,
-          type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
-          status: lifecycle.status,
-          badgeLabel: lifecycle.badgeLabel,
-          badgeType: lifecycle.badgeType,
-          durationMinutes: q.durationMinutes,
-          questionCount: q.totalQuestions || 20,
-          attemptsInfo: `${q.maxAttempts} lần làm`,
-          securityInfo: q.shuffleQuestions ? 'Xáo trộn đề & đáp án' : 'Tiêu chuẩn',
-          submittedCount: lifecycle.status === 'live' ? 54 : lifecycle.status === 'completed' ? 58 : 0,
-          totalStudents: 60,
-          remainingTime: lifecycle.formattedTimeText,
-          avgScore: lifecycle.status === 'completed' ? 8.2 : undefined,
-          maxScore: 10,
-          ploRate: lifecycle.status === 'completed' ? 88 : undefined,
-          startTime: q.startTime,
-          endTime: q.endTime,
-        };
-      });
-    }
-  } catch {
-    // Graceful fallback to rich mock data
-  }
-
-  // Lọc nghiêm ngặt các bài quiz từ LocalStorage THEO ĐÚNG CLASS ID CỦA LỚP ĐANG CHỌN
-  // Tuyệt đối KHÔNG gộp bài quiz của lớp khác vào khi lớp này chưa có bài thi!
-  const targetClassId = params.classId ? String(params.classId).toLowerCase().trim() : '';
-
-  const filteredLocal = targetClassId
-    ? localList.filter((item) => {
-      if (!item.classId) return false;
-      const iId = String(item.classId).toLowerCase().trim();
-      return iId === targetClassId || targetClassId.includes(iId) || iId.includes(targetClassId);
-    })
-    : localList;
-
-  const mappedLocal = filteredLocal.map((item) => {
-    const lifecycle = determineQuizLifecycle({
-      status: item.status,
-      type: item.type,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      complaintCount: item.complaintCount,
-    });
+  const { data } = await api.get<ApiResponse<unknown>>('/quizzes', {
+    params: { classId: params.classId, status: params.status, page: params.page ?? 0, size: params.size ?? 20 },
+  });
+  const page = z.union([z.object({ items: z.array(z.unknown()) }), z.array(z.unknown())]).parse(data.data);
+  return (Array.isArray(page) ? page : page.items).map((item) => {
+    const quiz = readQuiz(item);
+    const lifecycle = determineQuizLifecycle({ status: quiz.status, startTime: quiz.startTime, endTime: quiz.endTime });
     return {
-      ...item,
+      id: quiz.id,
+      classId: quiz.classId,
+      courseId: quiz.courseId,
+      assessmentId: quiz.assessmentId,
+      code: `QUIZ-${quiz.id.slice(0, 6).toUpperCase()}`,
+      className: '',
+      title: quiz.title,
+      type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
       status: lifecycle.status,
       badgeLabel: lifecycle.badgeLabel,
       badgeType: lifecycle.badgeType,
-      remainingTime: lifecycle.formattedTimeText || item.remainingTime,
+      durationMinutes: quiz.durationMinutes,
+      questionCount: quiz.totalQuestions ?? 0,
+      attemptsInfo: String(quiz.maxAttempts),
+      securityInfo: '',
+      remainingTime: lifecycle.formattedTimeText,
+      maxScore: quiz.maxScore ?? quiz.totalPoints,
+      startTime: quiz.startTime,
+      endTime: quiz.endTime,
     };
   });
-
-  // Base list: CHỈ hiển thị mock quizzes nếu đang ở lớp mẫu mặc định CS-202 (hoặc không truyền classId)
-  // Tuyệt đối KHÔNG gộp đề thi của lớp khác hay mock data vào các lớp học khác!
-  const isDefaultClass =
-    !targetClassId ||
-    targetClassId === 'cs-202' ||
-    targetClassId.includes('cs202') ||
-    targetClassId.includes('cs-202');
-
-  const baseList = isDefaultClass ? (serverItems.length > 0 ? serverItems : MOCK_QUIZZES) : serverItems;
-  const localIds = new Set(mappedLocal.map((item) => item.id));
-  const filteredBase = baseList.filter((item) => !localIds.has(item.id));
-  return [...mappedLocal, ...filteredBase];
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -647,70 +607,8 @@ export const isUuid = (val?: string | null): boolean => {
  * Chi tiết cấu hình bài quiz
  */
 export async function getQuizById(id: string): Promise<QuizResponseDTO> {
-  if (isUuid(id)) {
-    try {
-      const { data } = await api.get<ApiResponse<QuizResponseDTO>>(`/quizzes/${id}`);
-      if (data?.data) {
-        return data.data;
-      }
-    } catch {
-      // Fallback
-    }
-  }
-
-  const local = getLocalQuiz(id);
-  if (local) {
-    return {
-      id: local.id,
-      classId: local.classId,
-      title: local.title,
-      description: 'Bài kiểm tra đánh giá kiến thức',
-      status: (local.status as any) === 'draft' ? 'DRAFT' : 'PUBLISHED',
-      chapter: 'Chương 4: Tầng Mạng',
-      durationMinutes: local.durationMinutes,
-      maxAttempts: 2,
-      passingScore: 5.0,
-      scoringStrategy: 'HIGHEST_SCORE',
-      shuffleQuestions: true,
-      shuffleAnswers: true,
-      fullscreenLock: true,
-      tabSwitchLimit: 3,
-      lockAnswersUntilDeadline: true,
-      proctoringEnabled: true,
-      ploIds: ['plo-03', 'plo-05'],
-      startTime: local.startTime,
-      endTime: local.endTime,
-      totalQuestions: local.questionCount,
-      totalPoints: 10,
-      questions: MOCK_QUESTION_BANK,
-    };
-  }
-
-  const mock = MOCK_QUIZZES.find((q) => q.id === id) || MOCK_QUIZZES[0];
-  return {
-    id: mock.id,
-    classId: mock.classId,
-    title: mock.title,
-    description: 'Bài kiểm tra đánh giá kiến thức',
-    status: 'PUBLISHED',
-    chapter: 'Chương 4: Tầng Mạng',
-    durationMinutes: mock.durationMinutes,
-    maxAttempts: 2,
-    passingScore: 5.0,
-    scoringStrategy: 'HIGHEST_SCORE',
-    shuffleQuestions: true,
-    shuffleAnswers: true,
-    fullscreenLock: true,
-    tabSwitchLimit: 3,
-    lockAnswersUntilDeadline: true,
-    proctoringEnabled: true,
-    ploIds: ['plo-03', 'plo-05'],
-    startTime: mock.startTime,
-    endTime: mock.endTime,
-    totalQuestions: mock.questionCount,
-    totalPoints: 10,
-    questions: MOCK_QUESTION_BANK,
-  };
+  const { data } = await api.get<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(id)}`);
+  return readQuiz(data.data);
 }
 
 /**
@@ -718,80 +616,8 @@ export async function getQuizById(id: string): Promise<QuizResponseDTO> {
  * Tạo bài kiểm tra trắc nghiệm mới
  */
 export async function createQuiz(payload: QuizRequestDTO): Promise<QuizResponseDTO> {
-  let createdResult: QuizResponseDTO | null = null;
-
-  try {
-    const { data } = await api.post<ApiResponse<QuizResponseDTO>>('/quizzes', payload);
-    if (data?.data) {
-      createdResult = data.data;
-    }
-  } catch (error) {
-    console.warn('POST /quizzes failed or offline, generating local quiz representation', error);
-  }
-
-  if (!createdResult) {
-    createdResult = {
-      id: `quiz-local-${Date.now()}`,
-      classId: payload.classId,
-      title: payload.title,
-      description: payload.description,
-      status: payload.status || 'PUBLISHED',
-      chapter: payload.chapter,
-      durationMinutes: payload.durationMinutes,
-      maxAttempts: payload.maxAttempts ?? 1,
-      passingScore: payload.passingScore ?? 5.0,
-      scoringStrategy: payload.scoringStrategy || 'HIGHEST_SCORE',
-      shuffleQuestions: payload.shuffleQuestions ?? true,
-      shuffleAnswers: payload.shuffleAnswers ?? true,
-      fullscreenLock: payload.fullscreenLock ?? true,
-      tabSwitchLimit: payload.tabSwitchLimit ?? 3,
-      lockAnswersUntilDeadline: payload.lockAnswersUntilDeadline ?? true,
-      proctoringEnabled: payload.proctoringEnabled ?? false,
-      ploIds: payload.ploIds || [],
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      totalQuestions: 0,
-      totalPoints: 10,
-      questions: [],
-      createdAt: new Date().toISOString(),
-    };
-  }
-
-  // Đồng bộ hóa ngay lập tức vào LocalStorage để xuất hiện ngay trong danh sách giao diện
-  // Tự động phân tích và gán vòng đời (Live, Upcoming, Completed, Draft) theo ngày giờ bắt đầu và kết thúc
-  const lifecycle = determineQuizLifecycle({
-    status: payload.status,
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-  });
-
-  const targetClassLabel = payload.description?.startsWith('Lớp:')
-    ? payload.description
-    : `Lớp: ${payload.classId}`;
-
-  const newQuizItem: QuizItem = {
-    id: createdResult.id,
-    code: `QUIZ-${createdResult.id.slice(0, 6).toUpperCase()}`,
-    className: targetClassLabel,
-    classId: payload.classId,
-    title: createdResult.title,
-    type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
-    status: lifecycle.status,
-    badgeLabel: lifecycle.badgeLabel,
-    badgeType: lifecycle.badgeType,
-    durationMinutes: createdResult.durationMinutes,
-    questionCount: createdResult.totalQuestions || 20,
-    attemptsInfo: `${createdResult.maxAttempts || 2} lần làm`,
-    securityInfo: 'Giám sát Tab & IP',
-    submittedCount: 0,
-    totalStudents: 60,
-    remainingTime: lifecycle.formattedTimeText || 'Đang diễn ra',
-    startTime: createdResult.startTime,
-    endTime: createdResult.endTime,
-  };
-  saveLocalQuiz(newQuizItem);
-
-  return createdResult;
+  const { data } = await api.post<ApiResponse<unknown>>('/quizzes', payload);
+  return readQuiz(data.data);
 }
 
 /**
@@ -799,88 +625,12 @@ export async function createQuiz(payload: QuizRequestDTO): Promise<QuizResponseD
  * Cập nhật cấu hình bài kiểm tra
  */
 export async function updateQuiz(id: string, payload: QuizRequestDTO): Promise<QuizResponseDTO> {
-  if (isUuid(id)) {
-    try {
-      const { data } = await api.put<ApiResponse<QuizResponseDTO>>(`/quizzes/${id}`, payload);
-      if (data?.data) {
-        return data.data;
-      }
-    } catch (error) {
-      console.warn(`PUT /quizzes/${id} fallback`, error);
-    }
-  }
-
-  const existing = getLocalQuiz(id);
-  const targetClassLabel = payload.classId ? String(payload.classId) : (existing?.className || 'Lớp học');
-  const lifecycle = determineQuizLifecycle({
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-    status: (payload.status as any) || existing?.status || 'draft',
-    type: 'quiz',
-  });
-
-  const updatedItem: QuizItem = {
-    id,
-    code: existing?.code || `QUIZ-${id.slice(0, 6).toUpperCase()}`,
-    className: targetClassLabel,
-    classId: payload.classId,
-    title: payload.title,
-    type: lifecycle.status === 'draft' ? 'draft' : 'quiz',
-    status: lifecycle.status,
-    badgeLabel: lifecycle.badgeLabel,
-    badgeType: lifecycle.badgeType,
-    durationMinutes: payload.durationMinutes,
-    questionCount: existing?.questionCount || 20,
-    attemptsInfo: `${payload.maxAttempts || 2} lần làm`,
-    securityInfo: 'Giám sát Tab & IP',
-    submittedCount: existing?.submittedCount || 0,
-    totalStudents: existing?.totalStudents || 60,
-    remainingTime: lifecycle.formattedTimeText || 'Đang diễn ra',
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-  };
-  saveLocalQuiz(updatedItem);
-
-  return {
-    id,
-    classId: payload.classId,
-    title: payload.title,
-    description: payload.description,
-    status: (payload.status as any) || 'PUBLISHED',
-    chapter: payload.chapter,
-    durationMinutes: payload.durationMinutes,
-    maxAttempts: payload.maxAttempts ?? 1,
-    passingScore: payload.passingScore ?? 5.0,
-    scoringStrategy: payload.scoringStrategy || 'HIGHEST_SCORE',
-    shuffleQuestions: payload.shuffleQuestions ?? true,
-    shuffleAnswers: payload.shuffleAnswers ?? true,
-    fullscreenLock: payload.fullscreenLock ?? true,
-    tabSwitchLimit: payload.tabSwitchLimit ?? 3,
-    lockAnswersUntilDeadline: payload.lockAnswersUntilDeadline ?? true,
-    proctoringEnabled: payload.proctoringEnabled ?? false,
-    ploIds: payload.ploIds || [],
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-    totalQuestions: updatedItem.questionCount,
-    totalPoints: 10,
-    questions: MOCK_QUESTION_BANK,
-  };
+  const { data } = await api.put<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(id)}`, payload);
+  return readQuiz(data.data);
 }
 
-/**
- * 10.1 DELETE /api/v1/quizzes/{id}
- * Xóa bài kiểm tra
- */
 export async function deleteQuiz(id: string): Promise<void> {
-  deleteLocalQuiz(id);
-  if (!isUuid(id)) {
-    return;
-  }
-  try {
-    await api.delete<ApiResponse<void>>(`/quizzes/${id}`);
-  } catch (error) {
-    console.warn(`DELETE /quizzes/${id} fallback`, error);
-  }
+  await api.delete(`/quizzes/${encodeURIComponent(id)}`);
 }
 
 /**
@@ -888,37 +638,13 @@ export async function deleteQuiz(id: string): Promise<void> {
  * Công bố đề thi cho sinh viên
  */
 export async function publishQuiz(id: string): Promise<void> {
-  const local = getLocalQuiz(id);
-  if (local) {
-    saveLocalQuiz({ ...local, status: 'live', badgeLabel: 'Đang diễn ra', badgeType: 'emerald' });
-  }
-  if (!isUuid(id)) {
-    return;
-  }
-  try {
-    await api.patch<ApiResponse<void>>(`/quizzes/${id}/publish`);
-  } catch (error) {
-    console.warn(`PATCH /quizzes/${id}/publish fallback`, error);
-  }
+  const { data } = await api.patch<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(id)}/publish`);
+  const result = z.object({ id: z.string(), isPublished: z.boolean() }).parse(data.data);
+  if (result.id !== id || !result.isPublished) throw new Error('Quiz publication was not confirmed');
 }
 
-/**
- * 10.1 PATCH /api/v1/quizzes/{id}/unpublish
- * Hủy công bố đề thi (chuyển về nháp)
- */
 export async function unpublishQuiz(id: string): Promise<void> {
-  const local = getLocalQuiz(id);
-  if (local) {
-    saveLocalQuiz({ ...local, status: 'draft', badgeLabel: 'Bản nháp', badgeType: 'gray' });
-  }
-  if (!isUuid(id)) {
-    return;
-  }
-  try {
-    await api.patch<ApiResponse<void>>(`/quizzes/${id}/unpublish`);
-  } catch (error) {
-    console.warn(`PATCH /quizzes/${id}/unpublish fallback`, error);
-  }
+  await api.patch(`/quizzes/${encodeURIComponent(id)}/unpublish`);
 }
 
 /**
@@ -927,46 +653,31 @@ export async function unpublishQuiz(id: string): Promise<void> {
  */
 export async function addQuestionToQuiz(
   quizId: string,
-  payload: AddQuizQuestionRequestDTO
+  payload: AddQuizQuestionRequestDTO,
 ): Promise<void> {
-  try {
-    await api.post<ApiResponse<void>>(`/quizzes/${quizId}/questions`, payload);
-  } catch (error) {
-    console.warn(`POST /quizzes/${quizId}/questions fallback`, error);
-  }
+  await api.post(`/quizzes/${encodeURIComponent(quizId)}/questions`, payload);
 }
 
-/**
- * 10.1 POST /api/v1/quizzes/{id}/questions/batch
- * Thêm câu hỏi theo lô vào đề thi
- */
 export async function addQuestionsBatchToQuiz(
   quizId: string,
-  payload: BatchQuizQuestionRequestDTO
+  payload: BatchQuizQuestionRequestDTO,
 ): Promise<void> {
-  try {
-    await api.post<ApiResponse<void>>(`/quizzes/${quizId}/questions/batch`, payload);
-  } catch (error) {
-    console.warn(`POST /quizzes/${quizId}/questions/batch fallback`, error);
-  }
+  await api.post(`/quizzes/${encodeURIComponent(quizId)}/questions/batch`, payload);
 }
 
-/**
- * 10.1 DELETE /api/v1/quizzes/{id}/questions/{questionId}
- * Xóa câu hỏi khỏi đề kiểm tra
- */
+export async function replaceQuizQuestions(
+  quizId: string,
+  questions: Omit<AddQuizQuestionRequestDTO, 'orderIndex' | 'point'>[],
+): Promise<void> {
+  const { data } = await api.put<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(quizId)}/questions`, questions);
+  const saved = z.array(serverQuizQuestionSchema).parse(data.data);
+  if (saved.length !== questions.length) throw new Error('Quiz questions were not saved');
+}
+
 export async function removeQuestionFromQuiz(quizId: string, questionId: string): Promise<void> {
-  try {
-    await api.delete<ApiResponse<void>>(`/quizzes/${quizId}/questions/${questionId}`);
-  } catch (error) {
-    console.warn(`DELETE /quizzes/${quizId}/questions/${questionId} fallback`, error);
-  }
+  await api.delete(`/quizzes/${encodeURIComponent(quizId)}/questions/${encodeURIComponent(questionId)}`);
 }
 
-/**
- * 10.1 POST /api/v1/quizzes/generate-ai
- * Khởi tạo đề thi / Exam Blueprint bằng AI từ tài liệu hoặc Prompt
- */
 export async function generateQuizByAi(payload: QuizGenerateAiRequestDTO): Promise<QuizResponseDTO> {
   try {
     const { data } = await api.post<ApiResponse<QuizResponseDTO>>('/quizzes/generate-ai', payload);
@@ -1160,123 +871,66 @@ export async function exportQuizPaper(quizId: string): Promise<QuizPaperExportDa
  * Lấy đề thi thực tế (bảo mật: không lộ đáp án đúng)
  */
 export async function getQuizPlay(id: string): Promise<QuizPlayResponseDTO> {
-  try {
-    const { data } = await api.get<ApiResponse<QuizPlayResponseDTO>>(`/quizzes/${id}/play`);
-    if (data?.data) {
-      return data.data;
-    }
-  } catch {
-    // Fallback
-  }
-
-  return {
-    id,
-    title: 'Quiz 04: Tầng Mạng & Giao thức Định tuyến OSPF / BGP',
-    description: 'Thời gian: 30 phút • 20 câu hỏi',
-    durationMinutes: 30,
-    fullscreenLock: true,
-    tabSwitchLimit: 3,
-    questions: MOCK_QUESTION_BANK.map((q, idx) => ({
-      id: q.id,
-      content: q.content,
-      questionType: q.questionType,
-      bloomLevel: q.bloomLevel,
-      codeSnippet: q.codeSnippet,
-      codeLanguage: q.codeLanguage,
-      diagramData: q.diagramData,
-      imageUrl: q.imageUrl,
-      orderIndex: idx + 1,
-      answers: q.answers.map((a) => ({ id: a.id || 'ans-0', content: a.content })),
+  const { data } = await api.get<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(id)}/play`);
+  const quiz = z.object({
+    quizId: z.string(),
+    title: z.string(),
+    timeLimitMinutes: z.number(),
+    questions: z.array(z.object({
+      id: z.string(),
+      content: z.string(),
+      questionType: z.string(),
+      options: z.array(z.object({ id: z.string(), content: z.string() })),
     })),
-  };
+  }).parse(data.data);
+  return quizPlayResponseSchema.parse({
+    id: quiz.quizId,
+    title: quiz.title,
+    durationMinutes: quiz.timeLimitMinutes,
+    questions: quiz.questions.map((question, index) => ({
+      ...question, orderIndex: index + 1, answers: question.options,
+    })),
+  });
 }
 
-/**
- * 10.2 POST /api/v1/quizzes/{id}/attempts
- * Bắt đầu lượt làm bài mới
- */
 export async function startQuizAttempt(id: string): Promise<QuizAttemptResponseDTO> {
-  try {
-    const { data } = await api.post<ApiResponse<QuizAttemptResponseDTO>>(`/quizzes/${id}/attempts`);
-    if (data?.data) {
-      return data.data;
-    }
-  } catch {
-    // Fallback
-  }
+  const { data } = await api.post<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(id)}/attempts`);
+  const attempt = z.object({ attemptId: z.string(), startTime: z.string().optional(), remainingSeconds: z.number().optional() }).parse(data.data);
+  return { id: attempt.attemptId, quizId: id, status: 'IN_PROGRESS', startTime: attempt.startTime, remainingSeconds: attempt.remainingSeconds };
+}
 
+function readQuizResult(quizId: string, value: unknown): QuizAttemptResultDTO {
+  const result = z.object({
+    attemptId: z.string(),
+    score: z.number(),
+    maxScore: z.number().optional(),
+    passed: z.boolean().optional(),
+    correctAnswersCount: z.number(),
+    totalQuestions: z.number(),
+    submittedAt: z.string(),
+  }).parse(value);
   return {
-    id: `attempt-${Date.now()}`,
-    quizId: id,
-    status: 'IN_PROGRESS',
-    startTime: new Date().toISOString(),
-    remainingSeconds: 1800,
+    ...result, quizId, maxScore: result.maxScore ?? 10, passed: result.passed ?? result.score >= 5,
+    correctCount: result.correctAnswersCount, questionResults: [],
   };
 }
 
-/**
- * 10.2 POST /api/v1/quizzes/{id}/attempts/{attemptId}/submit
- * Nộp bài và chấm điểm tự động
- */
 export async function submitQuizAttempt(
   quizId: string,
   attemptId: string,
-  payload: QuizSubmitRequestDTO
+  payload: QuizSubmitRequestDTO,
 ): Promise<QuizAttemptResultDTO> {
-  try {
-    const { data } = await api.post<ApiResponse<QuizAttemptResultDTO>>(
-      `/quizzes/${quizId}/attempts/${attemptId}/submit`,
-      payload
-    );
-    if (data?.data) {
-      return data.data;
-    }
-  } catch {
-    // Fallback
-  }
-
-  return {
-    attemptId,
-    quizId,
-    score: 9.0,
-    maxScore: 10,
-    passed: true,
-    correctCount: 18,
-    totalQuestions: 20,
-    submittedAt: new Date().toISOString(),
-    feedback: 'Bài làm rất tốt, nắm vững cơ chế định tuyến OSPF và BGP.',
-    questionResults: [],
-  };
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/quizzes/${encodeURIComponent(quizId)}/attempts/${encodeURIComponent(attemptId)}/submit`, payload,
+  );
+  return readQuizResult(quizId, data.data);
 }
 
-/**
- * 10.2 GET /api/v1/quizzes/{id}/attempts/{attemptId}/result
- * Xem kết quả chi tiết, điểm số và giải thích
- */
 export async function getQuizResult(quizId: string, attemptId: string): Promise<QuizAttemptResultDTO> {
-  try {
-    const { data } = await api.get<ApiResponse<QuizAttemptResultDTO>>(
-      `/quizzes/${quizId}/attempts/${attemptId}/result`
-    );
-    if (data?.data) {
-      return data.data;
-    }
-  } catch {
-    // Fallback
-  }
-
-  return {
-    attemptId,
-    quizId,
-    score: 9.0,
-    maxScore: 10,
-    passed: true,
-    correctCount: 18,
-    totalQuestions: 20,
-    submittedAt: new Date().toISOString(),
-    feedback: 'Đạt chuẩn năng lực PLO-03 và PLO-05.',
-    questionResults: [],
-  };
+  const { data } = await api.get<ApiResponse<unknown>>(
+    `/quizzes/${encodeURIComponent(quizId)}/attempts/${encodeURIComponent(attemptId)}/result`,
+  );
+  return readQuizResult(quizId, data.data);
 }
 
 // ============================================================================
@@ -1339,16 +993,50 @@ export async function resolveComplaint(
 // SECTION 10.5: ANALYTICS & BLOOM (docs/api-spec.md Section 10.5)
 // ============================================================================
 
-export async function getQuizAnalytics(quizId: string): Promise<QuizAnalyticsDTO> {
-  try {
-    const { data } = await api.get<ApiResponse<QuizAnalyticsDTO>>(`/quizzes/${quizId}/analytics`);
-    if (data?.data) {
-      return data.data;
-    }
-  } catch {
-    // Fallback
+export async function getQuizAnalytics(quizId: string, classId?: string): Promise<QuizAnalyticsDTO> {
+  const { data } = await api.get<ApiResponse<unknown>>(`/quizzes/${encodeURIComponent(quizId)}/analytics`, {
+    params: { classId },
+  });
+  const analytics = quizAnalyticsSchema.parse(data.data);
+  if (analytics.quizId.toLowerCase() !== quizId.toLowerCase()) {
+    throw new ApiError('Quiz analytics scope mismatch', 404);
   }
-  return MOCK_ANALYTICS;
+
+  if (!analytics.context) {
+    // The original analytics response included hard-coded Bloom and discrimination figures.
+    if (analytics.discriminationIndex != null || Object.keys(analytics.bloomDistribution ?? {}).length > 0) {
+      throw new ApiError('Unsupported quiz analytics response', 409);
+    }
+    const quiz = await getQuizById(quizId);
+    const opensAt = quiz.startTime ? withQuizTimeZone(quiz.startTime) : null;
+    const closesAt = quiz.endTime ? withQuizTimeZone(quiz.endTime) : null;
+    const now = Date.now();
+    const maxScore = quiz.maxScore ?? 10;
+    const isPublished = quiz.isPublished ?? (quiz.status !== 'DRAFT');
+    let state: NonNullable<QuizAnalyticsDTO['context']>['state'] = 'OPEN';
+    if (!isPublished) state = 'DRAFT';
+    else if (opensAt && Date.parse(opensAt) > now) state = 'UPCOMING';
+    else if (closesAt && Date.parse(closesAt) <= now) state = 'CLOSED';
+    analytics.context = {
+      classId: quiz.classId,
+      courseId: quiz.courseId,
+      title: quiz.title,
+      state,
+      maxScore,
+      passingScore: quiz.passingScore >= 0 && quiz.passingScore <= maxScore ? quiz.passingScore : null,
+      questionCount: quiz.totalQuestions ?? quiz.questions?.length,
+      opensAt,
+      closesAt,
+    };
+  }
+  if (classId && analytics.context.classId?.toLowerCase() !== classId.toLowerCase()) {
+    throw new ApiError('Quiz class scope mismatch', 404);
+  }
+  return analytics;
+}
+
+function withQuizTimeZone(value: string) {
+  return /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) ? value : `${value}+07:00`;
 }
 
 // ============================================================================
@@ -1441,35 +1129,9 @@ export async function getQuestionById(id: string): Promise<QuestionResponseDTO> 
 }
 
 export async function createQuestion(payload: QuestionRequestDTO): Promise<QuestionResponseDTO> {
-  try {
-    const { data } = await api.post<ApiResponse<QuestionResponseDTO>>('/questions', payload);
-    if (data?.data) {
-      return data.data;
-    }
-  } catch (error) {
-    console.warn('POST /questions fallback', error);
-  }
-
-  return {
-    id: `q-${Date.now()}`,
-    content: payload.content,
-    questionType: payload.questionType || 'SINGLE_CHOICE',
-    difficultyLevel: payload.difficultyLevel || 'MEDIUM',
-    bloomLevel: payload.bloomLevel || 'UNDERSTAND',
-    explanation: payload.explanation,
-    codeSnippet: payload.codeSnippet,
-    codeLanguage: payload.codeLanguage,
-    diagramData: payload.diagramData,
-    imageUrl: payload.imageUrl,
-    ploId: payload.ploId,
-    answers: payload.answers.map((a, idx) => ({
-      id: `ans-${idx + 1}`,
-      content: a.content,
-      isCorrect: a.isCorrect,
-    })),
-    conceptIds: payload.conceptIds || [],
-    createdAt: new Date().toISOString(),
-  };
+  const { data } = await api.post<ApiResponse<QuestionResponseDTO>>('/questions', payload);
+  if (!data.data?.id) throw new Error('Question creation was not confirmed');
+  return data.data;
 }
 
 export async function updateQuestion(

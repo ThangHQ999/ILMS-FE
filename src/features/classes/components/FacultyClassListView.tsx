@@ -155,92 +155,49 @@ export function FacultyClassListView({
     };
   };
 
-  // Faculty specific metrics helper
+  // Faculty specific metrics helper from real class item data
   const getFacultyMetrics = (item: ClassItem) => {
-    const textLower = (item.name + item.title).toLowerCase();
+    const rawStats = item.stats as Record<string, unknown> | undefined;
+    const rawPlo = rawStats?.ploPassRate ?? (item as { ploPassRate?: number }).ploPassRate;
+    const ploPassRate = typeof rawPlo === 'number' && !isNaN(rawPlo) ? rawPlo : null;
 
-    // 1. CSDL
-    if (textLower.includes('csdl') || textLower.includes('dữ liệu')) {
-      return {
-        ploPassRate: 88.5,
-        attendanceRate: 94,
-        teachingProgress: 75,
-        curriculumWeek: 'Tuần 11/15',
-        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        alert: {
-          type: 'warning',
-          icon: 'pending_actions',
-          text: '3 yêu cầu tham gia lớp đang chờ giảng viên duyệt',
-          action: 'Duyệt ngay',
-          actionHref: `/classes/${item.id}?tab=people`,
-          actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
-          containerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
-        },
-      };
-    }
-
-    // 2. CTDL / Thuật toán
-    if (textLower.includes('ctdl') || textLower.includes('thuật')) {
-      return {
-        ploPassRate: 91.2,
-        attendanceRate: 96,
-        teachingProgress: 65,
-        curriculumWeek: 'Tuần 9/15',
-        instructorInfo: 'TS. Lê Hoàng Nam • 2 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        alert: {
-          type: 'info',
-          icon: 'assignment_turned_in',
-          text: '5 bài thực hành Lab 04 (Dijkstra) mới nộp cần chấm điểm',
-          action: 'Chấm bài',
-          actionHref: `/classes/${item.id}?tab=assignments`,
-          actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-          containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
-        },
-      };
-    }
-
-    // 3. OOP
-    if (textLower.includes('oop') || textLower.includes('đối tượng')) {
-      return {
-        ploPassRate: 94.0,
-        attendanceRate: 100,
-        teachingProgress: 80,
-        curriculumWeek: 'Tuần 12/15',
-        instructorInfo: 'ThS. Hoàng Minh Tuấn • 1 GV',
-        capacityText: `${item.enrolledCount ?? 0}/60 học viên`,
-        alert: {
-          type: 'success',
-          icon: 'check_circle',
-          text: '100% sinh viên đã nộp bài tập tuần 12 • Tiến độ đề cương xuất sắc',
-          action: 'Xem báo cáo',
-          actionHref: `/classes/${item.id}?tab=stream`,
-          actionClass: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-          containerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300',
-        },
-      };
-    }
-
-    // Default / Newly Created Class (e.g. d1)
     const enrolled = item.enrolledCount ?? 0;
     const maxStudents = item.maxStudents || 60;
+    const pendingRequests = item.stats?.pendingRequestsCount ?? 0;
+    const ungradedAssignments = item.stats?.ungradedAssignmentsCount ?? 0;
+    const teacherName = item.instructor?.fullName || 'Giảng viên';
+
     return {
-      ploPassRate: 88.0,
-      attendanceRate: 96,
-      teachingProgress: 60,
-      curriculumWeek: 'Tuần 8/15',
-      instructorInfo: item.instructor?.fullName || 'TS. Lê Hoàng Nam (Chủ nhiệm)',
+      ploPassRate,
+      attendanceRate: item.stats?.attendanceRate ?? 100,
+      teachingProgress: Math.min(100, Math.round((enrolled / maxStudents) * 100)),
+      curriculumWeek: item.semester || 'Học kỳ hiện tại',
+      instructorInfo: teacherName,
       capacityText: `${enrolled}/${maxStudents} học viên`,
-      alert: {
-        type: 'info',
-        icon: 'campaign',
-        text: 'Lớp học hoạt động tốt • Đã đồng bộ không gian bài giảng & môn học liên kết',
-        action: 'Vào quản lý',
-        actionHref: `/classes/${item.id}`,
-        actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        containerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
-      },
+      alert:
+        pendingRequests > 0
+          ? {
+              type: 'warning',
+              icon: 'pending_actions',
+              text: `${pendingRequests} yêu cầu tham gia lớp đang chờ giảng viên duyệt`,
+              action: 'Duyệt ngay',
+              actionHref: `/classes/${item.id}?tab=people`,
+              actionClass: 'bg-amber-600 hover:bg-amber-700 text-white',
+              containerClass:
+                'bg-amber-50 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300',
+            }
+          : ungradedAssignments > 0
+          ? {
+              type: 'info',
+              icon: 'assignment_turned_in',
+              text: `${ungradedAssignments} bài nộp cần chấm điểm`,
+              action: 'Chấm bài',
+              actionHref: `/classes/${item.id}?tab=assignments`,
+              actionClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+              containerClass:
+                'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-800/60 text-blue-800 dark:text-blue-300',
+            }
+          : null,
     };
   };
 
@@ -357,16 +314,25 @@ export function FacultyClassListView({
               {/* CENTER-RIGHT BLOCK: FACULTY METRICS (PLO & CURRICULUM PROGRESS) */}
               <div className="flex items-center gap-4 sm:gap-6 shrink-0 pt-2 xl:pt-0">
                 {/* PLO Pass Rate Badge */}
-                <div
-                  className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 min-w-[95px] text-center shadow-2xs"
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
-                    Chuẩn PLO
-                  </span>
-                  <span className="font-mono text-base sm:text-lg font-black tracking-tight">
-                    {faculty.ploPassRate}%
-                  </span>
-                </div>
+                {faculty.ploPassRate !== null ? (
+                  <div className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 min-w-[95px] text-center shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                      Chuẩn PLO
+                    </span>
+                    <span className="font-mono text-base sm:text-lg font-black tracking-tight">
+                      {faculty.ploPassRate}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 min-w-[95px] text-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                      Chuẩn PLO
+                    </span>
+                    <span className="font-mono text-base sm:text-lg font-bold tracking-tight">
+                      --
+                    </span>
+                  </div>
+                )}
 
                 {/* Curriculum Week & Progress Bar */}
                 <div className="w-36 sm:w-44 space-y-1">

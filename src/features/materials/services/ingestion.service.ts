@@ -10,6 +10,10 @@ import {
   type IngestionJobDetail,
   type IngestionJobSummary,
   type ReviewDecision,
+  graphValidationResponseSchema,
+  graphAiRepairResponseSchema,
+  type GraphValidationResponseDTO,
+  type GraphAiRepairResponseDTO,
 } from '../schemas/ingestion.schema';
 
 const INGESTION_ROOT = '/materials/ingestion';
@@ -187,3 +191,49 @@ export async function fetchUserCourseOptions(
 
   return options;
 }
+
+/**
+ * Validate draft knowledge graph structure (DFS cycles, orphan nodes, missing descriptions).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/validate
+ */
+export async function validateDraftKnowledgeGraph(
+  courseId: string,
+  snapshot: { nodes: unknown[]; edges: unknown[] }
+): Promise<GraphValidationResponseDTO> {
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/validate`,
+    snapshot
+  );
+  return graphValidationResponseSchema.parse(data.data);
+}
+
+/**
+ * AI auto-repair for draft knowledge graph.
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/ai-repair
+ */
+export async function aiRepairDraftKnowledgeGraph(
+  courseId: string,
+  payload: { nodes: unknown[]; edges: unknown[]; instruction?: string }
+): Promise<GraphAiRepairResponseDTO> {
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/ai-repair`,
+    payload
+  );
+  return graphAiRepairResponseSchema.parse(data.data);
+}
+
+/**
+ * Apply AI repaired knowledge graph to backend.
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/apply-ai-repair
+ */
+export async function applyAiRepairDraftKnowledgeGraph(
+  courseId: string,
+  payload: { repairSummary?: string; repairedNodes: unknown[]; repairedEdges: unknown[] }
+): Promise<unknown> {
+  const { data } = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/apply-ai-repair`,
+    payload
+  );
+  return data.data;
+}
+

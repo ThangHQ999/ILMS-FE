@@ -6,14 +6,21 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useGraphMode } from '../hooks/useGraphMode';
 import { useGraphData } from '../hooks/useGraphData';
 import {
+  useCreateCourseKnowledgeEdgeMutation,
+  useCreateCourseKnowledgeNodeMutation,
+  useDeleteCourseKnowledgeEdgeMutation,
+  useDeleteCourseKnowledgeNodeMutation,
+  useImportKnowledgeGraphMutation,
   useRetryGraphPublicationMutation,
-  useStartMaterialGraphDraftMutation,
+  useUpdateCourseKnowledgeNodeMutation,
   useWithdrawPublishedGraphMutation,
 } from '../hooks/useKnowledgeGraphQueries';
+import type { ImportKnowledgeGraphRequestDTO } from '../knowledge-graph.schema';
 import {
   getStudioCourseOptions,
   deriveTopicDisplayName,
   getPedagogicalDefinition,
+  deduplicateParagraphs,
   type StudioCourseOption,
 } from '../services/knowledge-graph.service';
 import { askOwlAboutConcept } from '@/hooks/useSocraticLessonContext';
@@ -41,7 +48,12 @@ export function KnowledgeGraphPageView() {
   const [courseOptions, setCourseOptions] = useState<StudioCourseOption[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const startDraftMutation = useStartMaterialGraphDraftMutation();
+  const importGraphMutation = useImportKnowledgeGraphMutation();
+  const createNodeMutation = useCreateCourseKnowledgeNodeMutation();
+  const updateNodeMutation = useUpdateCourseKnowledgeNodeMutation();
+  const deleteNodeMutation = useDeleteCourseKnowledgeNodeMutation();
+  const createEdgeMutation = useCreateCourseKnowledgeEdgeMutation();
+  const deleteEdgeMutation = useDeleteCourseKnowledgeEdgeMutation();
   const withdrawMutation = useWithdrawPublishedGraphMutation();
   const retryPubMutation = useRetryGraphPublicationMutation();
 
@@ -104,25 +116,162 @@ export function KnowledgeGraphPageView() {
     [graphState, syncScopeUrl]
   );
 
-  const handleStartDraftEdit = useCallback(
-    (materialId: string) => {
-      startDraftMutation.mutate(materialId, {
-        onSuccess: (created) => {
-          showToast('Đã tạo bản nháp chỉnh sửa Neo4j. Đang chuyển tới trình duyệt nháp...');
-          if (created.jobId) {
-            router.push(`/materials/tasks?jobId=${encodeURIComponent(created.jobId)}`);
-          } else {
-            router.push('/materials/tasks');
-          }
+  // Lưu toàn bộ đồ thị phẳng (nodes + edges) qua Spring Boot POST /api/v1/knowledge-graphs/courses/{courseId}/import-json
+  const handleSaveCourseGraph = useCallback(() => {
+    const courseId = graphState.selectedCourseId;
+    if (!courseId) {
+      showToast('Vui lòng chọn môn học từ danh sách trước khi lưu đồ thị tri thức!');
+      return;
+    }
+
+    const payload: ImportKnowledgeGraphRequestDTO = {
+      title: graphState.graphTitle || 'Đồ thị tri thức môn học',
+      description: 'Cập nhật từ Canvas đồ thị tri thức môn học',
+      nodes: graphState.nodesData.map((n) => ({
+        id: n.id,
+        label: n.label || n.id,
+        level: (n.level as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED') || 'BEGINNER',
+        category: n.category || 'Chung',
+        description: n.description || n.definitionText || '',
+        prerequisites: n.prerequisites || [],
+      })),
+      edges: graphState.edgesData.map((e) => ({
+        source: e.source,
+        target: e.target,
+        relation: e.rawRelation || 'PREREQUISITE',
+      })),
+    };
+
+    importGraphMutation.mutate(
+      { courseId, payload },
+      {
+        onSuccess: (res) => {
+          showToast(
+            `Đã lưu đồ thị môn học thành công qua Spring Boot! (${res.totalNodes ?? graphState.nodesData.length} nút, ${res.totalEdges ?? graphState.edgesData.length} cạnh)`
+          );
+          graphState.resetDraftChanges();
+          graphState.refetch();
         },
         onError: (err) => {
-          showToast(
-            err instanceof Error ? err.message : 'Không thể tạo bản nháp chỉnh sửa Neo4j.'
-          );
+          showToast(err instanceof Error ? err.message : 'Không thể lưu đồ thị vào khóa học.');
         },
-      });
+      }
+    );
+  }, [graphState, importGraphMutation, showToast]);
+
+  // Thêm Node trực tiếp qua POST /api/v1/knowledge-graphs/courses/{courseId}/nodes
+  const handleAddNode = useCallback(
+    (newNode: KnowledgeNodeData) => {
+      graphState.addNode(newNode);
+      const courseId = graphState.selectedCourseId;
+      if (courseId) {
+        createNodeMutation.mutate(
+          {
+            courseId,
+            payload: {
+              id: newNode.id,
+              label: newNode.label,
+              description: newNode.description || newNode.definitionText || '',
+              level: (newNode.level as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED') || 'BEGINNER',
+              category: newNode.category || 'Chung',
+              prerequisites: newNode.prerequisites || [],
+            },
+          },
+          {
+            onSuccess: () => {
+              showToast(`Đã thêm nút "${newNode.label}" vào đồ thị môn học.`);
+            },
+            onError: (err) => {
+              showToast(err instanceof Error ? err.message : 'Lỗi khi lưu nút vào server.');
+            },
+          }
+        );
+      }
     },
-    [router, showToast, startDraftMutation]
+    [createNodeMutation, graphState, showToast]
+  );
+
+  // Sửa Node trực tiếp qua PUT /api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}
+  const handleUpdateNode = useCallback(
+    (id: string, updates: Partial<KnowledgeNodeData>) => {
+      graphState.updateNode(id, updates);
+      const courseId = graphState.selectedCourseId;
+      if (courseId) {
+        updateNodeMutation.mutate(
+          {
+            courseId,
+            nodeId: id,
+            payload: {
+              label: updates.label,
+              description: updates.description || updates.definitionText,
+              level: updates.level as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | undefined,
+              category: updates.category,
+              prerequisites: updates.prerequisites,
+            },
+          },
+          {
+            onSuccess: () => {
+              showToast(`Đã cập nhật nút "${updates.label || id}" thành công.`);
+            },
+            onError: (err) => {
+              showToast(err instanceof Error ? err.message : 'Lỗi khi cập nhật nút.');
+            },
+          }
+        );
+      }
+    },
+    [graphState, showToast, updateNodeMutation]
+  );
+
+  // Xóa Node trực tiếp qua DELETE /api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}
+  const handleDeleteNode = useCallback(
+    (id: string) => {
+      graphState.deleteNode(id);
+      const courseId = graphState.selectedCourseId;
+      if (courseId) {
+        deleteNodeMutation.mutate(
+          { courseId, nodeId: id },
+          {
+            onSuccess: () => {
+              showToast(`Đã xóa nút khỏi đồ thị môn học.`);
+            },
+            onError: (err) => {
+              showToast(err instanceof Error ? err.message : 'Lỗi khi xóa nút.');
+            },
+          }
+        );
+      }
+    },
+    [deleteNodeMutation, graphState, showToast]
+  );
+
+  // Thêm Cạnh trực tiếp qua POST /api/v1/knowledge-graphs/courses/{courseId}/edges
+  const handleConnectNodes = useCallback(
+    (source: string, target: string, rawRelation?: string, label?: string) => {
+      graphState.addEdge(source, target, rawRelation, label);
+      const courseId = graphState.selectedCourseId;
+      if (courseId) {
+        createEdgeMutation.mutate(
+          {
+            courseId,
+            payload: {
+              source,
+              target,
+              relation: (rawRelation || 'PREREQUISITE').toUpperCase(),
+            },
+          },
+          {
+            onSuccess: () => {
+              showToast(`Đã lưu quan hệ liên kết mới vào đồ thị môn học.`);
+            },
+            onError: (err) => {
+              showToast(err instanceof Error ? err.message : 'Lỗi khi tạo quan hệ liên kết.');
+            },
+          }
+        );
+      }
+    },
+    [createEdgeMutation, graphState, showToast]
   );
 
   const handleWithdrawPublication = useCallback(
@@ -183,11 +332,15 @@ export function KnowledgeGraphPageView() {
     (node: KnowledgeNodeData) => {
       const courseId =
         graphState.selectedCourseId || activePublishedSummary?.courseId || undefined;
-      const definition =
-        graphState.conceptDetail?.definition ||
+      const rawDef =
+        (typeof graphState.conceptDetail?.definition === 'string'
+          ? graphState.conceptDetail.definition
+          : (graphState.conceptDetail?.definition as unknown as { content?: string })?.content) ||
+        graphState.conceptDetail?.description ||
         node.definitionText ||
         node.description ||
         getPedagogicalDefinition(node.label, node.topic || node.materialTitle);
+      const definition = deduplicateParagraphs(rawDef);
 
       askOwlAboutConcept({
         id: node.id,
@@ -233,7 +386,10 @@ export function KnowledgeGraphPageView() {
     return (
       <KnowledgeFocusView
         userFullName={userFullName}
+        courseId={graphState.selectedCourseId}
+        courseOptions={courseOptions}
         nodesData={graphState.nodesData}
+        edgesData={graphState.edgesData}
         rawNodes={graphState.rawNodes}
         rawEdges={graphState.rawEdges}
         selectedNodeId={graphState.selectedNodeId}
@@ -247,6 +403,7 @@ export function KnowledgeGraphPageView() {
         onOpenLesson={handleFocusOpenLesson}
         onAskAiTutor={handleFocusAskAi}
         onExitFocus={() => switchMode('analytics')}
+        onRefetch={graphState.refetch}
       />
     );
   }
@@ -270,12 +427,12 @@ export function KnowledgeGraphPageView() {
       isConceptDetailLoading={graphState.isConceptDetailLoading}
       activePublicationId={activePublishedSummary?.publicationId ?? null}
       activePublicationStatus={activePublishedSummary?.status ?? null}
-      isStartingDraft={startDraftMutation.isPending}
       isWithdrawing={withdrawMutation.isPending}
       isRetryingPublication={retryPubMutation.isPending}
-      onStartDraftEdit={handleStartDraftEdit}
       onWithdrawPublication={handleWithdrawPublication}
       onRetryPublication={handleRetryPublication}
+      onSaveCourseGraph={handleSaveCourseGraph}
+      isSavingCourseGraph={importGraphMutation.isPending}
       externalToastMessage={toastMessage}
       nodesData={graphState.nodesData}
       allNodesData={graphState.allNodesData}
@@ -306,10 +463,10 @@ export function KnowledgeGraphPageView() {
       onSelectTool={graphState.setActiveTool}
       layoutMode={graphState.layoutMode}
       onLayoutModeChange={graphState.setLayoutMode}
-      onAddNode={graphState.addNode}
-      onUpdateNode={graphState.updateNode}
-      onDeleteNode={graphState.deleteNode}
-      onConnectNodes={graphState.addEdge}
+      onAddNode={handleAddNode}
+      onUpdateNode={handleUpdateNode}
+      onDeleteNode={handleDeleteNode}
+      onConnectNodes={handleConnectNodes}
       hasUnsavedChanges={graphState.hasUnsavedChanges}
       unsavedCount={graphState.unsavedCount}
       onResetDraftChanges={graphState.resetDraftChanges}

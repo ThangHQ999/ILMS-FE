@@ -10,6 +10,7 @@ import {
   type CreateClassRequest,
   type UpdateClassRequest,
   type ClassFilters,
+  type TeachingRole,
 } from '../schemas/class.schema';
 import {
   DEFAULT_FACULTY_CLASSES,
@@ -145,17 +146,28 @@ export async function getClasses(
   };
 }
 
+export type ClassLookupResult = ClassItem & { isClassInfoLive?: boolean; callerRole?: TeachingRole };
+
 /**
  * Get single class details by ID.
  * Endpoint: GET /api/v1/classes/{id}
  */
-export async function getClassById(id: string): Promise<ClassItem> {
+export async function getClassById(id: string): Promise<ClassLookupResult> {
   const apiId = normalizeClassApiId(id);
 
   // 1. Always fetch from Backend API first using the normalized real ID
   try {
     const { data } = await api.get<ApiResponse<unknown>>(`/classes/${apiId}`);
-    return classItemSchema.parse(data.data ?? data);
+    const payload = data.data ?? data;
+    const parsed = classItemSchema.parse(payload);
+    const role = payload && typeof payload === 'object' && 'teachingRole' in payload
+      ? payload.teachingRole
+      : null;
+    return {
+      ...parsed,
+      isClassInfoLive: true,
+      callerRole: typeof role === 'string' && role.trim().toUpperCase() === parsed.teachingRole ? parsed.teachingRole : undefined,
+    };
   } catch {
     // 2. Fallback to local cache / defaults only when backend is unavailable
     const localList = getLocalCreatedClasses();
@@ -184,17 +196,15 @@ export async function getClassById(id: string): Promise<ClassItem> {
     if (studentFallback) return studentFallback;
 
     const isRawUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(apiId.trim());
-    const fallbackTitle = isRawUuid
-      ? 'Lập trình Web nâng cao - Next.js & TypeScript (CNTT-K21A)'
-      : apiId;
-    const fallbackName = isRawUuid ? 'INT3306 01' : apiId;
+    const fallbackTitle = isRawUuid ? 'Lớp học' : apiId;
+    const fallbackName = isRawUuid ? 'Lớp học' : apiId;
 
     // 3. Safe auto-recovery fallback
     return {
       id: apiId,
       name: fallbackName,
       title: fallbackTitle,
-      description: 'Không gian học tập và trao đổi môn học',
+      description: '',
       academicYear: DEFAULT_ACADEMIC_YEAR,
       semester: CURRENT_SEMESTER,
       major: 'Khoa học Máy tính',
@@ -203,9 +213,9 @@ export async function getClassById(id: string): Promise<ClassItem> {
       enrollmentKey: fallbackName,
       isCodeClosed: false,
       status: 'ACTIVE',
-      teachingRole: 'PRIMARY_INSTRUCTOR',
+      teachingRole: 'STUDENT',
       instructor: {
-        fullName: '',
+        fullName: 'Chưa phân công',
       },
       schedule: {
         room: 'Chưa xếp phòng',
@@ -401,4 +411,13 @@ export async function inviteMemberByEmail(
     email: email.trim(),
     role,
   });
+}
+
+/**
+ * Leave a class (Student / Co-teacher action; Owner cannot leave).
+ * Endpoint: POST /api/v1/classes/{classId}/leave
+ */
+export async function leaveClass(classId: string): Promise<void> {
+  const apiId = normalizeClassApiId(classId);
+  await api.post<ApiResponse<unknown>>(`/classes/${apiId}/leave`);
 }

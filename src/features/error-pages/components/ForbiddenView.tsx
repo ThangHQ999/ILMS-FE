@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { CustomSelect } from '@/components/shared';
 import { ErrorPageHeader } from './ErrorPageHeader';
 import { ErrorPageFooter } from './ErrorPageFooter';
@@ -28,7 +29,7 @@ export function ForbiddenView() {
   };
 
   const handleSwitchInstructor = () => {
-    alert(t('switchingRoleFeedback'));
+    toast.success(t('switchingRoleFeedback'));
     setIsSwitchModalOpen(false);
     router.push('/dashboard');
   };

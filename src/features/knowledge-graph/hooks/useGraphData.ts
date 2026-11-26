@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type {
   KnowledgeNodeData,
@@ -10,6 +10,7 @@ import type {
   LayoutMode,
   KnowledgeGraphStats,
 } from '../types';
+import { getRelationDisplayLabel } from '../types';
 import {
   getKnowledgeStats,
   cleanDocTitle,
@@ -112,9 +113,11 @@ export function useGraphData(options?: UseGraphDataOptions) {
     const cleanedMatTitle = cleanDocTitle(contextTitle);
 
     return base.map((node) => {
+      const isAlgoOrEntity = /thuật toán|algorithm|giải thuật|dijkstra/i.test(node.label || '');
       const isCore =
         !node.isAuxiliary &&
         (node.isCenterpiece ||
+          isAlgoOrEntity ||
           (node.kind && node.kind.toUpperCase().includes('KNOWLEDGE')) ||
           (node.kind && node.kind.toUpperCase() === 'CONCEPT') ||
           (node.kind && node.kind.toUpperCase() !== 'TOPIC'));
@@ -124,22 +127,22 @@ export function useGraphData(options?: UseGraphDataOptions) {
           cleanedMatTitle && (node.label === 'Khái niệm tri thức' || node.label.startsWith('Thực thể #'))
             ? cleanedMatTitle
             : node.label;
-        const fallbackDef = getPedagogicalDefinition(finalLabel, contextTitle);
-        const resolvedDef = node.definitionText || node.description || fallbackDef;
+        const resolvedDef = node.definitionText || node.description || '';
         return {
           ...node,
           label: finalLabel,
           materialTitle: node.materialTitle || selectedMaterial?.title || contextTitle,
           definitionText: resolvedDef,
-          description: node.description || resolvedDef,
+          description: resolvedDef,
         };
       }
 
       if (
-        (node.kind && node.kind.toUpperCase() === 'TOPIC') ||
-        node.label.startsWith('Chủ đề #') ||
-        node.label === 'Chủ đề' ||
-        isUuidOrCode(node.label)
+        !isAlgoOrEntity &&
+        ((node.kind && node.kind.toUpperCase() === 'TOPIC') ||
+          node.label.startsWith('Chủ đề #') ||
+          node.label === 'Chủ đề' ||
+          isUuidOrCode(node.label))
       ) {
         return {
           ...node,
@@ -179,18 +182,35 @@ export function useGraphData(options?: UseGraphDataOptions) {
     return filtered.length > 0 ? filtered : edgesData;
   }, [edgesData, showAuxiliaryNodes]);
 
-  // Keep selectedNodeId synced to a valid node in the current graph
+  const hasInitializedRef = useRef<boolean>(false);
+  const prevCourseIdRef = useRef<string | null>(selectedCourseId);
+  const prevMaterialIdRef = useRef<string | null>(selectedMaterialId);
+
+  // Auto-select centerpiece only when graph initially loads or when switching course/material
   useEffect(() => {
     if (displayNodesData.length === 0) {
       setSelectedNodeId(null);
+      hasInitializedRef.current = false;
       return;
     }
-    if (selectedNodeId && displayNodesData.some((n) => n.id === selectedNodeId || n.canonicalCode === selectedNodeId)) {
+
+    const courseChanged = prevCourseIdRef.current !== selectedCourseId;
+    const materialChanged = prevMaterialIdRef.current !== selectedMaterialId;
+    prevCourseIdRef.current = selectedCourseId;
+    prevMaterialIdRef.current = selectedMaterialId;
+
+    if (!hasInitializedRef.current || courseChanged || materialChanged) {
+      hasInitializedRef.current = true;
+      const centerpiece = displayNodesData.find((n) => n.isCenterpiece) ?? displayNodesData[0];
+      setSelectedNodeId(centerpiece?.id ?? null);
       return;
     }
-    const centerpiece = displayNodesData.find((n) => n.isCenterpiece) ?? displayNodesData[0];
-    setSelectedNodeId(centerpiece?.id ?? null);
-  }, [displayNodesData, selectedNodeId]);
+
+    // If a node was previously selected but is no longer in displayNodesData, reset it to null
+    if (selectedNodeId && !displayNodesData.some((n) => n.id === selectedNodeId || n.canonicalCode === selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  }, [displayNodesData, selectedCourseId, selectedMaterialId, selectedNodeId]);
 
   const selectedNode = useMemo(() => {
     if (!selectedNodeId) return null;
@@ -245,18 +265,22 @@ export function useGraphData(options?: UseGraphDataOptions) {
   }, [displayNodesData]);
 
   const rawEdges: Edge[] = useMemo(() => {
-    return displayEdgesData.map((e) => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-      label: e.label,
-      animated: e.animated,
-      type: 'default',
-      style: {
-        strokeWidth: 2.2,
-        strokeDasharray: e.dashed ? '4,4' : undefined,
-      },
-    }));
+    return displayEdgesData.map((e) => {
+      const displayLabel =
+        e.label || (e.rawRelation ? getRelationDisplayLabel(e.rawRelation) : undefined);
+      return {
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        label: displayLabel,
+        animated: e.animated,
+        type: 'googleEdge',
+        style: {
+          strokeWidth: 1.8,
+          strokeDasharray: e.dashed ? '4,4' : undefined,
+        },
+      };
+    });
   }, [displayEdgesData]);
 
   const stats: KnowledgeGraphStats = useMemo(() => {

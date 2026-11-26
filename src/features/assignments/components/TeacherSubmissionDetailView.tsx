@@ -213,6 +213,7 @@ export function TeacherSubmissionDetailView({
         isClassLoading,
         isClassError,
         isClassInfoLive: classDetailData?.isClassInfoLive,
+        callerRole: classDetailData?.callerRole,
         isMembersLive: classDetailData?.isMembersLive,
         user: currentUser,
         classInfo: classDetailData?.classInfo,

@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
@@ -124,12 +125,11 @@ export function AssignmentsTabView({
 
   // Action handlers
   const handleTakeQuiz = (quizId: string) => {
-    // Navigate or alert
-    alert(`Bắt đầu làm bài: ${quizId}`);
+    toast.info(`Bắt đầu làm bài: ${quizId}`);
   };
 
   const handleSubmitLab = (labId: string) => {
-    alert(`Mở hộp thoại nộp báo cáo Lab: ${labId}`);
+    toast.info(`Mở hộp thoại nộp báo cáo Lab: ${labId}`);
   };
 
   const handleExportReport = () => {
@@ -252,23 +252,23 @@ export function AssignmentsTabView({
                       items={activeItems}
                       onTakeQuiz={handleTakeQuiz}
                       onSubmitLab={handleSubmitLab}
-                      onViewClassScores={(id) => alert(`Bảng điểm lớp cho bài ${id}`)}
-                      onGradeSubmissions={(id) => alert(`Chấm bài tập ${id}`)}
+                      onViewClassScores={(id) => toast.info(`Bảng điểm lớp cho bài ${id}`)}
+                      onGradeSubmissions={(id) => toast.info(`Chấm bài tập ${id}`)}
                     />
 
                     {/* Cluster 2: Completed & Graded */}
                     <AssignmentCompletedCluster
                       items={completedItems}
                       onExportReport={handleExportReport}
-                      onReviewQuiz={(id) => alert(`Xem lại đề và giải thích chi tiết ${id}`)}
-                      onPracticeMistakes={(id) => alert(`Luyện lại các câu làm sai của bài ${id}`)}
-                      onViewSubmission={(id) => alert(`Xem phản hồi bài nộp ${id}`)}
+                      onReviewQuiz={(id) => toast.info(`Xem lại đề và giải thích chi tiết ${id}`)}
+                      onPracticeMistakes={(id) => toast.info(`Luyện lại các câu làm sai của bài ${id}`)}
+                      onViewSubmission={(id) => toast.info(`Xem phản hồi bài nộp ${id}`)}
                     />
 
                     {/* Cluster 3: Upcoming in Next Sprint */}
                     <AssignmentUpcomingCluster
                       items={upcomingItems}
-                      onViewOutline={(id) => alert(`Xem đề cương chi tiết bài ${id}`)}
+                      onViewOutline={(id) => toast.info(`Xem đề cương chi tiết bài ${id}`)}
                     />
                   </div>
 
@@ -281,7 +281,7 @@ export function AssignmentsTabView({
                     <SocraticAiMentorPanel
                       recommendation={aiRecommendation}
                       onTakeAdaptiveQuiz={() =>
-                        alert('Bắt đầu bài tập luyện tập 5 câu củng cố TCP Tahoe vs Reno')
+                        toast.info('Bắt đầu bài tập luyện tập 5 câu củng cố TCP Tahoe vs Reno')
                       }
                     />
 

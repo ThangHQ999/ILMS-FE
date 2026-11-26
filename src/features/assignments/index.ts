@@ -83,3 +83,26 @@ export { AiExamBlueprintStudioModal } from './components/teacher/AiExamBlueprint
 export { TeacherLiveProctoringView } from './components/teacher/TeacherLiveProctoringView';
 export { AiRagQuestionGeneratorModal } from './components/teacher/AiRagQuestionGeneratorModal';
 export { ImportWordExcelModal } from './components/teacher/ImportWordExcelModal';
+
+// Unified Assessment Hub (/assignments)
+export * from './schemas/assessment-hub.schema';
+export * from './hooks/useAssessmentHub';
+export { AssessmentHubPageView } from './components/hub/AssessmentHubPageView';
+
+// Question Bank (/assignments/question-bank)
+export * from './hooks/useQuestionBankManager';
+export { QuestionBankPageView } from './components/question-bank/QuestionBankPageView';
+export { AzotaEditorSplitView } from './components/question-bank/AzotaEditorSplitView';
+export { ClassworkWorkspace } from './components/classwork/ClassworkWorkspace';
+export { classworkKeys, useClassworkContexts } from './hooks/useClasswork';
+export { getClassworkDraft, saveClassworkDraft, publishClasswork } from './services/classwork.service';
+export { assessmentPlayHref } from './utils/classworkRoutes';
+export { getQuestionsPage, createBankQuestion, batchCreateQuestions } from './services/question-bank.service';
+export {
+  AZOTA_SAMPLE_TEXT,
+  parseAzotaQuestionsText,
+  parseQuickAnswerKey,
+  applyAnswerAndDifficultyOverrides,
+  type AzotaParsedQuestion,
+} from './utils/azota-question-parser';
+export { AssessmentPlayer } from './components/AssessmentPlayer';

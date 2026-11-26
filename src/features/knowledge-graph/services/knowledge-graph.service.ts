@@ -4,15 +4,26 @@ import {
   conceptDetailSchema,
   graphAuditLogItemSchema,
   graphRevisionItemSchema,
+  importKnowledgeGraphResponseSchema,
+  graphValidationResponseSchema,
+  graphAiRepairResponseSchema,
   publishedGraphRawEdgeSchema,
   publishedGraphRawNodeSchema,
   publishedGraphSummarySchema,
   type ConceptDetail,
+  type CreateKnowledgeNodeRequestDTO,
   type GraphAuditLogItem,
   type GraphRevisionItem,
+  type ImportKnowledgeGraphRequestDTO,
+  type ImportKnowledgeGraphResponseDTO,
+  type ManageKnowledgeEdgeRequestDTO,
   type PublishedGraphRawEdge,
   type PublishedGraphRawNode,
   type PublishedGraphsPage,
+  type UpdateKnowledgeNodeRequestDTO,
+  type GraphValidationResponseDTO,
+  type GraphAiRepairResponseDTO,
+  type ApplyAiRepairRequestDTO,
 } from '../knowledge-graph.schema';
 import type {
   KnowledgeCategory,
@@ -114,6 +125,7 @@ export function isGenericTopicName(str?: string | null): boolean {
   if (trimmed === 'chủ đề' || trimmed === 'topic') return true;
   if (/^chủ đề\s*(#\d+|\d+)?$/i.test(trimmed)) return true;
   if (/^topic\s*(#\d+|\d+)?$/i.test(trimmed)) return true;
+  if (/dijkstra|thuật toán dijkstra/i.test(trimmed)) return true;
   return false;
 }
 
@@ -148,7 +160,7 @@ export function deriveTopicDisplayName(
   if (lower.includes('tìm kiếm') || lower.includes('tim kiem') || lower.includes('search')) {
     return 'Thuật toán Tìm kiếm';
   }
-  if (lower.includes('đồ thị') || lower.includes('do thi') || lower.includes('graph')) {
+  if (lower.includes('dijkstra') || lower.includes('đồ thị') || lower.includes('do thi') || lower.includes('graph')) {
     return 'Lý thuyết Đồ thị';
   }
   if (lower.includes('cây') || lower.includes('cay') || lower.includes('tree')) {
@@ -206,108 +218,18 @@ export function deriveTopicDisplayName(
   return `Chủ đề #${fallbackIndex}`;
 }
 
-export function getBubbleSortStepAction(stepNum: number): string {
-  switch (stepNum) {
-    case 1:
-      return 'Khởi tạo vòng lặp ngoài i chạy từ 0 đến n - 1 để quản lý số lượt duyệt qua mảng.';
-    case 2:
-      return 'Khởi tạo cờ hiệu swapped = false trước mỗi lượt duyệt để phát hiện mảng đã được sắp xếp sớm.';
-    case 3:
-      return 'Chạy vòng lặp trong j từ 0 đến n - i - 1 để lần lượt so sánh từng cặp phần tử liền kề A[j] và A[j+1].';
-    case 4:
-      return 'So sánh điều kiện: Nếu A[j] > A[j+1], tiến hành hoán đổi (swap) giá trị hai phần tử và gán swapped = true.';
-    case 5:
-      return 'Đưa phần tử lớn nhất trong phạm vi chưa sắp xếp "nổi" dần về đúng vị trí cuối mảng.';
-    case 8:
-      return 'Kiểm tra cờ hiệu swapped: Nếu không có cặp phần tử nào bị hoán đổi trong suốt lượt duyệt, ngắt vòng lặp sớm (O(n)).';
-    case 10:
-      return 'Thu hẹp phạm vi duyệt của vòng lặp trong sau mỗi vòng lặp ngoài hoàn thành.';
-    case 11:
-      return 'Kết thúc thuật toán khi toàn bộ mảng đã được sắp xếp tăng dần theo đúng thứ tự.';
-    default:
-      return `Thực hiện bước ${stepNum} trong quy trình giải thuật sắp xếp.`;
-  }
+export function getBubbleSortStepAction(_stepNum: number): string {
+  // Never fake step action strings when real data does not exist
+  return '';
 }
 
 export function getPedagogicalDefinition(
-  conceptLabel?: string | null,
-  contextTitle?: string | null
+  _conceptLabel?: string | null,
+  _contextTitle?: string | null
 ): string {
-  const label = (conceptLabel || '').trim();
-  const lower = `${label} ${contextTitle || ''}`.toLowerCase();
-
-  // Auxiliary node protection: never generate generic entity definition for satellite nodes
-  const lowerLabel = label.toLowerCase();
-  if (
-    lowerLabel.startsWith('bước quy trình') ||
-    lowerLabel.startsWith('đoạn trích') ||
-    lowerLabel.startsWith('bài tập') ||
-    lowerLabel.startsWith('định nghĩa') ||
-    lowerLabel.startsWith('quy trình thực thi') ||
-    lowerLabel.startsWith('ví dụ')
-  ) {
-    return '';
-  }
-
-  // Sorting algorithms
-  if (lower.includes('sắp xếp nổi bọt') || lower.includes('bubble sort')) {
-    return 'Thuật toán Sắp xếp nổi bọt (Bubble Sort) là thuật toán sắp xếp cơ bản hoạt động bằng cách lặp lại thao tác so sánh hai phần tử liền kề và đổi chỗ cho nhau nếu chúng đứng sai thứ tự. Quá trình này được lặp lại cho đến khi không còn cặp phần tử nào cần hoán đổi, đưa dần các phần tử lớn nhất "nổi" về cuối mảng.\n\n• Độ phức tạp thời gian: O(n²) trong trường hợp trung bình và xấu nhất; O(n) khi mảng đã sắp xếp.\n• Độ phức tạp không gian: O(1) (sắp xếp tại chỗ - In-place).';
-  }
-  if (lower.includes('sắp xếp nhanh') || lower.includes('quick sort')) {
-    return 'Thuật toán Sắp xếp nhanh (Quick Sort) hoạt động theo nguyên lý Chia để trị (Divide and Conquer). Thuật toán chọn một phần tử làm điểm tựa (pivot) và phân hoạch mảng sao cho các phần tử nhỏ hơn pivot nằm về bên trái, các phần tử lớn hơn pivot nằm về bên phải, sau đó đệ quy áp dụng cho các mảng con.\n\n• Độ phức tạp thời gian: O(n log n) trung bình; O(n²) trường hợp xấu nhất.\n• Độ phức tạp không gian: O(log n) cho ngăn xếp đệ quy.';
-  }
-  if (lower.includes('sắp xếp chèn') || lower.includes('insertion sort')) {
-    return 'Thuật toán Sắp xếp chèn (Insertion Sort) xây dựng mảng kết quả từng phần tử một bằng cách lấy từng phần tử chưa sắp xếp và chèn vào đúng vị trí tương đối của nó trong đoạn mảng con đã được sắp xếp phía trước.\n\n• Độ phức tạp thời gian: O(n²) trung bình; O(n) trường hợp tốt nhất.\n• Độ phức tạp không gian: O(1).';
-  }
-  if (lower.includes('sắp xếp chọn') || lower.includes('selection sort')) {
-    return 'Thuật toán Sắp xếp chọn (Selection Sort) chia mảng thành phần đã sắp xếp và phần chưa sắp xếp. Tại mỗi bước, thuật toán tìm phần tử nhỏ nhất (hoặc lớn nhất) từ phần chưa sắp xếp và hoán đổi nó về vị trí đầu tiên của phần chưa sắp xếp.\n\n• Độ phức tạp thời gian: O(n²) cho mọi trường hợp.\n• Độ phức tạp không gian: O(1).';
-  }
-  if (lower.includes('sắp xếp trộn') || lower.includes('merge sort')) {
-    return 'Thuật toán Sắp xếp trộn (Merge Sort) áp dụng triệt để nguyên lý Chia để trị bằng cách chia đôi mảng liên tục cho đến khi mỗi mảng con chỉ còn 1 phần tử, sau đó lần lượt trộn (merge) các mảng con đã có thứ tự lại thành mảng hoàn chỉnh.\n\n• Độ phức tạp thời gian: O(n log n) trong mọi trường hợp.\n• Độ phức tạp không gian: O(n) bộ nhớ phụ trợ.';
-  }
-
-  // Searching algorithms
-  if (lower.includes('tìm kiếm nhị phân') || lower.includes('binary search')) {
-    return 'Tìm kiếm nhị phân (Binary Search) là thuật toán tìm kiếm hiệu quả cao áp dụng trên danh sách đã được sắp xếp thứ tự. Tại mỗi bước, thuật toán so sánh giá trị cần tìm với phần tử ở vị trí giữa danh sách để loại bỏ một nửa không gian tìm kiếm.\n\n• Độ phức tạp thời gian: O(log n).\n• Độ phức tạp không gian: O(1) dạng lặp, O(log n) dạng đệ quy.';
-  }
-  if (lower.includes('tìm kiếm tuyến tính') || lower.includes('linear search')) {
-    return 'Tìm kiếm tuyến tính (Linear Search) duyệt tuần tự qua từng phần tử của danh sách từ đầu đến cuối cho đến khi tìm thấy phần tử mong muốn hoặc hết danh sách.\n\n• Độ phức tạp thời gian: O(n).\n• Độ phức tạp không gian: O(1).';
-  }
-
-  // Data structures
-  if (lower.includes('ngăn xếp') || lower.includes('stack')) {
-    return 'Ngăn xếp (Stack) là cấu trúc dữ liệu tuyến tính hoạt động theo nguyên tắc LIFO (Last In, First Out - Vào sau ra trước). Các thao tác chính gồm Push (thêm phần tử vào đỉnh) và Pop (lấy phần tử khỏi đỉnh), đều có độ phức tạp O(1).';
-  }
-  if (lower.includes('hàng đợi') || lower.includes('queue')) {
-    return 'Hàng đợi (Queue) là cấu trúc dữ liệu tuyến tính hoạt động theo nguyên tắc FIFO (First In, First Out - Vào trước ra trước). Các thao tác chính gồm Enqueue (thêm vào cuối hàng) và Dequeue (lấy khỏi đầu hàng), đều có độ phức tạp O(1).';
-  }
-  if (lower.includes('danh sách liên kết') || lower.includes('linked list')) {
-    return 'Danh sách liên kết (Linked List) là cấu trúc dữ liệu gồm các nút (node) liên kết với nhau, trong đó mỗi nút chứa dữ liệu và một con trỏ tham chiếu đến nút kế tiếp trong bộ nhớ. Ưu điểm nổi bật là kích thước động và chi phí chèn/xóa ở đầu là O(1).';
-  }
-  if (lower.includes('cây nhị phân') || lower.includes('binary tree')) {
-    return 'Cây nhị phân (Binary Tree) là cấu trúc dữ liệu phân cấp phi tuyến tính trong đó mỗi nút có tối đa 2 nút con (gọi là con trái và con phải). Ứng dụng rộng rãi trong cây tìm kiếm nhị phân (BST), cây cân bằng AVL và Heap.';
-  }
-  if (lower.includes('bảng băm') || lower.includes('hash table') || lower.includes('hash map')) {
-    return 'Bảng băm (Hash Table) là cấu trúc dữ liệu lưu trữ các cặp khóa - giá trị (Key-Value), sử dụng hàm băm (Hash function) để ánh xạ khóa thành chỉ số mảng. Cho phép tra cứu, thêm mới và xóa phần tử với độ phức tạp trung bình O(1).';
-  }
-  if (lower.includes('đồ thị') || lower.includes('graph')) {
-    return 'Đồ thị (Graph) là cấu trúc dữ liệu phi tuyến tính biểu diễn tập hợp các đỉnh (Vertices / Nodes) và các cạnh (Edges) kết nối giữa các đỉnh, phản ánh các mối quan hệ phức tạp trong thực tế (mạng xã hội, bản đồ giao thông, sơ đồ tri thức).';
-  }
-  if (lower.includes('độ phức tạp') || lower.includes('big-o') || lower.includes('complexity')) {
-    return 'Ký pháp Big-O mô tả giới hạn trên của thời gian thực thi hoặc không gian bộ nhớ mà một thuật toán tiêu thụ khi kích thước đầu vào n tăng dần, giúp đo lường và đánh giá hiệu năng giải thuật độc lập với phần cứng máy tính.';
-  }
-
-  // General fallback
-  if (label && !isUuidOrCode(label) && label !== 'Khái niệm tri thức') {
-    return `${label} là thực thể tri thức trọng tâm được trích xuất và chuẩn hóa từ học liệu môn học. Thực thể này định hình các khái niệm lý thuyết nền tảng, quy trình thực thi giải thuật và mối quan hệ tiên quyết trong cấu trúc kiến thức.`;
-  }
-
-  if (contextTitle) {
-    const cleanContext = cleanDocTitle(contextTitle);
-    return `Tri thức cốt lõi về ${cleanContext}, bao gồm định nghĩa khái niệm, các bước quy trình thực thi và bài tập rèn luyện được đồng bộ từ cơ sở dữ liệu tri thức Neo4j.`;
-  }
-
-  return 'Khái niệm tri thức nền tảng trong chương trình đào tạo, đóng vai trò kết nối các bài học lý thuyết và bài tập thực hành trên hệ thống học tập.';
+  // Never fake definitions or descriptions when no real data exists from DB / ingestion.
+  // Real data must come from conceptDetail, node.definitionText, or node.description.
+  return '';
 }
 
 export function isAuxiliaryKind(
@@ -692,10 +614,11 @@ export function formatComplexityTime(kind: string): string {
 
 function mapCategoryFromBackend(
   category?: string | null,
-  kind?: string | null
+  kind?: string | null,
+  labelOrName?: string | null
 ): Exclude<KnowledgeCategory, 'all'> {
-  const source = `${category ?? ''} ${kind ?? ''}`.toLowerCase();
-  if (source.includes('algo') || source.includes('process') || source.includes('thuật toán')) {
+  const source = `${category ?? ''} ${kind ?? ''} ${labelOrName ?? ''}`.toLowerCase();
+  if (source.includes('algo') || source.includes('process') || source.includes('thuật toán') || source.includes('dijkstra')) {
     return 'algo';
   }
   if (source.includes('exercise') || source.includes('icpc') || source.includes('lab') || source.includes('bài tập')) {
@@ -752,6 +675,95 @@ function mapRelationshipType(rawRelation?: string | null): KnowledgeRelationship
     return 'evaluates';
   }
   return 'extends';
+}
+
+/**
+ * Deduplicate text at the paragraph level, eliminating exact duplicates,
+ * whitespace/CRLF differences, and redundant sub-paragraphs.
+ */
+export function deduplicateParagraphs(rawText?: string | null): string {
+  if (!rawText || typeof rawText !== 'string') return '';
+  // 1. Normalize line endings (CRLF -> LF)
+  const normalized = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!normalized) return '';
+
+  // 2. Split into blocks/paragraphs by one or more blank lines
+  const paragraphs = normalized
+    .split(/\n\s*\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length <= 1) return normalized;
+
+  const uniqueParagraphs: string[] = [];
+  const seenFingerprints = new Set<string>();
+
+  for (const para of paragraphs) {
+    // Generate fingerprint for fuzzy matching (case-insensitive, normalized spaces, stripped trailing punctuation)
+    const fingerprint = para
+      .toLowerCase()
+      .replace(/[.,;:\s]+$/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!fingerprint) continue;
+
+    // Check exact or normalized duplicate
+    if (seenFingerprints.has(fingerprint)) {
+      continue;
+    }
+
+    // Check if this paragraph is already fully contained inside an existing paragraph (or vice-versa)
+    const existingIndex = uniqueParagraphs.findIndex((existing) => {
+      const existingFp = existing
+        .toLowerCase()
+        .replace(/[.,;:\s]+$/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (existingFp === fingerprint) return true;
+      const minLen = Math.min(existingFp.length, fingerprint.length);
+      if (minLen >= 40) {
+        if (existingFp.includes(fingerprint) || fingerprint.includes(existingFp)) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (existingIndex >= 0) {
+      const existing = uniqueParagraphs[existingIndex];
+      // If the new paragraph is longer/more detailed, replace the shorter one
+      if (para.length > existing.length) {
+        uniqueParagraphs[existingIndex] = para;
+        seenFingerprints.delete(
+          existing
+            .toLowerCase()
+            .replace(/[.,;:\s]+$/, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+        );
+        seenFingerprints.add(fingerprint);
+      }
+      continue;
+    }
+
+    seenFingerprints.add(fingerprint);
+    uniqueParagraphs.push(para);
+  }
+
+  return uniqueParagraphs.join('\n\n').trim();
+}
+
+/**
+ * Deduplicate an array of definition strings, joining them cleanly without paragraph repeats.
+ */
+export function deduplicateDefinitions(defs: string[]): string {
+  if (!defs || defs.length === 0) return '';
+  const combined = defs
+    .map((d) => (typeof d === 'string' ? d.trim() : ''))
+    .filter(Boolean)
+    .join('\n\n');
+  return deduplicateParagraphs(combined);
 }
 
 function extractDefinitionText(
@@ -869,7 +881,6 @@ function unpackRawNode(
     props.topic,
     props.topicName,
     props.topic_name,
-    props.name,
     raw.topic,
     raw.topicName,
     raw.topic_name
@@ -942,6 +953,14 @@ function unpackRawNode(
       } else if (s.startsWith('chủ đề')) {
         detectedKind = 'TOPIC';
       }
+    }
+  }
+
+  // Ensure algorithms & core entities like Dijkstra are never treated as a Topic
+  const checkAlgorithmName = `${nameVal ?? ''} ${props.name ?? ''} ${props.title ?? ''} ${raw.name ?? ''} ${raw.title ?? ''} ${raw.label ?? ''}`.toLowerCase();
+  if (/thuật toán|algorithm|giải thuật|dijkstra/i.test(checkAlgorithmName)) {
+    if (!detectedKind || detectedKind.toUpperCase() === 'TOPIC') {
+      detectedKind = 'KnowledgeEntity';
     }
   }
 
@@ -1272,14 +1291,14 @@ export function mapRawGraphToCanvasData(
       const selfBucket = entityDataMap.get(id);
       if (selfBucket) {
         if (raw.description && !isUuidOrCode(raw.description)) {
-          selfBucket.definitions.push(raw.description.trim());
+          selfBucket.definitions.push(raw.description.replace(/\r\n/g, '\n').trim());
         }
         const rawSourceRefs = Array.isArray(raw.sourceRefs)
           ? (raw.sourceRefs as Array<Record<string, unknown>>)
           : [];
         rawSourceRefs.forEach((sr, srIdx) => {
           if (typeof sr.excerpt === 'string' && sr.excerpt.trim()) {
-            const ex = sr.excerpt.trim();
+            const ex = sr.excerpt.replace(/\r\n/g, '\n').trim();
             if (!selfBucket.definitions.includes(ex)) {
               selfBucket.definitions.push(ex);
             }
@@ -1314,7 +1333,7 @@ export function mapRawGraphToCanvasData(
         extractTextFromAnyNode(raw) ||
         extractDefinitionText(raw.definition);
       if (text && !isUuidOrCode(text)) {
-        bucket.definitions.push(text);
+        bucket.definitions.push(text.replace(/\r\n/g, '\n').trim());
       }
       if (Array.isArray(raw.exceptions)) {
         bucket.exceptions.push(...raw.exceptions);
@@ -1456,7 +1475,15 @@ export function mapRawGraphToCanvasData(
     .map((raw, index) => {
       const id = raw.id ?? raw.nodeId ?? raw.canonicalCode ?? raw.canonical_code ?? `node-${index}`;
       const canonicalCode = raw.canonicalCode ?? raw.canonical_code ?? id;
-      const normKind = (raw.kind ?? raw.type ?? '').trim().toUpperCase();
+      const rawName = (raw.name || raw.label || raw.title || raw.concept || '').trim();
+      let rawKind = (raw.kind ?? raw.type ?? '').trim();
+
+      // Explicitly protect algorithms/concepts like Dijkstra from ever being misclassified as a Topic
+      if (/thuật toán|algorithm|giải thuật|dijkstra/i.test(rawName) && (!rawKind || rawKind.toUpperCase() === 'TOPIC')) {
+        rawKind = 'KnowledgeEntity';
+      }
+
+      const normKind = rawKind.toUpperCase();
       const isAuxiliary = isAuxiliaryKind(normKind, raw);
 
       const { label, sublabel } = extractNodeDisplayLabel(
@@ -1465,8 +1492,8 @@ export function mapRawGraphToCanvasData(
         index,
         centerpieceLabel
       );
-      const category = mapCategoryFromBackend(raw.category ?? raw.topic, raw.kind ?? raw.type);
-      const icon = pickIconForKindAndCategory(raw.kind ?? raw.type, category);
+      const category = mapCategoryFromBackend(raw.category ?? raw.topic, rawKind, rawName || label);
+      const icon = pickIconForKindAndCategory(rawKind, category);
       const masteryScore = Math.max(0, Math.min(100, raw.masteryPercent ?? 0));
       const status = mapStatusFromBackend(raw.status, masteryScore);
 
@@ -1564,14 +1591,13 @@ export function mapRawGraphToCanvasData(
       let effectiveDefText = '';
       if (isCoreConcept) {
         if (entityBucket?.definitions.length) {
-          const uniqueDefs = Array.from(new Set(entityBucket.definitions.map((d) => d.trim())));
-          effectiveDefText = uniqueDefs.join('\n\n').trim();
+          effectiveDefText = deduplicateDefinitions(entityBucket.definitions);
         }
         if (!effectiveDefText && raw.description && !isUuidOrCode(raw.description)) {
-          effectiveDefText = raw.description.trim();
+          effectiveDefText = deduplicateParagraphs(raw.description);
         }
         if (!effectiveDefText && entityBucket?.chunks.length && entityBucket.chunks[0].text) {
-          effectiveDefText = entityBucket.chunks[0].text;
+          effectiveDefText = deduplicateParagraphs(entityBucket.chunks[0].text);
         }
         if (!effectiveDefText) {
           const candidatePedagogical = getPedagogicalDefinition(label, effectiveTitle);
@@ -1598,7 +1624,7 @@ export function mapRawGraphToCanvasData(
         sublabel: sublabel ?? raw.topic ?? raw.category ?? undefined,
         canonicalCode,
         topic: raw.topic ?? raw.category ?? undefined,
-        kind: raw.kind ?? raw.type ?? (isAuxiliary ? 'AuxiliaryDetail' : 'KnowledgeEntity'),
+        kind: rawKind || (isAuxiliary ? 'AuxiliaryDetail' : 'KnowledgeEntity'),
         isAuxiliary,
         parentEntityId: auxInfo?.parentId,
         parentEntityLabel: auxInfo?.parentLabel,
@@ -1832,7 +1858,23 @@ export async function getPublishedConceptDetail(
   const { data: res } = await api.get<ApiResponse<unknown>>(
     `/knowledge-graphs/published/concepts/${encodeURIComponent(canonicalCode)}`
   );
-  return conceptDetailSchema.parse(res?.data ?? {});
+  const parsed = conceptDetailSchema.parse(res?.data ?? {});
+  if (typeof parsed.definition === 'string') {
+    parsed.definition = deduplicateParagraphs(parsed.definition);
+  } else if (
+    parsed.definition &&
+    typeof parsed.definition === 'object' &&
+    'content' in parsed.definition &&
+    typeof (parsed.definition as { content?: string }).content === 'string'
+  ) {
+    (parsed.definition as { content?: string }).content = deduplicateParagraphs(
+      (parsed.definition as { content?: string }).content
+    );
+  }
+  if (typeof parsed.description === 'string') {
+    parsed.description = deduplicateParagraphs(parsed.description);
+  }
+  return parsed;
 }
 
 /**
@@ -2108,4 +2150,137 @@ export function getKnowledgeStats(
     inProgressCount,
     relationshipsCount: edges.length,
   };
+}
+
+/**
+ * Import and publish knowledge graph directly from structured JSON (docs/api-spec.md §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/import-json
+ */
+export async function importKnowledgeGraphFromJson(
+  courseId: string,
+  payload: ImportKnowledgeGraphRequestDTO
+): Promise<ImportKnowledgeGraphResponseDTO> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/import-json`,
+    payload
+  );
+  return importKnowledgeGraphResponseSchema.parse(res.data.data);
+}
+
+/**
+ * Create a new knowledge node directly in the course knowledge graph (docs/api-spec.md §16.1 & §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/nodes
+ */
+export async function createCourseKnowledgeNode(
+  courseId: string,
+  payload: CreateKnowledgeNodeRequestDTO
+): Promise<unknown> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/nodes`,
+    payload
+  );
+  return res.data.data;
+}
+
+/**
+ * Update an existing knowledge node in the course knowledge graph (docs/api-spec.md §16.1 & §16.2).
+ * PUT /api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}
+ */
+export async function updateCourseKnowledgeNode(
+  courseId: string,
+  nodeId: string,
+  payload: UpdateKnowledgeNodeRequestDTO
+): Promise<unknown> {
+  const res = await api.put<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/nodes/${encodeURIComponent(nodeId)}`,
+    payload
+  );
+  return res.data.data;
+}
+
+/**
+ * Delete a knowledge node from the course knowledge graph with cascade edge cleanup (docs/api-spec.md §16.1 & §16.2).
+ * DELETE /api/v1/knowledge-graphs/courses/{courseId}/nodes/{nodeId}
+ */
+export async function deleteCourseKnowledgeNode(
+  courseId: string,
+  nodeId: string
+): Promise<void> {
+  await api.delete(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/nodes/${encodeURIComponent(nodeId)}`
+  );
+}
+
+/**
+ * Add a directed relationship edge between two nodes in the course knowledge graph (docs/api-spec.md §16.1 & §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/edges
+ */
+export async function createCourseKnowledgeEdge(
+  courseId: string,
+  payload: ManageKnowledgeEdgeRequestDTO
+): Promise<unknown> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/edges`,
+    payload
+  );
+  return res.data.data;
+}
+
+/**
+ * Delete a relationship edge between two nodes in the course knowledge graph (docs/api-spec.md §16.1 & §16.2).
+ * DELETE /api/v1/knowledge-graphs/courses/{courseId}/edges
+ */
+export async function deleteCourseKnowledgeEdge(
+  courseId: string,
+  payload: ManageKnowledgeEdgeRequestDTO
+): Promise<void> {
+  await api.delete(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/edges`,
+    { data: payload }
+  );
+}
+
+/**
+ * Validate course knowledge graph for cycles, missing descriptions, orphan nodes (docs/api-spec.md §16.1 & §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/validate
+ */
+export async function validateCourseKnowledgeGraph(
+  courseId: string,
+  snapshot?: { nodes: unknown[]; edges: unknown[] }
+): Promise<GraphValidationResponseDTO> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/validate`,
+    snapshot ?? {}
+  );
+  return graphValidationResponseSchema.parse(res.data.data);
+}
+
+/**
+ * AI auto-repair course knowledge graph JSON (docs/api-spec.md §16.1 & §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/ai-repair
+ */
+export async function aiRepairCourseKnowledgeGraph(
+  courseId: string,
+  payload: { nodes?: unknown[]; edges?: unknown[]; instruction?: string }
+): Promise<GraphAiRepairResponseDTO> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/ai-repair`,
+    payload
+  );
+  return graphAiRepairResponseSchema.parse(res.data.data);
+}
+
+/**
+ * Apply AI repaired knowledge graph and save/publish to DB (docs/api-spec.md §16.1 & §16.2).
+ * POST /api/v1/knowledge-graphs/courses/{courseId}/apply-ai-repair
+ */
+export async function applyAiRepairCourseKnowledgeGraph(
+  courseId: string,
+  payload: ApplyAiRepairRequestDTO
+): Promise<ImportKnowledgeGraphResponseDTO> {
+  const res = await api.post<ApiResponse<unknown>>(
+    `/knowledge-graphs/courses/${encodeURIComponent(courseId)}/apply-ai-repair`,
+    payload
+  );
+  return importKnowledgeGraphResponseSchema.parse(res.data.data);
 }

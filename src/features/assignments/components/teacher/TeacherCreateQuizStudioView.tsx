@@ -2,32 +2,31 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { useClasses } from '@/features/classes/hooks/useClasses';
-import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
-import { DEFAULT_FACULTY_CLASSES } from '@/features/classes/constants';
+import { getClassCourses } from '@/features/classes/services/class-detail.service';
 import type { ClassItem } from '@/features/classes/schemas/class.schema';
 import {
   createQuiz,
   publishQuiz,
-  addQuestionsBatchToQuiz,
-  createQuestion as apiCreateQuestion,
-  saveLocalQuiz,
-  searchQuestionBank,
+  getQuizById,
+  isUuid,
+  replaceQuizQuestions,
+  updateQuiz,
   determineQuizLifecycle,
 } from '../../services/quiz.service';
-import { useQuestionBank, useGenerateQuizAi } from '../../hooks/useQuizzes';
+import { useQuizDetail } from '../../hooks/useQuizzes';
+import { classworkKeys, useClassworkContexts } from '../../hooks/useClasswork';
+import { formatToLocalDateTime } from '../../services/assignment.service';
+import { createBankQuestion, getQuestionsPage } from '../../services/question-bank.service';
 import { quizKeys } from '../../constants';
-import { getSubjectInfoForClass } from '../../constants/subject-quiz.constants';
 import type {
   AddQuizQuestionRequestDTO,
   QuestionResponseDTO,
   QuestionRequestDTO,
 } from '../../schemas/quiz.schema';
-import { AiRagQuestionGeneratorModal } from './AiRagQuestionGeneratorModal';
-import { ImportWordExcelModal } from './ImportWordExcelModal';
 
 export interface StudioOptionItem {
   id: string;
@@ -81,59 +80,8 @@ const getBankQuestionAnswers = (
   if (bq.optionD) result.push({ id: 'd', content: bq.optionD, isCorrect: correct === 'D' });
   if (bq.optionE) result.push({ id: 'e', content: bq.optionE, isCorrect: correct === 'E' });
 
-  if (result.length > 0) return result;
-
-  return [
-    { id: 'a', content: 'Phương án A', isCorrect: true },
-    { id: 'b', content: 'Phương án B', isCorrect: false },
-    { id: 'c', content: 'Phương án C', isCorrect: false },
-    { id: 'd', content: 'Phương án D', isCorrect: false },
-  ];
+  return result;
 };
-
-const INITIAL_STUDIO_QUESTIONS: StudioQuestionItem[] = [
-  {
-    id: 'q-init-1',
-    orderIndex: 1,
-    type: 'SINGLE_CHOICE',
-    typeLabel: 'Trắc nghiệm một đáp án',
-    bloomLevel: 'Thông hiểu • Bloom 2',
-    difficultyLevel: 'MEDIUM',
-    points: 1.0,
-    content:
-      'Trong giao thức OSPF, loại gói tin nào được các Router gửi định kỳ để thiết lập và duy trì mối quan hệ láng giềng (Neighbor Adjacency)?',
-    options: [
-      { id: 'opt-1-a', label: 'A', text: 'Link State Request (LSR)', isCorrect: false },
-      { id: 'opt-1-b', label: 'B', text: 'Hello Packet', isCorrect: true },
-      { id: 'opt-1-c', label: 'C', text: 'Database Description (DBD)', isCorrect: false },
-      { id: 'opt-1-d', label: 'D', text: 'Link State Acknowledgment (LSAck)', isCorrect: false },
-    ],
-    explanation:
-      'Gói tin Hello Packet (OSPF Type 1) được gửi định kỳ (mặc định 10s trên mạng Broadcast/Point-to-Point) đến địa chỉ Multicast 224.0.0.5 (AllSPFRouters) nhằm phát hiện láng giềng, thỏa thuận các thông số chung (Hello/Dead interval, Area ID, Subnet mask, v.v.).',
-    isCollapsed: false,
-  },
-  {
-    id: 'q-init-2',
-    orderIndex: 2,
-    type: 'SINGLE_CHOICE',
-    typeLabel: 'Trắc nghiệm phân tích sơ đồ',
-    bloomLevel: 'Vận dụng • Bloom 3',
-    difficultyLevel: 'HARD',
-    points: 1.0,
-    content:
-      'Quan sát sơ đồ mạng bên dưới: Giả sử thuật toán Dijkstra chạy trên Router R1. Đường đi có tổng chi phí (Total Cost) thấp nhất từ R1 đến mạng con 192.168.10.0/24 là bao nhiêu?',
-    diagramData: 'dijkstra_topology',
-    options: [
-      { id: 'opt-2-a', label: 'A', text: 'Cost = 35 (Qua đường R1-R2-R4)', isCorrect: false },
-      { id: 'opt-2-b', label: 'B', text: 'Cost = 15 (Qua đường R1-R3-R4)', isCorrect: true },
-      { id: 'opt-2-c', label: 'C', text: 'Cost = 25', isCorrect: false },
-      { id: 'opt-2-d', label: 'D', text: 'Cost = 10', isCorrect: false },
-    ],
-    explanation:
-      'Đường đi tối ưu Dijkstra: R1 -> R3 (Cost = 5) -> R4 (Cost = 10). Tổng Cost = 5 + 10 = 15. Tuyến qua R2 có Cost = 15 + 20 = 35.',
-    isCollapsed: false,
-  },
-];
 
 interface TeacherCreateQuizStudioViewProps {
   onBack?: () => void;
@@ -158,56 +106,10 @@ export function TeacherCreateQuizStudioView({
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const { data: classesData } = useClasses();
 
-  // Load teacher classes
-  const availableClasses: ClassItem[] = useMemo(() => {
-    if (propTeacherClasses && propTeacherClasses.length > 0) return propTeacherClasses;
-    const apiClasses = classesData?.items || [];
-    const localCreated = typeof window !== 'undefined' ? getLocalCreatedClasses() : [];
-
-    const seenIds = new Set<string>();
-    const seenNames = new Set<string>();
-    const merged: ClassItem[] = [];
-
-    // 1. Add API classes from backend
-    for (const c of apiClasses) {
-      const idKey = String(c.id).toLowerCase();
-      const nameKey = (c.name || '').toLowerCase();
-      if (!seenIds.has(idKey)) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        merged.push(c);
-      }
-    }
-
-    // 2. Add local created classes
-    for (const c of localCreated) {
-      const idKey = String(c.id).toLowerCase();
-      const nameKey = (c.name || '').toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        merged.push(c);
-      }
-    }
-
-    // 3. Always include DEFAULT_FACULTY_CLASSES (CS-202, INT2022, INT-1340, CS-301, SE-214)
-    for (const c of DEFAULT_FACULTY_CLASSES) {
-      const idKey = String(c.id).toLowerCase();
-      const nameKey = (c.name || '').toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        merged.push(c);
-      }
-    }
-
-    const teachingOnly = merged.filter((c) => c.teachingRole !== 'STUDENT');
-    return teachingOnly.length > 0 ? teachingOnly : merged;
-  }, [propTeacherClasses, classesData]);
+  const availableClasses = (propTeacherClasses ?? classesData?.items ?? [])
+    .filter((item) => isUuid(item.id) && item.teachingRole !== 'STUDENT');
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -224,7 +126,7 @@ export function TeacherCreateQuizStudioView({
     if (urlClassId && urlClassId !== targetClassId) {
       setTargetClassId(urlClassId);
     }
-  }, [urlClassId, targetClassId]);
+  }, [urlClassId]);
 
   const activeClass = useMemo(() => {
     if (targetClassId) {
@@ -261,7 +163,26 @@ export function TeacherCreateQuizStudioView({
     return availableClasses[0];
   }, [availableClasses, targetClassId, urlClassCode, urlClassName]);
 
-  const activeClassId = activeClass ? String(activeClass.id) : (targetClassId || 'cs-202');
+  const activeClassId = activeClass && isUuid(activeClass.id) ? String(activeClass.id) : '';
+  const requestedDraftId = searchParams.get('quizId') || '';
+  const existingDraft = useQuizDetail(requestedDraftId);
+  const [draftId, setDraftId] = useState(requestedDraftId);
+  const hydratedDraft = useRef('');
+  const saving = useRef(false);
+  const [selectedCourseId, setCourseId] = useState(searchParams.get('courseId') ?? '');
+  const courseList = useQuery({
+    queryKey: ['quiz-studio-courses', activeClassId],
+    queryFn: () => getClassCourses(activeClassId),
+    enabled: Boolean(activeClassId),
+  });
+  const courses = courseList.data?.filter((course) => course.status === 'ACTIVE' && isUuid(course.id)) ?? [];
+  const courseId = selectedCourseId || (courses.length === 1 ? courses[0].id : '');
+  const contexts = useClassworkContexts(courseId);
+  const canManage = contexts.data?.items.some((item) => item.classId === activeClassId && item.canManage) ?? false;
+  const canSave = canManage && (!requestedDraftId || (
+    existingDraft.isSuccess && !existingDraft.data.isPublished
+    && existingDraft.data.classId === activeClassId && existingDraft.data.courseId === courseId
+  ));
 
   const appliedClassLabel = useMemo(() => {
     if (activeClass) {
@@ -278,36 +199,27 @@ export function TeacherCreateQuizStudioView({
     return 'CS-202 (Mạng máy tính & Truyền thông)';
   }, [activeClass]);
 
-  const subjectInfo = useMemo(() => {
-    return getSubjectInfoForClass(activeClass);
-  }, [activeClass]);
-
   // App Shell State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form Metadata State: Tự động khởi tạo theo đúng môn học & lớp giảng dạy
-  const [quizTitle, setQuizTitle] = useState(subjectInfo.defaultQuizTitle);
-  const [selectedModule, setSelectedModule] = useState(subjectInfo.defaultChapter);
-  const [ploTags, setPloTags] = useState<string[]>(subjectInfo.ploTags);
-  const [instructions, setInstructions] = useState(subjectInfo.instructions);
+  const [quizTitle, setQuizTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [maxScore, setMaxScore] = useState(10);
+  const [countsTowardGrade, setCountsTowardGrade] = useState(true);
 
   // Dynamic Questions Studio State
-  const [questions, setQuestions] = useState<StudioQuestionItem[]>(subjectInfo.sampleQuestions);
+  const [questions, setQuestions] = useState<StudioQuestionItem[]>([]);
   const [jumpQuestionInput, setJumpQuestionInput] = useState<string>('');
 
   // Right Panel Settings State
   const [durationMinutes, setDurationMinutes] = useState('30');
-  const [attempts, setAttempts] = useState('2 lần thử');
-  const [scoringStrategy, setScoringStrategy] = useState('Lấy điểm cao nhất');
 
   // Security Toggles
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleAnswers, setShuffleAnswers] = useState(true);
-  const [fullscreenLock, setFullscreenLock] = useState(true);
-  const [lockAnswersUntilDeadline, setLockAnswersUntilDeadline] = useState(true);
 
   // Start and End Time (Window of Availability - Dùng để so sánh và gán trạng thái vòng đời)
   const [startTime, setStartTime] = useState<string>(() => {
@@ -322,71 +234,42 @@ export function TeacherCreateQuizStudioView({
     return d.toISOString().slice(0, 16);
   });
 
-  const [lastSavedTime, setLastSavedTime] = useState<string>('14:20');
-
-  // Khôi phục bản nháp tự động từ LocalStorage hoặc cập nhật thông tin chuẩn theo môn học
+  const [lastSavedTime, setLastSavedTime] = useState('');
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const targetQuizId = searchParams.get('quizId');
-    const storageKey = targetQuizId
-      ? `ilms_quiz_draft_${targetQuizId}`
-      : `ilms_quiz_draft_${activeClassId}`;
-
-    const rawDraft = localStorage.getItem(storageKey);
-    let loadedFromDraft = false;
-
-    if (rawDraft) {
-      try {
-        const parsed = JSON.parse(rawDraft);
-        const draftQuestionsText = Array.isArray(parsed.questions)
-          ? JSON.stringify(parsed.questions).toLowerCase()
-          : '';
-
-        // Kiểm tra bản nháp: Nếu bản nháp thuộc đúng lớp học hiện tại (classId) thì khôi phục toàn vẹn
-        const isSameClass =
-          !parsed.classId ||
-          String(parsed.classId).toLowerCase().trim() === activeClassId.toLowerCase().trim();
-
-        if (isSameClass) {
-          if (parsed.quizTitle) setQuizTitle(parsed.quizTitle);
-          if (parsed.selectedModule) {
-            setSelectedModule(parsed.selectedModule);
-          } else {
-            setSelectedModule(subjectInfo.defaultChapter);
-          }
-          if (Array.isArray(parsed.ploTags) && parsed.ploTags.length > 0) {
-            setPloTags(parsed.ploTags);
-          } else {
-            setPloTags(subjectInfo.ploTags);
-          }
-          if (parsed.instructions !== undefined) setInstructions(parsed.instructions);
-          if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
-            setQuestions(parsed.questions);
-          } else {
-            setQuestions(subjectInfo.sampleQuestions);
-          }
-          if (parsed.durationMinutes) setDurationMinutes(parsed.durationMinutes);
-          if (parsed.attempts) setAttempts(parsed.attempts);
-          if (parsed.scoringStrategy) setScoringStrategy(parsed.scoringStrategy);
-          if (parsed.startTime) setStartTime(parsed.startTime);
-          if (parsed.endTime) setEndTime(parsed.endTime);
-          if (parsed.savedAt) setLastSavedTime(parsed.savedAt);
-          loadedFromDraft = true;
-        }
-      } catch (err) {
-        console.warn('Could not parse saved draft:', err);
-      }
-    }
-
-    // Nếu không có bản nháp hợp lệ và không chỉ định quizId, cập nhật toàn bộ theo môn học hiện tại
-    if (!loadedFromDraft && !targetQuizId) {
-      setQuizTitle(subjectInfo.defaultQuizTitle);
-      setSelectedModule(subjectInfo.defaultChapter);
-      setPloTags(subjectInfo.ploTags);
-      setInstructions(subjectInfo.instructions);
-      setQuestions(subjectInfo.sampleQuestions);
-    }
-  }, [activeClassId, searchParams, subjectInfo.key]);
+    const quiz = existingDraft.data;
+    if (!quiz || hydratedDraft.current === quiz.id || quiz.isPublished) return;
+    hydratedDraft.current = quiz.id;
+    setTargetClassId(quiz.classId);
+    setDraftId(quiz.id);
+    setCourseId(quiz.courseId ?? '');
+    setQuizTitle(quiz.title);
+    setInstructions(quiz.description ?? '');
+    setMaxScore(quiz.maxScore ?? 10);
+    setCountsTowardGrade(quiz.countsTowardGrade ?? true);
+    setDurationMinutes(String(quiz.durationMinutes));
+    setShuffleQuestions(quiz.shuffleQuestions);
+    setShuffleAnswers(quiz.shuffleAnswers);
+    setStartTime(quiz.startTime.slice(0, 16));
+    setEndTime(quiz.endTime.slice(0, 16));
+    setQuestions(quiz.questions?.map((question, index) => ({
+      id: question.id,
+      bankQuestionId: question.bankQuestionId ?? undefined,
+      orderIndex: index + 1,
+      type: question.questionType,
+      typeLabel: question.questionType === 'TRUE_FALSE' ? 'Đúng / Sai' : 'Trắc nghiệm một đáp án',
+      bloomLevel: 'Thông hiểu • Bloom 2',
+      difficultyLevel: question.difficultyLevel,
+      points: question.point ?? 1,
+      content: question.content,
+      options: question.answers.map((answer, key) => ({
+        id: answer.id ?? String(key),
+        label: (['A', 'B', 'C', 'D'] as const)[key] ?? 'A',
+        text: answer.content,
+        isCorrect: answer.isCorrect ?? false,
+      })),
+      explanation: question.explanation ?? '',
+    })) ?? []);
+  }, [existingDraft.data]);
 
   const previewLifecycle = useMemo(() => {
     return determineQuizLifecycle({
@@ -395,24 +278,6 @@ export function TeacherCreateQuizStudioView({
       status: 'PUBLISHED',
     });
   }, [startTime, endTime]);
-
-  // AI RAG Question Generator Modal State
-  const [isAiRagModalOpen, setIsAiRagModalOpen] = useState(false);
-
-  // Import Word / Excel Modal State
-  const [isImportWordExcelModalOpen, setIsImportWordExcelModalOpen] = useState(false);
-
-  // Handler for Injecting Questions from AI Modal
-  const handleInjectAiQuestions = (newAiQuestions: StudioQuestionItem[]) => {
-    setQuestions((prev) => [...prev, ...newAiQuestions]);
-    showToast(`Đã nạp thành công ${newAiQuestions.length} câu hỏi AI vào đề thi!`);
-  };
-
-  // Handler for Injecting Questions from Word/Excel Import Modal
-  const handleInjectImportedQuestions = (importedQuestions: StudioQuestionItem[]) => {
-    setQuestions((prev) => [...prev, ...importedQuestions]);
-    showToast(`Đã nhập thành công ${importedQuestions.length} câu hỏi từ file vào đề thi!`);
-  };
 
   // Question Bank Modal State
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
@@ -427,12 +292,17 @@ export function TeacherCreateQuizStudioView({
   const [newBankOptionD, setNewBankOptionD] = useState('');
   const [newBankCorrect, setNewBankCorrect] = useState<'A' | 'B' | 'C' | 'D'>('A');
 
-  const { data: bankQuestionsData, isLoading: isBankLoading } = useQuestionBank({
-    search: bankSearch,
-    difficultyLevel: bankDifficultyFilter === 'ALL' ? undefined : bankDifficultyFilter,
+  const { data: bankQuestionsData, isLoading: isBankLoading, isError: isBankError } = useQuery({
+    queryKey: ['quiz-studio-bank', activeClassId, courseId, bankSearch, bankDifficultyFilter],
+    enabled: isBankModalOpen && canManage,
+    queryFn: async () => (await getQuestionsPage({
+      classId: activeClassId,
+      courseId,
+      search: bankSearch,
+      difficultyLevel: bankDifficultyFilter === 'ALL' ? undefined : bankDifficultyFilter,
+    })).items.filter((question) => question.courseId === courseId
+      && (question.questionType === 'SINGLE_CHOICE' || question.questionType === 'TRUE_FALSE')),
   });
-
-  const generateAiMutation = useGenerateQuizAi();
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -575,12 +445,12 @@ export function TeacherCreateQuizStudioView({
     setQuestions((prev) =>
       prev.map((q) => {
         if (q.id !== questionId) return q;
-        if (q.options.length >= 6) {
+        if (q.options.length >= 4) {
           showToast('Tối đa 6 phương án cho một câu hỏi');
           return q;
         }
         const labels: ('A' | 'B' | 'C' | 'D' | 'E' | 'F')[] = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const nextLabel = labels[q.options.length] || 'E';
+        const nextLabel = labels[q.options.length] || 'D';
         const newOption: StudioOptionItem = {
           id: `opt-${q.id}-${nextLabel.toLowerCase()}`,
           label: nextLabel,
@@ -618,67 +488,6 @@ export function TeacherCreateQuizStudioView({
     );
   };
 
-  // AI Question Generation
-  const handleGenerateAiQuestions = async () => {
-    try {
-      showToast(`AI đang phân tích học liệu ${subjectInfo.subjectName} và sinh câu hỏi...`);
-
-      const sourceAiQuestions =
-        subjectInfo.aiQuestions && subjectInfo.aiQuestions.length > 0
-          ? subjectInfo.aiQuestions
-          : subjectInfo.sampleQuestions;
-
-      const newAiQuestions: StudioQuestionItem[] = sourceAiQuestions.map((q, idx) => ({
-        ...q,
-        id: `q-ai-${Date.now()}-${idx + 1}`,
-        orderIndex: questions.length + idx + 1,
-        typeLabel: 'Trắc nghiệm AI sinh',
-        options: q.options.map((opt) => ({
-          ...opt,
-          id: `opt-ai-${Date.now()}-${opt.label.toLowerCase()}`,
-        })),
-        isCollapsed: false,
-      }));
-
-      setQuestions((prev) => [...prev, ...newAiQuestions]);
-      showToast(`AI đã sinh thành công ${newAiQuestions.length} câu hỏi cho môn ${subjectInfo.subjectName}!`);
-    } catch {
-      showToast('Lỗi khi sinh câu hỏi AI');
-    }
-  };
-
-  // Word/Excel File Import Handler
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    showToast(`Đang nhập câu hỏi từ file ${file.name}...`);
-    setTimeout(() => {
-      const importedQuestions: StudioQuestionItem[] = [
-        {
-          id: `q-imp-${Date.now()}-1`,
-          orderIndex: questions.length + 1,
-          type: 'SINGLE_CHOICE',
-          typeLabel: 'Trắc nghiệm nhập từ file',
-          bloomLevel: 'Nhận biết • Bloom 1',
-          difficultyLevel: 'EASY',
-          points: 1.0,
-          content: `[Nhập từ ${file.name}] Giao thức định tuyến nào sau đây sử dụng giải thuật Bellman-Ford và giới hạn số bước nhảy (Hop Count) tối đa là 15?`,
-          options: [
-            { id: `opt-imp-1-a`, label: 'A', text: 'RIP (Routing Information Protocol)', isCorrect: true },
-            { id: `opt-imp-1-b`, label: 'B', text: 'OSPF', isCorrect: false },
-            { id: `opt-imp-1-c`, label: 'C', text: 'EIGRP', isCorrect: false },
-            { id: `opt-imp-1-d`, label: 'D', text: 'IS-IS', isCorrect: false },
-          ],
-          explanation: 'RIP là giao thức Distance-Vector dùng thuật toán Bellman-Ford, metric là Hop count và 16 được coi là vô cực (unreachable).',
-          isCollapsed: false,
-        },
-      ];
-      setQuestions((prev) => [...prev, ...importedQuestions]);
-      showToast(`Đã trích xuất thành công câu hỏi từ ${file.name}`);
-    }, 600);
-  };
-
   // Question Bank Modal Handlers
   const handleToggleSelectBankQuestion = (id: string) => {
     setSelectedBankQuestionIds((prev) =>
@@ -704,8 +513,8 @@ export function TeacherCreateQuizStudioView({
         id: `q-bank-${Date.now()}-${idx}`,
         bankQuestionId: bq.id,
         orderIndex: questions.length + idx + 1,
-        type: 'SINGLE_CHOICE',
-        typeLabel: 'Ngân hàng khoa CNTT',
+        type: bq.questionType,
+        typeLabel: 'Ngân hàng câu hỏi',
         bloomLevel:
           bq.bloomLevel === 'REMEMBER'
             ? 'Nhận biết • Bloom 1'
@@ -737,15 +546,18 @@ export function TeacherCreateQuizStudioView({
       showToast('Vui lòng nhập nội dung câu hỏi');
       return;
     }
-    if (!newBankOptionA || !newBankOptionB) {
+    if (!newBankOptionA.trim() || !newBankOptionB.trim()) {
       showToast('Cần nhập tối thiểu phương án A và B');
       return;
     }
 
+    if (!canSave) return;
+
     try {
       showToast('Đang tạo và lưu câu hỏi vào Ngân hàng...');
       const payload: QuestionRequestDTO = {
-        content: newBankQuestionContent,
+        courseId,
+        content: newBankQuestionContent.trim(),
         questionType: 'SINGLE_CHOICE',
         difficultyLevel: 'MEDIUM',
         bloomLevel: 'UNDERSTAND',
@@ -753,14 +565,14 @@ export function TeacherCreateQuizStudioView({
         answers: [
           { content: newBankOptionA, isCorrect: newBankCorrect === 'A' },
           { content: newBankOptionB, isCorrect: newBankCorrect === 'B' },
-          { content: newBankOptionC || 'Phương án C', isCorrect: newBankCorrect === 'C' },
-          { content: newBankOptionD || 'Phương án D', isCorrect: newBankCorrect === 'D' },
-        ],
-        conceptIds: ['networking-general'],
+          { content: newBankOptionC, isCorrect: newBankCorrect === 'C' },
+          { content: newBankOptionD, isCorrect: newBankCorrect === 'D' },
+        ].filter((answer) => answer.content.trim()),
+        conceptIds: [],
       };
 
-      const created = await apiCreateQuestion(payload);
-      queryClient.invalidateQueries({ queryKey: quizKeys.questionBank() });
+      const created = await createBankQuestion({ ...payload, classId: activeClassId });
+      void queryClient.invalidateQueries({ queryKey: ['quiz-studio-bank', activeClassId, courseId] });
       showToast('Đã lưu câu hỏi mới vào Ngân hàng câu hỏi!');
       setIsCreatingInBank(false);
       setNewBankQuestionContent('');
@@ -794,255 +606,90 @@ export function TeacherCreateQuizStudioView({
     }
   };
 
-  // SAVE DRAFT & PUBLISH CONNECTED TO BACKEND APIS
-  const handlePublish = async () => {
+  const saveQuiz = async (publish: boolean) => {
+    if (saving.current || !canSave) return;
+    const starts = formatToLocalDateTime(startTime);
+    const ends = formatToLocalDateTime(endTime);
+    const minutes = Number(durationMinutes);
+    if (!quizTitle.trim() || !Number.isInteger(minutes) || minutes <= 0 || maxScore <= 0 || maxScore > 100) {
+      showToast('Kiểm tra lại tiêu đề, thời lượng và thang điểm.');
+      return;
+    }
+    if (starts && ends && ends <= starts) {
+      showToast('Giờ đóng phải sau giờ mở.');
+      return;
+    }
+    if ((publish && questions.length === 0) || questions.length > 100 || questions.some((question) =>
+      !question.content.trim() || !Number.isFinite(question.points) || question.points <= 0
+      || (publish && (
+        !['SINGLE_CHOICE', 'TRUE_FALSE'].includes(question.type) || question.options.length > 4
+        || question.options.filter((option) => option.text.trim()).length < 2
+        || question.options.filter((option) => option.isCorrect && option.text.trim()).length !== 1
+      ))
+    )) {
+      showToast('Kiểm tra bộ câu hỏi. Khi giao, mỗi câu cần một đáp án đúng và tối đa bốn lựa chọn.');
+      return;
+    }
+    const payload = {
+      classId: activeClassId,
+      courseId,
+      title: quizTitle.trim(),
+      description: instructions.trim(),
+      durationMinutes: minutes,
+      maxAttempts: 1,
+      maxScore,
+      countsTowardGrade,
+      shuffleQuestions,
+      shuffleOptions: shuffleAnswers,
+      startTime: starts ?? undefined,
+      endTime: ends ?? undefined,
+    };
+    const items: Omit<AddQuizQuestionRequestDTO, 'orderIndex' | 'point'>[] = questions.map((question) => ({
+      bankQuestionId: question.bankQuestionId,
+      score: question.points,
+      questionText: question.content.trim(),
+      questionType: question.type,
+      explanation: question.explanation,
+      optionA: question.options[0]?.text.trim(),
+      optionB: question.options[1]?.text.trim(),
+      optionC: question.options[2]?.text.trim(),
+      optionD: question.options[3]?.text.trim(),
+      correctAnswer: question.options.find((option) => option.isCorrect)?.label,
+    }));
+    saving.current = true;
+    setIsSubmitting(true);
+    let persistedId = draftId;
     try {
-      setIsSubmitting(true);
-      showToast('Đang kết nối API và tạo Quiz mới...');
-
-      // 1. Chuẩn bị danh sách câu hỏi batch
-      const batchQuestions: AddQuizQuestionRequestDTO[] = questions.map((q, idx) => {
-        const correctOpt = q.options.find((o) => o.isCorrect)?.label || 'A';
-        return {
-          bankQuestionId: q.bankQuestionId,
-          orderIndex: idx + 1,
-          point: q.points,
-          score: q.points,
-          questionText: q.content,
-          questionType: q.type,
-          explanation: q.explanation,
-          optionA: q.options[0]?.text || '',
-          optionB: q.options[1]?.text || '',
-          optionC: q.options[2]?.text || '',
-          optionD: q.options[3]?.text || '',
-          correctAnswer: correctOpt,
-        };
-      });
-
-      // 2. Tạo Quiz mới với thời gian bắt đầu & kết thúc người dùng thiết lập
-      const startIso = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
-      const endIso = endTime ? new Date(endTime).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      const created = await createQuiz({
-        classId: activeClassId,
-        title: quizTitle,
-        description: selectedModule,
-        status: 'PUBLISHED',
-        chapter: selectedModule,
-        durationMinutes: parseInt(durationMinutes, 10) || 30,
-        maxAttempts: attempts.includes('1') ? 1 : 2,
-        passingScore: 5.0,
-        scoringStrategy: scoringStrategy.includes('cao nhất')
-          ? 'HIGHEST_SCORE'
-          : scoringStrategy.includes('trung bình')
-          ? 'AVERAGE_SCORE'
-          : 'LATEST_ATTEMPT',
-        shuffleQuestions,
-        shuffleAnswers,
-        fullscreenLock,
-        tabSwitchLimit: 3,
-        lockAnswersUntilDeadline,
-        proctoringEnabled: true,
-        ploIds: ploTags,
-        startTime: startIso,
-        endTime: endIso,
-      });
-
-      // 3. Batch gán câu hỏi vào đề thi vừa tạo (API POST /quizzes/{id}/questions/batch)
-      if (created?.id && batchQuestions.length > 0) {
-        try {
-          await addQuestionsBatchToQuiz(created.id, { questions: batchQuestions });
-        } catch (err) {
-          console.warn('Batch add questions error:', err);
-        }
+      const quiz = persistedId ? await getQuizById(persistedId) : await createQuiz(payload);
+      persistedId = quiz.id;
+      setDraftId(quiz.id);
+      if (!quiz.isPublished) {
+        if (draftId) await updateQuiz(quiz.id, payload);
+        await replaceQuizQuestions(quiz.id, items);
+        if (publish) await publishQuiz(quiz.id);
+      } else if (!publish) {
+        showToast('Quiz đã được giao.');
+        return;
       }
-
-      // 4. Công bố đề thi (API PATCH /quizzes/{id}/publish)
-      if (created?.id) {
-        try {
-          await publishQuiz(created.id);
-        } catch (err) {
-          console.warn('Publish quiz error:', err);
-        }
+      setLastSavedTime(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+      showToast(publish ? 'Đã giao quiz cho lớp.' : 'Đã lưu bản nháp trên máy chủ.');
+      if (publish) {
+        const target = new URLSearchParams({ tab: 'assignments', courseId });
+        if (onPublishSuccess) onPublishSuccess();
+        else router.push('/classes/' + activeClassId + '?' + target);
       }
-
-      // 5. Cập nhật LocalStorage với trạng thái vòng đời dựa trên so sánh ngày bắt đầu & kết thúc
-      const lifecycle = determineQuizLifecycle({
-        status: 'PUBLISHED',
-        startTime: startIso,
-        endTime: endIso,
-      });
-
-      saveLocalQuiz({
-        id: created.id,
-        code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
-        className: `Lớp: ${appliedClassLabel}`,
-        classId: activeClassId,
-        title: quizTitle,
-        type: 'quiz',
-        status: lifecycle.status,
-        badgeLabel: lifecycle.badgeLabel,
-        badgeType: lifecycle.badgeType,
-        durationMinutes: parseInt(durationMinutes, 10) || 30,
-        questionCount: questions.length,
-        attemptsInfo: attempts,
-        securityInfo: fullscreenLock ? 'Khóa toàn màn hình & giám sát' : 'Tiêu chuẩn',
-        submittedCount: lifecycle.status === 'live' ? 54 : lifecycle.status === 'completed' ? 58 : 0,
-        totalStudents: 60,
-        remainingTime: lifecycle.formattedTimeText || 'Đang diễn ra',
-        maxScore: totalPoints,
-        startTime: startIso,
-        endTime: endIso,
-      });
-
-      showToast(`Xuất bản thành công: ${created.title} (${questions.length} câu)!`);
-      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
-      queryClient.invalidateQueries({ queryKey: quizKeys.detail(created.id) });
-
-      setTimeout(() => {
-        if (onPublishSuccess) {
-          onPublishSuccess();
-        } else {
-          router.push(`/assignments?classId=${encodeURIComponent(activeClassId)}`);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error('Publish error:', error);
-      showToast('Đã lưu dữ liệu đề thi cục bộ (hệ thống sẵn sàng offline)');
-      setTimeout(() => {
-        if (onPublishSuccess) {
-          onPublishSuccess();
-        } else {
-          router.push(`/assignments?classId=${encodeURIComponent(activeClassId)}`);
-        }
-      }, 1000);
+    } catch {
+      showToast(persistedId ? 'Chưa lưu xong bộ câu hỏi hoặc chưa giao được quiz. Hãy thử lại.' : 'Không tạo được bản nháp.');
     } finally {
+      if (persistedId) {
+        void queryClient.invalidateQueries({ queryKey: quizKeys.detail(persistedId) });
+        void queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
+        void queryClient.invalidateQueries({ queryKey: classworkKeys.scope(activeClassId, courseId) });
+        void queryClient.invalidateQueries({ queryKey: classworkKeys.gradebooks });
+      }
+      saving.current = false;
       setIsSubmitting(false);
     }
-  };
-
-  const handleSaveDraft = async () => {
-    try {
-      showToast('Đang lưu bản nháp đề thi...');
-      const batchQuestions: AddQuizQuestionRequestDTO[] = questions.map((q, idx) => {
-        const correctOpt = q.options.find((o) => o.isCorrect)?.label || 'A';
-        return {
-          bankQuestionId: q.bankQuestionId,
-          orderIndex: idx + 1,
-          point: q.points,
-          score: q.points,
-          questionText: q.content,
-          questionType: q.type,
-          explanation: q.explanation,
-          optionA: q.options[0]?.text || '',
-          optionB: q.options[1]?.text || '',
-          optionC: q.options[2]?.text || '',
-          optionD: q.options[3]?.text || '',
-          correctAnswer: correctOpt,
-        };
-      });
-
-      const startIso = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
-      const endIso = endTime ? new Date(endTime).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-      const created = await createQuiz({
-        classId: activeClassId,
-        title: quizTitle,
-        description: selectedModule,
-        status: 'DRAFT',
-        chapter: selectedModule,
-        durationMinutes: parseInt(durationMinutes, 10) || 30,
-        maxAttempts: 1,
-        shuffleQuestions,
-        shuffleAnswers,
-        startTime: startIso,
-        endTime: endIso,
-      });
-
-      if (created?.id && batchQuestions.length > 0) {
-        try {
-          await addQuestionsBatchToQuiz(created.id, { questions: batchQuestions });
-        } catch (err) {
-          console.warn('Batch add draft questions error:', err);
-        }
-      }
-
-      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-      setLastSavedTime(nowStr);
-
-      const draftPayload = {
-        quizId: created.id,
-        quizTitle,
-        selectedModule,
-        ploTags,
-        instructions,
-        questions,
-        durationMinutes,
-        attempts,
-        scoringStrategy,
-        shuffleQuestions,
-        shuffleAnswers,
-        fullscreenLock,
-        startTime: startIso,
-        endTime: endIso,
-        savedAt: nowStr,
-        classId: activeClassId,
-        subjectKey: subjectInfo.key,
-      };
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`ilms_quiz_draft_${created.id}`, JSON.stringify(draftPayload));
-        localStorage.setItem(`ilms_quiz_draft_${activeClassId}`, JSON.stringify(draftPayload));
-      }
-
-      saveLocalQuiz({
-        id: created.id,
-        code: `QUIZ-${created.id.slice(0, 6).toUpperCase()}`,
-        className: `Lớp: ${appliedClassLabel}`,
-        classId: activeClassId,
-        title: quizTitle,
-        type: 'draft',
-        status: 'draft',
-        badgeLabel: `Bản nháp riêng tư • ${questions.length} câu hỏi`,
-        badgeType: 'purple',
-        durationMinutes: parseInt(durationMinutes, 10) || 30,
-        questionCount: questions.length,
-        attemptsInfo: '1 lần làm',
-        securityInfo: 'Chưa công bố',
-        submittedCount: 0,
-        totalStudents: 60,
-        maxScore: totalPoints,
-        startTime: startIso,
-        endTime: endIso,
-      });
-
-      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
-      showToast(`Đã lưu bản nháp thành công (${questions.length} câu)!`);
-    } catch {
-      queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: quizKeys.list(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats(activeClassId) });
-      queryClient.invalidateQueries({ queryKey: quizKeys.stats() });
-      showToast('Đã lưu bản nháp thành công vào hệ thống!');
-    }
-  };
-
-  const handleRemovePloTag = (tagToRemove: string) => {
-    setPloTags(ploTags.filter((tag) => tag !== tagToRemove));
-    showToast(`Đã gỡ ${tagToRemove}`);
-  };
-
-  const handleAddPloTag = () => {
-    const unselectedPlo = subjectInfo.ploTags.find((p) => !ploTags.includes(p));
-    const newTag = unselectedPlo || `PLO-0${ploTags.length + 1}: Kỹ năng ứng dụng chuyên sâu`;
-    setPloTags([...ploTags, newTag]);
-    showToast(`Đã thêm chuẩn ${newTag}`);
   };
 
   if (!isMounted) {
@@ -1058,15 +705,6 @@ export function TeacherCreateQuizStudioView({
 
   return (
     <div className="min-h-screen bg-[#F6FAFE] dark:bg-[#131314] text-[#171c1f] dark:text-[#E3E3E3] flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors">
-      {/* Ẩn input file để phục vụ tính năng Nhập Word / Excel */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileImport}
-        accept=".docx,.xlsx,.xls,.txt,.json"
-        className="hidden"
-      />
-
       {/* 1. App Shell Sidebar */}
       <DashboardSidebar
         isFocus={isFocusMode}
@@ -1110,10 +748,7 @@ export function TeacherCreateQuizStudioView({
                   <h1 className="text-base sm:text-lg font-bold text-[#171c1f] dark:text-white tracking-tight">
                     Tạo bài trắc nghiệm Quiz mới
                   </h1>
-                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Đã tự lưu nháp lúc {lastSavedTime}</span>
-                  </div>
+                  {lastSavedTime && <span className="text-xs text-slate-600 dark:text-slate-300">Đã lưu lúc {lastSavedTime}</span>}
                 </div>
               </div>
 
@@ -1121,8 +756,8 @@ export function TeacherCreateQuizStudioView({
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   type="button"
-                  disabled={isSubmitting}
-                  onClick={handleSaveDraft}
+                  disabled={isSubmitting || !canSave}
+                  onClick={() => void saveQuiz(false)}
                   className="px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#1E1F20] text-[#171c1f] dark:text-white hover:bg-slate-100 dark:hover:bg-[#282A2C] border border-slate-200 dark:border-[#282A2C] text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[18px] text-slate-500">save</span>
@@ -1131,8 +766,8 @@ export function TeacherCreateQuizStudioView({
 
                 <button
                   type="button"
-                  disabled={isSubmitting}
-                  onClick={handlePublish}
+                  disabled={isSubmitting || !canSave}
+                  onClick={() => void saveQuiz(true)}
                   className="px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[18px]">
@@ -1156,12 +791,6 @@ export function TeacherCreateQuizStudioView({
                         Thông tin tổng quan bài trắc nghiệm
                       </span>
                     </div>
-                    <span
-                      className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-xs font-bold"
-                      suppressHydrationWarning
-                    >
-                      ID: {subjectInfo.defaultQuizCode}
-                    </span>
                   </div>
 
                   {/* Ô nhập tiêu đề bài Quiz */}
@@ -1174,95 +803,54 @@ export function TeacherCreateQuizStudioView({
                         {quizTitle.length} / 120 ký tự
                       </span>
                     </div>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       id="quiz-title"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] text-slate-800 dark:text-white font-medium text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all placeholder:text-slate-400 shadow-xs" 
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#131314] text-slate-800 dark:text-white font-medium text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all placeholder:text-slate-400 shadow-xs"
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Nhập tiêu đề đề thi trắc nghiệm..."
                     />
                   </div>
 
-                  {/* ======================================================== */}
-                  {/* PHẦN SỬA ĐỔI: Badge Lớp áp dụng (Disabled / Locked State) */}
-                  {/* ======================================================== */}
-                  <div className="mt-2.5 flex items-center">
-                    <div
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100/90 dark:bg-[#282A2C] border border-slate-200/80 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 select-none shadow-xs"
-                      title="Đã cố định theo lớp giảng dạy hiện tại"
-                    >
-                      <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">
-                        school
-                      </span>
-                      <span className="font-medium">
-                        Lớp áp dụng: <strong className="text-slate-900 dark:text-white font-semibold" suppressHydrationWarning>{appliedClassLabel}</strong>
-                      </span>
-                      <span className="material-symbols-outlined text-[14px] text-slate-400 ml-0.5">
-                        lock
-                      </span>
-                    </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex flex-col gap-2 text-sm">
+                      Lớp học
+                      <select
+                        className="rounded-2xl border border-slate-300 bg-surface px-4 py-2"
+                        value={activeClassId}
+                        disabled={Boolean(draftId || urlClassId)}
+                        onChange={(event) => {
+                          setTargetClassId(event.target.value);
+                          setCourseId('');
+                          setQuestions([]);
+                        }}
+                      >
+                        <option value="">Chọn lớp</option>
+                        {availableClasses.map((item) => <option key={item.id} value={item.id}>{item.title || item.name}</option>)}
+                        {activeClassId && !availableClasses.some((item) => item.id === activeClassId)
+                          && <option value={activeClassId}>{appliedClassLabel}</option>}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      Môn học
+                      <select
+                        className="rounded-2xl border border-slate-300 bg-surface px-4 py-2"
+                        value={courseId}
+                        disabled={Boolean(draftId) || !activeClassId}
+                        onChange={(event) => {
+                          setCourseId(event.target.value);
+                          setQuestions([]);
+                        }}
+                      >
+                        <option value="">Chọn môn đang học</option>
+                        {courses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+                      </select>
+                    </label>
                   </div>
-                  {/* ======================================================== */}
-
-                  {/* Course Module & Output standard Matrix */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
-                        Chương / Module liên kết
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={
-                            subjectInfo.chapters.includes(selectedModule)
-                              ? selectedModule
-                              : subjectInfo.defaultChapter || subjectInfo.chapters[0] || ''
-                          }
-                          onChange={(e) => setSelectedModule(e.target.value)}
-                          className="w-full h-10 px-3.5 pr-9 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-[#1E1F20] focus:ring-1 focus:ring-blue-500 appearance-none outline-none cursor-pointer"
-                        >
-                          {subjectInfo.chapters.map((chap) => (
-                            <option key={chap} value={chap}>
-                              {chap}
-                            </option>
-                          ))}
-                        </select>
-                        <span className="material-symbols-outlined absolute right-3 top-2.5 text-[20px] text-slate-400 pointer-events-none">
-                          expand_more
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white flex items-center justify-between">
-                        <span>Chuẩn đầu ra PLO &amp; Năng lực</span>
-                        <button
-                          type="button"
-                          onClick={handleAddPloTag}
-                          className="text-blue-600 dark:text-blue-400 text-xs font-semibold hover:underline cursor-pointer"
-                        >
-                          + Gắn thêm
-                        </button>
-                      </label>
-                      <div className="min-h-10 p-1.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex flex-wrap items-center gap-1.5">
-                        {ploTags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-900"
-                          >
-                            <span>{tag}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePloTag(tag)}
-                              className="material-symbols-outlined text-[14px] hover:text-red-500 cursor-pointer ml-0.5"
-                            >
-                              close
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  {!canSave && (existingDraft.isError || existingDraft.data?.isPublished || (contexts.isFetched && !canManage)) && (
+                    <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">Bản nháp không chỉnh được hoặc bạn chưa có quyền giao bài ở lớp và môn này.</p>
+                  )}
 
                   {/* Rich-Text Simulated Instructions */}
                   <div className="flex flex-col gap-1.5 pt-1">
@@ -1270,80 +858,6 @@ export function TeacherCreateQuizStudioView({
                       Mô tả bài tập &amp; Hướng dẫn sinh viên
                     </label>
                     <div className="rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 overflow-hidden">
-                      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-100/70 dark:bg-[#1E1F20] border-b border-slate-300 dark:border-slate-700">
-                        <button
-                          type="button"
-                          onClick={() => showToast('Định dạng in đậm')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white font-bold text-[13px] cursor-pointer"
-                        >
-                          B
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Định dạng in nghiêng')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white italic text-[13px] cursor-pointer"
-                        >
-                          I
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Định dạng gạch chân')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-[#171c1f] dark:text-white underline text-[13px] cursor-pointer"
-                        >
-                          U
-                        </button>
-                        <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1" />
-                        <button
-                          type="button"
-                          onClick={() => showToast('Thêm danh sách dấu chấm')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            format_list_bulleted
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Thêm danh sách số')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            format_list_numbered
-                          </span>
-                        </button>
-                        <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1" />
-                        <button
-                          type="button"
-                          onClick={() => showToast('Chèn khối code')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 font-mono text-[12px] px-1 cursor-pointer"
-                        >
-                          &lt;/&gt;
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Chèn công thức toán học LaTeX')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">functions</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Tải lên hình ảnh')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">image</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast('Chèn liên kết')}
-                          className="w-7 h-7 flex items-center justify-center rounded-none hover:bg-slate-200 dark:hover:bg-[#282A2C] text-slate-700 dark:text-slate-300 cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">link</span>
-                        </button>
-                        <span className="ml-auto text-[11px] text-slate-400 pr-2">
-                          LaTeX ($..$) &amp; Markdown ready
-                        </span>
-                      </div>
                       <textarea
                         value={instructions}
                         onChange={(e) => setInstructions(e.target.value)}
@@ -1369,35 +883,14 @@ export function TeacherCreateQuizStudioView({
 
                     <button
                       type="button"
-                      onClick={() => setIsAiRagModalOpen(true)}
-                      className="h-9 px-3.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-                    >
-                      <span className="material-symbols-outlined text-[18px] text-purple-600 dark:text-purple-400">
-                        auto_awesome
-                      </span>
-                      <span>Sinh câu hỏi bằng AI</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsImportWordExcelModalOpen(true)}
-                      className="h-9 px-3.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[18px] text-slate-500">
-                        upload_file
-                      </span>
-                      <span>Nhập Word / Excel</span>
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={() => setIsBankModalOpen(true)}
+                      disabled={!canSave}
                       className="h-9 px-3.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px] text-slate-500">
                         folder_special
                       </span>
-                      <span>Ngân hàng khoa (450 câu)</span>
+                      <span>Ngân hàng câu hỏi</span>
                     </button>
                   </div>
                 </div>
@@ -1612,9 +1105,10 @@ export function TeacherCreateQuizStudioView({
                               <button
                                 type="button"
                                 onClick={() => handleAddOption(q.id)}
+                                disabled={q.options.length >= 4}
                                 className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline text-xs font-normal"
                               >
-                                + Thêm phương án ({q.options.length === 4 ? 'E' : 'F'})
+                                + Thêm phương án
                               </button>
                             </label>
 
@@ -1731,122 +1225,13 @@ export function TeacherCreateQuizStudioView({
                     Thêm câu hỏi tiếp theo
                   </span>
                   <span className="text-xs text-slate-500">
-                    Hỗ trợ trắc nghiệm 1 đáp án, nhiều đáp án, đúng/sai, điền khuyết code
+                    Trắc nghiệm một đáp án hoặc đúng/sai
                   </span>
                 </button>
               </div>
 
               {/* RIGHT COLUMN: AI GENERATOR & EXAM CONFIGURATION (4 COLS) */}
               <div className="col-span-12 xl:col-span-4 flex flex-col gap-6">
-                {/* PANEL 1: AI AUTO-QUIZ GENERATOR CARD */}
-                <div className="bg-gradient-to-br from-indigo-50/60 via-white to-white dark:from-indigo-950/20 dark:via-[#1E1F20] dark:to-[#1E1F20] rounded-xl p-5 sm:p-6 shadow-sm border border-indigo-200/60 dark:border-indigo-900/40 flex flex-col gap-4 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[20px]">smart_toy</span>
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-[#171c1f] dark:text-white leading-tight">
-                          AI Sinh Đề Tự Động
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          EduTech Cognitive Engine
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold">
-                      GPT-4o Edu
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Tự động trích xuất thực thể đồ thị tri thức từ giáo trình để sinh các câu hỏi trắc nghiệm bám sát mục tiêu bài giảng.
-                  </p>
-
-                  {/* Knowledge Source Selector */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
-                      Nguồn học liệu tri thức
-                    </label>
-                    <div
-                      onClick={() => showToast(`Đã chọn nguồn giáo trình: ${subjectInfo.sourceDoc}`)}
-                      className="p-2.5 rounded-none bg-white dark:bg-[#131314] border border-slate-300 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#282A2C] cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="material-symbols-outlined text-red-500 text-[20px]">
-                          picture_as_pdf
-                        </span>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-semibold text-[#171c1f] dark:text-white truncate">
-                            {subjectInfo.sourceDoc}
-                          </span>
-                          <span className="text-[11px] text-slate-400">{subjectInfo.sourceDocStats}</span>
-                        </div>
-                      </div>
-                      <span className="material-symbols-outlined text-slate-400 text-[18px]">
-                        cached
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bloom Taxonomy Distribution Slider */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-[#171c1f] dark:text-white">
-                        Phân bổ độ khó (Bloom)
-                      </span>
-                      <span className="text-blue-600 dark:text-blue-400 font-medium">3 mức</span>
-                    </div>
-
-                    {/* Stacked Progress Bar */}
-                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-none overflow-hidden flex border border-slate-300 dark:border-slate-700">
-                      <div
-                        className="bg-blue-300 dark:bg-blue-600 h-full"
-                        style={{ width: '30%' }}
-                        title="30% Nhận biết"
-                      />
-                      <div
-                        className="bg-blue-600 dark:bg-blue-400 h-full"
-                        style={{ width: '50%' }}
-                        title="50% Thông hiểu"
-                      />
-                      <div
-                        className="bg-purple-600 dark:bg-purple-500 h-full"
-                        style={{ width: '20%' }}
-                        title="20% Vận dụng"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-3 text-center text-[10px] text-slate-600 dark:text-slate-400 pt-0.5">
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-blue-300 dark:bg-blue-600" />
-                        <span>Nhận biết (30%)</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" />
-                        <span>Thông hiểu (50%)</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-500" />
-                        <span>Vận dụng (20%)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* AI Generate CTA Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsAiRagModalOpen(true)}
-                    className="w-full py-2.5 px-4 rounded-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                    <span>Sinh nhanh câu hỏi bằng AI</span>
-                    <span className="px-1.5 py-0.5 rounded-none bg-white/20 font-mono text-[10px]">
-                      ~2s
-                    </span>
-                  </button>
-                </div>
-
                 {/* PANEL 2: EXAM TIME & LOGISTICS SETTINGS */}
                 <div className="bg-white dark:bg-[#1E1F20] rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-[#282A2C] flex flex-col gap-4">
                   <div className="flex items-center gap-2 text-[#171c1f] dark:text-white">
@@ -1989,48 +1374,20 @@ export function TeacherCreateQuizStudioView({
                     </div>
                   </div>
 
-                  {/* Retake Attempts & Scoring Strategy */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
-                        Số lượt làm bài
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={attempts}
-                          onChange={(e) => setAttempts(e.target.value)}
-                          className="w-full h-9 px-2.5 pr-7 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                        >
-                          <option>1 lần duy nhất</option>
-                          <option>2 lần thử</option>
-                          <option>Không giới hạn</option>
-                        </select>
-                        <span className="material-symbols-outlined absolute right-2 top-2 text-[18px] text-slate-400 pointer-events-none">
-                          expand_more
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#171c1f] dark:text-white">
-                        Cách tính điểm
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={scoringStrategy}
-                          onChange={(e) => setScoringStrategy(e.target.value)}
-                          className="w-full h-9 px-2.5 pr-7 rounded-none bg-white dark:bg-[#131314] text-[#171c1f] dark:text-white text-xs border border-slate-300 dark:border-slate-700 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                        >
-                          <option>Lấy điểm cao nhất</option>
-                          <option>Lần nộp cuối cùng</option>
-                          <option>Tính điểm trung bình</option>
-                        </select>
-                        <span className="material-symbols-outlined absolute right-2 top-2 text-[18px] text-slate-400 pointer-events-none">
-                          expand_more
-                        </span>
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-2 items-end gap-3 text-sm">
+                    <label className="flex flex-col gap-2">
+                      Thang điểm
+                      <input type="number" min={0.01} max={100} step={0.01} value={maxScore}
+                        onChange={(event) => setMaxScore(Number(event.target.value))}
+                        className="rounded-xl border border-slate-300 bg-surface px-4 py-2" />
+                    </label>
+                    <label className="flex items-center gap-2 rounded-xl bg-surface px-4 py-2">
+                      <input type="checkbox" checked={countsTowardGrade}
+                        onChange={(event) => setCountsTowardGrade(event.target.checked)} />
+                      Đưa vào bảng điểm
+                    </label>
                   </div>
+                  <p className="text-xs">Mỗi sinh viên có một lượt làm.</p>
                 </div>
 
                 {/* PANEL 3: SECURITY & ANTI-CHEAT POLICIES */}
@@ -2089,62 +1446,6 @@ export function TeacherCreateQuizStudioView({
                     </div>
                   </label>
 
-                  {/* Toggle 3: Anti-cheat Lab lock */}
-                  <label className="flex items-center justify-between cursor-pointer py-1 group">
-                    <div className="flex flex-col pr-3">
-                      <span className="text-xs font-semibold text-[#171c1f] dark:text-white group-hover:text-blue-600 transition-colors">
-                        Toàn màn hình &amp; Chặn đổi tab
-                      </span>
-                      <span className="text-[11px] text-slate-500">
-                        Tự động nộp bài nếu rời màn hình quá 3 lần
-                      </span>
-                    </div>
-                    <div className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={fullscreenLock}
-                        onChange={() => setFullscreenLock(!fullscreenLock)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-10 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600" />
-                    </div>
-                  </label>
-
-                  {/* Toggle 4: Show results only after deadline */}
-                  <label className="flex items-center justify-between cursor-pointer py-1 group">
-                    <div className="flex flex-col pr-3">
-                      <span className="text-xs font-semibold text-[#171c1f] dark:text-white group-hover:text-blue-600 transition-colors">
-                        Khóa đáp án đến khi kết thúc đợt thi
-                      </span>
-                      <span className="text-[11px] text-slate-500">
-                        Không hiển thị lời giải ngay tránh rò rỉ đề
-                      </span>
-                    </div>
-                    <div className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={lockAnswersUntilDeadline}
-                        onChange={() => setLockAnswersUntilDeadline(!lockAnswersUntilDeadline)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-10 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600" />
-                    </div>
-                  </label>
-                </div>
-
-                {/* INSTRUCTOR SUMMARY & AUDIT TRAIL BADGE */}
-                <div className="bg-[#f0f4f8] dark:bg-[#131314] rounded-xl p-4 flex items-center gap-3 border border-slate-200/80 dark:border-[#282A2C]">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[24px]">
-                    verified_user
-                  </span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-[#171c1f] dark:text-white">
-                      Quy chuẩn ĐBCL Đại học
-                    </span>
-                    <span className="text-[11px] text-slate-500">
-                      Ma trận đánh giá tuân thủ quy chuẩn kiểm định ABET / AUN-QA.
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -2164,7 +1465,7 @@ export function TeacherCreateQuizStudioView({
                 </span>
                 <div>
                   <h2 className="text-base font-bold text-[#171c1f] dark:text-white">
-                    Ngân hàng câu hỏi khoa CNTT (450 câu)
+                    Ngân hàng câu hỏi của môn
                   </h2>
                   <p className="text-xs text-slate-500">
                     Chọn câu hỏi đã thẩm định để thêm vào bài Quiz hoặc tạo câu hỏi mới lưu vào Ngân hàng
@@ -2356,6 +1657,7 @@ export function TeacherCreateQuizStudioView({
               ) : (
                 /* Danh sách câu hỏi trong Ngân hàng */
                 <div className="flex flex-col gap-3">
+                  {isBankError && <p role="alert" className="p-4 text-sm">Không tải được ngân hàng câu hỏi của môn.</p>}
                   {isBankLoading && (
                     <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
                       <span className="material-symbols-outlined text-[32px] animate-spin">sync</span>
@@ -2491,29 +1793,9 @@ export function TeacherCreateQuizStudioView({
         </div>
       )}
 
-      {/* Modal 1: Sinh câu hỏi bằng AI (AI RAG Question Generator) */}
-      <AiRagQuestionGeneratorModal
-        isOpen={isAiRagModalOpen}
-        onClose={() => setIsAiRagModalOpen(false)}
-        onInjectQuestions={handleInjectAiQuestions}
-        currentQuestionsCount={questions.length}
-        subjectName={subjectInfo.subjectName}
-        subjectCode={activeClass?.code || subjectInfo.defaultQuizCode.split('-')[0] || 'CS-202'}
-      />
-
-      {/* Modal 2: Nhập câu hỏi từ file Word / Excel */}
-      <ImportWordExcelModal
-        isOpen={isImportWordExcelModalOpen}
-        onClose={() => setIsImportWordExcelModalOpen(false)}
-        onImportQuestions={handleInjectImportedQuestions}
-        currentQuestionsCount={questions.length}
-        subjectName={subjectInfo.subjectName}
-        subjectCode={activeClass?.code || subjectInfo.defaultQuizCode.split('-')[0] || 'CS-202'}
-      />
-
       {/* Floating Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 shadow-xl backdrop-blur-md text-xs font-semibold border border-slate-700 dark:border-slate-300 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div role="status" className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 shadow-xl backdrop-blur-md text-xs font-semibold border border-slate-700 dark:border-slate-300 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <span className="material-symbols-outlined text-blue-400 dark:text-blue-600 text-[18px]">
             check_circle
           </span>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useConfirm } from '@/components/shared';
 import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
 import { useClasses } from '@/features/classes/hooks/useClasses';
 import { getLocalCreatedClasses } from '@/features/classes/services/class.service';
@@ -144,6 +145,7 @@ export function TeacherQuestionBankView({
   userFullName = 'TS. Lê Hoàng Nam',
   initialClassId,
 }: TeacherQuestionBankViewProps) {
+  const confirm = useConfirm();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -758,8 +760,15 @@ export function TeacherQuestionBankView({
   };
 
   // Delete Question
-  const handleDeleteQuestion = (id: string, code: string) => {
-    if (confirm(`Bạn có chắc muốn xóa câu hỏi ${code} khỏi ngân hàng không?`)) {
+  const handleDeleteQuestion = async (id: string, code: string) => {
+    const ok = await confirm({
+      title: 'Xác nhận xóa câu hỏi',
+      message: `Bạn có chắc chắn muốn xóa câu hỏi mã [${code}] khỏi ngân hàng đề thi không?`,
+      variant: 'danger',
+      confirmText: 'Xóa câu hỏi',
+      cancelText: 'Hủy',
+    });
+    if (ok) {
       const updated = questions.filter((q) => q.id !== id);
       setQuestions(updated);
       if (typeof window !== 'undefined') {

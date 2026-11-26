@@ -179,33 +179,76 @@ function saveStoredAttendances(
  * - GET /api/v1/classes/{classId}/lessonSessions (alias)
  * - GET /api/v1/users/me/timetable (user timetable fallback)
  */
-export async function getLessonSessions(classId: string): Promise<LessonSession[]> {
+export interface LessonSessionQueryOptions {
+  canonical?: boolean;
+  startDate?: string;
+  endDate?: string;
+  signal?: AbortSignal;
+}
+
+function extractSessionArray(raw: unknown): Array<Record<string, unknown>> | null {
+  if (raw === null || raw === undefined) return [];
+  if (Array.isArray(raw)) return raw as Array<Record<string, unknown>>;
+  if (typeof raw === 'object') {
+    const obj = raw as Record<string, unknown>;
+    if (Array.isArray(obj.data)) return obj.data as Array<Record<string, unknown>>;
+    if (obj.data && typeof obj.data === 'object') {
+      const inner = obj.data as Record<string, unknown>;
+      if (Array.isArray(inner.content)) return inner.content as Array<Record<string, unknown>>;
+      if (Array.isArray(inner.items)) return inner.items as Array<Record<string, unknown>>;
+      if (Array.isArray(inner.sessions)) return inner.sessions as Array<Record<string, unknown>>;
+    }
+    if (Array.isArray(obj.content)) return obj.content as Array<Record<string, unknown>>;
+    if (Array.isArray(obj.items)) return obj.items as Array<Record<string, unknown>>;
+  }
+  return null;
+}
+
+export async function getLessonSessions(
+  classId: string, { canonical = false, startDate, endDate, signal }: LessonSessionQueryOptions = {},
+): Promise<LessonSession[]> {
   const todayStr = formatDateIso();
   let list: Array<Record<string, unknown>> = [];
   let apiSucceeded = false;
 
   // Attempt 1: GET /classes/{classId}/lesson-sessions
-  if (classId && classId !== 'all') {
+  if (canonical || (classId && classId !== 'all')) {
+    const endpoint = classId === 'all'
+      ? '/users/me/timetable'
+      : `/classes/${encodeURIComponent(classId)}/lesson-sessions`;
+    const queryParams: Record<string, string> = {};
+    if (startDate) queryParams.startDate = startDate;
+    if (endDate) queryParams.endDate = endDate;
+
     try {
-      const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
-        `/classes/${classId}/lesson-sessions`,
-        { timeout: 3500 }
+      const res = await api.get<ApiResponse<unknown> | unknown>(
+        endpoint,
+        {
+          timeout: 10000,
+          signal: canonical ? signal : undefined,
+          params: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+        }
       );
-      apiSucceeded = true;
-      const data = res.data;
-      if (Array.isArray(data)) list = data;
-      else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
-    } catch {
+      const extracted = extractSessionArray(res.data);
+      if (extracted !== null) {
+        apiSucceeded = true;
+        list = extracted;
+      } else if (canonical) {
+        throw new Error('Invalid lesson sessions response');
+      }
+    } catch (error) {
+      if (canonical) throw error;
       // Attempt 2: Alias /classes/{classId}/lessonSessions
       try {
-        const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
+        const res = await api.get<ApiResponse<unknown> | unknown>(
           `/classes/${classId}/lessonSessions`,
-          { timeout: 2500 }
+          { timeout: 6000 }
         );
-        apiSucceeded = true;
-        const data = res.data;
-        if (Array.isArray(data)) list = data;
-        else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) list = data.data;
+        const extracted = extractSessionArray(res.data);
+        if (extracted !== null) {
+          apiSucceeded = true;
+          list = extracted;
+        }
       } catch {
         // continue
       }
@@ -213,7 +256,7 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
   }
 
   // Attempt 3: If specific class endpoint is empty or classId is 'all', query personal timetable
-  if (list.length === 0 && (!apiSucceeded || classId === 'all')) {
+  if (!canonical && list.length === 0 && (!apiSucceeded || classId === 'all')) {
     try {
       const res = await api.get<ApiResponse<Array<Record<string, unknown>>> | Array<Record<string, unknown>>>(
         '/users/me/timetable',
@@ -269,8 +312,8 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
         endTime,
         startShift: typeof item.startShift === 'number' ? item.startShift : 1,
         endShift: typeof item.endShift === 'number' ? item.endShift : 3,
-        roomId: String(item.roomId || 'room-1'),
-        roomName: String(item.roomName || 'Phòng B1-204'),
+        roomId: item.roomId ? String(item.roomId) : canonical ? null : 'room-1',
+        roomName: String(item.roomName || (canonical ? '' : 'Phòng B1-204')),
         building: String(item.building || 'Tòa B1'),
         instructorName: String(item.teacherName || item.instructorName || 'Giảng viên'),
         note: String(item.note || ''),
@@ -281,11 +324,17 @@ export async function getLessonSessions(classId: string): Promise<LessonSession[
     });
   }
 
+  if (canonical) return [];
+
   if (apiSucceeded) {
     if (classId && classId !== 'all') {
       const stored = getStoredSessions().filter((s) => s.classId === classId);
       if (stored.length > 0) return stored;
     }
+    return [];
+  }
+
+  if (classId === 'all') {
     return [];
   }
 
@@ -511,23 +560,25 @@ export async function createLessonSession(
  */
 export async function getAttendances(
   classId: string,
-  sessionId: string
+  sessionId: string,
+  { canonical = false, signal }: { canonical?: boolean; signal?: AbortSignal } = {},
 ): Promise<AttendanceRecord[]> {
   try {
     let data: unknown = null;
     try {
       const res = await api.get<
         ApiResponse<Array<{ studentId: string; status: string; note?: string }>>
-      >(`/classes/${classId}/lesson-sessions/${sessionId}/attendances`);
+      >(`/classes/${classId}/lesson-sessions/${sessionId}/attendances`, { signal });
       data = res.data?.data || res.data;
-    } catch {
+    } catch (error) {
+      if (canonical) throw error;
       const res = await api.get<
         ApiResponse<Array<{ studentId: string; status: string; note?: string }>>
       >(`/classes/${classId}/lessonSessions/${sessionId}/attendances`);
       data = res.data?.data || res.data;
     }
 
-    if (Array.isArray(data) && data.length > 0) {
+    if (Array.isArray(data) && (canonical || data.length > 0)) {
       const mapped: AttendanceRecord[] = data.map((item) => ({
         studentId: String(item.studentId),
         status: fromBackendAttendanceStatus(item.status),
@@ -544,7 +595,9 @@ export async function getAttendances(
       }
       return mapped;
     }
-  } catch {
+    if (canonical) throw new Error('Invalid attendance response');
+  } catch (error) {
+    if (canonical) throw error;
     // Fallback quietly
   }
   return getStoredAttendances(sessionId);
@@ -596,15 +649,19 @@ export async function saveAttendances(
  * Fetch class students / members.
  * Endpoint: GET /api/v1/classes/{classId}/members?role=STUDENT&size=100
  */
-export async function getClassStudents(classId: string): Promise<Student[]> {
+export async function getClassStudents(
+  classId: string, { canonical = false, signal }: { canonical?: boolean; signal?: AbortSignal } = {},
+): Promise<Student[]> {
   let raw: unknown = null;
 
   try {
     const res = await api.get<ApiResponse<unknown>>(`/classes/${classId}/members`, {
-      params: { role: 'STUDENT', size: 100 },
+      params: { role: 'STUDENT', size: 100, status: canonical ? 'ACTIVE' : undefined },
+      signal,
     });
     raw = res.data?.data ?? res.data;
-  } catch {
+  } catch (error) {
+    if (canonical) throw error;
     // Retry without query params if the backend rejects role parameter
     try {
       const res = await api.get<ApiResponse<unknown>>(`/classes/${classId}/members`);
@@ -632,7 +689,7 @@ export async function getClassStudents(classId: string): Promise<Student[]> {
       return role === 'STUDENT';
     });
 
-    const listToMap = studentItems.length > 0 ? studentItems : content;
+    const listToMap = canonical || studentItems.length > 0 ? studentItems : content;
 
     return listToMap.map((item: unknown, index: number) => {
       const rec = item as Record<string, unknown>;

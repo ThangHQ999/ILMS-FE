@@ -37,6 +37,7 @@ export const studentExamAttemptSchema = z.object({
 export type StudentExamAttempt = z.infer<typeof studentExamAttemptSchema>;
 
 export const examItemSchema = z.object({
+  resultsReleasedAt: z.string().nullish(),
   id: z.union([z.string(), z.number().transform(String)]),
   courseId: z.string().optional().nullable(),
   title: z.string(),

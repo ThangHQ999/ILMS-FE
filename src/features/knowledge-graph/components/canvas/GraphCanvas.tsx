@@ -18,12 +18,18 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { KnowledgeNode } from '../nodes/KnowledgeNode';
+import { GoogleKnowledgeEdge } from './GoogleKnowledgeEdge';
 import { KnowledgeNodeData, KnowledgeCategory, EditTool, LayoutMode } from '../../types';
 import { useForceLayout } from '../../hooks/useForceLayout';
 import { DraggableMinimap } from '../focus/DraggableMinimap';
 
 const nodeTypes = {
   knowledgeNode: KnowledgeNode,
+};
+
+const edgeTypes = {
+  googleEdge: GoogleKnowledgeEdge,
+  default: GoogleKnowledgeEdge,
 };
 
 export interface GraphCanvasProps {
@@ -49,6 +55,7 @@ export interface GraphCanvasProps {
   isMinimapVisible?: boolean;
   onToggleMinimap?: () => void;
   onCloseMinimap?: () => void;
+  onOpenAiRepairModal?: () => void;
 }
 
 function GraphCanvasContent({
@@ -74,6 +81,7 @@ function GraphCanvasContent({
   isMinimapVisible,
   onToggleMinimap,
   onCloseMinimap,
+  onOpenAiRepairModal,
 }: GraphCanvasProps) {
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const { applyLayout } = useForceLayout();
@@ -229,6 +237,7 @@ function GraphCanvasContent({
 
       return {
         ...e,
+        type: 'googleEdge',
         animated: isAnimated,
         style: {
           ...e.style,
@@ -278,7 +287,7 @@ function GraphCanvasContent({
     [isEditMode, activeTool, connectStartNodeId, onDeleteNode, onConnectNodes, onConnectStartNodeChange, onSelectNode]
   );
 
-  // Canvas Click for 'add-node' tool
+  // Canvas Click for 'add-node' tool or deselecting active node
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
       if (isEditMode && activeTool === 'add-node') {
@@ -286,9 +295,11 @@ function GraphCanvasContent({
         const clickX = event.clientX - bounds.left;
         const clickY = event.clientY - bounds.top;
         onAddNodeAtPosition?.({ x: clickX, y: clickY });
+      } else {
+        onSelectNode(null);
       }
     },
-    [isEditMode, activeTool, onAddNodeAtPosition]
+    [isEditMode, activeTool, onAddNodeAtPosition, onSelectNode]
   );
 
   const handleNodeMouseEnter: NodeMouseHandler = useCallback(
@@ -319,6 +330,7 @@ function GraphCanvasContent({
         nodes={displayNodes}
         edges={displayEdges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
@@ -329,7 +341,7 @@ function GraphCanvasContent({
         minZoom={0.3}
         maxZoom={2.5}
         defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
-        attributionPosition="bottom-right"
+        proOptions={{ hideAttribution: true }}
         className={`bg-transparent transition-all ${
           isEditMode && activeTool === 'add-node'
             ? '!cursor-crosshair'
@@ -346,12 +358,6 @@ function GraphCanvasContent({
           size={1.5}
           className="opacity-40 dark:opacity-20"
         />
-        {!isFocusMode && (
-          <Controls
-            showInteractive={false}
-            className="!bg-white dark:!bg-[#1E1F20] !border-none !rounded-2xl !shadow-none overflow-hidden"
-          />
-        )}
         {effectiveMinimapVisible && (
           <DraggableMinimap
             isVisible={effectiveMinimapVisible}
@@ -361,8 +367,8 @@ function GraphCanvasContent({
         )}
       </ReactFlow>
 
-      {/* Floating Canvas Dock (Bottom-Right) */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center bg-white dark:bg-[#1E1F20] px-2 py-1.5 rounded-full border-none shadow-none gap-1">
+      {/* Floating Canvas Dock (Bottom-Right) - Google M3 Pill */}
+      <div className="absolute bottom-5 right-5 z-20 flex items-center bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-md px-2 py-1.5 rounded-full border border-slate-200/80 dark:border-white/10 shadow-md gap-1">
         <button
           onClick={() => zoomIn({ duration: 300 })}
           className="p-2 rounded-full text-[#444746] dark:text-[#C4C7C5] hover:bg-[#F0F4F9] dark:hover:bg-[#282A2C] transition-colors border-none cursor-pointer"
@@ -409,6 +415,7 @@ function GraphCanvasContent({
         >
           <span className="material-symbols-outlined text-[20px]">explore</span>
         </button>
+
       </div>
     </div>
   );

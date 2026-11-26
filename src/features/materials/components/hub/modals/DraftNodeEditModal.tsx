@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useConfirm } from '@/components/shared';
 import type { NodeFieldInfo } from '../../../utils/draft-graph-crud';
 
 interface DraftNodeEditModalProps {
@@ -26,6 +27,8 @@ export function DraftNodeEditModal({
   onDelete,
   onOpenFullEntityEditor,
 }: DraftNodeEditModalProps) {
+  const confirm = useConfirm();
+
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
 
@@ -146,8 +149,15 @@ export function DraftNodeEditModal({
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm(`Bạn có chắc chắn muốn xóa [${kind}] "${label}"?`)) {
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Xác nhận xóa [${kind}]`,
+                  message: `Bạn có chắc chắn muốn xóa [${kind}] "${label}" khỏi đồ thị không? Hành động này không thể hoàn tác.`,
+                  variant: 'danger',
+                  confirmText: 'Xóa phần tử',
+                  cancelText: 'Hủy',
+                });
+                if (ok) {
                   onDelete();
                   onClose();
                 }

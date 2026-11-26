@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { CustomSelect } from '@/components/shared';
 import { OutcomeAttainmentDashboard } from '@/features/outcomes';
 import type {
@@ -71,7 +72,7 @@ export function ClassGradebookTab({
     if (onToast) {
       onToast(msg);
     } else {
-      alert(msg);
+      toast(msg);
     }
   };
 
