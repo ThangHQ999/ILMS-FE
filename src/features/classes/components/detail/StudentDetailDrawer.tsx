@@ -167,7 +167,7 @@ export function StudentDetailDrawer({
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="flex flex-col">
+                <div className="col-span-2 flex flex-col">
                   <span className="text-gray-400 dark:text-[#8E918F] text-[11px] font-medium uppercase">
                     Email học viện
                   </span>
@@ -197,16 +197,6 @@ export function StudentDetailDrawer({
                   <span className="text-gray-900 dark:text-[#E3E3E3] font-medium flex items-center gap-1 mt-0.5">
                     <span className="material-symbols-outlined text-[16px] text-gray-400">calendar_today</span>
                     {student.joinedAt || '15/08/2024 (Tuần 1)'}
-                  </span>
-                </div>
-
-                <div className="flex flex-col">
-                  <span className="text-gray-400 dark:text-[#8E918F] text-[11px] font-medium uppercase">
-                    Nhóm đồ án lớn
-                  </span>
-                  <span className="text-gray-900 dark:text-[#E3E3E3] font-medium flex items-center gap-1 mt-0.5">
-                    <span className="material-symbols-outlined text-[16px] text-gray-400">folder_shared</span>
-                    Nhóm 01 (Cây đỏ-đen)
                   </span>
                 </div>
               </div>

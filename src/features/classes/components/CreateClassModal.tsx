@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { CustomSelect } from '@/components/shared';
 import { getUserFriendlyErrorMessage } from '@/lib/error-utils';
 import { createClassRequestSchema, type CreateClassRequest, type ClassItem } from '../schemas/class.schema';
 import { AVAILABLE_MAJORS, DEFAULT_ACADEMIC_YEAR } from '../constants';
@@ -222,13 +221,20 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
               <label className="block text-xs font-semibold text-foreground mb-1.5">
                 {t('fieldMajor')} <span className="text-destructive">*</span>
               </label>
-              <CustomSelect<string>
-                value={formData.major || AVAILABLE_MAJORS[0]}
-                onChange={(val) =>
-                  setFormData((prev) => ({ ...prev, major: val }))
-                }
-                options={AVAILABLE_MAJORS.map((m) => ({ value: m, label: m }))}
+              <input
+                type="text"
+                name="major"
+                list="create-modal-majors-list"
+                value={formData.major || ''}
+                onChange={handleChange}
+                placeholder="Ví dụ: Khoa học Máy tính"
+                className="w-full h-11 px-4 rounded-xl bg-muted/50 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border border-border/50 transition-all"
               />
+              <datalist id="create-modal-majors-list">
+                {AVAILABLE_MAJORS.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
             </div>
 
             {/* Max Students */}

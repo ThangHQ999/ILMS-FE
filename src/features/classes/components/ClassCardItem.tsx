@@ -342,7 +342,6 @@ export const ClassCardItem = React.memo(function ClassCardItem({
 
     return {
       ploPassRate,
-      attendanceRate: item.stats?.attendanceRate ?? 100,
       teachingProgress: Math.min(100, Math.round((enrolled / maxStudents) * 100)),
       curriculumWeek: item.semester || 'Học kỳ hiện tại',
       completedLessons: null,
@@ -388,24 +387,30 @@ export const ClassCardItem = React.memo(function ClassCardItem({
   };
 
   return (
-    <article className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between relative shadow-2xs">
+    <article
+      className={`group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative shadow-2xs ${
+        isMenuOpen ? 'z-30' : ''
+      }`}
+    >
       {/* 1. GRAPHIC HEADER BANNER */}
-      <div className={`h-36 w-full relative overflow-hidden p-4 sm:p-5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-t-2xl`}>
-        {(item.backgroundUrl || item.thumbnailUrl) ? (
-          <>
-            <img
-              src={item.backgroundUrl || item.thumbnailUrl}
-              alt={item.title || item.name}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/40 pointer-events-none" />
-          </>
-        ) : (
-          tech.diagram
-        )}
+      <div className={`h-24 w-full relative p-3.5 flex flex-col justify-between bg-gradient-to-tr ${tech.gradient} text-white select-none rounded-t-2xl`}>
+        <div className="absolute inset-0 overflow-hidden rounded-t-2xl pointer-events-none">
+          {(item.backgroundUrl || item.thumbnailUrl) ? (
+            <>
+              <img
+                src={item.backgroundUrl || item.thumbnailUrl}
+                alt={item.title || item.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/40" />
+            </>
+          ) : (
+            tech.diagram
+          )}
+        </div>
 
         {/* Top Badges & Actions inside banner */}
-        <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center justify-between relative z-20">
           <div className="flex items-center gap-2">
             {/* Role Badge */}
             <span
@@ -527,18 +532,18 @@ export const ClassCardItem = React.memo(function ClassCardItem({
 
         {/* Banner Footer Info */}
         <div className="flex items-center justify-between relative z-10 text-slate-200">
-          <span className={`font-mono text-[11px] tracking-wider font-semibold ${tech.textColor} truncate max-w-[80%]`}>
+          <span className={`font-mono text-[10px] tracking-wider font-semibold ${tech.textColor} truncate max-w-[82%]`}>
             {tech.tag}
           </span>
-          <span className="material-symbols-outlined text-[26px] opacity-80 shrink-0">
+          <span className="material-symbols-outlined text-[20px] opacity-80 shrink-0">
             {tech.icon}
           </span>
         </div>
       </div>
 
       {/* 2. CARD CONTENT BODY */}
-      <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-        <div className="space-y-3">
+      <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+        <div className="space-y-2.5">
           {/* Class Title & Dynamic Badge (Grade for Student vs PLO for Faculty) */}
           <div>
             <div className="flex items-start justify-between gap-3">
@@ -628,19 +633,13 @@ export const ClassCardItem = React.memo(function ClassCardItem({
             </>
           ) : (
             <>
-              {/* Faculty Instructor & Capacity & Attendance stats */}
+              {/* Faculty Instructor & Capacity stats */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="material-symbols-outlined text-[17px] text-slate-400 shrink-0">co_present</span>
-                    <span className="truncate">
-                      <strong>Phụ trách:</strong> {facultyData.instructorInfo}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <span className="material-symbols-outlined text-[15px]">done_all</span>
-                    <span>Chuyên cần: {facultyData.attendanceRate}%</span>
-                  </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium min-w-0">
+                  <span className="material-symbols-outlined text-[17px] text-slate-400 shrink-0">co_present</span>
+                  <span className="truncate">
+                    <strong>Phụ trách:</strong> {facultyData.instructorInfo}
+                  </span>
                 </div>
 
                 {/* Curriculum Progress Bar (Mirroring student node progress for faculty) */}
@@ -751,9 +750,9 @@ export const ClassCardItem = React.memo(function ClassCardItem({
         )}
 
         {/* 3. CARD BOTTOM BAR: Schedule & Action Button */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium truncate max-w-[60%]">
-            <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">calendar_today</span>
+        <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[56%]">
+            <span className="material-symbols-outlined text-[15px] text-slate-400 shrink-0">calendar_today</span>
             <span className="truncate">
               {workspaceMode === 'student' ? studentData.schedule : getFacultySchedule()}
             </span>
@@ -761,10 +760,10 @@ export const ClassCardItem = React.memo(function ClassCardItem({
 
           <Link
             href={`/classes/${item.id}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
           >
-            <span>{workspaceMode === 'student' ? 'Vào lớp học ngay' : 'Vào không gian lớp'}</span>
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span>{workspaceMode === 'student' ? 'Vào lớp' : 'Vào lớp'}</span>
+            <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
           </Link>
         </div>
       </div>

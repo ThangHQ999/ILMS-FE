@@ -25,16 +25,11 @@ export const ClassCardGrid = React.memo(function ClassCardGrid({
   copiedCode,
   onCopyCode,
 }: ClassCardGridProps) {
-  // Container class dynamic based on student vs faculty and grid vs list
-  // 2-column grid gives high visual fidelity, balanced proportions & comfortable reading room
+  // 3-column compact grid on desktop for scannable class overview
   const containerClass =
-    workspaceMode === 'student'
-      ? viewMode === 'list'
-        ? 'grid grid-cols-1 gap-6'
-        : 'grid grid-cols-1 md:grid-cols-2 gap-6'
-      : viewMode === 'list'
-      ? 'grid grid-cols-1 gap-6'
-      : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6';
+    viewMode === 'list'
+      ? 'grid grid-cols-1 gap-4'
+      : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4';
 
   return (
     <div className={containerClass} id="classes-grid-container">

@@ -235,7 +235,7 @@ export function PermanentDeleteClassModal({
               <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">
                 verified_user
               </span>
-              <span>Bảo mật kép xác thực 2 lớp</span>
+              <span>Xác nhận kép chống xóa nhầm</span>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">

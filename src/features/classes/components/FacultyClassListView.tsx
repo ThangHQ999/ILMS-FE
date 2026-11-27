@@ -169,7 +169,6 @@ export function FacultyClassListView({
 
     return {
       ploPassRate,
-      attendanceRate: item.stats?.attendanceRate ?? 100,
       teachingProgress: Math.min(100, Math.round((enrolled / maxStudents) * 100)),
       curriculumWeek: item.semester || 'Học kỳ hiện tại',
       instructorInfo: teacherName,
@@ -358,9 +357,6 @@ export function FacultyClassListView({
 
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     <span>Sĩ số: {faculty.capacityText}</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                      {faculty.attendanceRate}% CC
-                    </span>
                   </div>
                 </div>
               </div>

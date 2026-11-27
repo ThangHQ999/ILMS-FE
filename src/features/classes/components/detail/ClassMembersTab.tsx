@@ -51,6 +51,16 @@ export function ClassMembersTab({
     if (onToast) onToast(msg);
   };
 
+  const handleOpenDirectChat = (student: ClassMember) => {
+    const targetUserId = student.id?.trim();
+    if (!targetUserId) {
+      notify('Không tìm thấy tài khoản học viên để bắt đầu trò chuyện.');
+      return;
+    }
+    setSelectedStudentForProfile(null);
+    router.push(`/chat?userId=${encodeURIComponent(targetUserId)}`);
+  };
+
   const approvedStudentsCount = useMemo(
     () =>
       members.filter((m) => m.role === 'STUDENT' && m.status !== 'PENDING').length ||
@@ -198,14 +208,6 @@ export function ClassMembersTab({
 
   const handleSendEmailAll = () => {
     notify('Đã mở khung soạn thảo email gửi đến toàn thể 42 sinh viên trong lớp.');
-  };
-
-  const handleAssignGroup = () => {
-    if (selectedIds.length === 0) {
-      notify('Vui lòng chọn ít nhất 1 sinh viên để gán nhóm.');
-      return;
-    }
-    notify(`Đã mở hộp thoại phân nhóm đồ án cho ${selectedIds.length} sinh viên đã chọn.`);
   };
 
   const handleSendReminder = () => {
@@ -398,15 +400,6 @@ export function ClassMembersTab({
           <span className="text-xs font-semibold text-gray-500 dark:text-[#8E918F] hidden md:inline">
             Thao tác chọn ({selectedIds.length}):
           </span>
-
-          <button
-            type="button"
-            onClick={handleAssignGroup}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] text-xs font-semibold transition-colors cursor-pointer border-none"
-          >
-            <span className="material-symbols-outlined text-[17px]">hub</span>
-            <span>Gán nhóm</span>
-          </button>
 
           <button
             type="button"
@@ -690,7 +683,7 @@ export function ClassMembersTab({
                         {/* Direct Chat */}
                         <button
                           type="button"
-                          onClick={() => notify(`Mở kênh chat trực tiếp với sinh viên ${student.name}`)}
+                          onClick={() => handleOpenDirectChat(student)}
                           className="p-2 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-[#E3E3E3] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer border-none bg-transparent"
                           title="Nhắn tin riêng"
                         >
@@ -756,17 +749,6 @@ export function ClassMembersTab({
                                     military_tech
                                   </span>
                                   <span>Bổ nhiệm cán sự</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    notify(`Đã gán ${student.name} vào Nhóm đồ án số 1.`);
-                                  }}
-                                  className="w-full px-4 py-2 text-left hover:bg-black/5 dark:hover:bg-white/5 text-gray-800 dark:text-[#C4C7C5] flex items-center gap-2 border-none bg-transparent cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[16px]">group</span>
-                                  <span>Gán vào nhóm đồ án</span>
                                 </button>
                                 <button
                                   type="button"
@@ -944,9 +926,7 @@ export function ClassMembersTab({
         onClose={() => setSelectedStudentForProfile(null)}
         student={selectedStudentForProfile}
         classCode={classCode}
-        onSendMessage={(s) =>
-          notify(`Đang mở hội thoại trực tiếp với sinh viên ${s.name}...`)
-        }
+        onSendMessage={handleOpenDirectChat}
         onUnenroll={(s) => {
           if (onRejectMember) onRejectMember(s);
           notify(`Đã xử lý rút học viên ${s.name} khỏi lớp ${classCode}.`);

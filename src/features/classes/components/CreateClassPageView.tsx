@@ -456,12 +456,19 @@ export function CreateClassPageView({ userFullName }: CreateClassPageViewProps) 
                     <label className="block text-xs font-semibold text-gray-700 dark:text-[#C4C7C5] mb-1.5">
                       {t('fieldMajor')}
                     </label>
-                    <CustomSelect<string>
+                    <input
+                      type="text"
+                      list="create-class-majors-list"
                       value={major}
-                      onChange={setMajor}
-                      options={AVAILABLE_MAJORS.map((m) => ({ value: m, label: m }))}
-                      triggerClassName="bg-[#F0F4F8] dark:bg-[#131314] border-none rounded-2xl h-11"
+                      onChange={(e) => setMajor(e.target.value)}
+                      placeholder="Ví dụ: Khoa học Máy tính"
+                      className="w-full h-11 px-4 rounded-2xl bg-[#F0F4F8] dark:bg-[#131314] text-xs sm:text-sm text-gray-900 dark:text-[#E3E3E3] placeholder:text-gray-400 dark:placeholder:text-[#8E918F] border-none outline-none focus:ring-2 focus:ring-[#0B57D0]/40 dark:focus:ring-[#A8C7FA]/40 transition-all"
                     />
+                    <datalist id="create-class-majors-list">
+                      {AVAILABLE_MAJORS.map((m) => (
+                        <option key={m} value={m} />
+                      ))}
+                    </datalist>
                   </div>
 
                   <div>

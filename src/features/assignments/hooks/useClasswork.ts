@@ -34,11 +34,16 @@ export function useScopedClasswork(
 }
 
 export function useCourseClassGradebook(
-  classId: string, courseId: string, canManage: boolean, page: number,
+  classId: string,
+  courseId: string,
+  canManage: boolean,
+  page: number,
+  enabled = true,
 ) {
   return useQuery({
     queryKey: classworkKeys.gradebook(classId, courseId, canManage, page),
     queryFn: () => getCourseClassGradebook(classId, courseId, page, canManage),
+    enabled: enabled && Boolean(classId && courseId),
     staleTime: 0,
     refetchOnMount: true,
   });
