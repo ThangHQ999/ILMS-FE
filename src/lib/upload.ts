@@ -35,7 +35,8 @@ export interface UploadedImageResult {
  */
 export async function uploadImage(
   file: File,
-  folder = 'ilms/classes'
+  folder = 'ilms/classes',
+  signal?: AbortSignal
 ): Promise<UploadedImageResult> {
   if (!file.type.startsWith('image/')) {
     throw new Error('Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, WEBP).');
@@ -55,6 +56,7 @@ export async function uploadImage(
       'Content-Type': 'multipart/form-data',
     },
     timeout: 30_000,
+    signal,
   });
 
   const parsed = fileUploadResponseSchema.parse(data?.data ?? data);

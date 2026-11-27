@@ -18,6 +18,8 @@ export const AI_COACH_ROUTE_CONFIG: AiCoachRouteConfig = {
   blacklist: [
     // Trang Trợ lý AI chuyên dụng toàn màn hình (đã có canvas chat lớn)
     '/ai-tutor',
+    // Trang Tin nhắn Messenger 3 cột (tránh che ô soạn tin)
+    '/chat',
     // Các trang xác thực & tài khoản
     '/login',
     '/register',

@@ -1055,7 +1055,9 @@ Base path: `/api/v1/courses`
 | **GET** | `/api/v1/materials/{materialId}/download` | `hasAuthority('COURSE_VIEW')` | Tải xuống tệp tài liệu trực tiếp | Binary stream kèm Content-Disposition Header |
 | **DELETE** | `/api/v1/materials/{materialId}` | `hasAuthority('MATERIAL_UPLOAD')` | Xóa tài liệu | Path: `materialId` |
 
-Bảng tin lấy tối đa 4 tài liệu sau khi xác định lớp. Tab Tài liệu lấy từng trang 10 mục và lọc trên BE theo môn, loại và từ khóa. API mặc định dùng trang `0` với 20 mục. Các loại tài liệu gồm `syllabus`, `slide`, `quiz` và `code`.
+Class materials include active course links in a class that has not been archived or deleted. The class owner, an active class member, or a system admin can read the collection with both permissions. A missing class returns `404` and a caller outside the class scope receives `403`. A course filter outside the scope returns an empty page.
+
+The default page is `0` with 20 items and a maximum page size of 100. `category` supports `syllabus`, `slide`, `quiz`, and `code`. The search matches the title, original filename, description, course name, or course code. Results are sorted newest first with a stable ID tie-breaker.
 
 ---
 
@@ -1072,7 +1074,7 @@ Base path: `/api/v1/classes`
 | **GET** | `/api/v1/classes/kpi-summary` | `hasAuthority('CLASS_VIEW')` | Thống kê KPI tổng quan lớp học (`activeClassesCount`, `totalStudentsCount`, `pendingRequestsCount`, `ungradedAssignmentsCount`) |
 | **GET** | `/api/v1/classes/{id}` | `hasAuthority('CLASS_VIEW')` | Chi tiết lớp học (`ClassResponseDTO` có thêm `enrolledCount`, `isCodeClosed`, `semester`, `teachingRole`, `instructor`) |
 | **GET** | `/api/v1/classes/{id}/stats` | `hasAuthority('CLASS_VIEW')` | Thống kê số lượng môn học, học viên, giảng viên của lớp (`coursesCount`, `studentsCount`, `teachersCount`) |
-| **GET** | `/api/v1/classes/{id}/overview` | `hasAuthority('CLASS_VIEW')` | Phản hồi màn đầu của Bảng tin với thông tin lớp, số liệu, quyền, thông báo và lịch sắp tới. |
+| **GET** | `/api/v1/classes/{id}/overview` | `hasAuthority('CLASS_VIEW')` | Tổng quan Bảng tin với thông tin lớp, số liệu banner, quyền người xem, thông báo và lịch sắp tới. |
 | **POST** | `/api/v1/classes/{id}/regenerate-code` | `hasAuthority('CLASS_UPDATE')` | Làm mới / sinh lại mã tham gia lớp học (`RegenerateCodeResponseDTO`) |
 | **PUT** | `/api/v1/classes/{id}` | `hasAuthority('CLASS_UPDATE')` | Cập nhật thông tin lớp học (`UpdateClassRequestDTO`) |
 | **PATCH** | `/api/v1/classes/{id}/code-status` | `hasAuthority('CLASS_UPDATE')` | Bật/Tắt tính năng tham gia bằng mã lớp (`?isClosed=true|false`) |
@@ -1095,10 +1097,26 @@ Base path: `/api/v1/classes`
   "thumbnailUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
   "backgroundUrl": "https://lh3.googleusercontent.com/d/1g9b0p3...",
   "startAt": "2026-09-01T07:00:00",
-  "endAt": "2027-01-15T18:00:00"
+  "endAt": "2027-01-15T18:00:00",
+  "skipScheduleConflicts": false,
+  "schedules": [
+    {
+      "dayOfWeek": "MONDAY",
+      "timeSlotId": "11111111-1111-1111-1111-111111111101",
+      "roomId": "22222222-2222-2222-2222-222222222201",
+      "courseId": null,
+      "teacherId": null,
+      "note": "Ca lý thuyết"
+    },
+    {
+      "dayOfWeek": "THURSDAY",
+      "timeSlotId": "11111111-1111-1111-1111-111111111103",
+      "roomId": "22222222-2222-2222-2222-222222222201"
+    }
+  ]
 }
 ```
-*(Ghi chú: `requireApproval` và `isCodeActive` mặc định là `true` nếu không truyền; `visibility` nhận `PUBLIC` hoặc `PRIVATE`, mặc định là `PUBLIC`).*
+*(Ghi chú: `requireApproval` và `isCodeActive` mặc định là `true` nếu không truyền; `visibility` nhận `PUBLIC` hoặc `PRIVATE`, mặc định là `PUBLIC`. Trường `schedules` và `skipScheduleConflicts` là tùy chọn: khi truyền `schedules` (kèm `startAt`, `endAt`), hệ thống sẽ tự động sinh toàn bộ các buổi học `lesson_sessions` theo từng thứ + ca học trong khoảng `[startAt, endAt]`; mỗi phần tử có thể dùng `timeSlotId` hoặc tự truyền `startShift`/`endShift`/`startTime`/`endTime`.)*
 
 #### Payload `UpdateClassRequestDTO`:
 ```json
@@ -1129,13 +1147,13 @@ Base path: `/api/v1/classes`
 }
 ```
 
-#### Dữ liệu màn đầu Bảng tin
+#### Class stream overview
 
-`GET /api/v1/classes/{id}/overview` trả `classInfo`, `stats`, `viewer`, tối đa 10 `announcements`, tối đa 4 `upcomingSessions` kèm tên phòng và `sessionsCount`. FE dùng phản hồi này cho banner và Bảng tin. Tài liệu xem trước gọi `/classes/{id}/materials?size=4` khi khối tài liệu đi vào vùng nhìn. Tab Lịch học gọi `/classes/{id}/lesson-sessions`, còn danh mục phòng tải khi mở biểu mẫu lịch.
+`GET /api/v1/classes/{id}/overview` returns `classInfo`, `stats`, `viewer`, `announcements`, `upcomingSessions`, `recentSession` and `sessionsCount`. The caller needs `CLASS_VIEW` and must be a system administrator, the class owner, or an active member. Deleted classes return `404` and callers outside the class receive `403`.
 
-FE dùng cache theo ID lớp. Các thay đổi ảnh hưởng Bảng tin làm mới hoặc đánh dấu cache cần cập nhật. Khi GET lịch lỗi, tab hiển thị nút thử lại.
+The announcement preview contains at most 10 items, with pinned announcements first. Active class membership controls the announcement preview. Session visibility follows the class schedule, which permits an administrator or an active class member. The first four current or future sessions use class local time in `Asia/Ho_Chi_Minh` and include the room name. `sessionsCount` can be null when the schedule is outside the caller's scope. `viewer` includes the role and contextual capabilities for announcements and session management.
 
-Khi `upcomingSessions` rỗng, Bảng tin hiển thị `recentSession` dưới nhãn **Ca gần nhất đã qua** nếu có dữ liệu. Nút **Xem lịch học** mở lịch chi tiết của lớp.
+If the visible schedule contains earlier sessions and the upcoming list is empty, `recentSession` contains the most recent past session. In other cases this field is null.
 
 #### Response `ClassBannerStatsDTO` (`GET /api/v1/classes/{id}/stats`):
 ```json
@@ -1183,7 +1201,9 @@ Khi `upcomingSessions` rỗng, Bảng tin hiển thị `recentSession` dưới n
     "avatarUrl": "https://lh3.googleusercontent.com/d/1g9b0p3..."
   },
   "createdAt": "2026-11-01T08:00:00.000Z",
-  "updatedAt": "2026-11-14T08:30:00.000Z"
+  "updatedAt": "2026-11-14T08:30:00.000Z",
+  "generatedSessionsCount": 24,
+  "skippedScheduleConflicts": []
 }
 ```
 
@@ -1291,12 +1311,6 @@ Khi `upcomingSessions` rỗng, Bảng tin hiển thị `recentSession` dưới n
 | **DELETE** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}` | `hasAuthority('ATTENDANCE_MANAGE')` | Xóa ca học (`?force=true` nếu muốn xóa ca đã có điểm danh) |
 | **GET** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bảng điểm danh của ca học |
 | **POST** | `/api/v1/classes/{classId}/lesson-sessions/{lessonSessionId}/attendances` | `hasAuthority('ATTENDANCE_MANAGE')` | Điểm danh hàng loạt học sinh (`BatchAttendanceRequestDTO`) |
-
-Luồng tải ở `/lesson-sessions`
-
-- Màn hình lịch cá nhân gọi `GET /classes?page=0&size=50` cho bộ lọc và `GET /users/me/timetable?startDate=&endDate=` cho tuần đang xem. Khi chọn một lớp, FE dùng `GET /classes/{classId}/lesson-sessions` với cùng khoảng ngày.
-- Chế độ danh sách và liên kết trực tiếp đến một ca học dùng dữ liệu lịch đầy đủ để hiển thị lịch sử hoặc tìm ca ngoài tuần hiện tại. Nút **Điểm danh hôm nay** dùng lại cache của tuần hiện tại khi giảng viên đang xem tuần khác.
-- FE gọi `GET /rooms` khi mở biểu mẫu tạo hoặc sửa ca. Khi mở điểm danh, FE lấy bảng điểm danh và danh sách thành viên `role=STUDENT&status=ACTIVE` theo `classId` của ca đã chọn.
 
 #### Payload `LessonSessionCreateDTO`:
 ```json
@@ -1441,10 +1455,10 @@ Base path: `/api/v1/classes/{classId}/announcements`
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Danh sách khái niệm (`?keyword=&questionId=`) |
-| **GET** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Xem chi tiết khái niệm |
-| **POST** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Tạo khái niệm mới (`QuestionConceptRequestDTO`) |
-| **PUT** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Cập nhật khái niệm |
+| **GET** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` | Danh sách khái niệm trong phạm vi câu hỏi được phép quản lý (`?keyword=&questionId=`) |
+| **GET** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Xem chi tiết khái niệm (chặn `STUDENT` với `403 QUESTION_BANK_ACCESS_DENIED`) |
+| **POST** | `/api/v1/question-concepts` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Tạo khái niệm mới (`QuestionConceptRequestDTO`) trên câu hỏi được phép quản lý |
+| **PUT** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Cập nhật khái niệm (kiểm tra quyền trên cả câu hỏi cũ và câu hỏi đích mới) |
 | **DELETE** | `/api/v1/question-concepts/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('SYSTEM_CONFIG')` | Xóa khái niệm |
 
 ---
@@ -1453,14 +1467,21 @@ Base path: `/api/v1/classes/{classId}/announcements`
 
 | Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Tìm kiếm & lọc câu hỏi (`?search=&courseId=&classId=&chapterId=&questionType=&difficultyLevel=&bloomLevel=&sourceType=&conceptId=&page=1&size=10&sort=createdAt,desc`) |
-| **GET** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` or `hasAuthority('COURSE_VIEW')` | Xem chi tiết câu hỏi kèm danh sách đáp án, metadata mở rộng (`bloomLevel`, `tags`, `codeSnippet`, ...) và thống kê (`stats`, `correctRate`, `discriminationIndex`) |
-| **POST** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tạo câu hỏi mới (`QuestionRequestDTO`) |
+| **GET** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tìm kiếm & lọc câu hỏi thuộc phạm vi quản lý (`?search=&courseId=&classId=&chapterId=&questionType=&difficultyLevel=&bloomLevel=&sourceType=&conceptId=&page=1&size=10&sort=createdAt,desc`) |
+| **GET** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Xem chi tiết câu hỏi kèm danh sách đáp án, metadata mở rộng (`bloomLevel`, `tags`, `codeSnippet`, ...) và thống kê (`stats`, `correctRate`, `discriminationIndex`) |
+| **POST** | `/api/v1/questions` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tạo câu hỏi mới (`QuestionRequestDTO`) trong môn học được quản lý |
 | **POST** | `/api/v1/questions/batch` | `hasAuthority('QUESTION_BANK_MANAGE')` | Tạo/lưu hàng loạt câu hỏi vào ngân hàng (`BatchCreateQuestionRequestDTO`) |
 | **POST** | `/api/v1/questions/import` | `hasAuthority('QUESTION_BANK_MANAGE')` | Import câu hỏi từ file `.docx`, `.xlsx`, `.csv`, `.json`, `.txt` (`multipart/form-data`: `file`, `courseId`, `chapterId`, `saveToBank=true\|false`) |
-| **POST** | `/api/v1/questions/generate-ai` | `hasAuthority('QUESTION_BANK_MANAGE')` | AI RAG sinh bộ câu hỏi nháp từ học liệu & khái niệm đồ thị tri thức (`AiGenerateQuestionsRequestDTO`) |
-| **PUT** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Cập nhật nội dung câu hỏi, đáp án và metadata mở rộng |
+| **POST** | `/api/v1/questions/generate-ai` | `hasAuthority('QUESTION_BANK_MANAGE')` | AI RAG sinh bộ câu hỏi nháp từ học liệu & khái niệm đồ thị tri thức (`AiGenerateQuestionsRequestDTO`, kiểm tra quyền trên `courseId`/`materialId`) |
+| **PUT** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Cập nhật nội dung câu hỏi, đáp án và metadata mở rộng (kiểm tra quyền 2 chiều khi đổi `courseId`/`chapterId`) |
 | **DELETE** | `/api/v1/questions/{id}` | `hasAuthority('QUESTION_BANK_MANAGE')` | Xóa mềm câu hỏi khỏi ngân hàng |
+
+#### Phân quyền Tầng 2 & Phạm vi Dữ liệu (Question Bank Authorization)
+Tất cả endpoint Mục 9.1 và 9.2 đều kiểm tra quyền ngữ cảnh tại `QuestionAccessService`:
+- **`ROLE_ADMIN`**: Toàn quyền xem/thêm/sửa/xóa trên mọi môn học.
+- **Giảng viên / Chủ môn / Chủ lớp**: Chỉ được truy cập câu hỏi của các môn học mà mình là `course.owner`, `class_courses.teacher_id`, hoặc `OWNER`/`TEACHER` (`ACTIVE`) của lớp đang gán `courseId` đó (kèm câu hỏi nháp `courseId = null` do chính mình tạo). Tài khoản kiêm nhiệm (`TEACHER` ở môn A, `STUDENT` ở môn B) chỉ thấy/sửa được môn A và nhận `403 QUESTION_BANK_ACCESS_DENIED` khi trỏ vào môn B. Giảng viên mới mở lớp chưa có môn học nhận `200 OK` (danh sách rỗng) khi mở ngân hàng tổng.
+- **`STUDENT` thuần túy**: Bị chặn **`403 Forbidden` (`QUESTION_BANK_ACCESS_DENIED`)** trên toàn bộ 13 endpoint ở Mục 9.1 & 9.2 (sinh viên chỉ làm bài qua `/api/v1/quizzes/{id}/play` hoặc `/api/v1/classes/{classId}/assessments/{id}/play` đã loại bỏ đáp án đúng).
+- **Chống IDOR & Gán chéo**: Reject `400 RESOURCE_BAD_REQUEST` nếu `chapterId` không thuộc `courseId`; reject `403 QUESTION_BANK_ACCESS_DENIED` nếu chuyển `courseId` khi `PUT`, nhúng item khác môn trong `/batch` / `/import`, hoặc truyền `materialId` của môn khác trong `/generate-ai`.
 
 #### Payload `QuestionRequestDTO`:
 ```json
@@ -1487,15 +1508,27 @@ Base path: `/api/v1/quizzes`
 
 ### 10.1. Quản lý Đề kiểm tra (Quiz Management)
 
-| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
+| Method | Endpoint | Quyền hạn (SpEL) & Tầng 2 (`QuizAccessService`) | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` | Lấy danh sách bài kiểm tra (`?classId=&page=0&size=10`) |
-| **GET** | `/api/v1/quizzes/{id}` | `hasAuthority('CLASS_VIEW')` | Chi tiết cấu hình bài quiz |
-| **POST** | `/api/v1/quizzes` | `hasAuthority('ASSESSMENT_MANAGE')` | Tạo bài kiểm tra mới (`QuizRequestDTO`) |
-| **PUT** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Cập nhật cấu hình bài kiểm tra |
-| **DELETE** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa bài kiểm tra |
-| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` | Thêm câu hỏi vào đề: `{ "questionId": "uuid...", "point": 1.0, "orderIndex": 1 }` |
-| **DELETE** | `/api/v1/quizzes/{id}/questions/{questionId}` | `hasAuthority('ASSESSMENT_MANAGE')` | Xóa câu hỏi khỏi đề kiểm tra |
+| **GET** | `/api/v1/quizzes` | `hasAuthority('CLASS_VIEW')` · thành viên lớp | Lấy danh sách bài kiểm tra (`?classId=&page=0&size=10`) |
+| **GET** | `/api/v1/quizzes/{id}` | `hasAuthority('CLASS_VIEW')` · thành viên lớp/khóa học | Chi tiết cấu hình bài quiz (ẩn câu hỏi với sinh viên) |
+| **POST** | `/api/v1/quizzes` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Tạo bài kiểm tra mới (`QuizRequestDTO`) |
+| **PUT** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Cập nhật cấu hình bài kiểm tra |
+| **DELETE** | `/api/v1/quizzes/{id}` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Xóa mềm bài kiểm tra |
+| **PATCH** | `/api/v1/quizzes/{id}/publish` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Công bố bài kiểm tra |
+| **PATCH** | `/api/v1/quizzes/{id}/unpublish` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Hủy công bố về `DRAFT` (chặn nếu đã có bài nộp) |
+| **POST** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Thêm câu hỏi vào đề (`QuizQuestionRequestDTO`) |
+| **POST** | `/api/v1/quizzes/{id}/questions/batch` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Thêm hàng loạt câu hỏi vào đề |
+| **PUT** | `/api/v1/quizzes/{id}/questions` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Thay thế toàn bộ câu hỏi bản nháp trong đề |
+| **DELETE** | `/api/v1/quizzes/{id}/questions/{questionId}` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Xóa câu hỏi khỏi đề kiểm tra |
+| **POST** | `/api/v1/quizzes/generate-ai` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp | Sinh đề thi nháp tự động bằng AI (`QuizGenerateAiRequestDTO`) |
+| **GET** | `/api/v1/quizzes/{id}/analytics` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Thống kê phổ điểm, tỷ lệ đạt và hiệu năng từng câu hỏi (`?classId=`) |
+| **GET** | `/api/v1/quizzes/{id}/proctor/sessions` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Danh sách giám sát phòng thi thời gian thực |
+| **POST** | `/api/v1/quizzes/{id}/proctor/events` | `hasAuthority('SUBMISSION_CREATE')` · sinh viên của quiz đã publish | Client của sinh viên ghi nhận sự kiện vi phạm chống gian lận (`ProctorEventRequestDTO`) |
+| **GET** | `/api/v1/quizzes/{id}/complaints` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Danh sách khiếu nại chấm lại của bài thi |
+| **POST** | `/api/v1/quizzes/{id}/complaints/{complaintId}/resolve` *(hoặc `/complaints/{complaintId}/resolve`)* | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn (hoặc quyền quản lý lớp/môn bất kỳ nếu không truyền `id`) | Giảng viên giải quyết khiếu nại |
+| **POST** | `/api/v1/quizzes/{id}/generate-variants` | `hasAuthority('ASSESSMENT_MANAGE')` · quản lý lớp/môn | Sinh các mã đề hoán vị (`?count=4`) |
+| **GET** | `/api/v1/quizzes/{id}/export/paper` | `hasAuthority('ASSESSMENT_MANAGE')` · **chỉ quản lý lớp/môn** (chặn `STUDENT`) | Xuất bản in đề thi giấy kèm `answerKey` |
 
 #### Payload `QuizRequestDTO`:
 ```json
@@ -1514,14 +1547,77 @@ Base path: `/api/v1/quizzes`
 
 ---
 
-### 10.2. Tham gia Làm bài Trắc nghiệm (Quiz Play & Attempts)
+### 10.2. Tham gia Làm bài Trắc nghiệm & Lịch sử Các lần Làm bài (Quiz Play & Attempts)
 
-| Method | Endpoint | Quyền hạn (SpEL) | Mô tả |
+| Method | Endpoint | Quyền hạn (SpEL) & Tầng 2 | Mô tả |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/v1/quizzes/{id}/play` | `hasAuthority('CLASS_VIEW')` | Lấy đề thi thực tế (kèm câu hỏi & đáp án đã xáo trộn) |
-| **POST** | `/api/v1/quizzes/{id}/attempts` | `hasAuthority('SUBMISSION_CREATE')` | **Bắt đầu lượt làm bài mới** (Tạo bản ghi `IN_PROGRESS`) |
-| **POST** | `/api/v1/quizzes/{id}/attempts/{attemptId}/submit` | `hasAuthority('SUBMISSION_CREATE')` | **Nộp bài và chấm điểm tự động** (Khóa bi quan chống double submit) |
+| **GET** | `/api/v1/quizzes/{id}/play` | `hasAuthority('CLASS_VIEW')` · thành viên lớp/khóa học | Lấy đề thi thực tế (kèm câu hỏi & đáp án đã xáo trộn, ẩn `isCorrect`) |
+| **POST** | `/api/v1/quizzes/{id}/attempts` | `hasAuthority('SUBMISSION_CREATE')` · `STUDENT` | **Bắt đầu lượt làm bài mới** (Tạo bản ghi `IN_PROGRESS`) |
+| **POST** | `/api/v1/quizzes/{id}/attempts/{attemptId}/submit` | `hasAuthority('SUBMISSION_CREATE')` · `STUDENT` | **Nộp bài và chấm điểm tự động** (Khóa bi quan chống double submit) |
+| **GET** | `/api/v1/quizzes/{id}/attempts` | `hasAuthority('CLASS_VIEW')` or `hasAuthority('ASSESSMENT_MANAGE')` | **Lịch sử các lần làm bài của Quiz** (`?studentId=&status=&page=0&size=20&sort=`). Hỗ trợ `STUDENT` xem bài của chính mình (chống IDOR `403 CLASS_ACCESS_DENIED` nếu truyền `studentId` người khác) và Giảng viên xem cả lớp / lọc theo `studentId`. |
 | **GET** | `/api/v1/quizzes/{id}/attempts/{attemptId}/result` | `hasAuthority('CLASS_VIEW')` or `hasAuthority('ASSESSMENT_MANAGE')` | Xem kết quả chi tiết, điểm số và giải thích |
+| **GET** | `/api/v1/classes/{classId}/assessments/{id}/attempts` | `hasAuthority('CLASS_VIEW')` or `hasAuthority('ASSESSMENT_MANAGE')` | **Lịch sử các lần làm bài cho Quiz/Exam theo lớp** (nhận `assessmentId` hoặc `quizId`). Với Exam chưa công bố điểm (`resultsReleasedAt = null`), điểm và `correctAnswersCount` bị ẩn thành `null` và `status = "WAITING_FOR_RESULTS"` đối với `STUDENT` (kể cả khi truyền `?sort=score`). |
+
+- **Quy tắc hiển thị & tính điểm (`GET .../attempts`)**:
+  - `scoringPolicy` luôn là `"LATEST"` (điểm chính thức lấy theo lần `SUBMITTED`/`GRADED` có `submittedAt` gần nhất, tie-break `startTime`, `attemptNumber`, `id`). Lần làm bài đang được tính vào bảng điểm được đánh dấu `isOfficialAttempt = true`.
+  - Lượt `IN_PROGRESS` đã quá hạn (`now >= min(startTime + durationMinutes, closesAt)`) được tính trạng thái hiển thị hiệu lực `EXPIRED` ở chế độ `readOnly` (không ghi đè DB; lọc `?status=EXPIRED` và `?status=IN_PROGRESS` trả kết quả khớp với trạng thái hiển thị).
+  - Các trường tổng hợp cá nhân (`attemptsUsed`, `remainingAttempts`, `officialScore`, `highestScore`, `isPassed`) có giá trị khi `STUDENT` tự xem hoặc Giảng viên lọc `?studentId=...`; trả `null` khi Giảng viên xem toàn bộ lớp.
+
+#### Ví dụ Phản hồi `QuizAttemptHistoryResponseDTO`:
+```json
+{
+  "status": 200,
+  "message": "Lấy danh sách các lần làm bài thành công",
+  "data": {
+    "quizId": "9c9c9c9c-0000-0000-0000-000000000101",
+    "assessmentId": "9c9c9c9c-0000-0000-0000-000000000201",
+    "title": "Kiểm tra giữa kỳ: Cơ sở dữ liệu",
+    "kind": "QUIZ",
+    "scoringPolicy": "LATEST",
+    "maxScore": 10.00,
+    "passingScore": 5.00,
+    "maxAttempts": 3,
+    "resultsReleased": true,
+    "resultsReleasedAt": null,
+    "attemptsUsed": 2,
+    "remainingAttempts": 1,
+    "officialScore": 8.5,
+    "highestScore": 9.0,
+    "isPassed": true,
+    "attempts": {
+      "items": [
+        {
+          "attemptId": "aaaaaaaa-0000-0000-0000-000000000002",
+          "studentId": "12345678-9012-3456-7890-123456789012",
+          "studentName": "Nguyễn Hoàng Nam",
+          "studentEmail": "namnh.b24dccn101@stu.ptit.edu.vn",
+          "studentAvatarUrl": null,
+          "attemptNumber": 2,
+          "maxAttempts": 3,
+          "status": "SUBMITTED",
+          "score": 8.5,
+          "maxScore": 10.00,
+          "correctAnswersCount": 17,
+          "totalQuestions": 20,
+          "timeTakenSeconds": 740,
+          "isPassed": true,
+          "isOfficialAttempt": true,
+          "isExpired": false,
+          "startTime": "2026-11-27T14:00:00",
+          "submittedAt": "2026-11-27T14:12:20",
+          "expiresAt": "2026-11-27T14:30:00"
+        }
+      ],
+      "pageNumber": 0,
+      "pageSize": 20,
+      "totalElements": 2,
+      "totalPages": 1,
+      "last": true
+    }
+  },
+  "timestamp": "2026-11-27T19:00:00.000Z"
+}
+```
 
 #### Payload nộp bài `QuizSubmitRequestDTO`:
 ```json
@@ -1537,17 +1633,9 @@ Base path: `/api/v1/quizzes`
 
 ---
 
-### Phân tích kết quả quiz
-
-`GET /api/v1/quizzes/{id}/analytics?classId=...` yêu cầu `ASSESSMENT_MANAGE` và quyền quản lý quiz trong lớp, môn tương ứng. Tham số `classId` giúp kiểm tra ngữ cảnh của đường dẫn. Sai lớp trả `404` cho người dùng có quyền quản lý quiz.
-
-FE dùng `context` cho tiêu đề, lịch, trạng thái và thang điểm. `enrolledCount`, `submittedCount` và `totalParticipants` lần lượt là sĩ số đang học, số sinh viên đã nộp và số sinh viên có điểm. `learners` cung cấp kết quả từng sinh viên. `questions` cung cấp số lượt đúng, sai và bỏ trống theo từng câu trong lượt đã chấm gần nhất của mỗi sinh viên. `passRate` là tỷ lệ phần trăm trên thang 0–100.
-
-Điểm `null` hiển thị dấu `—`, điểm `0` hiển thị theo thang điểm thật. Với phiên bản BE trước chỉ có thống kê tổng hợp, FE đọc tiêu đề và thang điểm từ API chi tiết quiz và hiển thị trạng thái chưa có dữ liệu chi tiết cho hai phần câu hỏi và sinh viên. Phản hồi phiên bản mẫu có các chỉ số Bloom hoặc độ phân biệt yêu cầu cập nhật máy chủ.
-
----
-
 ## 11. Bài tập, Nộp bài & Chấm điểm (Assignments, Submissions & Gradings)
+
+See [Classwork and course gradebook API](assessment-classwork-api.md) for the class–course routes, draft/publish behavior, and gradebook cell contract.
 
 ### 11.1. Bài tập về nhà (Assignments)
 
@@ -2368,6 +2456,7 @@ Dành cho Frontend Interceptor hiển thị thông báo Toast / Modal / Alert ch
 | **401** | `PASSWORD_INCORRECT` | Mật khẩu hiện tại không chính xác |
 | **401** | `INVALID_CREDENTIALS` | Email hoặc mật khẩu không chính xác |
 | **403** | `CLASS_ACCESS_DENIED` | Bạn không có quyền thực hiện thao tác trong lớp này |
+| **403** | `QUESTION_BANK_ACCESS_DENIED` | Bạn không có quyền truy cập hoặc quản lý ngân hàng câu hỏi này |
 | **403** | `COURSE_FORBIDDEN` | Bạn không có quyền thao tác với môn học này |
 | **403** | `CHAPTER_FORBIDDEN` | Bạn không có quyền quản lý chương học này |
 | **403** | `LESSON_FORBIDDEN` | Bạn không có quyền quản lý bài học này |
@@ -2446,8 +2535,6 @@ Hệ thống thông báo hợp nhất (Unified Notification System) phục vụ 
 ### 20.2. Chi tiết Payloads Phân Hệ Thông Báo
 
 #### 1. `GET /api/v1/notifications`
-
-Chuông thông báo tải trang đầu khi mở danh sách. Khi chuông đóng, sự kiện realtime đánh dấu dữ liệu danh sách cần cập nhật ở lần mở tiếp theo. Badge dùng API số lượng chưa đọc.
 Query Parameters:
 - `isRead` (optional boolean): `false` (chỉ lấy chưa đọc), `true` (chỉ lấy đã đọc), không truyền (lấy tất cả).
 - `type` (optional enum): `SYSTEM`, `CLASS_ANNOUNCEMENT`, `ASSIGNMENT_DUE`, `GRADE_RELEASED`, `ATTENDANCE_WARNING`, `AI_RECOMMENDATION`.
@@ -3110,3 +3197,77 @@ Response: Trả về `ApiResponse<ImportKnowledgeGraphResponseDTO>` xác nhận 
 
 
 
+
+---
+
+## 16. Hệ Thống Chat Học Tập Thông Minh (ILMS Messenger + Soketi + @AI + Resource Sharing — Phase 1 & Phase 2)
+
+### Kiến trúc Real-time (Soketi / Pusher Protocol)
+- **Channel Auth Endpoint:** `POST /api/v1/chat/pusher/auth` (hỗ trợ cả `application/x-www-form-urlencoded` cho `pusher-js` mặc định lẫn `application/json`; dùng `HttpOnly` cookie `access-token`).
+  - `private-conversation-{conversationId}`: yêu cầu thành viên đang hoạt động (`left_at IS NULL`).
+  - `private-thread-{rootMessageId}`: yêu cầu thành viên đang hoạt động của hội thoại chứa `rootMessageId`.
+  - `private-user-{userId}`: yêu cầu `userId` khớp `currentUser.id`.
+  - `presence-ilms-chat`: trả kèm `channel_data` (`user_id`, `user_info: { fullName, avatarUrl }`).
+- **Event Envelope (`ChatWsEventDTO<T>`):** `{ eventType, conversationId, timestamp, payload }`.
+  - `eventName` phát lên Soketi trùng tên `ChatWsEventType`: `MESSAGE_CREATED`, `MESSAGE_UPDATED`, `MESSAGE_DELETED`, `MESSAGE_PINNED`, `REACTION_UPDATED`, `POLL_UPDATED`, `CONVERSATION_UPDATED`, `MEMBER_JOINED`, `MEMBER_LEFT`, `THREAD_REPLY_CREATED`, `THREAD_SUMMARY_UPDATED`, `STUDY_TIMER_UPDATED`, `READ_RECEIPT`.
+  - **Typing Indicator (Client Event):** `channel.trigger('client-typing', { userId, fullName, isTyping })` trên `private-conversation-{id}`.
+
+### Phase 1 Endpoints (`/api/v1/chat`)
+| Method | Endpoint | Permission | Mô tả |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/chat/conversations` | `CHAT_ACCESS` | Danh sách hội thoại (`DIRECT`, `STUDY_GROUP`, `CLASS_CHANNEL`) hỗ trợ query `type`, `unreadOnly`, `q`, `page`, `size`, kèm `unreadCount`, `themeKey`, `defaultEmoji`, `lockedUntil`, `lockedReason`, `myRestrictedUntil` |
+| `GET` | `/api/v1/chat/unread-count` | `CHAT_ACCESS` | Tổng số tin nhắn chưa đọc (`totalUnreadMessages`, `unreadConversationCount` + alias `unreadCount`, `unreadConversationsCount`) |
+| `GET` | `/api/v1/chat/conversations/{id}` | `CHAT_ACCESS` | Lấy chi tiết 1 cuộc trò chuyện theo ID (kiểm tra thành viên hoạt động) |
+| `DELETE` | `/api/v1/chat/conversations/{id}` | `STUDY_GROUP_MANAGE` | Xóa mềm nhóm học tập (`STUDY_GROUP`, chỉ `ADMIN` nhóm hoặc `ROLE_ADMIN`) |
+| `POST` | `/api/v1/chat/conversations/direct` | `CHAT_ACCESS` | Tạo hoặc lấy hội thoại 1-1 idempotent (`{ targetUserId }`) |
+| `POST` | `/api/v1/chat/conversations/group` | `STUDY_GROUP_MANAGE` | Tạo nhóm học tập (`{ name, avatarUrl, classId, courseId, themeKey, defaultEmoji, memberIds }`) |
+| `GET` | `/api/v1/chat/classes/{classId}/channel` | `CHAT_ACCESS` | Lấy hoặc lazy-create kênh lớp chung + tự động sync thành viên `ACTIVE` |
+| `GET` | `/api/v1/chat/conversations/{id}/members` | `CHAT_ACCESS` | Danh sách thành viên đang hoạt động |
+| `POST` | `/api/v1/chat/conversations/{id}/members` | `STUDY_GROUP_MANAGE` | Thêm thành viên vào nhóm học tập (`ADMIN` nhóm) |
+| `DELETE` | `/api/v1/chat/conversations/{id}/members/{userId}` | `CHAT_ACCESS` | Tự rời nhóm hoặc `ADMIN` xóa thành viên (tự thăng cấp `ADMIN` mới nếu `ADMIN` duy nhất rời nhóm) |
+| `POST` | `/api/v1/chat/conversations/{id}/leave` | `CHAT_ACCESS` | Tự rời nhóm học tập (alias tiện dụng cho FE thay vì truyền `userId`) |
+| `PATCH` | `/api/v1/chat/conversations/{id}/settings` | `STUDY_GROUP_MANAGE` | Đổi `name`, `avatarUrl`, `isReadOnly` (`ADMIN` phòng) |
+| `PATCH` | `/api/v1/chat/conversations/{id}/appearance` | `CHAT_ACCESS` | Đổi `themeKey` (`DEFAULT`/`OCEAN`/`SUNSET`/`FOREST`/`MIDNIGHT`/`LOVE`) & `defaultEmoji` |
+| `PATCH` | `/api/v1/chat/conversations/{id}/preferences` | `CHAT_ACCESS` | Đổi `nickname` và `mutedUntil` / `clearMute` |
+| `PATCH` | `/api/v1/chat/conversations/{id}/mute` | `CHAT_ACCESS` | Tắt/bật thông báo phòng chat (`{ mutedUntil }` hoặc `{ mutedUntil: null }` để bỏ tắt tiếng) |
+| `PATCH` | `/api/v1/chat/conversations/{id}/members/{targetUserId}/nickname` | `CHAT_ACCESS` | Đặt/xóa biệt danh cho thành viên (`{ nickname }`), tạo `SYSTEM` message + phát `CONVERSATION_UPDATED` |
+| `GET` | `/api/v1/chat/conversations/{id}/pinned-messages` | `CHAT_ACCESS` | Danh sách tin nhắn đã ghim trong phòng |
+| `GET` | `/api/v1/chat/conversations/{id}/messages` | `CHAT_ACCESS` | Lịch sử tin nhắn theo **Cursor Pagination** (`beforeCreatedAt`, `beforeId`, `limit`, `q`) |
+| `GET` | `/api/v1/chat/conversations/{id}/attachments` | `CHAT_ACCESS` | Kho đính kèm (`IMAGE`, `FILE`, `RESOURCE_SHARE`, `CODE`) |
+| `POST` | `/api/v1/chat/conversations/{id}/messages` | `CHAT_ACCESS` | Gửi tin nhắn (`TEXT`, `CODE`, `IMAGE`, `FILE`, `RESOURCE_SHARE`), hỗ trợ `isAnonymous` trong `CLASS_CHANNEL`, `mentionedUserIds` -> `NotificationService`, tiền tố `@AI` kích hoạt bất đồng bộ |
+| `POST` | `/api/v1/chat/conversations/{id}/polls` | `CHAT_ACCESS` | Tạo bình chọn nhanh (`POLL`) |
+| `POST` | `/api/v1/chat/polls/{pollId}/vote` | `CHAT_ACCESS` | Bình chọn / bỏ chọn option trong poll |
+| `POST` | `/api/v1/chat/messages/{id}/reactions` | `CHAT_ACCESS` | Toggle reaction (`{ emoji }`) |
+| `POST` | `/api/v1/chat/messages/{id}/pin` | `CHAT_ACCESS` | Ghim / bỏ ghim tin nhắn |
+| `PATCH` | `/api/v1/chat/messages/{id}` | `CHAT_ACCESS` | Chỉnh sửa tin nhắn `TEXT`/`CODE` của chính người gửi (`{ content, codeLanguage? }`), phát `MESSAGE_UPDATED` |
+| `DELETE` | `/api/v1/chat/messages/{id}` | `CHAT_ACCESS` | Thu hồi / xóa mềm tin nhắn |
+| `POST` | `/api/v1/chat/conversations/{id}/ask-ai` | `CHAT_ACCESS` | Hỏi `@AI` trực tiếp kèm `replyToMessageId` |
+| `GET` | `/api/v1/chat/shareable-resources` | `CHAT_ACCESS` | Tìm tài nguyên hợp lệ để chia sẻ (`MATERIAL`, `COURSE`, `LESSON`, `QUIZ`, `ASSIGNMENT`, `EXAM`, `CONCEPT`) |
+| `GET` | `/api/v1/chat/users/search` | `CHAT_ACCESS` | Tìm kiếm người dùng `ACTIVE` (tùy chọn lọc theo `classId`) |
+| `POST` | `/api/v1/chat/pusher/auth` | `CHAT_ACCESS` | Xác thực & ký HMAC cho các kênh Soketi private/presence |
+
+### Phase 2 Endpoints (`/api/v1/chat`)
+| Method | Endpoint | Permission | Mô tả |
+| :--- | :--- | :--- | :--- |
+| `GET` / `POST` | `/api/v1/chat/messages/{rootId}/thread` | `CHAT_ACCESS` | Đọc và trả lời nhánh thảo luận 1-cấp (`THREAD_REPLY_CREATED` lên `private-thread-{rootId}`, `THREAD_SUMMARY_UPDATED` lên `private-conversation-{id}`) |
+| `GET` / `PUT` | `/api/v1/chat/preferences` | `CHAT_ACCESS` | Đọc & cập nhật cấu hình opt-in ghép bạn học (`allowPeerMatching`, `willingToMentor`, `preferredStudyMode`, `availabilityNote`) |
+| `GET` | `/api/v1/chat/classes/{classId}/study-recommendations` | `CHAT_ACCESS` | Gợi ý `MENTOR` hoặc `PEER_CIRCLE` từ `KnowledgeHeatmapService` (ẩn điểm thô) |
+| `POST` | `/api/v1/chat/conversations/smart-group` | `STUDY_GROUP_MANAGE` | Tạo nhóm ôn tập thông minh, tự ghim `RESOURCE_SHARE` + tùy chọn `@AI` mở đầu |
+| `POST` | `/api/v1/chat/conversations/{id}/summarize` | `CHAT_AI_SUMMARIZE` | Tóm tắt tối đa 60 tin nhắn gần nhất (có cache `< 5` tin mới) |
+| `POST` | `/api/v1/chat/messages/{rootId}/summarize` | `CHAT_AI_SUMMARIZE` | Tóm tắt nhánh thảo luận |
+| `POST` | `/api/v1/chat/messages/{messageId}/ai-draft` | `CHAT_AI_SUMMARIZE` | Tạo bản nháp gợi ý trả lời riêng tư cho Giảng viên (`OWNER`/`TEACHER`/`ROLE_ADMIN`) |
+| `POST` | `/api/v1/chat/messages/{rootId}/promote-faq` | `CHAT_MODERATE` | Lưu thảo luận thành FAQ cố định của kênh |
+| `GET` | `/api/v1/chat/conversations/{id}/faqs` | `CHAT_ACCESS` | Lấy danh sách FAQ đã lưu của kênh |
+| `GET` / `POST` | `/api/v1/chat/conversations/{id}/study-sessions` | `CHAT_ACCESS` | Danh sách & tạo lịch học nhóm (`@Scheduled` nhắc trước 15 phút qua SSE) |
+| `POST` | `/api/v1/chat/study-sessions/{sessionId}/rsvp` | `CHAT_ACCESS` | Xác nhận tham gia (`GOING`, `MAYBE`, `DECLINED`) |
+| `POST` | `/api/v1/chat/study-sessions/{sessionId}/timer` | `CHAT_ACCESS` | Điều khiển đồng hồ Pomodoro đồng bộ (`START_FOCUS`, `START_BREAK`, `PAUSE`, `RESET`) |
+| `POST` | `/api/v1/chat/conversations/{id}/read` | `CHAT_ACCESS` | Cập nhật đã đọc & phát `READ_RECEIPT` phân tầng ($\le 20$ vs $> 20$ thành viên) |
+| `GET` | `/api/v1/chat/bookmarks` | `CHAT_ACCESS` | Danh sách tin nhắn đã lưu cá nhân (phân trang) |
+| `POST` / `DELETE` | `/api/v1/chat/messages/{messageId}/bookmark` | `CHAT_ACCESS` | Lưu / cập nhật ghi chú / bỏ lưu tin nhắn cá nhân |
+| `GET` / `POST` | `/api/v1/chat/conversations/{id}/scheduled-messages` | `CHAT_ACCESS` | Xem & lên lịch gửi tin nhắn hẹn giờ (`@Scheduled` 30s) |
+| `DELETE` | `/api/v1/chat/scheduled-messages/{messageId}` | `CHAT_ACCESS` | Hủy tin nhắn hẹn giờ |
+| `POST` | `/api/v1/chat/messages/{messageId}/report` | `CHAT_ACCESS` | Báo cáo tin nhắn vi phạm |
+| `GET` | `/api/v1/chat/conversations/{id}/reports` | `CHAT_MODERATE` | Xem danh sách báo cáo (`ADMIN` phòng / `ROLE_ADMIN`) |
+| `PATCH` | `/api/v1/chat/reports/{reportId}` | `CHAT_MODERATE` | Xử lý báo cáo (`RESOLVED`/`DISMISSED`, tùy chọn xóa tin & hạn chế thành viên) |
+| `POST` | `/api/v1/chat/conversations/{id}/members/{userId}/restrict` | `CHAT_MODERATE` | Hạn chế gửi tin tạm thời cho thành viên |
+| `POST` | `/api/v1/chat/conversations/{id}/exam-lock` | `CHAT_MODERATE` | Bật/tắt chế độ khóa phòng chat khi đang thi |

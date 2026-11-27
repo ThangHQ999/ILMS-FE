@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useMobileSidebar } from '@/hooks/useSidebarCollapsed';
+import { useChatUnreadCount } from '@/features/chat';
 
 export interface DashboardSidebarProps {
   isFocus?: boolean;
@@ -68,9 +69,9 @@ const isClassesActive =
     (pathname.startsWith('/classes') && pathname.includes('assignments'));
   const isGraphActive = pathname.startsWith('/knowledge-graph');
   const isAiTutorActive = pathname.startsWith('/ai-tutor');
-  const isDiscussionsActive =
-    pathname.startsWith('/discussions') ||
-    (pathname.startsWith('/classes') && pathname.includes('discussions'));
+  const isChatActive = pathname.startsWith('/chat');
+  const { data: unreadSummary } = useChatUnreadCount();
+  const totalUnread = unreadSummary?.totalUnreadMessages ?? 0;
   const isSettingsActive = pathname.startsWith('/settings');
 
   // Unified Design System Styling (compatible with all workspace views)
@@ -83,7 +84,7 @@ const isClassesActive =
     {
       href: '/assignments/question-bank',
       icon: 'help_center',
-      label: 'Ngân hàng câu hỏi',
+      label: t('navQuestionBank'),
       active:
         pathname.startsWith('/assignments/question-bank') ||
         pathname.startsWith('/question-bank') ||
@@ -92,7 +93,7 @@ const isClassesActive =
     {
       href: '/assignments',
       icon: 'fact_check',
-      label: 'Quản lý Đề thi & Quiz',
+      label: t('navExamManagement'),
       active:
         isAssignmentsActive &&
         !pathname.startsWith('/assignments/question-bank') &&
@@ -151,7 +152,7 @@ const isClassesActive =
     },
     {
       key: 'examGroup',
-      title: 'KHẢO THÍ & BÀI THI',
+      title: t('examGroup'),
       items: examItems,
     },
     {
@@ -171,15 +172,16 @@ const isClassesActive =
           ),
         },
         {
-          href: '/classes?tab=discussions',
-          icon: 'forum',
-          label: t('navDiscussions'),
-          active: isDiscussionsActive,
-          badge: (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 shrink-0">
-              5
-            </span>
-          ),
+          href: '/chat',
+          icon: 'chat',
+          label: t('navChat'),
+          active: isChatActive,
+          badge:
+            totalUnread > 0 ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 shrink-0 tabular-nums">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            ) : undefined,
         },
       ],
     },
@@ -232,7 +234,7 @@ const isClassesActive =
             <button
               type="button"
               onClick={() => setIsMobileOpen(false)}
-              aria-label="Đóng menu"
+              aria-label={t('closeMenu')}
               className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>

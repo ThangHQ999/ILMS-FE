@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { ClassItem } from '../../schemas/class.schema';
 
@@ -44,6 +45,7 @@ export function ClassDetailBanner({
   onLeaveClass,
 }: ClassDetailBannerProps) {
   const t = useTranslations('classes.detail');
+  const tChat = useTranslations('chat');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const tabListRef = useRef<HTMLElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -217,32 +219,47 @@ export function ClassDetailBanner({
             </p>
           </div>
 
-          {/* Right: + Lên lịch học / + Mời thành viên / Mã mời & QR + Options */}
-          {(currentRole !== 'student' || classInfo.isCodeActive !== false) && (
-            <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
-              {currentRole !== 'student' && onOpenCreateSession && (
+          {/* Right: Kênh chat lớp / + Lên lịch học / + Mời thành viên / Mã mời & QR + Options */}
+          <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
+            <Link
+              href={`/chat?classId=${encodeURIComponent(classInfo.id)}`}
+              className="px-4 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border-none"
+            >
+              <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                forum
+              </span>
+              <span>{tChat('classChannelBtn')}</span>
+            </Link>
+            {(currentRole !== 'student' || classInfo.isCodeActive !== false) && (
+              <>
+                {currentRole !== 'student' && onOpenCreateSession && (
+                  <button
+                    type="button"
+                    onClick={onOpenCreateSession}
+                    className="px-4 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border-none"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                      calendar_add_on
+                    </span>
+                    <span>Lên lịch học</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={onOpenCreateSession}
-                  className="px-4 py-2 rounded-full bg-[#E1E5EA] dark:bg-[#282A2C] hover:opacity-85 text-gray-800 dark:text-[#C4C7C5] font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border-none"
+                  onClick={onInviteClick}
+                  className="px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs transition-all cursor-pointer border-none"
                 >
-                  <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
-                    calendar_add_on
+                  <span className="material-symbols-outlined text-[18px]">
+                    {currentRole === 'student' ? 'qr_code_2' : 'person_add'}
                   </span>
-                  <span>Lên lịch học</span>
+                  <span>{currentRole === 'student' ? 'Mã mời & QR' : 'Mời thành viên'}</span>
                 </button>
-              )}
+              </>
+            )}
 
-              <button
-                type="button"
-                onClick={onInviteClick}
-                className="px-4 py-2 rounded-full bg-[#D3E3FD] dark:bg-[#A8C7FA] text-[#041E49] dark:text-[#062E6F] hover:brightness-95 font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs transition-all cursor-pointer border-none"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {currentRole === 'student' ? 'qr_code_2' : 'person_add'}
-                </span>
-                <span>{currentRole === 'student' ? 'Mã mời & QR' : 'Mời thành viên'}</span>
-              </button>
+            {(currentRole !== 'student' || classInfo.isCodeActive !== false) && (
+              <>
 
               {/* Three Dots Menu */}
               <div className="relative">
@@ -332,8 +349,9 @@ export function ClassDetailBanner({
                   </>
                 )}
               </div>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </section>
 
