@@ -298,7 +298,7 @@ export function UserMenuDropdown({
               <p className="text-xs text-[#747775] dark:text-[#C4C7C5] mb-3" suppressHydrationWarning>{email}</p>
 
               {/* Primary Navigation Action: Settings */}
-              <div className="flex items-center justify-center mb-2">
+              {/* <div className="flex items-center justify-center mb-2">
                 <Link
                   href="/settings"
                   prefetch={true}
@@ -310,7 +310,7 @@ export function UserMenuDropdown({
                   </span>
                   <span>{t('manageAccount')}</span>
                 </Link>
-              </div>
+              </div> */}
 
               {/* Switch / Select account accordion button */}
               <button

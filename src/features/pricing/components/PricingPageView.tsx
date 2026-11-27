@@ -16,7 +16,7 @@ export function PricingPageView() {
   const router = useRouter();
   const { data: user } = useCurrentUser();
 
-  const [isYearly, setIsYearly] = useState(false);
+  const isYearly = false;
   const [authPromptModal, setAuthPromptModal] = useState<{
     isOpen: boolean;
     planName: string;
@@ -81,8 +81,8 @@ export function PricingPageView() {
       {/* Main Container */}
       <main className="w-full pt-24 pb-20 relative z-10 flex-1 flex flex-col items-center">
         <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-12">
-          {/* Hero Section with Status card & toggle */}
-          <PricingHero isYearly={isYearly} onToggleBilling={setIsYearly} />
+          {/* Hero Section */}
+          <PricingHero />
 
           {/* 4 Bento Pricing Cards */}
           <PricingCards isYearly={isYearly} onSelectPlan={handleSelectPlan} />

@@ -149,40 +149,6 @@ export function NotificationsTab({ onSuccessToast }: NotificationsTabProps) {
               />
             </button>
           </div>
-
-          {/* SMS Notification */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#1E1F20] border border-slate-200/60 dark:border-transparent">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">sms</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 dark:text-[#E3E3E3]">
-                  {t('smsNotifTitle')}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-[#C4C7C5]">
-                  {t('smsNotifDesc')}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => toggleChannel('sms')}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                channels.sms
-                  ? 'bg-secondary'
-                  : 'bg-slate-300 dark:bg-[#282A2C]'
-              }`}
-              type="button"
-              role="switch"
-              aria-checked={channels.sms}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  channels.sms ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         {/* Granular Content Preferences */}

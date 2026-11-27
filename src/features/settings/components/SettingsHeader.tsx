@@ -4,134 +4,45 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import type { SettingsTabId } from '../types';
 
-interface SettingsSearchItem {
+interface SettingsSearchDescriptor {
   id: string;
+  key:
+    | 'profileInfo'
+    | 'profileDanger'
+    | 'appearanceTheme'
+    | 'appearanceFont'
+    | 'appearanceLocale'
+    | 'notificationsChannels'
+    | 'securityPassword'
+    | 'securityPrivacy'
+    | 'billingPlan'
+    | 'billingStorage'
+    | 'billingHistory'
+    | 'supportFaq';
   tabId: SettingsTabId;
+  icon: string;
+}
+
+interface SettingsSearchItem extends SettingsSearchDescriptor {
   tabLabel: string;
   title: string;
   description: string;
-  icon: string;
   keywords: string;
 }
 
-const SETTINGS_SEARCH_INDEX: SettingsSearchItem[] = [
-  {
-    id: 'profile-info',
-    tabId: 'tab-profile',
-    tabLabel: 'Hồ sơ cá nhân',
-    title: 'Thông tin cá nhân & Tiểu sử (Bio)',
-    description: 'Chỉnh sửa họ tên, ảnh đại diện, email, số điện thoại',
-    icon: 'person',
-    keywords: 'ho so profile avatar anh dai dien ten email sdt phone bio',
-  },
-  {
-    id: 'profile-danger',
-    tabId: 'tab-profile',
-    tabLabel: 'Hồ sơ cá nhân',
-    title: 'Xóa tài khoản',
-    description: 'Vô hiệu hóa hoặc xóa vĩnh viễn tài khoản ILMS',
-    icon: 'delete_forever',
-    keywords: 'xoa tai khoan delete account danger',
-  },
-  {
-    id: 'appearance-theme',
-    tabId: 'tab-appearance',
-    tabLabel: 'Giao diện',
-    title: 'Chế độ Sáng / Tối (Dark Mode)',
-    description: 'Chuyển đổi giao diện sáng, tối hoặc theo hệ thống',
-    icon: 'dark_mode',
-    keywords: 'giao dien appearance dark mode light sang toi theme',
-  },
-  {
-    id: 'appearance-font',
-    tabId: 'tab-appearance',
-    tabLabel: 'Giao diện',
-    title: 'Phông chữ, Cỡ chữ & Độ tương phản',
-    description: 'Tùy chỉnh Outfit, Inter, Be Vietnam Pro, cỡ chữ hiển thị',
-    icon: 'text_fields',
-    keywords: 'font phong chu co chu tuong phan contrast color mau sac',
-  },
-  {
-    id: 'appearance-locale',
-    tabId: 'tab-appearance',
-    tabLabel: 'Giao diện',
-    title: 'Ngôn ngữ, Múi giờ & Định dạng ngày',
-    description: 'Chuyển đổi Tiếng Việt / English, múi giờ GMT+7',
-    icon: 'translate',
-    keywords: 'ngon ngu language tieng viet english mui gio timezone date',
-  },
-  {
-    id: 'notifications-channels',
-    tabId: 'tab-notifications',
-    tabLabel: 'Thông báo',
-    title: 'Kênh nhận thông báo (Email, Push, SMS)',
-    description: 'Cấu hình nhắc nhở deadline, bài tập và thông báo lớp',
-    icon: 'notifications_active',
-    keywords: 'thong bao notification email push sms deadline nhac nho',
-  },
-  {
-    id: 'security-password',
-    tabId: 'tab-security',
-    tabLabel: 'Bảo mật',
-    title: 'Đổi mật khẩu',
-    description: 'Cập nhật mật khẩu đăng nhập định kỳ để bảo vệ tài khoản',
-    icon: 'lock_reset',
-    keywords: 'doi mat khau password bao mat security',
-  },
-  {
-    id: 'security-2fa',
-    tabId: 'tab-security',
-    tabLabel: 'Bảo mật',
-    title: 'Xác thực hai yếu tố (2FA)',
-    description: 'Bảo vệ tài khoản bằng mã OTP / Authenticator',
-    icon: 'verified_user',
-    keywords: '2fa xac thuc hai yeu to otp bao mat security',
-  },
-  {
-    id: 'security-sessions',
-    tabId: 'tab-security',
-    tabLabel: 'Bảo mật',
-    title: 'Phiên đăng nhập & Thiết bị',
-    description: 'Xem và đăng xuất các thiết bị đang truy cập',
-    icon: 'devices',
-    keywords: 'phien dang nhap thiet bi session device',
-  },
-  {
-    id: 'billing-plan',
-    tabId: 'tab-billing',
-    tabLabel: 'Gói cước & Lưu trữ',
-    title: 'Gói dịch vụ (Free / Plus / Pro / Enterprise)',
-    description: 'Xem gói hiện tại, nâng cấp, hạ cấp hoặc hủy gia hạn',
-    icon: 'workspace_premium',
-    keywords: 'goi cuoc dang ky billing free plus pro enterprise nang cap gia han',
-  },
-  {
-    id: 'billing-storage',
-    tabId: 'tab-billing',
-    tabLabel: 'Gói cước & Lưu trữ',
-    title: 'Dung lượng lưu trữ Đám mây (Cloud Storage)',
-    description: 'Theo dõi dung lượng Google Drive và giải phóng tệp',
-    icon: 'cloud',
-    keywords: 'dung luong luu tru cloud storage google drive giai phong tep',
-  },
-  {
-    id: 'billing-history',
-    tabId: 'tab-billing',
-    tabLabel: 'Gói cước & Lưu trữ',
-    title: 'Lịch sử giao dịch & Hóa đơn',
-    description: 'Tra cứu hóa đơn thanh toán gói dịch vụ',
-    icon: 'receipt_long',
-    keywords: 'lich su giao dich hoa don invoice vat thanh toan',
-  },
-  {
-    id: 'support-faq',
-    tabId: 'tab-support',
-    tabLabel: 'Hỗ trợ',
-    title: 'Trung tâm trợ giúp & Câu hỏi thường gặp (FAQ)',
-    description: 'Liên hệ hỗ trợ kỹ thuật, xem điều khoản và phiên bản',
-    icon: 'help',
-    keywords: 'ho tro tro giup faq support help cskh dieu khoan phien ban',
-  },
+const SETTINGS_SEARCH_DESCRIPTORS: SettingsSearchDescriptor[] = [
+  { id: 'profile-info', key: 'profileInfo', tabId: 'tab-profile', icon: 'person' },
+  { id: 'profile-danger', key: 'profileDanger', tabId: 'tab-profile', icon: 'delete_forever' },
+  { id: 'appearance-theme', key: 'appearanceTheme', tabId: 'tab-appearance', icon: 'dark_mode' },
+  { id: 'appearance-font', key: 'appearanceFont', tabId: 'tab-appearance', icon: 'text_fields' },
+  { id: 'appearance-locale', key: 'appearanceLocale', tabId: 'tab-appearance', icon: 'translate' },
+  { id: 'notifications-channels', key: 'notificationsChannels', tabId: 'tab-notifications', icon: 'notifications_active' },
+  { id: 'security-password', key: 'securityPassword', tabId: 'tab-security', icon: 'lock_reset' },
+  { id: 'security-privacy', key: 'securityPrivacy', tabId: 'tab-security', icon: 'visibility' },
+  { id: 'billing-plan', key: 'billingPlan', tabId: 'tab-billing', icon: 'workspace_premium' },
+  { id: 'billing-storage', key: 'billingStorage', tabId: 'tab-billing', icon: 'cloud' },
+  { id: 'billing-history', key: 'billingHistory', tabId: 'tab-billing', icon: 'receipt_long' },
+  { id: 'support-faq', key: 'supportFaq', tabId: 'tab-support', icon: 'help' },
 ];
 
 function normalizeSearchText(input: string): string {
@@ -151,27 +62,38 @@ interface SettingsHeaderProps {
 }
 
 export function SettingsHeader({
-  userFullName = 'Người dùng ILMS',
+  userFullName = '',
   searchQuery,
   onSearchChange,
   onSelectTab,
 }: SettingsHeaderProps) {
   const t = useTranslations('settings');
+  const tSearch = useTranslations('settings.searchIndex');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
+  const searchItems = useMemo<SettingsSearchItem[]>(() => {
+    return SETTINGS_SEARCH_DESCRIPTORS.map((desc) => ({
+      ...desc,
+      tabLabel: tSearch(`${desc.key}.tabLabel`),
+      title: tSearch(`${desc.key}.title`),
+      description: tSearch(`${desc.key}.description`),
+      keywords: tSearch(`${desc.key}.keywords`),
+    }));
+  }, [tSearch]);
+
   const matchedItems = useMemo(() => {
     const q = normalizeSearchText(searchQuery);
-    if (!q) return SETTINGS_SEARCH_INDEX.slice(0, 6);
-    return SETTINGS_SEARCH_INDEX.filter((item) => {
+    if (!q) return searchItems.slice(0, 6);
+    return searchItems.filter((item) => {
       const haystack = normalizeSearchText(
         `${item.title} ${item.description} ${item.tabLabel} ${item.keywords}`
       );
       return haystack.includes(q);
     });
-  }, [searchQuery]);
+  }, [searchQuery, searchItems]);
 
   useEffect(() => {
     setHighlightedIndex(0);
@@ -240,7 +162,7 @@ export function SettingsHeader({
           </span>
           <span className="text-[#747775] dark:text-[#8E918F]">•</span>
           <span className="text-xs text-[#747775] dark:text-[#C4C7C5] font-semibold">
-            {userFullName}
+            {userFullName || t('defaultUserName')}
           </span>
         </div>
         <h1 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
@@ -278,7 +200,7 @@ export function SettingsHeader({
                   onSearchChange('');
                   searchInputRef.current?.focus();
                 }}
-                aria-label="Xóa tìm kiếm"
+                aria-label={t('clearSearchAria')}
                 className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[#747775] dark:text-[#C4C7C5] cursor-pointer border-none bg-transparent flex items-center"
               >
                 <span className="material-symbols-outlined text-[16px]">close</span>
@@ -295,7 +217,7 @@ export function SettingsHeader({
           <div className="absolute top-12 left-0 right-0 z-40 rounded-2xl bg-white dark:bg-[#1E1F20] shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden max-h-80 overflow-y-auto p-1.5">
             {matchedItems.length === 0 ? (
               <div className="px-3 py-4 text-center text-xs text-[#747775] dark:text-[#8E918F]">
-                Không tìm thấy mục cài đặt phù hợp với &ldquo;{searchQuery}&rdquo;
+                {t('searchNoResults', { query: searchQuery })}
               </div>
             ) : (
               matchedItems.map((item, idx) => {

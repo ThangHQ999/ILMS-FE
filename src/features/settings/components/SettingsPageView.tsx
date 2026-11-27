@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/features/auth';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import {
@@ -20,6 +21,7 @@ import { SupportTab } from './tabs/SupportTab';
 import { SaveToast } from './SaveToast';
 
 export function SettingsPageView() {
+  const t = useTranslations('settings');
   const { data: user } = useCurrentUser();
   const { isFocus, toggleMode } = useDashboardMode();
 
@@ -42,7 +44,7 @@ export function SettingsPageView() {
   const userFullName =
     [user?.lastName, user?.middleName, user?.firstName].filter(Boolean).join(' ') ||
     user?.email ||
-    'Người dùng ILMS';
+    t('defaultUserName');
 
   return (
     <div className="min-h-screen bg-[#E1E5EA] dark:bg-[#131314] text-[#1F1F1F] dark:text-[#E3E3E3] antialiased font-sans selection:bg-[#D3E3FD] selection:text-[#041E49] dark:selection:bg-[#0842A0] dark:selection:text-white">

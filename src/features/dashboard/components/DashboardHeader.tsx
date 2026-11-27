@@ -10,35 +10,54 @@ import { RoleSwitcher } from '@/components/shared/RoleSwitcher';
 import { useNotificationStream } from '@/features/notifications';
 import { useMobileSidebar } from '@/hooks/useSidebarCollapsed';
 
-const routeMap: Record<string, string> = {
-  '/dashboard': 'Tổng quan',
-  '/teacher/dashboard': 'Tổng quan',
-  '/classes': 'Lớp học của tôi',
-  '/teacher/classes': 'Lớp học của tôi',
-  '/courses': 'Không gian môn học',
-  '/lesson-sessions': 'Lịch trình cá nhân',
-  '/teacher/attendance': 'Ca học & Điểm danh',
-  '/teacher/lesson-sessions': 'Ca học & Điểm danh',
-  '/knowledge-graph': 'Đồ thị Tri thức',
-  '/teacher/knowledge-graph': 'Đồ thị Tri thức',
-  '/competency': 'Bản đồ năng lực',
-  '/teacher/competency': 'Bản đồ năng lực',
-  '/materials': 'Tài liệu & Học liệu',
-  '/teacher/materials': 'Tài liệu & Học liệu',
-  '/assignments': 'Quản lý Đề thi & Bài tập',
-  '/assignments/create': 'Tạo Quiz mới',
-  '/assignments/create-quiz': 'Tạo Quiz mới',
-  '/assignments/question-bank': 'Ngân hàng câu hỏi',
-  '/assignments/proctoring': 'Giám sát phòng thi',
-  '/question-bank': 'Ngân hàng câu hỏi',
-  '/ai-tutor': 'Trợ lý AI Socratic',
-  '/timetable': 'Thời khóa biểu theo tuần',
-  '/teacher/timetable': 'Thời khóa biểu theo tuần',
-  '/settings': 'Cài đặt hệ thống',
+type RouteTitleKey =
+  | 'overview'
+  | 'classes'
+  | 'courses'
+  | 'lessonSessions'
+  | 'attendance'
+  | 'knowledgeGraph'
+  | 'competency'
+  | 'materials'
+  | 'assignments'
+  | 'createQuiz'
+  | 'questionBank'
+  | 'proctoring'
+  | 'aiTutor'
+  | 'chat'
+  | 'timetable'
+  | 'settings';
+
+const routeMap: Record<string, RouteTitleKey> = {
+  '/dashboard': 'overview',
+  '/teacher/dashboard': 'overview',
+  '/classes': 'classes',
+  '/teacher/classes': 'classes',
+  '/courses': 'courses',
+  '/lesson-sessions': 'lessonSessions',
+  '/teacher/attendance': 'attendance',
+  '/teacher/lesson-sessions': 'attendance',
+  '/knowledge-graph': 'knowledgeGraph',
+  '/teacher/knowledge-graph': 'knowledgeGraph',
+  '/competency': 'competency',
+  '/teacher/competency': 'competency',
+  '/materials': 'materials',
+  '/teacher/materials': 'materials',
+  '/assignments': 'assignments',
+  '/assignments/create': 'createQuiz',
+  '/assignments/create-quiz': 'createQuiz',
+  '/assignments/question-bank': 'questionBank',
+  '/assignments/proctoring': 'proctoring',
+  '/question-bank': 'questionBank',
+  '/ai-tutor': 'aiTutor',
+  '/chat': 'chat',
+  '/timetable': 'timetable',
+  '/teacher/timetable': 'timetable',
+  '/settings': 'settings',
 };
 
-function getPageTitle(pathname: string): string {
-  if (!pathname) return 'Không gian học tập';
+function getRouteTitleKey(pathname: string): RouteTitleKey | 'default' {
+  if (!pathname) return 'default';
 
   // Strip locale prefix if present (e.g. /vi/... or /en/...)
   const cleanPath = pathname.replace(/^\/(?:vi|en)(?=\/|$)/, '') || '/dashboard';
@@ -58,7 +77,7 @@ function getPageTitle(pathname: string): string {
   }
 
   // 3. Default Fallback
-  return 'Không gian học tập';
+  return 'default';
 }
 
 interface DashboardHeaderProps {
@@ -81,15 +100,15 @@ export function DashboardHeader({
   workspaceMode = 'faculty',
   onToggleWorkspaceMode,
   title,
-  showFocusMode = true,
-  showRoleSwitcher = false,
+  showFocusMode: _showFocusMode = true,
+  showRoleSwitcher: _showRoleSwitcher = false,
 }: DashboardHeaderProps) {
   const t = useTranslations('dashboard');
   const pathname = usePathname();
   const { toggleMobileOpen } = useMobileSidebar();
   const { latestNotification, clearLatestNotification } = useNotificationStream();
   const isCreateQuiz = pathname?.startsWith('/assignments/create') || pathname?.startsWith('/assignments/create-quiz');
-  const currentPageName = title || getPageTitle(pathname || '');
+  const currentPageName = title || t(`routes.${getRouteTitleKey(pathname || '')}`);
 
   if (isFocus) {
     return (
@@ -99,7 +118,7 @@ export function DashboardHeader({
             <button
               type="button"
               onClick={toggleMobileOpen}
-              aria-label="Mở menu"
+              aria-label={t('openMenu')}
               className="w-9 h-9 -ml-1 rounded-xl flex items-center justify-center text-slate-700 dark:text-[#E3E3E3] hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors lg:hidden shrink-0 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[24px]">menu</span>
@@ -151,7 +170,7 @@ export function DashboardHeader({
         <button
           type="button"
           onClick={toggleMobileOpen}
-          aria-label="Mở menu điều hướng"
+          aria-label={t('openNavMenu')}
           className="w-9 h-9 -ml-1 rounded-xl flex items-center justify-center text-slate-700 dark:text-[#E3E3E3] hover:bg-slate-100 dark:hover:bg-[#282A2C] transition-colors lg:hidden shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[24px]">menu</span>
@@ -173,11 +192,11 @@ export function DashboardHeader({
               prefetch={true}
               className="text-gray-500 hover:text-gray-900 dark:text-[#8E918F] dark:hover:text-[#E3E3E3] font-medium transition-colors truncate"
             >
-              Quản lý Đề thi &amp; Quiz
+              {t('routes.examsAndQuizzes')}
             </Link>
             <span className="text-gray-400 dark:text-[#8E918F] mx-1.5 shrink-0 font-normal">/</span>
             <span className="text-sm sm:text-base font-semibold text-gray-900 dark:text-[#E3E3E3] tracking-tight font-sans whitespace-nowrap shrink-0 leading-none">
-              Tạo Quiz mới
+              {t('routes.createQuiz')}
             </span>
           </>
         ) : (
@@ -222,23 +241,8 @@ export function DashboardHeader({
               sync_alt
             </span>
             <span>
-              {workspaceMode === 'student' ? 'Đổi sang Giảng dạy' : 'Đổi chế độ'}
+              {workspaceMode === 'student' ? t('switchToTeaching') : t('switchMode')}
             </span>
-          </button>
-        )}
-
-        {/* Fullscreen Canvas Mode Button */}
-        {showFocusMode && (
-          <button
-            onClick={onToggleMode}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] dark:bg-[#1E1F20] dark:hover:bg-[#282A2C] text-[#1F1F1F] dark:text-[#E3E3E3] transition-colors text-xs font-medium whitespace-nowrap border-none cursor-pointer"
-            type="button"
-            title="Mở toàn màn hình Canvas (Phím F)"
-          >
-            <span className="material-symbols-outlined text-[18px] text-[#0B57D0] dark:text-[#A8C7FA]">
-              fullscreen
-            </span>
-            <span>{t('focusModeBtn')}</span>
           </button>
         )}
 
@@ -279,7 +283,7 @@ export function DashboardHeader({
                 onClick={clearLatestNotification}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-[#A8C7FA] hover:underline mt-2"
               >
-                <span>Xem ngay</span>
+                <span>{t('viewNow')}</span>
                 <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
               </Link>
             )}

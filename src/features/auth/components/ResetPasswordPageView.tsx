@@ -11,7 +11,6 @@ import {
   Sun,
   Moon,
   Lock,
-  ShieldCheck,
   CheckCircle2,
   CheckCircle,
   FileCheck2,
@@ -126,10 +125,6 @@ export function ResetPasswordPageView() {
           <span className="flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>SSL 256-bit</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#0B57D0] dark:text-[#A8C7FA]" />
-            <span>2FA Ready</span>
           </span>
           <span className="flex items-center gap-1.5">
             <FileCheck2 className="w-3.5 h-3.5 text-indigo-500" />

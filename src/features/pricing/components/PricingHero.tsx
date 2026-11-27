@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import { useMySubscription, useStorageSummary } from '@/features/settings';
 
 interface PricingHeroProps {
-  isYearly: boolean;
-  onToggleBilling: (yearly: boolean) => void;
+  isYearly?: boolean;
+  onToggleBilling?: (yearly: boolean) => void;
 }
 
-export function PricingHero({ isYearly, onToggleBilling }: PricingHeroProps) {
+export function PricingHero(_props: PricingHeroProps) {
   const t = useTranslations('pricing.hero');
   const tToggle = useTranslations('pricing.billingToggle');
 
@@ -50,33 +50,11 @@ export function PricingHero({ isYearly, onToggleBilling }: PricingHeroProps) {
         {t('subtitle')}
       </p>
 
-      {/* Billing Cycle Toggle Flat */}
+      {/* Monthly Billing Badge (yearly billing is currently unavailable) */}
       <div className="mt-2 flex items-center justify-center">
-        <div className="p-1 rounded-full bg-slate-100 dark:bg-[#1e1f20] border border-slate-200 dark:border-[#3c4043] flex items-center gap-1 text-xs font-medium">
-          <button
-            onClick={() => onToggleBilling(false)}
-            type="button"
-            className={`px-4 py-1.5 rounded-full transition-colors cursor-pointer ${!isYearly
-                ? 'bg-white dark:bg-[#282a2c] text-slate-900 dark:text-[#e3e3e3] font-semibold shadow-xs'
-                : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3]'
-              }`}
-          >
-            {tToggle('monthly')}
-          </button>
-          <button
-            onClick={() => onToggleBilling(true)}
-            type="button"
-            className={`px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer ${isYearly
-                ? 'bg-white dark:bg-[#282a2c] text-slate-900 dark:text-[#e3e3e3] font-semibold shadow-xs'
-                : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3]'
-              }`}
-          >
-            <span>{tToggle('yearly')}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-              {tToggle('savePercent')}
-            </span>
-          </button>
-        </div>
+        <span className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-[#1e1f20] border border-slate-200 dark:border-[#3c4043] text-xs font-semibold text-slate-900 dark:text-[#e3e3e3]">
+          {tToggle('monthly')}
+        </span>
       </div>
     </section>
   );

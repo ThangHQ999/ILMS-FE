@@ -21,7 +21,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
 
   const fallbackFullName = currentUser
     ? [currentUser.lastName, currentUser.middleName, currentUser.firstName].filter(Boolean).join(' ') || currentUser.email
-    : 'Học viên ILMS';
+    : t('defaultUserName');
 
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
@@ -222,7 +222,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#444746] dark:text-[#C4C7C5]">
-              Số điện thoại
+              {t('lblPhone')}
             </label>
             <input
               type="tel"
@@ -232,7 +232,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] hover:bg-[#E1E5EA] focus:bg-[#E1E5EA] dark:bg-[#282A2C] dark:hover:bg-[#333537] dark:focus:bg-[#333537] border-none text-xs sm:text-sm text-[#1F1F1F] dark:text-[#E3E3E3] outline-none transition-all"
             />
             <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
-              Số điện thoại liên hệ và bảo mật 2 lớp
+              {t('hintPhone')}
             </span>
           </div>
 
@@ -243,7 +243,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
             <input
               type="text"
               disabled
-              value={profile?.role || currentUser?.roleName || 'Học viên'}
+              value={profile?.role || currentUser?.roleName || t('defaultRoleLearner')}
               className="w-full h-11 px-4 rounded-full bg-[#F0F4F9] dark:bg-[#282A2C] border-none text-xs sm:text-sm text-[#747775] dark:text-[#8E918F] cursor-not-allowed opacity-80"
             />
             <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
@@ -312,36 +312,6 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               {t('btnChangeEmail')}
             </button>
           </div>
-
-          {/* Phone Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#D3E3FD] text-[#041E49] dark:bg-[#162B4D] dark:text-[#A8C7FA] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">call</span>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                    {profile?.phone || 'Chưa cập nhật'}
-                  </span>
-                  <span className="px-3 py-0.5 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold flex items-center gap-0.5 border-none">
-                    <span className="material-symbols-outlined text-[12px]">verified</span>{' '}
-                    {t('badgeVerified')}
-                  </span>
-                </div>
-                <span className="text-xs text-[#747775] dark:text-[#C4C7C5]">
-                  {t('hintPrimaryPhone')}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={onSuccessToast}
-              className="px-5 py-2 rounded-full bg-white dark:bg-[#1E1F20] hover:bg-[#E1E5EA] dark:hover:bg-[#333537] text-[#1F1F1F] dark:text-[#E3E3E3] text-xs font-medium transition-colors self-start sm:self-auto border-none cursor-pointer"
-              type="button"
-            >
-              {t('btnChangePhone')}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -382,7 +352,7 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
         </div>
 
         {/* Social Accounts Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {/* Google */}
           <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex flex-col justify-between gap-3">
             <div className="flex items-center justify-between">
@@ -407,60 +377,6 @@ export function ProfileTab({ onSuccessToast }: ProfileTabProps) {
               type="button"
             >
               {t('btnUnlink')}
-            </button>
-          </div>
-
-          {/* GitHub */}
-          <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex flex-col justify-between gap-3">
-            <div className="flex items-center justify-between">
-              <div className="w-8 h-8 rounded-full bg-[#1E1F20] dark:bg-[#131314] text-white flex items-center justify-center font-mono font-bold text-xs">
-                &lt;/&gt;
-              </div>
-              <span className="px-3 py-0.5 rounded-full bg-[#C4EED0] text-[#0D652D] dark:bg-[#142E20] dark:text-[#81C995] text-[10px] font-bold border-none">
-                {t('badgeLinked')}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                GitHub Dev
-              </span>
-              <span className="text-[11px] text-[#747775] dark:text-[#8E918F] font-mono">
-                @{profile?.socialAccounts.github?.username || 'minh-dev-icpc'}
-              </span>
-            </div>
-            <button
-              onClick={onSuccessToast}
-              className="w-full py-1.5 rounded-full bg-white dark:bg-[#1E1F20] hover:bg-[#FAD2CF] hover:text-[#B3261E] dark:hover:bg-[#3C1919] dark:hover:text-[#F28B82] text-[#444746] dark:text-[#C4C7C5] text-xs font-medium transition-colors border-none cursor-pointer"
-              type="button"
-            >
-              {t('btnUnlink')}
-            </button>
-          </div>
-
-          {/* Apple ID */}
-          <div className="p-4 rounded-2xl bg-[#F0F4F9] dark:bg-[#282A2C] border-none flex flex-col justify-between gap-3">
-            <div className="flex items-center justify-between">
-              <div className="w-8 h-8 rounded-full bg-white dark:bg-[#1E1F20] text-[#444746] dark:text-[#C4C7C5] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">devices</span>
-              </div>
-              <span className="px-3 py-0.5 rounded-full bg-[#E1E5EA] dark:bg-[#1E1F20] text-[#747775] dark:text-[#8E918F] text-[10px] font-semibold border-none">
-                {t('badgeUnlinked')}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-[#1F1F1F] dark:text-[#E3E3E3]">
-                Apple ID
-              </span>
-              <span className="text-[11px] text-[#747775] dark:text-[#8E918F]">
-                {t('hintAppleLogin')}
-              </span>
-            </div>
-            <button
-              onClick={onSuccessToast}
-              className="w-full py-1.5 rounded-full bg-[#D3E3FD] hover:bg-[#B9D0F9] text-[#041E49] dark:bg-[#A8C7FA] dark:hover:bg-[#8AB4F8] dark:text-[#062E6F] text-xs font-medium transition-colors border-none shadow-none cursor-pointer"
-              type="button"
-            >
-              {t('btnConnectNow')}
             </button>
           </div>
         </div>

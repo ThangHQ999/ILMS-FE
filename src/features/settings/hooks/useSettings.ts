@@ -12,8 +12,6 @@ import {
   getNotificationSettings,
   updateNotificationSettings,
   getSecuritySettings,
-  logoutSession,
-  logoutOtherSessions,
   updatePrivacySettings,
   getBillingInfo,
   getSystemInfo,
@@ -156,28 +154,6 @@ export function useSecuritySettings() {
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-  });
-}
-
-export function useLogoutSession(onSuccessToast?: () => void) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (sessionId: string) => logoutSession(sessionId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: settingsKeys.security() });
-      onSuccessToast?.();
-    },
-  });
-}
-
-export function useLogoutOtherSessions(onSuccessToast?: () => void) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: logoutOtherSessions,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: settingsKeys.security() });
-      onSuccessToast?.();
-    },
   });
 }
 

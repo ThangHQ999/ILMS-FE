@@ -74,19 +74,7 @@ export interface NotificationSettingsDto {
   };
 }
 
-export interface ActiveSessionDto {
-  id: string;
-  device: string;
-  location: string;
-  ip: string;
-  isCurrent: boolean;
-  lastActive: string;
-}
-
 export interface SecuritySettingsDto {
-  twoFactorEnabled: boolean;
-  twoFactorMethod: string;
-  sessions: ActiveSessionDto[];
   privacy: {
     scoreVisibility: 'classmates_only' | 'public' | 'private';
     searchableByEmail: boolean;

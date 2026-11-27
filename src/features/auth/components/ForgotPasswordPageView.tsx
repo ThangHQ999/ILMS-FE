@@ -10,7 +10,6 @@ import {
   Sun,
   Moon,
   Lock,
-  ShieldCheck,
   Headphones,
   CheckCircle,
   FileCheck2,
@@ -149,11 +148,6 @@ export function ForgotPasswordPageView() {
               <div className="inline-flex items-center gap-1.5">
                 <Lock className="w-4 h-4 text-[#0B57D0] dark:text-[#A8C7FA]" />
                 <span>{t('sslEncryption')}</span>
-              </div>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
-              <div className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#0B57D0] dark:text-[#A8C7FA]" />
-                <span>{t('twoFactor')}</span>
               </div>
               <span className="text-slate-300 dark:text-slate-700">•</span>
               <div className="inline-flex items-center gap-1.5">

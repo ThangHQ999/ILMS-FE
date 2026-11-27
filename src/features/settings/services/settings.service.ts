@@ -56,26 +56,6 @@ const mockNotificationSettings: NotificationSettingsDto = {
 };
 
 const mockSecurity: SecuritySettingsDto = {
-  twoFactorEnabled: true,
-  twoFactorMethod: 'Google Authenticator trên thiết bị iPhone',
-  sessions: [
-    {
-      id: 'sess-current',
-      device: 'Chrome trên MacBook Pro 16"',
-      location: 'Hà Nội, Việt Nam',
-      ip: '118.70.190.45',
-      isCurrent: true,
-      lastActive: 'Đang hoạt động',
-    },
-    {
-      id: 'sess-mobile',
-      device: 'Safari trên iPhone 15 Pro',
-      location: 'TP. Hồ Chí Minh, Việt Nam',
-      ip: '14.161.22.10',
-      isCurrent: false,
-      lastActive: 'Hoạt động 2 giờ trước',
-    },
-  ],
   privacy: {
     scoreVisibility: 'classmates_only',
     searchableByEmail: true,
@@ -517,30 +497,6 @@ export async function getSecuritySettings(): Promise<SecuritySettingsDto> {
   }
   await delay();
   return { ...mockSecurity };
-}
-
-export async function logoutSession(
-  sessionId: string
-): Promise<{ success: boolean }> {
-  try {
-    await api.delete(`/user/sessions/${sessionId}`);
-  } catch {
-    // Fallback
-  }
-  await delay(150);
-  mockSecurity.sessions = mockSecurity.sessions.filter((s) => s.id !== sessionId);
-  return { success: true };
-}
-
-export async function logoutOtherSessions(): Promise<{ success: boolean }> {
-  try {
-    await api.post('/user/sessions/logout-others');
-  } catch {
-    // Fallback
-  }
-  await delay(200);
-  mockSecurity.sessions = mockSecurity.sessions.filter((s) => s.isCurrent);
-  return { success: true };
 }
 
 export async function updatePrivacySettings(

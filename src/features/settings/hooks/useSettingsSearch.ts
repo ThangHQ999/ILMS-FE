@@ -169,12 +169,8 @@ export function useSettingsSearch(defaultTab: SettingsTabId = 'tab-profile') {
       ) {
         handleSelectTab('tab-notifications');
       } else if (
-        q.includes('2fa') ||
         q.includes('bảo mật') ||
         q.includes('security') ||
-        q.includes('phiên') ||
-        q.includes('thiết bị') ||
-        q.includes('session') ||
         q.includes('quyền riêng tư') ||
         q.includes('privacy') ||
         q.includes('mật khẩu') ||

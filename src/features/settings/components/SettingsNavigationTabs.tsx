@@ -2,8 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import { SettingsTabId } from '../types';
-import { useStorageSummary } from '../hooks/useStorage';
-import { useMySubscription } from '../hooks/useSubscriptions';
 
 interface SettingsNavigationTabsProps {
   activeTab: SettingsTabId;
@@ -15,8 +13,6 @@ export function SettingsNavigationTabs({
   onSelectTab,
 }: SettingsNavigationTabsProps) {
   const t = useTranslations('settings');
-  const { data: summary } = useStorageSummary();
-  const { data: mySub } = useMySubscription();
 
   const navItems: Array<{
     id: SettingsTabId;
@@ -61,27 +57,6 @@ export function SettingsNavigationTabs({
         subtitle: t('tabSupportSubtitle'),
       },
     ];
-
-  // Dynamic membership & storage metrics
-  const isFree = (mySub?.planCode || summary?.planCode || 'FREE') === 'FREE';
-  const planName = mySub?.planName || summary?.planName || (isFree ? 'Gói Cơ bản' : 'Gói Chuyên nghiệp (Pro)');
-  const isStorageNearLimit = summary?.isStorageNearLimit || (summary?.usagePercentage ?? 0) >= 85;
-  const storagePct = summary?.usagePercentage ?? 0;
-  const storageText = summary
-    ? `${summary.usedStorageFormatted} / ${summary.maxStorageFormatted}`
-    : '0 MB / 1.0 GB';
-
-  const expiryText = mySub?.endDate
-    ? `Hết hạn ${new Date(mySub.endDate).toLocaleDateString('vi-VN')}`
-    : isFree
-      ? 'Gói vĩnh viễn'
-      : t('quotaExpiresAt');
-
-  const progressColor = isStorageNearLimit
-    ? 'bg-rose-500'
-    : storagePct > 60
-      ? 'bg-amber-500'
-      : 'bg-[#0B57D0] dark:bg-[#A8C7FA]';
 
   return (
     <div className="flex flex-col gap-4 sticky top-20">
